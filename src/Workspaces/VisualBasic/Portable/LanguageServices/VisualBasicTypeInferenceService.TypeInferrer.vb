@@ -828,17 +828,107 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' then we can figure out what 'foo' should be based on teh await
                     ' context.
                     If expressionOpt Is memberAccessExpression.Expression Then
-                        If memberAccessExpression.Name.Identifier.Value.Equals(NameOf(Task(Of Integer).ConfigureAwait)) AndAlso
-                           memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) AndAlso
-                           memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression) Then
-                            Return InferTypes(DirectCast(memberAccessExpression.Parent, ExpressionSyntax))
-                        End If
-
-                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                        Return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression)
                     End If
 
                     Return InferTypes(memberAccessExpression)
                 End If
+            End Function
+
+            Private Function InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression As MemberAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Dim name = memberAccessExpression.Name.Identifier.Value
+
+                If name.Equals(NameOf(Task(Of Integer).ConfigureAwait)) AndAlso
+                   memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) AndAlso
+                   memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression) Then
+                    Return InferTypes(DirectCast(memberAccessExpression.Parent, ExpressionSyntax))
+                ElseIf name.Equals(NameOf(Task(Of Integer).ContinueWith)) Then
+                    ' foo.ContinueWith(...)
+                    ' We want to infer Task<T>.  For now, we'll just do Task<object>,
+                    ' in the future it would be nice to figure out the actual result
+                    ' type based on the argument to ContinueWith.
+                    Dim taskOfT = Me.Compilation.TaskOfTType()
+                    If taskOfT IsNot Nothing Then
+                        Return SpecializedCollections.SingletonEnumerable(
+                            taskOfT.Construct(Me.Compilation.ObjectType))
+                    End If
+                ElseIf name.Equals(NameOf(Enumerable.Select)) OrElse
+                       name.Equals(NameOf(Enumerable.Where)) Then
+
+                    Dim ienumerableType = Me.Compilation.IEnumerableOfTType()
+
+                    ' foo.Select
+                    ' We want to infer IEnumerable<T>.  We can try to figure out what 
+                    ' T if we get a delegate as the first argument to Select/Where.
+                    If ienumerableType IsNot Nothing AndAlso memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) Then
+                        Dim invocation = DirectCast(memberAccessExpression.Parent, InvocationExpressionSyntax)
+                        If invocation.ArgumentList.Arguments.Count > 0 AndAlso
+                           TypeOf invocation.ArgumentList.Arguments(0) Is SimpleArgumentSyntax Then
+                            Dim argumentExpression = DirectCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
+                            Dim argumentTypes = GetTypes(argumentExpression)
+                            Dim delegateType = argumentTypes.FirstOrDefault().GetDelegateType(Me.Compilation)
+                            Dim typeArg = If(delegateType?.TypeArguments.Length > 0,
+                                delegateType.TypeArguments(0),
+                                Me.Compilation.ObjectType)
+
+                            If delegateType Is Nothing OrElse IsUnusableType(typeArg) Then
+                                If TypeOf argumentExpression Is LambdaExpressionSyntax Then
+                                    typeArg = If(InferTypeForFirstParameterOfLambda(DirectCast(argumentExpression, LambdaExpressionSyntax)),
+                                    Me.Compilation.ObjectType)
+                                End If
+                            End If
+
+                            Return SpecializedCollections.SingletonEnumerable(
+                                ienumerableType.Construct(typeArg))
+                        End If
+                    End If
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+            End Function
+
+            Private Function InferTypeForFirstParameterOfLambda(
+                    lambda As LambdaExpressionSyntax) As ITypeSymbol
+                If lambda.SubOrFunctionHeader.ParameterList.Parameters.Count > 0 Then
+                    Dim parameter = lambda.SubOrFunctionHeader.ParameterList.Parameters(0)
+                    Dim parameterName = parameter.Identifier.Identifier.ValueText
+
+                    If TypeOf lambda Is SingleLineLambdaExpressionSyntax Then
+                        Dim singleLine = DirectCast(lambda, SingleLineLambdaExpressionSyntax)
+                        Return InferTypeForFirstParameterOfLambda(parameterName, singleLine.Body)
+                    ElseIf TypeOf lambda Is MultiLineLambdaExpressionSyntax Then
+                        Dim multiLine = DirectCast(lambda, MultiLineLambdaExpressionSyntax)
+                        For Each statement In multiLine.Statements
+                            Dim type = InferTypeForFirstParameterOfLambda(parameterName, statement)
+                            If type IsNot Nothing Then
+                                Return type
+                            End If
+                        Next
+                    End If
+                End If
+
+                Return Nothing
+            End Function
+
+            Private Function InferTypeForFirstParameterOfLambda(
+                    parameterName As String, node As SyntaxNode) As ITypeSymbol
+                If node.IsKind(SyntaxKind.IdentifierName) Then
+                    Dim identifier = DirectCast(node, IdentifierNameSyntax)
+                    If CaseInsensitiveComparison.Equals(parameterName, identifier.Identifier.ValueText) Then
+                        Return InferTypes(identifier).FirstOrDefault()
+                    End If
+                Else
+                    For Each child In node.ChildNodesAndTokens()
+                        If child.IsNode Then
+                            Dim type = InferTypeForFirstParameterOfLambda(parameterName, child.AsNode)
+                            If type IsNot Nothing Then
+                                Return type
+                            End If
+                        End If
+                    Next
+                End If
+
+                Return Nothing
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)

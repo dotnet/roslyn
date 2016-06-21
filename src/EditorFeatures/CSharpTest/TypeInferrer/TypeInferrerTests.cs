@@ -1820,7 +1820,6 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
         public async Task TestWhereCall()
         {
             var text =
@@ -1837,7 +1836,6 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
         public async Task TestWhereCall2()
         {
             var text =

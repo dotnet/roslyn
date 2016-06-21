@@ -1457,72 +1457,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expressionOpt != null);
                     if (expressionOpt == memberAccessExpression.Expression)
                     {
-                        // If we're on the left side of a dot, it's possible in a few cases
-                        // to figure out what type we should be.  Specifically, if we have
-                        //
-                        //      await foo.ConfigureAwait()
-                        //
-                        // then we can figure out what 'foo' should be based on teh await
-                        // context.
-                        var name = memberAccessExpression.Name.Identifier.Value;
-                        if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
-                            memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) &&
-                            memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
-                        {
-                            return InferTypes((ExpressionSyntax)memberAccessExpression.Parent);
-                        }
-                        else if (name.Equals(nameof(Task<int>.ContinueWith)))
-                        {
-                            // foo.ContinueWith(...)
-                            // We want to infer Task<T>.  For now, we'll just do Task<object>,
-                            // in the future it would be nice to figure out the actual result
-                            // type based on the argument to ContinueWith.
-                            var taskOfT = this.Compilation.TaskOfTType();
-                            if (taskOfT != null)
-                            {
-                                return SpecializedCollections.SingletonEnumerable(
-                                    taskOfT.Construct(this.Compilation.ObjectType));
-                            }
-                        }
-                        else if (name.Equals(nameof(Enumerable.Select)) ||
-                                 name.Equals(nameof(Enumerable.Where)))
-                        {
-                            var ienumerableType = this.Compilation.IEnumerableOfTType();
-
-                            // foo.Select
-                            // We want to infer IEnumerable<T>.  We can try to figure out what 
-                            // T if we get a delegate as the first argument to Select/Where.
-                            if (ienumerableType != null && memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression))
-                            {
-                                var invocation = (InvocationExpressionSyntax)memberAccessExpression.Parent;
-                                if (invocation.ArgumentList.Arguments.Count > 0)
-                                {
-                                    var argumentExpression = invocation.ArgumentList.Arguments[0].Expression;
-                                    var argumentTypes = GetTypes(argumentExpression);
-                                    var delegateType = argumentTypes.FirstOrDefault().GetDelegateType(this.Compilation);
-                                    var typeArg = delegateType?.TypeArguments.Length > 0
-                                        ? delegateType.TypeArguments[0]
-                                        : this.Compilation.ObjectType;
-
-                                    if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax)
-                                    {
-                                        typeArg = InferTypeForFirstParameterOfLambda((LambdaExpressionSyntax)argumentExpression) ??
-                                            this.Compilation.ObjectType;
-                                    }
-
-                                    return SpecializedCollections.SingletonEnumerable(
-                                        ienumerableType.Construct(typeArg));
-                                }
-                            }
-                        }
-
-                        return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                        return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression);
                     }
 
                     // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
                     // whatever type we'd infer for "Foo.Bar" itself.
                     return InferTypes(memberAccessExpression);
                 }
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeForExpressionOfMemberAccessExpression(
+                MemberAccessExpressionSyntax memberAccessExpression)
+            {
+                // If we're on the left side of a dot, it's possible in a few cases
+                // to figure out what type we should be.  Specifically, if we have
+                //
+                //      await foo.ConfigureAwait()
+                //
+                // then we can figure out what 'foo' should be based on teh await
+                // context.
+                var name = memberAccessExpression.Name.Identifier.Value;
+                if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
+                    memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) &&
+                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
+                {
+                    return InferTypes((ExpressionSyntax)memberAccessExpression.Parent);
+                }
+                else if (name.Equals(nameof(Task<int>.ContinueWith)))
+                {
+                    // foo.ContinueWith(...)
+                    // We want to infer Task<T>.  For now, we'll just do Task<object>,
+                    // in the future it would be nice to figure out the actual result
+                    // type based on the argument to ContinueWith.
+                    var taskOfT = this.Compilation.TaskOfTType();
+                    if (taskOfT != null)
+                    {
+                        return SpecializedCollections.SingletonEnumerable(
+                            taskOfT.Construct(this.Compilation.ObjectType));
+                    }
+                }
+                else if (name.Equals(nameof(Enumerable.Select)) ||
+                         name.Equals(nameof(Enumerable.Where)))
+                {
+                    var ienumerableType = this.Compilation.IEnumerableOfTType();
+
+                    // foo.Select
+                    // We want to infer IEnumerable<T>.  We can try to figure out what 
+                    // T if we get a delegate as the first argument to Select/Where.
+                    if (ienumerableType != null && memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression))
+                    {
+                        var invocation = (InvocationExpressionSyntax)memberAccessExpression.Parent;
+                        if (invocation.ArgumentList.Arguments.Count > 0)
+                        {
+                            var argumentExpression = invocation.ArgumentList.Arguments[0].Expression;
+                            var argumentTypes = GetTypes(argumentExpression);
+                            var delegateType = argumentTypes.FirstOrDefault().GetDelegateType(this.Compilation);
+                            var typeArg = delegateType?.TypeArguments.Length > 0
+                                ? delegateType.TypeArguments[0]
+                                : this.Compilation.ObjectType;
+
+                            if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax)
+                            {
+                                typeArg = InferTypeForFirstParameterOfLambda((LambdaExpressionSyntax)argumentExpression) ??
+                                    this.Compilation.ObjectType;
+                            }
+
+                            return SpecializedCollections.SingletonEnumerable(
+                                ienumerableType.Construct(typeArg));
+                        }
+                    }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
             private ITypeSymbol InferTypeForFirstParameterOfLambda(
