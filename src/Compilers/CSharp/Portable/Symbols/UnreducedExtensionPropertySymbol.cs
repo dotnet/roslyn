@@ -18,67 +18,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// but synthesized so that it's static and with an extra
     /// first parameter of the extended class's type.
     /// </summary>
-    internal sealed class ExpandedExtensionClassPropertySymbol : PropertySymbol
+    internal sealed class UnreducedExtensionPropertySymbol : PropertySymbol
     {
-        private PropertySymbol _expandedFrom;
+        private PropertySymbol _unreducedFrom;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        public ExpandedExtensionClassPropertySymbol(PropertySymbol expandedFrom)
+        public UnreducedExtensionPropertySymbol(PropertySymbol unreducedFrom)
         {
-            Debug.Assert((object)expandedFrom != null);
-            Debug.Assert(expandedFrom.IsInExtensionClass);
-            Debug.Assert(!(expandedFrom is ExpandedExtensionClassPropertySymbol));
+            Debug.Assert((object)unreducedFrom != null);
+            Debug.Assert(unreducedFrom.IsInExtensionClass);
+            Debug.Assert(!(unreducedFrom is UnreducedExtensionPropertySymbol));
 
-            _expandedFrom = expandedFrom;
+            _unreducedFrom = unreducedFrom;
         }
 
         // PROTOTYPE: Make virtual?
-        public PropertySymbol ExpandedFrom => _expandedFrom;
+        public PropertySymbol UnreducedFrom => _unreducedFrom;
 
-        public override Symbol ContainingSymbol => _expandedFrom.ContainingSymbol;
+        public override Symbol ContainingSymbol => _unreducedFrom.ContainingSymbol;
 
-        public override Accessibility DeclaredAccessibility => _expandedFrom.DeclaredAccessibility;
+        public override Accessibility DeclaredAccessibility => _unreducedFrom.DeclaredAccessibility;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _expandedFrom.DeclaringSyntaxReferences;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _unreducedFrom.DeclaringSyntaxReferences;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
-        public override MethodSymbol GetMethod => _expandedFrom.GetMethod?.ExpandExtensionClassMethod();
+        public override MethodSymbol GetMethod => _unreducedFrom.GetMethod?.UnreduceExtensionMethod();
 
-        public override MethodSymbol SetMethod => _expandedFrom.SetMethod?.ExpandExtensionClassMethod();
+        public override MethodSymbol SetMethod => _unreducedFrom.SetMethod?.UnreduceExtensionMethod();
 
         // PROTOTYPE: extra parameters causing problems? (find references of IsIndexer)
-        public override bool IsIndexer => _expandedFrom.IsIndexer;
+        public override bool IsIndexer => _unreducedFrom.IsIndexer;
 
-        public override bool IsAbstract => _expandedFrom.IsAbstract;
+        public override bool IsAbstract => _unreducedFrom.IsAbstract;
 
-        public override bool IsExtern => _expandedFrom.IsExtern;
+        public override bool IsExtern => _unreducedFrom.IsExtern;
 
-        public override bool IsOverride => _expandedFrom.IsOverride;
+        public override bool IsOverride => _unreducedFrom.IsOverride;
 
-        public override bool IsSealed => _expandedFrom.IsSealed;
+        public override bool IsSealed => _unreducedFrom.IsSealed;
 
         public override bool IsStatic => true;
 
-        public override bool IsVirtual => _expandedFrom.IsVirtual;
+        public override bool IsVirtual => _unreducedFrom.IsVirtual;
 
-        public override ImmutableArray<Location> Locations => _expandedFrom.Locations;
+        public override ImmutableArray<Location> Locations => _unreducedFrom.Locations;
 
-        public override TypeSymbol Type => _expandedFrom.Type;
+        public override TypeSymbol Type => _unreducedFrom.Type;
 
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers => _expandedFrom.TypeCustomModifiers;
+        public override ImmutableArray<CustomModifier> TypeCustomModifiers => _unreducedFrom.TypeCustomModifiers;
 
-        internal override Cci.CallingConvention CallingConvention => _expandedFrom.CallingConvention;
+        internal override Cci.CallingConvention CallingConvention => _unreducedFrom.CallingConvention;
 
-        internal override bool HasSpecialName => _expandedFrom.HasSpecialName;
+        internal override bool HasSpecialName => _unreducedFrom.HasSpecialName;
 
-        public override string Name => _expandedFrom.Name;
+        public override string Name => _unreducedFrom.Name;
 
-        internal override bool MustCallMethodsDirectly => _expandedFrom.MustCallMethodsDirectly;
+        internal override bool MustCallMethodsDirectly => _unreducedFrom.MustCallMethodsDirectly;
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData => _expandedFrom.ObsoleteAttributeData;
+        internal override ObsoleteAttributeData ObsoleteAttributeData => _unreducedFrom.ObsoleteAttributeData;
 
-        internal override RefKind RefKind => _expandedFrom.RefKind;
+        internal override RefKind RefKind => _unreducedFrom.RefKind;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
@@ -94,24 +94,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> MakeParameters()
         {
-            var expandedFromParameters = _expandedFrom.Parameters;
-            int count = expandedFromParameters.Length;
+            var unreducedFromParameters = _unreducedFrom.Parameters;
+            int count = unreducedFromParameters.Length;
 
             var parameters = new ParameterSymbol[count + 1];
-            parameters[0] = new ExpandedExtensionClassPropertyThisParameterSymbol(this);
+            parameters[0] = new UnreducedExtensionPropertyThisParameterSymbol(this);
             for (int i = 0; i < count; i++)
             {
-                parameters[i + 1] = new ExpandedExtensionClassPropertyParameterSymbol(this, expandedFromParameters[i]);
+                parameters[i + 1] = new UnreducedExtensionPropertyParameterSymbol(this, unreducedFromParameters[i]);
             }
 
             return parameters.AsImmutableOrNull();
         }
 
-        // PROTOTYPE: Merge these two classes with the ones in ExpandedExtensionClassMethodSymbol?
+        // PROTOTYPE: Merge these two classes with the ones in UnreducedExtensionMethodSymbol?
 
-        private sealed class ExpandedExtensionClassPropertyThisParameterSymbol : SynthesizedParameterSymbol
+        private sealed class UnreducedExtensionPropertyThisParameterSymbol : SynthesizedParameterSymbol
         {
-            public ExpandedExtensionClassPropertyThisParameterSymbol(ExpandedExtensionClassPropertySymbol containingProperty) :
+            public UnreducedExtensionPropertyThisParameterSymbol(UnreducedExtensionPropertySymbol containingProperty) :
                 base(containingProperty, containingProperty.ContainingType.ExtensionClassType, 0, RefKind.None)
             {
             }
@@ -119,11 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // PROTOTYPE: Add overrides? (Otherwise we might want to construct SynthesizedParameterSymbol directly, since this class isn't adding much value)
         }
 
-        private sealed class ExpandedExtensionClassPropertyParameterSymbol : WrappedParameterSymbol
+        private sealed class UnreducedExtensionPropertyParameterSymbol : WrappedParameterSymbol
         {
-            private readonly ExpandedExtensionClassPropertySymbol _containingProperty;
+            private readonly UnreducedExtensionPropertySymbol _containingProperty;
 
-            public ExpandedExtensionClassPropertyParameterSymbol(ExpandedExtensionClassPropertySymbol containingProperty, ParameterSymbol underlyingParameter) :
+            public UnreducedExtensionPropertyParameterSymbol(UnreducedExtensionPropertySymbol containingProperty, ParameterSymbol underlyingParameter) :
                 base(underlyingParameter)
             {
                 _containingProperty = containingProperty;
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // define it on the base type because most can simply use
                 // ReferenceEquals.
 
-                var other = obj as ExpandedExtensionClassPropertyParameterSymbol;
+                var other = obj as UnreducedExtensionPropertyParameterSymbol;
                 return (object)other != null &&
                     this.Ordinal == other.Ordinal &&
                     this.ContainingSymbol.Equals(other.ContainingSymbol);

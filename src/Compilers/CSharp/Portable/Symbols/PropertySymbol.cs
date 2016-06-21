@@ -285,27 +285,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
-        /// If this is an extension class property, returns an expanded extension
+        /// If this is an extension class property, returns an reduced extension
         /// property symbol representing the property. Otherwise, returns null.
         /// </summary>
         public PropertySymbol ReduceExtensionProperty()
         {
+            // PROTOTYPE: Inconsistent with MethodSymbols - MethodSymbols return null on failure, instead of throwing
             // We should never get to calling this method on a property
-            // that isn't an expanded property originally from an extension class.
+            // that isn't an unreduced property originally from an extension class.
             Debug.Assert(this.IsInExtensionClass);
             // PROTOTYPE: Consider loaded symbols.
-            var expanded = (ExpandedExtensionClassPropertySymbol)this;
-            var expandedFrom = expanded.ExpandedFrom;
-            return expandedFrom;
+            var unreduced = (UnreducedExtensionPropertySymbol)this;
+            var unreducedFrom = unreduced.UnreducedFrom;
+            return unreducedFrom;
         }
 
         /// <summary>
-        /// If this is an extension class property, returns an expanded extension
+        /// If this is an extension class property, returns an unreduced extension
         /// property symbol representing the property. Otherwise, returns null.
         /// </summary>
-        public PropertySymbol ExpandExtensionClassProperty()
+        public PropertySymbol UnreduceExtensionProperty()
         {
-            Debug.Assert(!(this is ExpandedExtensionClassPropertySymbol));
+            Debug.Assert(!(this is UnreducedExtensionPropertySymbol));
             if (!this.IsInExtensionClass)
                 return null;
 

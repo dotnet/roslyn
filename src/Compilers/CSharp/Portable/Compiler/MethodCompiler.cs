@@ -1491,8 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            //Debug.Assert(!(method is ExpandedExtensionClassMethodSymbol)); // PROTOTYPE: when does this happen? Assert to find out.
-            method = (method as ExpandedExtensionClassMethodSymbol)?.ExpandedFrom ?? method;
+            method = (method as UnreducedExtensionMethodSymbol)?.UnreduceExtensionMethod() ?? method;
 
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)

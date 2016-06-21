@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (invokedAsExtensionMethod)
             {
                 Debug.Assert(method.IsInExtensionClass || method.MethodKind == MethodKind.ReducedExtension);
-                method = method.ExpandExtensionClassMethod(); // PROTOTYPE: Will be renamed eventually, but this method also handles reduced ext methods
+                method = method.UnreduceExtensionMethod(); // PROTOTYPE: Will be renamed eventually, but this method also handles reduced ext methods
             }
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
                 ReferenceEquals(methodOrIndexer, optionalParametersMethod));
 
-            Debug.Assert(!methodOrIndexer.IsInExtensionClass || (methodOrIndexer.IsExpandedExtensionClassMember || methodOrIndexer.IsStatic));
+            Debug.Assert(!methodOrIndexer.IsInExtensionClass || (methodOrIndexer.IsUnreducedExtensionMember || methodOrIndexer.IsStatic));
             Debug.Assert(((methodOrIndexer as MethodSymbol)?.MethodKind ?? MethodKind.Ordinary) != MethodKind.ReducedExtension);
 
             // We need to do a fancy rewrite under the following circumstances:
@@ -401,8 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverNamedType = receiverType as NamedTypeSymbol;
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
-            var needsExtensionExpanding = methodOrIndexer.IsExpandedExtensionClassMember || ((methodOrIndexer as MethodSymbol)?.IsExtensionMethod ?? false);
-            Debug.Assert(!(needsExtensionExpanding && !methodOrIndexer.IsStatic));
+            var needsExtensionUnreducing = methodOrIndexer.IsUnreducedExtensionMember || ((methodOrIndexer as MethodSymbol)?.IsExtensionMethod ?? false);
+            Debug.Assert(!(needsExtensionUnreducing && !methodOrIndexer.IsStatic));
 
             if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps = default(ImmutableArray<LocalSymbol>);
                 return rewrittenArguments;
             }
-            else if (needsExtensionExpanding &&
+            else if (needsExtensionUnreducing &&
                 rewrittenArguments.Length + 1 == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !expanded &&
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, needsExtensionExpanding, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps, ref rewrittenRecieverOpt);
+            BuildStoresToTemps(expanded, needsExtensionUnreducing, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps, ref rewrittenRecieverOpt);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, needsExtensionExpanding, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, needsExtensionUnreducing, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
             }
 
             // Step three: Now fill in the optional arguments.
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This fills in the arguments, refKinds and storesToTemps arrays.
         private void BuildStoresToTemps(
             bool expanded,
-            bool needsExtensionExpanding,
+            bool needsExtensionUnreducing,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(refKinds.Count == arguments.Length);
             Debug.Assert(storesToTemps.Count == 0);
 
-            if (needsExtensionExpanding)
+            if (needsExtensionUnreducing)
             {
                 Debug.Assert(rewrittenReceiverOpt != null);
                 arguments[0] = rewrittenReceiverOpt;
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
                 BoundExpression argument = rewrittenArguments[a];
-                int p = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a) + (needsExtensionExpanding ? 1 : 0);
+                int p = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a) + (needsExtensionUnreducing ? 1 : 0);
                 RefKind refKind = argumentRefKinds.RefKinds(a);
                 Debug.Assert(arguments[p] == null);
 
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool canBail = true;
                     for (int remainingArgument = a + 1; remainingArgument < rewrittenArguments.Length; ++remainingArgument)
                     {
-                        int remainingParameter = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument) + (needsExtensionExpanding ? 1 : 0);
+                        int remainingParameter = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument) + (needsExtensionUnreducing ? 1 : 0);
                         if (remainingParameter != paramsIndex)
                         {
                             canBail = false;
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BuildParamsArray(
             CSharpSyntaxNode syntax,
             Symbol methodOrIndexer,
-            bool needsExtensionExpanding,
+            bool needsExtensionUnreducing,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<ParameterSymbol> parameters,
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int a = 0; a < rewrittenArguments.Length; ++a)
                 {
                     BoundExpression argument = rewrittenArguments[a];
-                    int p = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a) + (needsExtensionExpanding ? 1 : 0);
+                    int p = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a) + (needsExtensionUnreducing ? 1 : 0);
                     if (p == paramsParam)
                     {
                         paramArray.Add(argument);

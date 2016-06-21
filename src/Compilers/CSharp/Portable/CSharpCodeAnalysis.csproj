@@ -511,8 +511,8 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
-    <Compile Include="Symbols\ExpandedExtensionClassMethodSymbol.cs" />
-    <Compile Include="Symbols\ExpandedExtensionClassPropertySymbol.cs" />
+    <Compile Include="Symbols\UnreducedExtensionMethodSymbol.cs" />
+    <Compile Include="Symbols\UnreducedExtensionPropertySymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />

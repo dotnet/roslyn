@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                indexer = indexer.ExpandExtensionClassProperty() ?? indexer;
+                indexer = indexer.UnreduceExtensionProperty() ?? indexer;
                 // PROTOTYPE: rewrite argsToParamsOpt etc.
 
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();

@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
-                Debug.Assert(!member.IsExpandedExtensionClassMember);
+                Debug.Assert(!member.IsUnreducedExtensionMember);
                 var resultOfThisMember = this.CheckViability(member, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
                 result.MergeEqual(resultOfThisMember);
             }

@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An instance method inside of an extension class transformed into a static method with "this" first parameter.
         /// </summary>
-        ExpandedExtensionClass = 18,
+        UnreducedExtension = 18,
     }
 }

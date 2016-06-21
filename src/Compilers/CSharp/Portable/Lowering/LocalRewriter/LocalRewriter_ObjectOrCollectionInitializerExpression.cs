@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializer.InvokedAsExtensionMethod)
             {
                 Debug.Assert(addMethod.IsInExtensionClass || addMethod.MethodKind == MethodKind.ReducedExtension);
-                addMethod = addMethod.ExpandExtensionClassMethod();
+                addMethod = addMethod.UnreduceExtensionMethod();
             }
 
             if (_allowOmissionOfConditionalCalls)

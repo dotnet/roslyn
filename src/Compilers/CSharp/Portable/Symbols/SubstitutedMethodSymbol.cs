@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE: Figure this out? What is CallsiteReducedFromMethod (this is only non-test usage)
                 var reduced = this.CallsiteReducedFromMethod;
                 if ((object)reduced == null)
                 {
@@ -176,6 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
             return this.TypeArguments[reducedFromTypeParameter.Ordinal];
+        }
+
+        internal override TypeSymbol GetTypeInferredDuringUnreduction(TypeParameterSymbol unreducedFromTypeParameter)
+        {
+            // This will throw if API shouldn't be supported or there is a problem with the argument.
+            var notUsed = OriginalDefinition.GetTypeInferredDuringUnreduction(unreducedFromTypeParameter);
+
+            Debug.Assert((object)notUsed == null && (object)OriginalDefinition.UnreducedFrom != null);
+            return this.TypeArguments[unreducedFromTypeParameter.Ordinal];
         }
 
         public sealed override MethodSymbol ReducedFrom

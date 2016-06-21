@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.MethodOpt;
                 Debug.Assert((object)method != null);
                 Debug.Assert(method.IsInExtensionClass || method.MethodKind == MethodKind.ReducedExtension);
-                method = method.ExpandExtensionClassMethod();
+                method = method.UnreduceExtensionMethod();
                 node = node.Update(node.Argument, method, isExtensionMethod: true, type: node.Type);
             }
 

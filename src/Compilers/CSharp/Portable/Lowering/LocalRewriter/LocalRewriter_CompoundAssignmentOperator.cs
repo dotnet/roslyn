@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded = indexerAccess.Expanded;
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
 
-            var needsExtensionExpanding = indexer.IsExpandedExtensionClassMember;
+            var needsExtensionUnreducing = indexer.IsUnreducedExtensionMember;
             ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
@@ -280,12 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, needsExtensionExpanding, argsToParamsOpt, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps, ref receiverOpt);
+            BuildStoresToTemps(expanded, needsExtensionUnreducing, argsToParamsOpt, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps, ref receiverOpt);
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                BoundExpression array = BuildParamsArray(syntax, indexer, needsExtensionExpanding, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                BoundExpression array = BuildParamsArray(syntax, indexer, needsExtensionUnreducing, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
                 BoundAssignmentOperator storeToTemp;
                 var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                 stores.Add(storeToTemp);

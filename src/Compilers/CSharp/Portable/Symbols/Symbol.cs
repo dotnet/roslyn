@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// "Expanded" means that it is a static member that came from an instance extension member,
         /// whether it was generated from source or loaded from symbols.
         /// </summary>
-        public bool IsExpandedExtensionClassMember
+        public bool IsUnreducedExtensionMember
         {
             get
             {
@@ -477,13 +477,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Method:
                         switch (((MethodSymbol)this).MethodKind)
                         {
-                            case MethodKind.ExpandedExtensionClass:
+                            case MethodKind.UnreducedExtension:
                                 return true;
                             default:
+                                // PROTOTYPE: Do methods with `this` parameter count? (the unreduced form)
                                 return false;
                         }
                     case SymbolKind.Property:
-                        return this is ExpandedExtensionClassPropertySymbol;
+                        return this is UnreducedExtensionPropertySymbol;
                     default:
                         return false;
                 }
@@ -539,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MethodKind.Ordinary:
                             case MethodKind.LocalFunction:
                             case MethodKind.ReducedExtension:
-                            case MethodKind.ExpandedExtensionClass:
+                            case MethodKind.UnreducedExtension:
                                 break;
                             case MethodKind.Destructor:
                                 // You wouldn't think that destructors would be referenceable by name, but
@@ -600,8 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.LocalFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
-                        case MethodKind.ExpandedExtensionClass:
                         case MethodKind.ReducedExtension:
+                        case MethodKind.UnreducedExtension:
                             return true;
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:

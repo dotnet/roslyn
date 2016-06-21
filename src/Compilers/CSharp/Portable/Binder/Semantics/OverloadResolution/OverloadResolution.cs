@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (member.Kind)
             {
                 case SymbolKind.Method:
-                    return (TMember)(Symbol)((MethodSymbol)(Symbol)member).ExpandExtensionClassMethod();
+                    return (TMember)(Symbol)((MethodSymbol)(Symbol)member).UnreduceExtensionMethod();
                 case SymbolKind.Property:
-                    return (TMember)(Symbol)((PropertySymbol)(Symbol)member).ExpandExtensionClassProperty();
+                    return (TMember)(Symbol)((PropertySymbol)(Symbol)member).UnreduceExtensionProperty();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }

@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there is any such method that has a bad conversion or out/ref mismatch 
             // then the first such method found is the best bad method.
 
-            if (HadBadArguments(diagnostics, binder.Compilation, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
+            if (HadBadArguments(diagnostics, binder.Compilation, name, receiver, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
             {
                 return;
             }
@@ -830,6 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             Compilation compilation,
             string name,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
             Location location,
@@ -879,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var arg in badArg.Result.BadArgumentsOpt)
             {
-                ReportBadArgumentError(diagnostics, compilation, name, arguments, symbols, location, badArg, method, arg);
+                ReportBadArgumentError(diagnostics, compilation, name, receiver, arguments, symbols, location, badArg, method, arg);
             }
 
             return true;
@@ -889,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             Compilation compilation,
             string name,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
             Location location,
@@ -896,8 +898,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember method,
             int arg)
         {
-            BoundExpression argument = arguments.Argument(arg);
-            int parm = badArg.Result.ParameterFromArgument(arg);
+            // arg might be -1 due to doing inference on an unreduced extension method, then converting back to reduced with the result
+            BoundExpression argument = arg == -1 ? receiver : arguments.Argument(arg);
+            int parm = arg == -1 ? -1 : badArg.Result.ParameterFromArgument(arg);
             SourceLocation sourceLocation = new SourceLocation(argument.Syntax);
 
             // Early out: if the bad argument is an __arglist parameter then simply report that:
@@ -917,9 +920,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ParameterSymbol parameter = method.GetParameters()[parm];
+            ParameterSymbol parameter = parm == -1 ? null : method.GetParameters()[parm];
             RefKind refArg = arguments.RefKind(arg);
-            RefKind refParm = parameter.RefKind;
+            RefKind refParm = parameter?.RefKind ?? RefKind.None; // PROTOTYPE: Ref structs?
+            TypeSymbol parameterType = parm == -1 ? (method is MethodSymbol ? ((MethodSymbol)(Symbol)method).ReceiverType : ((PropertySymbol)(Symbol)method).ReceiverType) : parameter.Type;
 
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
@@ -930,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The argument and parameter type might match, but may not have same in/out modifiers
                 if (argument.Kind == BoundKind.UnboundLambda && refArg == refParm)
                 {
-                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type);
+                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
                 }
                 else
                 {
@@ -943,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        UnwrapIfParamsArray(parameter));
+                        parm == -1 ? parameterType : UnwrapIfParamsArray(parameter));
                 }
             }
             else if (refArg != refParm)
@@ -974,10 +978,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol argType = argument.Display as TypeSymbol;
                 Debug.Assert((object)argType != null);
 
-                if (arguments.IsExtensionMethodThisArgument(arg))
+                if (arg == -1)
                 {
-                    Debug.Assert((arg == 0) && (parm == arg));
-                    var conversion = badArg.Result.ConversionForArg(parm);
+                    Debug.Assert((parm == arg) && badArg.Result.ReceiverConversionOpt.HasValue);
+                    var conversion = badArg.Result.ReceiverConversionOpt.Value;
 
                     if (conversion.IsImplicit)
                     {
@@ -1000,8 +1004,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argType,
                             name,
                             method,
-                            parameter);
-                        Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
+                            parameterType);
+                        Debug.Assert((object)parameter == null || (object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
                     }
                 }
                 else
@@ -1016,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isParams: false,
                         refKind: refArg);
 
-                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter));
+                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, parm == -1 ? parameterType : UnwrapIfParamsArray(parameter));
 
                     // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                     diagnostics.Add(

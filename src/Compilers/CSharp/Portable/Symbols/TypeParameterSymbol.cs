@@ -45,6 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this is a type parameter of an unreduced extension method, gets the type parameter definition that
+        /// this type parameter was unreduced from. Otherwise, returns Nothing.
+        /// </summary>
+        public virtual TypeParameterSymbol UnreducedFrom
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// The ordinal position of the type parameter in the parameter list which declares
         /// it. The first type parameter has ordinal zero.
         /// </summary>

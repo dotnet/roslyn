@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Equivalent to <see cref="NamespaceOrTypeSymbol.GetMembers()"/>, except for extension classes.
-        /// In extension classes, replaces all members with their expanded forms.
+        /// In extension classes, replaces all members with their unreduced forms.
         /// </summary>
         public ImmutableArray<Symbol> GetUnderlyingMembers()
         {

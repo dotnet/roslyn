@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            result = new ExpandedExtensionClassPropertySymbol(property);
+                            result = new UnreducedExtensionPropertySymbol(property);
                         }
                     }
                     break;
@@ -1145,11 +1145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    result = ExpandedExtensionClassMethodSymbol.Create(method);
+                                    result = UnreducedExtensionMethodSymbol.Create(method);
                                 }
                                 // PROTOTYPE: Generics/construction of result? (probably put in Create method)
                                 break;
-                            case MethodKind.ExpandedExtensionClass:
+                            case MethodKind.UnreducedExtension:
                             case MethodKind.ReducedExtension:
                                 Debug.Assert(false);
                                 goto default;

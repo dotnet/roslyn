@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewrittenArguments = ImmutableArray<BoundExpression>.Empty;
 
-            property = property.ExpandExtensionClassProperty() ?? property;
+            Debug.Assert(!(property is UnreducedExtensionPropertySymbol));
+            property = property.UnreduceExtensionProperty() ?? property;
 
             var getMethod = property.GetOwnOrInheritedGetMethod();
             // need to use MakeArguments in the case of an extension class property.
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, getMethod, false, default(ImmutableArray<int>), ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
             Debug.Assert(temps.IsDefaultOrEmpty); // shouldn't ever require temps (which are used to reorder arguments from source order to method order)
-            
+
             return MakePropertyGetAccess(syntax, rewrittenReceiver, property, rewrittenArguments, getMethod, oldNodeOpt);
         }
 

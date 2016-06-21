@@ -5374,7 +5374,7 @@ tryAgain:
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
-                if (IsCurrentTokenPartialKeywordOfPartialMethodOrType() || 
+                if (IsCurrentTokenPartialKeywordOfPartialMethodOrType() ||
                     IsCurrentTokenExtensionKeywordOfExtensionType() ||
                     IsCurrentTokenQueryKeywordInQuery())
                 {

@@ -385,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE: Should this include IsInExtensionClass?
                 return this.flags.IsExtensionMethod;
             }
         }

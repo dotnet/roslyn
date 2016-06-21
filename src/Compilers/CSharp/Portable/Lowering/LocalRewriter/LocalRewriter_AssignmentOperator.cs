@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool used)
         {
             // Lower to the actual underlying method
-            property = property.ExpandExtensionClassProperty() ?? property;
+            property = property.UnreduceExtensionProperty() ?? property;
             // PROTOTYPE: rewrite argsToParamsOpt etc.
 
             // Rewrite property assignment into call to setter.

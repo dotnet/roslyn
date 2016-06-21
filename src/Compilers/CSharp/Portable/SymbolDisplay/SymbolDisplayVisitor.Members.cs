@@ -186,17 +186,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
+            if (symbol.IsExtensionMethod)
             {
-                // PROTOTYPE: Handle extension class methods.
-                if (symbol.MethodKind == MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod)
+                // PROTOTYPE: Handle extension class methods: use C# MethodSymbol.{Unreduce,Reduce}ExtensionMethod, and VB old system
+                // If we cannot reduce/unreduce to the correct form, then display in the original form
+                // Need to unreduce on default, since that was the old behavior - the compiler used to return methods in unreduced form.
+                IMethodSymbol result;
+                if ((format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod || format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.Default)
+                    && (object)(result = symbol.GetConstructedReducedFrom()) != null)
                 {
-                    symbol = symbol.GetConstructedReducedFrom();
+                    symbol = result;
                 }
-                else if (symbol.MethodKind != MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.InstanceMethod)
+                else if (format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.InstanceMethod && (object)(result = symbol.ReduceExtensionMethod(symbol.Parameters.First().Type)) != null)
                 {
-                    // If we cannot reduce this to an instance form then display in the static form
-                    symbol = symbol.ReduceExtensionMethod(symbol.Parameters.First().Type) ?? symbol;
+                    symbol = result;
                 }
             }
 
@@ -299,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.DelegateInvoke:
                 case MethodKind.ReducedExtension:
                 case MethodKind.LocalFunction:
-                case MethodKind.ExpandedExtensionClass:
+                case MethodKind.UnreducedExtension:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                     break;

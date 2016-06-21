@@ -858,8 +858,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Method resolution should never return method kind of ExpandedExtensionClass
-            Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
+            // Method resolution should never return method kind of UnreducedExtension
+            Debug.Assert(method.MethodKind != MethodKind.UnreducedExtension);
             // Skip building up a new array if the first argument doesn't have to be modified.
             // PROTOTYPE: Deal with the comment and commented-out code.
             // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
