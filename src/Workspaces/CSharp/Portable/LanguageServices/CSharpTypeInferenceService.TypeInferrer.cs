@@ -235,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => SpecializedCollections.EmptyEnumerable<ITypeSymbol>());
             }
 
-            private IEnumerable<ITypeSymbol> InferTypeInArgument(ArgumentSyntax argument, SyntaxToken? previousToken = null)
+            private IEnumerable<ITypeSymbol> InferTypeInArgument(
+                ArgumentSyntax argument, SyntaxToken? previousToken = null)
             {
                 if (previousToken.HasValue)
                 {
@@ -1463,12 +1464,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //
                         // then we can figure out what 'foo' should be based on teh await
                         // context.
-
-                        if (memberAccessExpression.Name.Identifier.Value.Equals(nameof(Task<int>.ConfigureAwait)) &&
+                        var name = memberAccessExpression.Name.Identifier.Value;
+                        if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
                             memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) &&
                             memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
                         {
                             return InferTypes((ExpressionSyntax)memberAccessExpression.Parent);
+                        }
+                        else if (name.Equals(nameof(Task<int>.ContinueWith)))
+                        {
+                            // foo.ContinueWith(...)
+                            // We want to infer Task<T>.  For now, we'll just do Task<object>,
+                            // in the future it would be nice to figure out the actual result
+                            // type based on the argument to ContinueWith.
+                            var taskOfT = this.Compilation.TaskOfTType();
+                            if (taskOfT != null)
+                            {
+                                return SpecializedCollections.SingletonEnumerable(
+                                    taskOfT.Construct(this.Compilation.ObjectType));
+                            }
+                        }
+                        else if (name.Equals(nameof(Enumerable.Select)) ||
+                                 name.Equals(nameof(Enumerable.Where)))
+                        {
+                            var ienumerableType = this.Compilation.IEnumerableOfTType();
+
+                            // foo.Select
+                            // We want to infer IEnumerable<T>.  We can try to figure out what 
+                            // T if we get a delegate as the first argument to Select/Where.
+                            if (ienumerableType != null && memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression))
+                            {
+                                var invocation = (InvocationExpressionSyntax)memberAccessExpression.Parent;
+                                if (invocation.ArgumentList.Arguments.Count > 0)
+                                {
+                                    var argumentExpression = invocation.ArgumentList.Arguments[0].Expression;
+                                    var argumentTypes = GetTypes(argumentExpression);
+                                    var delegateType = argumentTypes.FirstOrDefault().GetDelegateType(this.Compilation);
+                                    var typeArg = delegateType?.TypeArguments.Length > 0
+                                        ? delegateType.TypeArguments[0]
+                                        : this.Compilation.ObjectType;
+
+                                    if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax)
+                                    {
+                                        typeArg = InferTypeForFirstParameterOfLambda((LambdaExpressionSyntax)argumentExpression) ??
+                                            this.Compilation.ObjectType;
+                                    }
+
+                                    return SpecializedCollections.SingletonEnumerable(
+                                        ienumerableType.Construct(typeArg));
+                                }
+                            }
                         }
 
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1478,6 +1523,76 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // whatever type we'd infer for "Foo.Bar" itself.
                     return InferTypes(memberAccessExpression);
                 }
+            }
+
+            private ITypeSymbol InferTypeForFirstParameterOfLambda(
+                LambdaExpressionSyntax lambdaExpression)
+            {
+                if (lambdaExpression is ParenthesizedLambdaExpressionSyntax)
+                {
+                    return InferTypeForFirstParameterOfParenthesizedLambda(
+                        (ParenthesizedLambdaExpressionSyntax)lambdaExpression); 
+                }
+                else if (lambdaExpression is SimpleLambdaExpressionSyntax)
+                {
+                    return InferTypeForFirstParameterOfSimpleLambda(
+                        (SimpleLambdaExpressionSyntax)lambdaExpression);
+                }
+
+                return null;
+            }
+
+            private ITypeSymbol InferTypeForFirstParameterOfParenthesizedLambda(
+                ParenthesizedLambdaExpressionSyntax lambdaExpression)
+            {
+                return lambdaExpression.ParameterList.Parameters.Count == 0
+                    ? null
+                    : InferTypeForFirstParameterOfLambda(
+                        lambdaExpression, lambdaExpression.ParameterList.Parameters[0]);
+            }
+
+            private ITypeSymbol InferTypeForFirstParameterOfSimpleLambda(
+                SimpleLambdaExpressionSyntax lambdaExpression)
+            {
+                return InferTypeForFirstParameterOfLambda(
+                    lambdaExpression, lambdaExpression.Parameter);
+            }
+
+            private ITypeSymbol InferTypeForFirstParameterOfLambda(
+                LambdaExpressionSyntax lambdaExpression, ParameterSyntax parameter)
+            {
+                return InferTypeForFirstParameterOfLambda(
+                    parameter.Identifier.ValueText, lambdaExpression.Body);
+            }
+
+            private ITypeSymbol InferTypeForFirstParameterOfLambda(
+                string parameterName,
+                SyntaxNode node)
+            {
+                if (node.IsKind(SyntaxKind.IdentifierName))
+                {
+                    var identifierName = (IdentifierNameSyntax)node;
+                    if (identifierName.Identifier.ValueText.Equals(parameterName))
+                    {
+                        return InferTypes(identifierName).FirstOrDefault();
+                    }
+                }
+                else
+                {
+                    foreach (var child in node.ChildNodesAndTokens())
+                    {
+                        if (child.IsNode)
+                        {
+                            var type = InferTypeForFirstParameterOfLambda(parameterName, child.AsNode());
+                            if (type != null)
+                            {
+                                return type;
+                            }
+                        }
+                    }
+                }
+
+                return null;
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)

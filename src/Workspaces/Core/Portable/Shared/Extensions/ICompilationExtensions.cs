@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -112,6 +113,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol TaskOfTType(this Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+        }
+
+        public static INamedTypeSymbol IEnumerableOfTType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
         }
 
         public static INamedTypeSymbol SerializableAttributeType(this Compilation compilation)
