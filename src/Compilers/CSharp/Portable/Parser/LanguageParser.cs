@@ -8457,9 +8457,10 @@ tryAgain:
 
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
-                        VariableDeclarationSyntax variable;
                         while (true)
                         {
+                            VariableDeclarationSyntax variable;
+
                             if (justIdentifiers)
                             {
                                 variable = ParseDeconstructionIdentifierOrIdentifiersParts(withEquals: false);
@@ -8557,7 +8558,7 @@ tryAgain:
             var declarator = _syntaxFactory.VariableDeclarator(identifier, null, null);
             return _syntaxFactory.VariableDeclaration(
                                     type: null,
-                                    variables: new SeparatedSyntaxList<VariableDeclaratorSyntax>(new SyntaxList<CSharpSyntaxNode>(declarator)),
+                                    variables: SyntaxFactory.SeparatedList(declarator),
                                     deconstruction: null);
         }
 
@@ -8572,7 +8573,7 @@ tryAgain:
             var declarator = _syntaxFactory.VariableDeclarator(identifier, null, null);
             return _syntaxFactory.VariableDeclaration(
                                     type: type,
-                                    variables: new SeparatedSyntaxList<VariableDeclaratorSyntax>(new SyntaxList<CSharpSyntaxNode>(declarator)),
+                                    variables: SyntaxFactory.SeparatedList(declarator),
                                     deconstruction: null);
         }
 
