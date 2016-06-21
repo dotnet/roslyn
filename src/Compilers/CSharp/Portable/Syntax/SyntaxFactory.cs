@@ -2512,11 +2512,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
         public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
-            return SyntaxFactory.VariableDeclaration(SyntaxKind.VariableDeclaration, type, variables, default(VariableDeconstructionDeclarationSyntax));
+            return SyntaxFactory.VariableDeclaration(SyntaxKind.VariableDeclaration, type, variables, default(VariableDeconstructionDeclaratorSyntax));
         }
 
         /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
-        public static VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclarationSyntax deconstructionDeclaration)
+        public static VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
         {
             return SyntaxFactory.VariableDeclaration(SyntaxKind.DeconstructionDeclaration, null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
         }
@@ -2544,14 +2544,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return VariableDeclaration(SyntaxKind.VariableDeclaration, type, variables, null);
         }
 
-        public VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclarationSyntax deconstructionDeclaration)
+        public VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, VariableDeclaratorSyntax variable)
         {
-            return VariableDeclaration(SyntaxKind.VariableDeclaration, null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
+            return VariableDeclaration(SyntaxKind.VariableDeclaration, type, new SeparatedSyntaxList<VariableDeclaratorSyntax>(new SyntaxList<CSharpSyntaxNode>(variable)), null);
         }
 
-        public ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public VariableDeclarationSyntax VariableDeclaration(VariableDeclaratorSyntax variable)
         {
-            return ForEachStatement(SyntaxKind.ForEachStatement, forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
+            return VariableDeclaration(SyntaxKind.VariableDeclaration, null, new SeparatedSyntaxList<VariableDeclaratorSyntax>(new SyntaxList<CSharpSyntaxNode>(variable)), null);
+        }
+
+        public VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
+        {
+            return VariableDeclaration(SyntaxKind.VariableDeclaration, null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
         }
     }
 }

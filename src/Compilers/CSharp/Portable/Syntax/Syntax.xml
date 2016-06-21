@@ -1810,94 +1810,29 @@
     </Field>
   </Node>
 
-  <Node Name="VariableDeconstructionDeclarationSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="VariableDeconstructionDeclaration"/>
-    <Field Name="Variables" Type="DeconstructionVariablesSyntax"/>
-    <Field Name="EqualsToken" Type="SyntaxToken">
+  <Node Name="VariableDeconstructionDeclaratorSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="VariableDeconstructionDeclarator"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclarationSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="EqualsToken" Type="SyntaxToken" Optional="true"> <!-- PROTOTYPE(tuples) should be Opt -->
       <Kind Name="EqualsToken"/>
     </Field>
-    <Field Name="Value" Type="ExpressionSyntax"/>
-  </Node>
-
-  <AbstractNode Name="DeconstructionVariablesSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="DeconstructionVariables"/>
-    <!--
-    There are three kinds of deconstruction variables:
-    - variables list: `(..., ..., ...)` where each part is itself deconstruction variables
-    - variable element: `type id` which is a terminal and cannot appear at the top-level
-    - var variables: `var (..., (..., ...))` which holds nested identifiers
-    -->
-  </AbstractNode>
-
-  <Node Name="DeconstructionVariablesListSyntax" Base="DeconstructionVariablesSyntax">
-    <Kind Name="DeconstructionVariablesList"/>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="Variables" Type="SeparatedSyntaxList&lt;DeconstructionVariablesSyntax&gt;"/>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <Kind Name="CloseParenToken"/>
-    </Field>
-  </Node>
-
-  <Node Name="DeconstructionVariableElementSyntax" Base="DeconstructionVariablesSyntax">
-    <Kind Name="DeconstructionVariableElement"/>
-    <Field Name="Type" Type="TypeSyntax">
-      <PropertyComment>
-        <summary>Gets the type of the tuple element.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true">
-      <PropertyComment>
-        <summary>Gets the name of the tuple element.</summary>
-      </PropertyComment>
-      <Kind Name="IdentifierName"/>
-    </Field>
-  </Node>
-
-  <Node Name="DeconstructionVarVariablesSyntax" Base="DeconstructionVariablesSyntax">
-    <Kind Name="DeconstructionVarVariables"/>
-    <Field Name="VarToken" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
-    </Field>
-    <Field Name="Identifiers" Type="DeconstructionIdentifiersSyntax"/>
-  </Node>
-
-  <AbstractNode Name="DeconstructionIdentifiersSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="DeconstructionIdentifiers"/>
-    <!--
-   There are two kinds of deconstruction identifiers:
-   - identifier list: `(..., ..., ...)` where each part is itself deconstruction identifiers
-   - identifier element: `id` which is a terminal and cannot appear at the top-level
-    -->
-  </AbstractNode>
-
-  <Node Name="DeconstructionIdentifiersListSyntax" Base="DeconstructionIdentifiersSyntax">
-    <Kind Name="DeconstructionIdentifiersList"/>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="Identifiers" Type="SeparatedSyntaxList&lt;DeconstructionIdentifiersSyntax&gt;"/>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <Kind Name="CloseParenToken"/>
-    </Field>
-  </Node>
-
-  <Node Name="DeconstructionIdentifierElementSyntax" Base="DeconstructionIdentifiersSyntax">
-    <Kind Name="DeconstructionIdentifierElement"/>
-    <Field Name="Name" Type="IdentifierNameSyntax">
-      <Kind Name="IdentifierName"/>
-    </Field>
+    <Field Name="Value" Type="ExpressionSyntax" Optional="true"/> <!-- PROTOTYPE(tuples) should be Opt -->
   </Node>
 
   <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
     <Kind Name="VariableDeclaration"/> <!-- If Kind is VariableDeclaration, then Type and Variables fields are set. -->
-    <Kind Name="DeconstructionDeclaration"/> <!-- If Kind is DeconstructionDeclaration, then DeconstructionVariables field is set. -->
+    <Kind Name="DeconstructionDeclaration"/> <!-- If Kind is DeconstructionDeclaration, then DeconstructionVariables field is set and the Type may be var. -->
 
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
     <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
 
-    <Field Name="DeconstructionDeclaration" Type="VariableDeconstructionDeclarationSyntax" Optional="true" Internal="true" />
+    <Field Name="Deconstruction" Type="VariableDeconstructionDeclaratorSyntax" Optional="true" Internal="true" />
   </Node>
 
   <Node Name="VariableDeclaratorSyntax" Base="CSharpSyntaxNode">
@@ -2122,7 +2057,7 @@
 
   <Node Name="ForEachStatementSyntax" Base="StatementSyntax">
     <Kind Name="ForEachStatement"/> <!-- If Kind is ForEachStatement, then Type and Identifier are set. -->
-    <Kind Name="ForEachDeconstructionStatement"/> <!-- If Kind is ForEachDeconstructionStatement, then DeconstructionVariables is set instead. -->
+    <Kind Name="ForEachDeconstructionStatement"/> <!-- If Kind is ForEachDeconstructionStatement, then DeconstructionVariables is set instead and the Type may be var. -->
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2136,7 +2071,7 @@
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
     </Field>
-    <Field Name="DeconstructionVariables" Type="DeconstructionVariablesSyntax" Optional="true"/>
+    <Field Name="DeconstructionVariables" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="InKeyword" Type="SyntaxToken">
       <Kind Name="InKeyword"/>
     </Field>

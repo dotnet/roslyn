@@ -7763,7 +7763,7 @@ tryAgain:
                 }
                 else
                 {
-                    decl = TryParseDeconstructionDeclaration();
+                    decl = TryParseDeconstructionDeclaration(withEquals: true);
 
                     if ((object)decl == null)
                     {
@@ -7876,7 +7876,7 @@ tryAgain:
             // Syntax for foreach is either:
             //  foreach ( <type> <identifier> in <expr> ) <embedded-statement>
             // or
-            //  foreach ( <deconstruction-variables> in <expr> ) <embedded-statement>
+            //  foreach ( <deconstruction-declaration> in <expr> ) <embedded-statement>
 
             SyntaxToken @foreach;
 
@@ -7895,11 +7895,11 @@ tryAgain:
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
-            var deconstructionVariables = TryParseDeconstructionVariables();
+            var deconstruction = TryParseDeconstructionDeclaration(withEquals: false);
 
             TypeSyntax type = null;
             SyntaxToken name = null;
-            if ((object)deconstructionVariables == null)
+            if ((object)deconstruction == null)
             {
                 type = this.ParseType(false);
                 if (this.CurrentToken.Kind == SyntaxKind.InKeyword)
@@ -7918,9 +7918,9 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement(true);
 
-            var kind = ((object)deconstructionVariables == null) ? SyntaxKind.ForEachStatement : SyntaxKind.ForEachDeconstructionStatement;
+            var kind = ((object)deconstruction == null) ? SyntaxKind.ForEachStatement : SyntaxKind.ForEachDeconstructionStatement;
 
-            return _syntaxFactory.ForEachStatement(kind, @foreach, openParen, type, name, deconstructionVariables, @in, expression, closeParen, statement);
+            return _syntaxFactory.ForEachStatement(kind, @foreach, openParen, type, name, deconstruction, @in, expression, closeParen, statement);
         }
 
         private GotoStatementSyntax ParseGotoStatement()
@@ -8324,7 +8324,7 @@ tryAgain:
         /// <returns></returns>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
-            VariableDeclarationSyntax deconstruction = TryParseDeconstructionDeclaration();
+            VariableDeclarationSyntax deconstruction = TryParseDeconstructionDeclaration(withEquals: true);
             if (deconstruction != null)
             {
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
@@ -8386,7 +8386,7 @@ tryAgain:
         ///
         /// The syntax is `deconstruction-variables = expression`
         /// </summary>
-        private VariableDeclarationSyntax TryParseDeconstructionDeclaration()
+        private VariableDeclarationSyntax TryParseDeconstructionDeclaration(bool withEquals)
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
                || (this.CurrentToken.IsVar && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken))
@@ -8395,8 +8395,8 @@ tryAgain:
 
                 try
                 {
-                    var deconstruction = ParseDeconstructionDeclaration();
-                    if ((object)deconstruction == null)
+                    var deconstruction = ParseDeconstructionDeclaration(withEquals);
+                    if ((object)deconstruction == null || !DeconstructionVariableLooksGood(deconstruction))
                     {
                         this.Reset(ref resetPoint);
                         return null;
@@ -8422,75 +8422,21 @@ tryAgain:
         ///
         /// The syntax is `deconstruction-variables = expression` and can appear in local declarations and for statements.
         /// </summary>
-        private VariableDeclarationSyntax ParseDeconstructionDeclaration()
-        {
-            DeconstructionVariablesSyntax variables = ParseDeconstructionVariables();
-            if ((object)variables == null)
-            {
-                return null;
-            }
-
-            var equals = this.EatToken(SyntaxKind.EqualsToken);
-            if (equals.IsMissing)
-            {
-                return null;
-            }
-
-            var expression = this.ParseExpressionCore();
-
-            var declaration = _syntaxFactory.VariableDeconstructionDeclaration(variables, equals, expression);
-            return _syntaxFactory.VariableDeclaration(declaration);
-        }
-
-        /// <summary>
-        /// Parses deconstruction variables in both forms and their nestings: `var (...)` and `(type id, ...)`
-        /// Returns null and resets the cursor if this does not look like a deconstruction variables after all (neither form is definitely recognized in any of the nestings).
-        /// </summary>
-        private DeconstructionVariablesSyntax TryParseDeconstructionVariables()
-        {
-            if ((this.CurrentToken.IsVar && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
-                || this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-            {
-                var resetPoint = this.GetResetPoint();
-
-                try
-                {
-                    var variables = ParseDeconstructionVariables();
-                    if ((object)variables == null || !DeconstructionVariableLooksGood(variables))
-                    {
-                        this.Reset(ref resetPoint);
-                        return null;
-                    }
-
-                    return variables;
-                }
-                finally
-                {
-                    this.Release(ref resetPoint);
-                }
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private DeconstructionVariablesSyntax ParseDeconstructionVariables(bool topLevel = true)
+        private VariableDeclarationSyntax ParseDeconstructionDeclaration(bool withEquals, bool topLevel = true)
         {
             if (this.CurrentToken.IsVar && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
-                // parses `var (...)`
-                return ParseDeconstructionVarVariables();
+                // parses `var (...) = expression`
+                return ParseDeconstructionVarForm(withEquals);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                // parses `(...)` where the elements are deconstruction variables
-                return ParseDeconstructionVariablesList();
+                // parses `(...) = expression` where the elements are deconstruction variables
+                return ParseDeconstructionListForm(withEquals);
             }
             else if (!topLevel)
             {
-                // parses `type id`
-                return ParseDeconstructionVariableElement();
+                return ParseDeconstructionTypeIdPart();
             }
             else
             {
@@ -8501,9 +8447,9 @@ tryAgain:
         /// <summary>
         /// Parses `(..., ..., ...)` where each part is deconstruction variables (such as `type id` or `var (..., ...)` or another list `(..., ..., ...)`).
         /// </summary>
-        private DeconstructionVariablesListSyntax ParseDeconstructionVariablesList()
+        private VariableDeclarationSyntax ParseDeconstructionListForm(bool withEquals)
         {
-            var list = _pool.AllocateSeparated<DeconstructionVariablesSyntax>();
+            var list = _pool.AllocateSeparated<VariableDeclarationSyntax>();
 
             try
             {
@@ -8511,7 +8457,7 @@ tryAgain:
 
                 if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                 {
-                    var variable = ParseDeconstructionVariables(topLevel: false);
+                    var variable = ParseDeconstructionDeclaration(withEquals: false, topLevel: false);
 
                     if ((object)variable != null)
                     {
@@ -8523,7 +8469,7 @@ tryAgain:
                         var comma = this.EatToken(SyntaxKind.CommaToken);
                         list.AddSeparator(comma);
 
-                        variable = ParseDeconstructionVariables(topLevel: false);
+                        variable = ParseDeconstructionDeclaration(withEquals: false, topLevel: false);
 
                         if ((object)variable != null)
                         {
@@ -8534,7 +8480,21 @@ tryAgain:
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
-                var result = _syntaxFactory.DeconstructionVariablesList(openParen, list, closeParen);
+                SyntaxToken equals = null;
+                ExpressionSyntax expression = null;
+                if (withEquals)
+                {
+                    equals = this.EatToken(SyntaxKind.EqualsToken);
+                    if (equals.IsMissing)
+                    {
+                        return null;
+                    }
+
+                    expression = this.ParseExpressionCore();
+                }
+
+                var deconstruction = _syntaxFactory.VariableDeconstructionDeclarator(openParen, list, closeParen, equals, expression);
+                var result = _syntaxFactory.VariableDeclaration(deconstruction);
 
                 if (!result.ContainsDiagnostics && list.Count < 2)
                 {
@@ -8549,25 +8509,28 @@ tryAgain:
             }
         }
 
-        private DeconstructionVarVariablesSyntax ParseDeconstructionVarVariables()
+        /// <summary>
+        /// Parses the var form of deconstruction. For instance, `var (x, y) = ...`
+        /// </summary>
+        private VariableDeclarationSyntax ParseDeconstructionVarForm(bool withEquals)
         {
-            var varToken = this.EatToken(SyntaxKind.IdentifierToken);
+            Debug.Assert(this.CurrentToken.IsVar);
 
-            var identifiers = ParseDeconstructionIdentifiers();
+            var varType = ParseType(parentIsParameter: false);
 
-            return _syntaxFactory.DeconstructionVarVariables(varToken, identifiers);
+            var identifiers = ParseDeconstructionIdentifiers(withEquals);
+
+            return _syntaxFactory.VariableDeclaration(SyntaxKind.DeconstructionDeclaration, varType, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), identifiers);
         }
 
         /// <summary>
-        /// Parses both:
-        ///     - `(..., ..., ...)` where each part is itself deconstruction identifiers
-        ///     - `id` which is the terminal
+        /// Parses `(..., ..., ...)` where each part is either an identifier, or nested deconstruction identifiers
         /// </summary>
-        private DeconstructionIdentifiersSyntax ParseDeconstructionIdentifiers()
+        private VariableDeconstructionDeclaratorSyntax ParseDeconstructionIdentifiers(bool withEquals)
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                var list = _pool.AllocateSeparated<DeconstructionIdentifiersSyntax>();
+                var list = _pool.AllocateSeparated<VariableDeclarationSyntax>();
 
                 try
                 {
@@ -8575,21 +8538,51 @@ tryAgain:
 
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
-                        var identifier = ParseDeconstructionIdentifiers();
-                        list.Add(identifier);
+                        VariableDeconstructionDeclaratorSyntax identifier;
+
+                        if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                        {
+                            identifier = ParseDeconstructionIdentifiers(withEquals: false);
+                            list.Add(_syntaxFactory.VariableDeclaration(identifier));
+                        }
+                        else
+                        {
+                            list.Add(ParseDeconstructionIdPart());
+                        }
 
                         while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
                             var comma = this.EatToken(SyntaxKind.CommaToken);
                             list.AddSeparator(comma);
 
-                            identifier = ParseDeconstructionIdentifiers();
-                            list.Add(identifier);
+                            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                            {
+                                identifier = ParseDeconstructionIdentifiers(withEquals: false);
+                                list.Add(_syntaxFactory.VariableDeclaration(identifier));
+                            }
+                            else
+                            {
+                                list.Add(ParseDeconstructionIdPart());
+                            }
                         }
                     }
 
                     var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                    var result = _syntaxFactory.DeconstructionIdentifiersList(openParen, list, closeParen);
+
+                    SyntaxToken equals = null;
+                    ExpressionSyntax expression = null;
+                    if (withEquals)
+                    {
+                        equals = this.EatToken(SyntaxKind.EqualsToken);
+                        if (equals.IsMissing)
+                        {
+                            return null;
+                        }
+
+                        expression = this.ParseExpressionCore();
+                    }
+
+                    var result = _syntaxFactory.VariableDeconstructionDeclarator(openParen, list, closeParen, equals, expression);
 
                     if (!result.ContainsDiagnostics && list.Count < 2)
                     {
@@ -8605,17 +8598,30 @@ tryAgain:
             }
             else
             {
-                var name = ParseIdentifierName();
-                return _syntaxFactory.DeconstructionIdentifierElement(name);
+                return null;
             }
         }
 
-        private DeconstructionVariableElementSyntax ParseDeconstructionVariableElement()
+        /// <summary>
+        /// Parses identifiers in a deconstruction. For instance, `var (id, id) = ...`
+        /// </summary>
+        private VariableDeclarationSyntax ParseDeconstructionIdPart()
+        {
+            var identifier = ParseIdentifierToken();
+            var declarator = _syntaxFactory.VariableDeclarator(identifier, null, null);
+            return _syntaxFactory.VariableDeclaration(declarator);
+        }
+
+        /// <summary>
+        /// Parses a type and identifier in a deconstruction. For instance, `(type id, type id) = ...`
+        /// </summary>
+        private VariableDeclarationSyntax ParseDeconstructionTypeIdPart()
         {
             var type = ParseType(parentIsParameter: false);
-            var name = ParseIdentifierName();
+            var identifier = ParseIdentifierToken();
 
-            return _syntaxFactory.DeconstructionVariableElement(type, name);
+            var declarator = _syntaxFactory.VariableDeclarator(identifier, null, null);
+            return _syntaxFactory.VariableDeclaration(type, declarator);
         }
 
         /// <summary>
@@ -8631,7 +8637,7 @@ tryAgain:
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    var variables = ParseDeconstructionVariables();
+                    var variables = ParseDeconstructionDeclaration(withEquals: false);
                     var equalsToken = this.EatToken(SyntaxKind.EqualsToken);
 
                     // We need the equals token and one other confirmation that this is a deconstruction syntax
@@ -8652,46 +8658,38 @@ tryAgain:
         /// <summary>
         /// Returns true if one distinct clue is found that this is intended as deconstruction variables
         /// </summary>
-        private bool DeconstructionVariableLooksGood(DeconstructionVariablesSyntax node)
+        private bool DeconstructionVariableLooksGood(VariableDeclarationSyntax node, bool topLevel = true)
         {
             if ((object)node == null)
             {
                 return false;
             }
 
-            if (node.Kind == SyntaxKind.DeconstructionVariablesList)
+            if (node.Type != null && node.Type.Kind == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)node.Type).Identifier.IsVar && node.Deconstruction != null && !node.Deconstruction.OpenParenToken.IsMissing && !node.Deconstruction.CloseParenToken.IsMissing)
             {
-                var varNode = (DeconstructionVariablesListSyntax)node;
-                int count = varNode.Variables.Count;
+                // var (..., ....)
+                return true;
+            }
+
+            if (!topLevel && node.Type != null && !node.Type.IsMissing && node.Variables.Count == 1 && !node.Variables[0].Identifier.IsMissing)
+            {
+                // type id
+                return true;
+            }
+
+            if (node.Type == null && node.Variables.Count == 0 && node.Deconstruction != null)
+            {
+                // (..., ...) where one of the elements looks good
+                int count = node.Deconstruction.Variables.Count;
                 for (int i = 0; i < count; i++)
                 {
-                    if (DeconstructionVariableLooksGood(varNode.Variables[i]))
+                    if (DeconstructionVariableLooksGood(node.Deconstruction.Variables[i], topLevel: false))
                     {
                         return true;
                     }
                 }
-
-                return false;
-            }
-            else if (node.Kind == SyntaxKind.DeconstructionVariableElement)
-            {
-                var element = (DeconstructionVariableElementSyntax)node;
-                return (!element.Type.IsMissing && !element.Name.IsMissing);
-            }
-            else if (node.Kind == SyntaxKind.DeconstructionVarVariables)
-            {
-                var varNode = (DeconstructionVarVariablesSyntax)node;
-                if (varNode.Identifiers.Kind != SyntaxKind.DeconstructionIdentifiersList)
-                {
-                    return false;
-                }
-
-                var identifiers = (DeconstructionIdentifiersListSyntax)varNode.Identifiers;
-
-                return (!identifiers.OpenParenToken.IsMissing && !identifiers.CloseParenToken.IsMissing);
             }
 
-            Debug.Assert(false);
             return false;
         }
 
