@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         DiagnosticBag discarded = DiagnosticBag.GetInstance();
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, null, discarded, queryClause);
+                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: discarded, queryClause: queryClause);
                         discarded.Free();
                     }
 
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, null, diagnostics, queryClause);
+                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: diagnostics, queryClause: queryClause);
                     }
                 }
             }
