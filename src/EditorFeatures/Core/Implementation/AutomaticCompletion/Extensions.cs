@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 return default(SyntaxToken);
             }
 
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(CancellationToken.None);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             return root.FindToken(position, findInsideTrivia: true);
         }
 
