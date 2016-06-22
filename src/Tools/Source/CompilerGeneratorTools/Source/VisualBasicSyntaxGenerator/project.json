@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-rc3-24128-00",
-    "NETStandard.Library": "1.6.0-rc3-24128-00",
-    "System.Console": "4.0.0-rc3-24128-00",
-    "System.Security.Cryptography.Algorithms": "4.2.0-rc3-24128-00"
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "NETStandard.Library": "1.6.0",
+    "System.Console": "4.0.0",
+    "System.Security.Cryptography.Algorithms": "4.2.0"
   },
   "frameworks": {
     "NETCoreApp1.0": { }

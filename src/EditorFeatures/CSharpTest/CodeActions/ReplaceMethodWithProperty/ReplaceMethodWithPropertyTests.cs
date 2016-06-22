@@ -430,7 +430,7 @@ index: 1);
             await TestAsync(
 @"class C { (int, string) [||]GetFoo() { } }",
 @"class C { (int, string) Foo { get { } } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -441,7 +441,7 @@ withScriptOption: true);
 @"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"using System; class C { (int, string) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -452,7 +452,7 @@ withScriptOption: true);
 @"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"using System; class C { (int a, string b) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -465,7 +465,7 @@ withScriptOption: true);
 @"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int c, string d) i) { } }",
 @"",
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true));
         }
     }

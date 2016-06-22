@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options: (options ?? TestOptions.Regular).WithReplaceFeature());
+            return SyntaxFactory.ParseSyntaxTree(text, options: (options ?? TestOptions.Regular));
         }
 
         protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)

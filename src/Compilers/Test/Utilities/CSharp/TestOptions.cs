@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // document every public member of every test input.
         public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
@@ -44,31 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
-        }
-
-        public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureLocalFunctions);
-        }
-
-        public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureRefLocalsReturns);
-        }
-
-        public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureTuples);
-        }
-
-        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureReplace);
-        }
-
-        public static CSharpParseOptions WithPatternsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeaturePatternMatching);
         }
 
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
