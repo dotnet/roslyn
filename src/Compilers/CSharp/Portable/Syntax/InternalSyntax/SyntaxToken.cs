@@ -84,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal bool IsVar
-        {
-            get { return this.Kind == SyntaxKind.IdentifierToken && this.ValueText == "var"; }
-        }
-
         internal override GreenNode GetSlot(int index)
         {
             throw ExceptionUtilities.Unreachable;

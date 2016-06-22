@@ -376,5 +376,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return LambdaUtilities.IsLambdaBody(node);
         }
+
+        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+        }
     }
 }
