@@ -4,11 +4,13 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
+    using Roslyn.Reflection;
+
     internal partial class CodeGenerator
     {
         private enum ArrayInitializerStyle

@@ -14,6 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
         private readonly EmitBaseline _previousGeneration;
@@ -632,9 +635,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     var signature = local.Signature;
                     if (signature == null)
                     {
-                        int start = writer.Count;
+                        int start = writer.Position;
                         SerializeLocalVariableType(encoder.AddVariable(), local);
-                        signature = writer.ToArray(start, writer.Count - start);
+                        signature = writer.ToArray(start, writer.Position - start);
                     }
                     else
                     {
@@ -643,6 +646,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
+                
+                encoder.EndVariables();
                 
                 BlobHandle blobIndex = metadata.GetOrAddBlob(writer);
                 

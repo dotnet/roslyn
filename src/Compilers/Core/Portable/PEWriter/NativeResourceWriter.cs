@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+
     internal static class NativeResourceWriter
     {
         ////
@@ -247,7 +248,7 @@ namespace Microsoft.Cci
             {
                 int id;
                 string name;
-                uint nameOffset = (uint)dataWriter.Count + sizeOfDirectoryTree;
+                uint nameOffset = (uint)dataWriter.Position + sizeOfDirectoryTree;
                 uint directoryOffset = k;
                 Directory subDir = directory.Entries[i] as Directory;
                 if (subDir != null)
@@ -275,7 +276,7 @@ namespace Microsoft.Cci
                     IWin32Resource r = (IWin32Resource)directory.Entries[i];
                     id = level == 0 ? r.TypeId : level == 1 ? r.Id : (int)r.LanguageId;
                     name = level == 0 ? r.TypeName : level == 1 ? r.Name : null;
-                    dataWriter.WriteUInt32((uint)(virtualAddressBase + sizeOfDirectoryTree + 16 + dataWriter.Count));
+                    dataWriter.WriteUInt32((uint)(virtualAddressBase + sizeOfDirectoryTree + 16 + dataWriter.Position));
                     byte[] data = new List<byte>(r.Data).ToArray();
                     dataWriter.WriteUInt32((uint)data.Length);
                     dataWriter.WriteUInt32(r.CodePage);
