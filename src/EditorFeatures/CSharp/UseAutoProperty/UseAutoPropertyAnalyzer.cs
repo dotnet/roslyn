@@ -46,12 +46,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
-            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
-            foreach (var symbol in symbolInfo.CandidateSymbols)
+            if (argument.Expression != null)
             {
-                AddIneligibleField(symbol, ineligibleFields);
+                var cancellationToken = context.CancellationToken;
+                var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
+                AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
+                foreach (var symbol in symbolInfo.CandidateSymbols)
+                {
+                    AddIneligibleField(symbol, ineligibleFields);
+                }
             }
         }
 
