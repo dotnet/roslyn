@@ -175,6 +175,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableValue(DirectCast(expression, BoundPseudoVariable), used)
 
+                Case BoundKind.ModuleVersionId
+                    Debug.Assert(used)
+                    EmitModuleVersionIdLoad(DirectCast(expression, BoundModuleVersionId))
+
+                Case BoundKind.ModuleVersionIdString
+                    Debug.Assert(used)
+                    EmitModuleVersionIdStringLoad(DirectCast(expression, BoundModuleVersionIdString))
+
+                Case BoundKind.InstrumentationPayloadRoot
+                    Debug.Assert(used)
+                    EmitInstrumentationPayloadRootLoad(DirectCast(expression, BoundInstrumentationPayloadRoot))
+
+                Case BoundKind.MethodDefIndex
+                    Debug.Assert(used)
+                    EmitMethodDefIndexExpression(DirectCast(expression, BoundMethodDefIndex))
+
+                Case BoundKind.MaximumMethodDefIndex
+                    Debug.Assert(used)
+                    EmitMaximumMethodDefIndexExpression(DirectCast(expression, BoundMaximumMethodDefIndex))
+
                 Case Else
                     ' Code gen should not be invoked if there are errors.
                     ' Debug.Assert(expression.Kind <> BoundKind.BadExpression AndAlso expression.Kind <> BoundKind.Parenthesized)
@@ -2158,6 +2178,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitUnboxAny(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
             _builder.EmitOpCode(ILOpCode.Unbox_any)
             EmitSymbolToken(type, syntaxNode)
+        End Sub
+
+        Private Sub EmitMethodDefIndexExpression(node As BoundMethodDefIndex)
+            Debug.Assert(node.Method.IsDefinition)
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
+            _builder.EmitOpCode(ILOpCode.Ldtoken)
+            EmitSymbolToken(node.Method, node.Syntax, Nothing, encodeAsRawDefinitionToken:=True)
+        End Sub
+
+        Private Sub EmitMaximumMethodDefIndexExpression(node As BoundMaximumMethodDefIndex)
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
+            _builder.EmitOpCode(ILOpCode.Ldtoken)
+            _builder.EmitGreatestMethodToken()
+        End Sub
+
+        Private Sub EmitModuleVersionIdLoad(node As BoundModuleVersionId)
+            _builder.EmitOpCode(ILOpCode.Ldsfld)
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+        End Sub
+
+        Private Sub EmitModuleVersionIdStore(node As BoundModuleVersionId)
+            _builder.EmitOpCode(ILOpCode.Stsfld)
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+        End Sub
+
+        Private Sub EmitModuleVersionIdStringLoad(node As BoundModuleVersionIdString)
+            _builder.EmitOpCode(ILOpCode.Ldstr)
+            _builder.EmitModuleVersionIdStringToken()
+        End Sub
+
+        Private Sub EmitInstrumentationPayloadRootLoad(node As BoundInstrumentationPayloadRoot)
+            _builder.EmitOpCode(ILOpCode.Ldsfld)
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+        End Sub
+
+        Private Sub EmitInstrumentationPayloadRootStore(node As BoundInstrumentationPayloadRoot)
+            _builder.EmitOpCode(ILOpCode.Stsfld)
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
         End Sub
     End Class
 

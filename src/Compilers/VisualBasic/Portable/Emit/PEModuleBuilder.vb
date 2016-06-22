@@ -623,5 +623,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
+        Friend Function GetModuleVersionId(mvidType As Cci.ITypeReference, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.IFieldReference
+            Dim details As PrivateImplementationDetails = GetPrivateImplClass(syntaxOpt, diagnostics)
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics)
+
+            Return details.GetModuleVersionId(mvidType)
+        End Function
+
+        Friend Function GetInstrumentationPayloadRoot(analysisKind As Integer, payloadType As Cci.ITypeReference, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.IFieldReference
+            Dim details As PrivateImplementationDetails = GetPrivateImplClass(syntaxOpt, diagnostics)
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics)
+
+            Return details.GetOrAddInstrumentationPayloadRoot(analysisKind, payloadType)
+        End Function
+
+        Private Sub EnsurePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+            If details.GetMethod(WellKnownMemberNames.StaticConstructorName) Is Nothing Then
+                details.TryAddSynthesizedMethod(New SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)))
+            End If
+        End Sub
     End Class
 End Namespace
