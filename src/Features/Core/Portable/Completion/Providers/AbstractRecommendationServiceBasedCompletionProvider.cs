@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan span, bool preselect, SupportedPlatformData supportedPlatformData)
         {
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
+            var rules = GetCompletionItemRules(symbols, context);
+            if (preselect)
+            {
+                rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+            }
 
             return SymbolCompletionItem.Create(
                 displayText: displayText,
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: matchPriority,
-                rules: GetCompletionItemRules(symbols, context));
+                rules: rules);
         }
 
         protected abstract bool IsInstrinsic(ISymbol symbol);

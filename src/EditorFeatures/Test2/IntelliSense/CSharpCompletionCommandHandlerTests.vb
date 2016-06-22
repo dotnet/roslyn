@@ -1825,26 +1825,6 @@ class Program
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TargetTypePreselectionParamsArray() As Task
-            Using state = TestState.CreateCSharpTestState(
-                           <Document><![CDATA[
-class Program
-{
-    static void Main(string[] args)
-    {
-       int yx;
-       M2($$
-    }
-    static void M2(params int[] yx) { }
- }
-}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("yx", isHardSelected:=True).ConfigureAwait(True)
-            End Using
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TargetTypePreselectionLocalOverProperty() As Task
             Using state = TestState.CreateCSharpTestState(
                            <Document><![CDATA[
