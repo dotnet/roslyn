@@ -240,5 +240,14 @@ $$"));
             await VerifyKeywordAsync(AddInsideMethod(
 @"M(out $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
+        public async Task TestAfterOutKeywordInParameter()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+     void M1(out $$");
+        }
     }
 }
