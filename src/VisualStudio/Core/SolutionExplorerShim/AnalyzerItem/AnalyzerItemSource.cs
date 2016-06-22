@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _analyzerItems.Add(new AnalyzerItem(_analyzersFolder, reference, _commandHandler.AnalyzerContextMenuController));
                 }
 
-                var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
+                var sorted = GetSortedAnalyzerItems(_analyzerItems, project);
                 for (int i = 0; i < sorted.Length; i++)
                 {
                     _analyzerItems.Move(_analyzerItems.IndexOf(sorted[i]), i);
@@ -158,9 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     if (project != null)
                     {
                         _analyzerReferences = project.AnalyzerReferences;
-                        var initialSet = _analyzerReferences
-                                            .OrderBy(ar => ar.Display)
-                                            .Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
+                        var items = _analyzerReferences.Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
+                        var initialSet = GetSortedAnalyzerItems(items, project);
                         _analyzerItems.AddRange(initialSet);
                     }
                 }
@@ -179,6 +179,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 return _analyzersFolder;
             }
+        }
+
+        private static ImmutableArray<AnalyzerItem> GetSortedAnalyzerItems(IEnumerable<AnalyzerItem> analyzerItems, Project project)
+        {
+            // We want to display the analyzers sorted by their display name, but place analyzers with no rules towards the end (analyzer dependencies).
+            var itemsWithRules = new List<AnalyzerItem>();
+            var itemsWithoutRules = new List<AnalyzerItem>();
+            foreach (var item in analyzerItems)
+            {
+                if (item.AnalyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty)
+                {
+                    itemsWithoutRules.Add(item);
+                }
+                else
+                {
+                    itemsWithRules.Add(item);
+                }
+            }
+
+            var sortedItemsWithRules = itemsWithRules.OrderBy(a => a.AnalyzerReference.Display);
+            var sortedItemsWithoutRules = itemsWithoutRules.OrderBy(a => a.AnalyzerReference.Display);
+
+            return sortedItemsWithRules.Concat(sortedItemsWithoutRules).ToImmutableArray();
         }
     }
 }
