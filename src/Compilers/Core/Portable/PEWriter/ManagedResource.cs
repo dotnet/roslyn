@@ -3,14 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Reflection.Metadata;
+using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    
     internal sealed class ManagedResource
     {
         private readonly Func<Stream> _streamProvider;

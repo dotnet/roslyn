@@ -1,21 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.PortableExecutable;
+
     internal sealed class PeWritingException : Exception
     {
         public PeWritingException(Exception inner)
@@ -96,15 +98,14 @@ namespace Microsoft.Cci
                 return false;
             }
 
-            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default(BlobContentId);
+            ContentId nativePdbContentId = nativePdbWriterOpt?.GetContentId() ?? default(ContentId);
 
             // the writer shall not be used after this point for writing:
             nativePdbWriterOpt = null;
 
-            ushort portablePdbVersion = 0;
             var metadataSerializer = mdWriter.GetTypeSystemMetadataSerializer();
 
-            var peHeaderBuilder = new PEHeaderBuilder(
+            var peBuilder = new PEBuilder(
                 machine: properties.Machine,
                 sectionAlignment: properties.SectionAlignment,
                 fileAlignment: properties.FileAlignment,
@@ -123,20 +124,17 @@ namespace Microsoft.Cci
                 sizeOfStackReserve: properties.SizeOfStackReserve,
                 sizeOfStackCommit: properties.SizeOfStackCommit,
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
-                sizeOfHeapCommit: properties.SizeOfHeapCommit);
+                sizeOfHeapCommit: properties.SizeOfHeapCommit,
+                deterministicIdProvider: isDeterministic ? new Func<BlobBuilder, ContentId>(content => ContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) : null);
 
-            var deterministicIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) :
-                null;
-
+            ContentId portablePdbContentId;
             if (mdWriter.EmitStandaloneDebugMetadata)
             {
                 Debug.Assert(getPortablePdbStreamOpt != null);
 
                 var debugMetadataBuilder = new BlobBuilder();
-                var debugMetadataSerializer = mdWriter.GetStandaloneDebugMetadataSerializer(metadataSerializer.MetadataSizes, debugEntryPointHandle, deterministicIdProvider);
-                debugMetadataSerializer.SerializeMetadata(debugMetadataBuilder, out pdbContentId);
-                portablePdbVersion = debugMetadataSerializer.FormatVersion;
+                var debugMetadataSerializer = mdWriter.GetStandaloneDebugMetadataSerializer(metadataSerializer.MetadataSizes, debugEntryPointHandle);
+                debugMetadataSerializer.SerializeMetadata(debugMetadataBuilder, peBuilder.IdProvider, out portablePdbContentId);
 
                 // write to Portable PDB stream:
                 Stream portablePdbStream = getPortablePdbStreamOpt();
@@ -145,50 +143,37 @@ namespace Microsoft.Cci
                     debugMetadataBuilder.WriteContentTo(portablePdbStream);
                 }
             }
-
-            DebugDirectoryBuilder debugDirectoryBuilder;
-            if (pdbPathOpt != null || isDeterministic)
-            {
-                debugDirectoryBuilder = new DebugDirectoryBuilder();
-                if (pdbPathOpt != null)
-                {
-                    string paddedPath = isDeterministic ? pdbPathOpt : PadPdbPath(pdbPathOpt);
-                    debugDirectoryBuilder.AddCodeViewEntry(paddedPath, pdbContentId, portablePdbVersion);
-                }
-
-                if (isDeterministic)
-                {
-                    debugDirectoryBuilder.AddReproducibleEntry();
-                }
-            }
             else
             {
-                debugDirectoryBuilder = null;
+                portablePdbContentId = default(ContentId);
             }
 
-            var peBuilder = new ManagedPEBuilder(
-                peHeaderBuilder,
+            var peDirectoriesBuilder = new PEDirectoriesBuilder();
+
+            peBuilder.AddManagedSections(
+                peDirectoriesBuilder,
                 metadataSerializer,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
                 CreateNativeResourceSectionSerializer(context.Module),
-                debugDirectoryBuilder,
                 CalculateStrongNameSignatureSize(context.Module),
                 entryPointHandle,
-                properties.CorFlags,
-                deterministicIdProvider);
+                pdbPathOpt,
+                nativePdbContentId,
+                portablePdbContentId,
+                properties.CorFlags);
 
             var peBlob = new BlobBuilder();
-            BlobContentId peContentId;
-            peBuilder.Serialize(peBlob, out peContentId);
+            ContentId peContentId;
+            peBuilder.Serialize(peBlob, peDirectoriesBuilder, out peContentId);
 
             // Patch MVID
             if (!mvidFixup.IsDefault)
             {
-                var writer = new BlobWriter(mvidFixup);
-                writer.WriteGuid(peContentId.Guid);
-                Debug.Assert(writer.RemainingBytes == 0);
+                var mvidWriter = new BlobWriter(mvidFixup);
+                mvidWriter.WriteBytes(peContentId.Guid);
+                Debug.Assert(mvidWriter.RemainingBytes == 0);
             }
 
             try
@@ -203,16 +188,7 @@ namespace Microsoft.Cci
             return true;
         }
 
-        // Padding: We pad the path to this minimal size to
-        // allow some tools to patch the path without the need to rewrite the entire image.
-        // This is a workaround put in place until these tools are retired.
-        private static string PadPdbPath(string path)
-        {
-            const int minLength = 260;
-            return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
-        }
-
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(IModule module)
+        private static Action<BlobBuilder, PESectionLocation> CreateNativeResourceSectionSerializer(IModule module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
@@ -222,51 +198,24 @@ namespace Microsoft.Cci
             // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
             // the .OBJ into our output and apply some fixups.
 
-            var nativeResourceSectionOpt = module.Win32ResourceSection;
-            if (nativeResourceSectionOpt != null)
-            {
-                return new ResourceSectionBuilderFromObj(nativeResourceSectionOpt);
-            }
-
             var nativeResourcesOpt = module.Win32Resources;
-            if (nativeResourcesOpt?.Any() == true)
+            var nativeResourceSectionOpt = module.Win32ResourceSection;
+            if (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null)
             {
-                return new ResourceSectionBuilderFromResources(nativeResourcesOpt);
+                return (sectionBuilder, location) =>
+                {
+                    if (nativeResourceSectionOpt != null)
+                    {
+                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourceSectionOpt, location.RelativeVirtualAddress);
+                    }
+                    else
+                    {
+                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourcesOpt, location.RelativeVirtualAddress);
+                    }
+                };
             }
 
             return null;
-        }
-
-        private class ResourceSectionBuilderFromObj : ResourceSectionBuilder
-        {
-            private readonly ResourceSection _resourceSection;
-
-            public ResourceSectionBuilderFromObj(ResourceSection resourceSection)
-            {
-                Debug.Assert(resourceSection != null);
-                _resourceSection = resourceSection;
-            }
-
-            protected override void Serialize(BlobBuilder builder, SectionLocation location)
-            {
-                NativeResourceWriter.SerializeWin32Resources(builder, _resourceSection, location.RelativeVirtualAddress);
-            }
-        }
-
-        private class ResourceSectionBuilderFromResources : ResourceSectionBuilder
-        {
-            private readonly IEnumerable<IWin32Resource> _resources;
-
-            public ResourceSectionBuilderFromResources(IEnumerable<IWin32Resource> resources)
-            {
-                Debug.Assert(resources.Any());
-                _resources = resources;
-            }
-
-            protected override void Serialize(BlobBuilder builder, SectionLocation location)
-            {
-                NativeResourceWriter.SerializeWin32Resources(builder, _resources, location.RelativeVirtualAddress);
-            }
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)

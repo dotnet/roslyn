@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
                         int blockOffset = _allocatedILMarkers[i].BlockOffset;
-                        int absoluteOffset = writer.Count + blockOffset;
+                        int absoluteOffset = writer.Position + blockOffset;
                         _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
                     }
                 }
