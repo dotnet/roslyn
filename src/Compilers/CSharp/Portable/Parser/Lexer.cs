@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var requiredVersion = feature.RequiredVersion();
             if (availableVersion >= requiredVersion) return;
             var featureName = feature.Localize();
-            this.AddError(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+            this.AddError(availableVersion.GetErrorCode(), featureName, feature.RequiredFeatureLegacy() ?? requiredVersion.Localize());
         }
 
         private bool ScanInteger()

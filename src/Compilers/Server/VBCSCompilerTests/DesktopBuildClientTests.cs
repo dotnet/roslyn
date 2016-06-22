@@ -150,8 +150,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 // No server should be started with the current pipe name
                 var client = CreateClient();
-                var oneSecondInMs = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
-                Assert.False(client.TryConnectToNamedPipeWithSpinWait(oneSecondInMs,
+                var oneSec = TimeSpan.FromSeconds(1);
+
+                Assert.False(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
                                                                       default(CancellationToken)));
 
                 // Try again with infinite timeout and cancel
@@ -160,24 +161,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                                                                                          cts.Token),
                                           cts.Token);
                 Assert.False(connection.IsCompleted);
-                // Spin for a little bit
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
                 cts.Cancel();
-                await Task.WhenAny(connection, Task.Delay(TimeSpan.FromMilliseconds(100)))
-                    .ConfigureAwait(false);
-                Assert.True(connection.IsCompleted);
-                Assert.True(connection.IsCanceled);
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                    async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
 
                 // Create server and try again
                 Assert.True(TryCreateServer(_pipeName));
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait(oneSecondInMs,
+                Assert.True(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
                                                                      default(CancellationToken)));
                 // With infinite timeout
-                connection = Task.Run(() =>
-                    client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite, default(CancellationToken)));
-                await Task.WhenAny(connection, Task.Delay(oneSecondInMs)).ConfigureAwait(false);
-                Assert.True(connection.IsCompleted);
-                Assert.True(await connection.ConfigureAwait(false));
+                Assert.True(client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
+                                                                     default(CancellationToken)));
             }
 
             [Fact]
