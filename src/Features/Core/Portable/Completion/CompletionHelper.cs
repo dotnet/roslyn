@@ -229,14 +229,17 @@ namespace Microsoft.CodeAnalysis.Completion
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
             // language, then we prefer the former.
-            var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+            if (item1.DisplayText.Length != item2.DisplayText.Length)
             {
-                return -1;
-            }
-            else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
-            {
-                return 1;
+                var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+                {
+                    return -1;
+                }
+                else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
+                {
+                    return 1;
+                }
             }
 
             // Now compare the matches again in a case sensitive manner.  If everything was

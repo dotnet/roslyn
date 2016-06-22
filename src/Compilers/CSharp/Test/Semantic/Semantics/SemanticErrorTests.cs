@@ -2232,7 +2232,7 @@ public class MyClass {
         return 1;
     }
 
-}")
+}", parseOptions: TestOptions.Regular6)
                 .VerifyDiagnostics(
                 // (7,22): error CS0118: 'myTest' is a 'variable' but is used like a 'type'
                 Diagnostic(ErrorCode.ERR_BadSKknown, "myTest").WithArguments("myTest", "variable", "type"));
@@ -4038,7 +4038,9 @@ public class iii
       }
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
+            DiagnosticsUtils.VerifyErrorCodes(
+                comp,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
         }
 
@@ -7173,7 +7175,7 @@ class A
         x + y; x == 1;
     }
 }";
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
     // (7,16): error CS1001: Identifier expected
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
@@ -7225,9 +7227,9 @@ class A
 }";
             var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) }, new MetadataReference[] { });
             comp.VerifyDiagnostics(
-                // (7,9): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(a, b)").WithArguments("tuples", "tuples").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(a, b)").WithArguments("tuples", "7").WithLocation(7, 9),
                 // (7,16): error CS1001: Identifier expected
                 //         (a, b) =>
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),

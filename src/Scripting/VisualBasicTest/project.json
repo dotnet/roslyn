@@ -1,6 +1,6 @@
-﻿{
+{
   "dependencies": {
-    "System.AppContext": "4.1.0-rc3-24128-00"
+    "System.AppContext": "4.1.0"
   },
   "frameworks": {
     "netstandard1.3": {
