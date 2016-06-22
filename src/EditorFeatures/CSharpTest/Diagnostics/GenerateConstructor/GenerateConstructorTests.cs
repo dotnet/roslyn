@@ -872,5 +872,49 @@ withScriptOption: true);
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](out var a); } }",
+@"class C { public C(out object a) { a = null; } void M() { new C(out var a); } }",
+parseOptions: TestOptions.Regular.WithOutVarFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
+        {
+            await TestAsync(
+@"class C { void M() { new C([|b|]: out var a); } }",
+@"class C { public C(out object b) { b = null; } void M() { new C(b: out var a); } }",
+parseOptions: TestOptions.Regular.WithOutVarFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](out int a); } }",
+@"class C { public C(out int a) { a = 0; } void M() { new C(out int a); } }",
+parseOptions: TestOptions.Regular.WithOutVarFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
+        {
+            await TestAsync(
+@"class C { void M() { new C([|b|]: out int a); } }",
+@"class C { public C(out int b) { b = 0; } void M() { new C(b: out int a); } }",
+parseOptions: TestOptions.Regular.WithOutVarFeature(),
+withScriptOption: true);
+        }
     }
 }
