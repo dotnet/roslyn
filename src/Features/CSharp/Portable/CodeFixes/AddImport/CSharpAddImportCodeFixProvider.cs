@@ -607,6 +607,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 // The name we generated will have the global:: alias on it.  We only need
                 // that if the name of our symbol is actually ambiguous in this context.
                 // If so, keep global:: on it, otherwise remove it.
+                //
+                // Note: doing this has a couple of benefits.  First, it's easy for us to see
+                // if we have an existing using for this with the same syntax.  Second,
+                // it's easy to sort usings properly.  If "global::" was attached to the 
+                // using directive, then it would make both of those operations more difficult
+                // to achieve.
                 nameSyntax = RemoveGlobalAliasIfUnnecessary(semanticModel, nameSyntax, namespaceToAddTo);
             }
 
