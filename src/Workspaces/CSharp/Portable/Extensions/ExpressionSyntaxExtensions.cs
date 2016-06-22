@@ -1939,23 +1939,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool CanReplaceWithReducedNameInContext(
             this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // Special case.  if this new minimal name parses out to a predefined type, then we
-            // have to make sure that we're not in a using alias. That's the one place where the
-            // language doesn't allow predefined types. You have to use the fully qualified name
-            // instead.
-            var invalidTransformation1 = IsNonNameSyntaxInUsingDirective(name, reducedName);
-            var invalidTransformation2 = WillConflictWithExistingLocal(name, reducedName);
-            var invalidTransformation3 = IsAmbiguousCast(name, reducedName);
-            var invalidTransformation4 = IsNullableTypeInPointerExpression(name, reducedName);
-            var invalidTransformation5 = name.IsNotNullableReplaceable(reducedName);
-            var invalidTransformation6 = IsQualifiedNameInUsingDirective(semanticModel, name, reducedName);
+            // Check for certain things that would prevent us from reducing this name in this context.
+            // For example, you can simplify "using a = System.Int32" to "using a = int" as it's simply
+            // not allowed in the C# grammar.
 
-            if (invalidTransformation1 ||
-                invalidTransformation2 ||
-                invalidTransformation3 ||
-                invalidTransformation4 || 
-                invalidTransformation5 ||
-                invalidTransformation6)
+            if (IsNonNameSyntaxInUsingDirective(name, reducedName) ||
+                WillConflictWithExistingLocal(name, reducedName) ||
+                IsAmbiguousCast(name, reducedName) ||
+                IsNullableTypeInPointerExpression(name, reducedName) || 
+                name.IsNotNullableReplaceable(reducedName) ||
+                IsQualifiedNameInUsingDirective(semanticModel, name, reducedName))
             {
                 return false;
             }
