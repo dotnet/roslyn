@@ -1936,7 +1936,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return CanReplaceWithReducedNameInContext(name, reducedName, semanticModel, cancellationToken);
         }
 
-        private static bool CanReplaceWithReducedNameInContext(this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool CanReplaceWithReducedNameInContext(
+            this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // Special case.  if this new minimal name parses out to a predefined type, then we
             // have to make sure that we're not in a using alias. That's the one place where the
@@ -1946,15 +1947,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var invalidTransformation2 = WillConflictWithExistingLocal(name, reducedName);
             var invalidTransformation3 = IsAmbiguousCast(name, reducedName);
             var invalidTransformation4 = IsNullableTypeInPointerExpression(name, reducedName);
-            var isNotNullableReplaceable = name.IsNotNullableReplaceable(reducedName);
+            var invalidTransformation5 = name.IsNotNullableReplaceable(reducedName);
+            var invalidTransformation6 = IsQualifiedNameInUsingDirective(semanticModel, name, reducedName);
 
-            if (invalidTransformation1 || invalidTransformation2 || invalidTransformation3 || invalidTransformation4
-                || isNotNullableReplaceable)
+            if (invalidTransformation1 ||
+                invalidTransformation2 ||
+                invalidTransformation3 ||
+                invalidTransformation4 || 
+                invalidTransformation5 ||
+                invalidTransformation6)
             {
                 return false;
             }
 
             return true;
+        }
+
+        private static bool IsQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
+        {
+            while (name.IsLeftSideOfQualifiedName())
+            {
+                name = (NameSyntax)name.Parent;
+            }
+
+            if (name.IsParentKind(SyntaxKind.UsingDirective) &&
+                ((UsingDirectiveSyntax)name.Parent).Alias == null)
+            {
+                // We're a qualified name in a using.  We don't want to reduce this name as people like
+                // fully qualified names in usings so they can properly tell what the name is resolving
+                // to.
+                // However, if this name is actually referencing the special Script class, then we do
+                // want to allow that to be reduced.
+
+                return !IsInScriptClass(model, name);
+            }
+
+            return false;
+        }
+
+        private static bool IsInScriptClass(SemanticModel model, NameSyntax name)
+        {
+            var symbol = model.GetSymbolInfo(name).Symbol as INamedTypeSymbol;
+            while (symbol != null)
+            {
+                if (symbol.IsScriptClass)
+                {
+                    return true;
+                }
+
+                symbol = symbol.ContainingType;
+            }
+
+            return false;
         }
 
         private static bool IsNotNullableReplaceable(this NameSyntax name, TypeSyntax reducedName)

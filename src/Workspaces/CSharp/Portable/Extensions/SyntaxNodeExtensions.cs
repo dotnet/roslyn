@@ -98,6 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                    .SelectMany(n => n.Usings));
         }
 
+        public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
+        {
+            return node.GetAncestorOrThis<CompilationUnitSyntax>().Externs
+                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                                   .Reverse()
+                                   .SelectMany(n => n.Externs));
+        }
+
         public static bool IsUnsafeContext(this SyntaxNode node)
         {
             if (node.GetAncestor<UnsafeStatementSyntax>() != null)
