@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _emittingPdb = emittingPdb
             _filterOpt = filter
 
-            If emittingPdb Then
+            If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData Then
                 _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 

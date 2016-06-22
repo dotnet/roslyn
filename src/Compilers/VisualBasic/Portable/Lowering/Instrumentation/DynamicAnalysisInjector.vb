@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     payload = Instrumentation.CreatePayload(mvid, methodIndex, PID.PayloadRootField(methodIndex), payloadLength)
                 ' End If
 
-                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, False), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), False, ImmutableArray.Create(_factory.MethodDefIndex(_method))))
+                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, True), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), False, ImmutableArray.Create(_factory.MethodDefIndex(_method))))
                 Dim mvid As BoundExpression = _factory.ModuleVersionId()
                 Dim methodToken As BoundExpression = _factory.MethodDefIndex(_method)
                 Dim payloadSlot As BoundExpression = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), False, ImmutableArray.Create(_factory.MethodDefIndex(_method)))

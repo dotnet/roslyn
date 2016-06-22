@@ -15,71 +15,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
     Public Class DynamicAnalysisResourceTests
         Inherits BasicTestBase
 
-        ReadOnly InstrumentationHelperSource As Xml.Linq.XElement = <compilation>
-                                                                        <file name="c.vb">
-                                                                            <![CDATA[
-namespace Microsoft.CodeAnalysis.Runtime
-{
-    public static class Instrumentation
-    {
-        public static bool[] CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
-        {
-            return payload;
-        }
+        ReadOnly InstrumentationHelperSource As Xml.Linq.XElement = <file name="a.vb">
+                                                                        <![CDATA[
+Namespace Microsoft.CodeAnalysis.Runtime
+    Public Class Instrumentation
+        Public Shared Function CreatePayload(mvid As System.Guid, methodToken As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
+            Return payload
+        End Function
 
-        public static void FlushPayload()
-        {
-        }
-    }
-}
+        Public Shared Sub FlushPayload()
+        End Sub
+    End Class
+End Namespace
+]]>
+                                                                    </file>
+
+        ReadOnly ExampleSource As Xml.Linq.XElement = <file name="c.vb">
+                                                                            <![CDATA[
+Imports System
+
+Public Class C
+    Public Shared Sub Main()
+        Console.WriteLine(123)
+        Console.WriteLine(123)
+    End Sub
+
+    Public Shared Function Fred As Integer
+        Return 3
+    End Function
+
+    Public Shared Function Barney(x As Integer)
+        Return x
+    End Function
+
+    Public Shared Property Wilma As Integer
+        Get
+            Return 12
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Shared ReadOnly Property Betty As Integer
+End Class
 ]]>
                                                                         </file>
-                                                                    </compilation>
 
-        ReadOnly ExampleSource As Xml.Linq.XElement = <compilation>
-                                                          <file name="c.vb">
-                                                              <![CDATA[
-using System;
-
-public class C
-{
-    public static void Main()
-    {
-        Console.WriteLine(123);
-        Console.WriteLine(123);
-    }
-
-    public static int Fred => 3;
-
-    public static int Barney(int x) => x;
-
-    public static int Wilma
-    {
-        get { return 12; }
-        set { }
-    }
-
-    public static int Betty { get; }
-}
-]]>
-                                                          </file>
-                                                      </compilation>
-
-#If False Then
+#If True Then
         <Fact>
         Public Sub TestSpansPresentInResource()
-            Dim c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.vb"))
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(InstrumentationHelperSource)
+            source.Add(ExampleSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' 87-3F-1A-28-F7-34-C9-43-19-00-ED-0F-8F-2F-0D-EB-DD-32-D4-8E (SHA1)")
+                "'C:\myproject\doc1.cs' 87-3F-1A-28-F7-34-C9-43-19-00-ED-0F-8F-2F-0D-EB-DD-32-D4-8E (SHA1)")
 
             Assert.Equal(10, reader.Methods.Length)
 
-            VerifySpans(reader, reader.Methods(z),                                      ' Main
+            VerifySpans(reader, reader.Methods(0),                                      ' Main
                 "(5,4)-(9,5)",
                 "(7,8)-(7,31)",
                 "(8,8)-(8,31)")
@@ -88,7 +88,7 @@ public class C
                 "(11,4)-(11,32)",
                 "(11,30)-(11,31)")
 
-            VerifySpans(reader, reader.Method([2),                                      ' Barney
+            VerifySpans(reader, reader.Methods(2),                                      ' Barney
                 "(13,4)-(13,41)",
                 "(13,39)-(13,40)")
 
@@ -108,7 +108,11 @@ public class C
 
         <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
-            Dim c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.vb"))
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(InstrumentationHelperSource)
+            source.Add(ExampleSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default)
 
             Dim PEReader As New PEReader(peImage)
@@ -117,7 +121,7 @@ public class C
             Assert.Null(reader)
         End Sub
 
-        Private Shared Sub VerifySpans(reader As DynamicAnalysisDataReader, methoData As DynamicAnalysisMethod, ParamArray expected As String())
+        Private Shared Sub VerifySpans(reader As DynamicAnalysisDataReader, methodData As DynamicAnalysisMethod, ParamArray expected As String())
             AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(Function(s) $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn})"))
         End Sub
 
