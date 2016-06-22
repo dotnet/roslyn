@@ -163,31 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        internal static string RequiredFeatureLegacy(this MessageID feature)
-        {
-            switch (feature)
-            {
-            case MessageID.IDS_FeatureBinaryLiteral:
-                return "binaryLiterals";
-            case MessageID.IDS_FeatureDigitSeparator:
-                return "digitSeparators";
-            case MessageID.IDS_FeatureLocalFunctions:
-                return "localFunctions";
-            case MessageID.IDS_FeatureRefLocalsReturns:
-                return "refLocalsAndReturns";
-            case MessageID.IDS_FeaturePatternMatching:
-                return "patterns";
-            case MessageID.IDS_FeatureTuples:
-                return "tuples";
-            case MessageID.IDS_FeatureReplace:
-                return "replace";
-            default:
-                return null;
-            }
-        }
-
-
+        
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
