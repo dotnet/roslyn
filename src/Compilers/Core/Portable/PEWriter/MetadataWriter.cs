@@ -24,6 +24,12 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.Metadata;
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+    using Roslyn.Reflection.PortableExecutable;
+
     internal abstract partial class MetadataWriter
     {
         private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
@@ -908,7 +914,7 @@ namespace Microsoft.Cci
                 return resource.Offset;
             }
 
-            int result = resourceWriter.Count;
+            int result = resourceWriter.Position;
             resource.WriteData(resourceWriter);
             return (uint)result;
         }
@@ -1063,6 +1069,8 @@ namespace Microsoft.Cci
                 var typeRef = typeReference;
                 SerializeTypeReference(encoder.AddArgument(), typeRef);
             }
+
+            encoder.EndArguments();
 
             result = metadata.GetOrAddBlob(builder);
             _methodInstanceSignatureIndex.Add(methodInstanceReference, result);
@@ -1760,9 +1768,9 @@ namespace Microsoft.Cci
             return new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
         }
 
-        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
+        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, MethodDefinitionHandle debugEntryPoint)
         {
-            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPoint, IsMinimalDelta, deterministicIdProviderOpt);
+            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPoint, IsMinimalDelta);
         }
 
         internal void GetEntryPoints(out MethodDefinitionHandle entryPointHandle, out MethodDefinitionHandle debugEntryPointHandle)
@@ -1795,7 +1803,7 @@ namespace Microsoft.Cci
             return GetGenericParameters().OrderBy((x, y) =>
             {
                 // Spec: GenericParam table is sorted by Owner and then by Number.
-                int result = CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
+                int result = (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
                 if (result != 0)
                 {
                     return result;
@@ -2219,13 +2227,13 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                int offset = mappedFieldDataWriter.Count;
+                int rva = mappedFieldDataWriter.Position;
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
-                mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
+                mappedFieldDataWriter.Align(ManagedTextSection.MappedFieldDataAlignment);
 
                 metadata.AddFieldRelativeVirtualAddress(
                     field: GetFieldDefinitionHandle(fieldDef),
-                    offset: offset);
+                    relativeVirtualAddress: rva);
             }
         }
 
@@ -2348,7 +2356,7 @@ namespace Microsoft.Cci
                     : metadata.GetOrAddString(methodDef.Name); // Length checked while populating the method def table.
 
                 metadata.AddMethodImport(
-                    method: GetMethodDefinitionHandle(methodDef),
+                    member: GetMethodDefinitionHandle(methodDef),
                     attributes: data.Flags,
                     name: importName,
                     module: GetModuleReferenceHandle(data.ModuleName));
@@ -2393,7 +2401,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment) == 0);
+            Debug.Assert((resourceDataWriter.Count % ManagedTextSection.ManagedResourcesDataAlignment) == 0);
         }
 
         private void PopulateMemberRefTableRows()
@@ -2450,7 +2458,7 @@ namespace Microsoft.Cci
                     name: GetStringHandleForNameAndCheckLength(methodDef.Name, methodDef),
                     signature: GetMethodSignatureHandle(methodDef),
                     bodyOffset: methodBodyOffsets[i],
-                    parameterList: GetFirstParameterHandle(methodDef));
+                    paramList: GetFirstParameterHandle(methodDef));
 
                 i++;
             }
@@ -2469,18 +2477,18 @@ namespace Microsoft.Cci
                 var association = GetPropertyDefIndex(propertyDef);
                 foreach (IMethodReference accessorMethod in propertyDef.Accessors)
                 {
-                    MethodSemanticsAttributes semantics;
+                    ushort semantics;
                     if (accessorMethod == propertyDef.Setter)
                     {
-                        semantics = MethodSemanticsAttributes.Setter;
+                        semantics = 0x0001;
                     }
                     else if (accessorMethod == propertyDef.Getter)
                     {
-                        semantics = MethodSemanticsAttributes.Getter;
+                        semantics = 0x0002;
                     }
                     else
                     {
-                        semantics = MethodSemanticsAttributes.Other;
+                        semantics = 0x0004;
                     }
 
                     metadata.AddMethodSemantics(
@@ -2495,22 +2503,22 @@ namespace Microsoft.Cci
                 var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.Accessors)
                 {
-                    MethodSemanticsAttributes semantics;
+                    ushort semantics;
                     if (accessorMethod == eventDef.Adder)
                     {
-                        semantics = MethodSemanticsAttributes.Adder;
+                        semantics = 0x0008;
                     }
                     else if (accessorMethod == eventDef.Remover)
                     {
-                        semantics = MethodSemanticsAttributes.Remover;
+                        semantics = 0x0010;
                     }
                     else if (accessorMethod == eventDef.Caller)
                     {
-                        semantics = MethodSemanticsAttributes.Raiser;
+                        semantics = 0x0020;
                     }
                     else
                     {
-                        semantics = MethodSemanticsAttributes.Other;
+                        semantics = 0x0004;
                     }
 
                     metadata.AddMethodSemantics(
@@ -2840,6 +2848,8 @@ namespace Microsoft.Cci
                 SerializeLocalVariableType(encoder.AddVariable(), local);
             }
 
+            encoder.EndVariables();
+
             BlobHandle blobIndex = metadata.GetOrAddBlob(builder);
 
             var handle = GetOrAddStandaloneSignatureHandle(blobIndex);
@@ -3110,6 +3120,8 @@ namespace Microsoft.Cci
                 ITypeReference typeRef = genericArgument;
                 SerializeTypeReference(argsEncoder.AddArgument(), typeRef);
             }
+
+            argsEncoder.EndArguments();
         }
 
         private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
@@ -3127,6 +3139,8 @@ namespace Microsoft.Cci
                 SerializeMetadataExpression(fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
             }
 
+            fixedArgsEncoder.EndArguments();
+
             SerializeCustomAttributeNamedArguments(namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
         }
 
@@ -3143,6 +3157,8 @@ namespace Microsoft.Cci
                 nameEncoder.Name(namedArgument.ArgumentName);
                 SerializeMetadataExpression(literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
             }
+
+            encoder.EndArguments();
         }
 
         private void SerializeNamedArgumentType(NamedArgumentTypeEncoder encoder, ITypeReference type)
@@ -3198,6 +3214,8 @@ namespace Microsoft.Cci
                 {
                     SerializeMetadataExpression(literalsEncoder.AddLiteral(), elemValue, targetElementType);
                 }
+
+                literalsEncoder.EndLiterals();
             }
             else
             {
@@ -3464,6 +3482,8 @@ namespace Microsoft.Cci
                     SerializeParameterInformation(parametersEncoder.AddParameter(), parameter);
                 }
             }
+
+            parametersEncoder.EndParameters();
         }
 
         private void SerializeTypeReference(SignatureTypeEncoder encoder, ITypeReference typeReference)
@@ -3487,7 +3507,7 @@ namespace Microsoft.Cci
                 var primitiveType = typeReference.TypeCode(Context);
                 if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
                 {
-                    SerializePrimitiveType(encoder, primitiveType);
+                    encoder.PrimitiveType(primitiveType);
                     return;
                 }
 
@@ -3561,9 +3581,9 @@ namespace Microsoft.Cci
                     typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, this.Context);
 
                     var genericArgsEncoder = encoder.GenericInstantiation(
+                        typeReference.IsValueType,
                         GetTypeHandle(uninstantiatedTypeReference, treatRefAsPotentialTypeSpec: false),
-                        consolidatedTypeArguments.Count,
-                        typeReference.IsValueType);
+                        consolidatedTypeArguments.Count);
 
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
                     {
@@ -3571,80 +3591,12 @@ namespace Microsoft.Cci
                     }
 
                     consolidatedTypeArguments.Free();
+                    genericArgsEncoder.EndArguments();
                     return;
                 }
 
-                encoder.Type(GetTypeHandle(typeReference), typeReference.IsValueType);
+                encoder.TypeDefOrRefOrSpec(typeReference.IsValueType, GetTypeHandle(typeReference));
                 return;
-            }
-        }
-
-        private static void SerializePrimitiveType(SignatureTypeEncoder encoder, PrimitiveTypeCode primitiveType)
-        {
-            switch (primitiveType)
-            {
-                case PrimitiveTypeCode.Boolean:
-                    encoder.Boolean();
-                    break;
-
-                case PrimitiveTypeCode.UInt8:
-                    encoder.Byte();
-                    break;
-
-                case PrimitiveTypeCode.Int8:
-                    encoder.SByte();
-                    break;
-
-                case PrimitiveTypeCode.Char:
-                    encoder.Char();
-                    break;
-
-                case PrimitiveTypeCode.Int16:
-                    encoder.Int16();
-                    break;
-
-                case PrimitiveTypeCode.UInt16:
-                    encoder.UInt16();
-                    break;
-
-                case PrimitiveTypeCode.Int32:
-                    encoder.Int32();
-                    break;
-
-                case PrimitiveTypeCode.UInt32:
-                    encoder.UInt32();
-                    break;
-
-                case PrimitiveTypeCode.Int64:
-                    encoder.Int64();
-                    break;
-
-                case PrimitiveTypeCode.UInt64:
-                    encoder.UInt64();
-                    break;
-
-                case PrimitiveTypeCode.Float32:
-                    encoder.Single();
-                    break;
-
-                case PrimitiveTypeCode.Float64:
-                    encoder.Double();
-                    break;
-
-                case PrimitiveTypeCode.IntPtr:
-                    encoder.IntPtr();
-                    break;
-
-                case PrimitiveTypeCode.UIntPtr:
-                    encoder.UIntPtr();
-                    break;
-
-                case PrimitiveTypeCode.String:
-                    encoder.String();
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(primitiveType);
             }
         }
 
@@ -3680,7 +3632,7 @@ namespace Microsoft.Cci
             var primitiveType = typeReference.TypeCode(Context);
             if (primitiveType != PrimitiveTypeCode.NotPrimitive)
             {
-                SerializePrimitiveType(encoder, primitiveType);
+                encoder.PrimitiveType(primitiveType);
             }
             else if (module.IsPlatformType(typeReference, PlatformType.SystemType))
             {
@@ -3690,67 +3642,6 @@ namespace Microsoft.Cci
             {
                 Debug.Assert(typeReference.IsEnum);
                 encoder.Enum(typeReference.GetSerializedTypeName(this.Context));
-            }
-        }
-
-        private static void SerializePrimitiveType(CustomAttributeElementTypeEncoder encoder, PrimitiveTypeCode primitiveType)
-        {
-            switch (primitiveType)
-            {
-                case PrimitiveTypeCode.Boolean:
-                    encoder.Boolean();
-                    break;
-
-                case PrimitiveTypeCode.UInt8:
-                    encoder.Byte();
-                    break;
-
-                case PrimitiveTypeCode.Int8:
-                    encoder.SByte();
-                    break;
-
-                case PrimitiveTypeCode.Char:
-                    encoder.Char();
-                    break;
-
-                case PrimitiveTypeCode.Int16:
-                    encoder.Int16();
-                    break;
-
-                case PrimitiveTypeCode.UInt16:
-                    encoder.UInt16();
-                    break;
-
-                case PrimitiveTypeCode.Int32:
-                    encoder.Int32();
-                    break;
-
-                case PrimitiveTypeCode.UInt32:
-                    encoder.UInt32();
-                    break;
-
-                case PrimitiveTypeCode.Int64:
-                    encoder.Int64();
-                    break;
-
-                case PrimitiveTypeCode.UInt64:
-                    encoder.UInt64();
-                    break;
-
-                case PrimitiveTypeCode.Float32:
-                    encoder.Single();
-                    break;
-
-                case PrimitiveTypeCode.Float64:
-                    encoder.Double();
-                    break;
-
-                case PrimitiveTypeCode.String:
-                    encoder.String();
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(primitiveType);
             }
         }
 
@@ -3764,8 +3655,10 @@ namespace Microsoft.Cci
             for (int i = 0; i < count; i++)
             {
                 var modifier = modifiers[start + i];
-                encoder = encoder.AddModifier(GetTypeHandle(modifier.GetModifier(Context)), modifier.IsOptional);
+                encoder = encoder.AddModifier(modifier.IsOptional, GetTypeHandle(modifier.GetModifier(Context)));
             }
+
+            encoder.EndModifiers();
         }
 
         private int GetNumberOfInheritedTypeParameters(ITypeReference type)
