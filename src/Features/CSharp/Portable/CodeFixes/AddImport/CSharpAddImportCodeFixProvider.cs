@@ -25,7 +25,6 @@ using static Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport.AddImportDiagnost
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 {
-
     internal static class AddImportDiagnosticIds
     {
         /// <summary>
@@ -406,8 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             // See if this is a reference to a type from a reference that has a specific alias
             // associated with it.  If that extern alias hasn't already been brought into scope
-            // then add that one.  Note: TryGetExternAliasString will check if this extern already
-            // exists in this scope.
+            // then add that one.
             var externAlias = TryGetExternAliasDirective(
                 namespaceOrTypeSymbol, semanticModel, contextNode,
                 checkForExistingExternAlias: true);
@@ -439,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             foreach (var existingUsing in usings)
             {
-                if  (SyntaxFactory.AreEquivalent(usingDirective, existingUsing))
+                if (SyntaxFactory.AreEquivalent(usingDirective, existingUsing))
                 {
                     return true;
                 }
@@ -462,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode,
-            INamespaceOrTypeSymbol namespaceOrTypeSymbol, 
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -734,48 +732,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return !checkForExistingExternAlias || ShouldAddExternAlias(externAliasString, contextNode);
         }
 
-        private static bool TryGetNamespaceString(
-            INamespaceOrTypeSymbol namespaceSymbol, CompilationUnitSyntax root, string alias,
-            bool checkForExistingUsing, out string namespaceString)
-        {
-            if (namespaceSymbol is ITypeSymbol)
-            {
-                namespaceString = null;
-                return false;
-            }
-
-            namespaceString = namespaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-            if (alias != null)
-            {
-                namespaceString = alias + "::" + namespaceString;
-            }
-
-            return checkForExistingUsing
-                ? ShouldAddUsing(namespaceString, root)
-                : true;
-        }
-
-        private static bool TryGetStaticNamespaceString(
-            INamespaceOrTypeSymbol namespaceSymbol, CompilationUnitSyntax root, 
-            string alias, out string namespaceString)
-        {
-            if (namespaceSymbol is INamespaceSymbol)
-            {
-                namespaceString = null;
-                return false;
-            }
-
-            namespaceString = namespaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-            if (alias != null)
-            {
-                namespaceString = alias + "::" + namespaceString;
-            }
-
-            return ShouldAddStaticUsing(namespaceString, root);
-        }
-
         private static bool ShouldAddExternAlias(string alias, SyntaxNode contextNode)
         {
             foreach (var externAlias in contextNode.GetEnclosingExternAliasDirectives())
@@ -788,18 +744,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
 
             return true;
-        }
-
-        private static bool ShouldAddUsing(string usingDirective, CompilationUnitSyntax root)
-        {
-            var simpleUsings = root.Usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
-            return !simpleUsings.Any(u => u.Name.ToString() == usingDirective);
-        }
-
-        private static bool ShouldAddStaticUsing(string usingDirective, CompilationUnitSyntax root)
-        {
-            var staticUsings = root.Usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword));
-            return !staticUsings.Any(u => u.Name.ToString() == usingDirective);
         }
 
         private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(SyntaxNode contextNode, CancellationToken cancellationToken = default(CancellationToken))
