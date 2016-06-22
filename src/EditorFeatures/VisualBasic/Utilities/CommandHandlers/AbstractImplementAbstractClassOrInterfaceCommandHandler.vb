@@ -136,9 +136,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Dim caretOffsetFromToken = caretPosition - token.Span.End
 
             Dim tokenAnnotation As New SyntaxAnnotation()
-            Dim newRoot = syntaxRoot.ReplaceToken(token, token.WithAdditionalAnnotations(tokenAnnotation))
-            document = document.WithSyntaxRoot(newRoot)
-            token = newRoot.GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
+            document = document.WithSyntaxRoot(syntaxRoot.ReplaceToken(token, token.WithAdditionalAnnotations(tokenAnnotation)))
+            token = document.GetSyntaxRootSynchronously(cancellationToken).
+                             GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
 
             Dim typeSyntax = token.GetAncestor(Of TypeSyntax)()
             If typeSyntax Is Nothing Then
