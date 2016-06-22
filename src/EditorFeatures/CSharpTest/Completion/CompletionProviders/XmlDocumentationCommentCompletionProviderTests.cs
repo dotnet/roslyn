@@ -1096,9 +1096,6 @@ public class foo
 }", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "permission", "remarks", "see", "seealso", "summary");
         }
 
-		/// <r
-		public void bar() { }
-
 		[WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
 		[Fact, Trait(Traits.Feature, Traits.Features.Completion)]
 		public async Task PartialTagCompletionNestedTags()
