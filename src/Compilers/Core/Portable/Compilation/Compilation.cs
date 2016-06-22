@@ -23,8 +23,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    using Roslyn.Reflection.Metadata.Ecma335;
-
     /// <summary>
     /// The compilation object is an immutable representation of a single invocation of the
     /// compiler. Although immutable, a compilation is also on-demand, and will realize and cache
