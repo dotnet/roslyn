@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -247,6 +249,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            /// <summary>
+            /// We always unilaterally add "global::" to all named types/namespaces.  This
+            /// will then be trimmed off if possible by calls to 
+            /// <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)"/>
+            /// </summary>
             private TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(
