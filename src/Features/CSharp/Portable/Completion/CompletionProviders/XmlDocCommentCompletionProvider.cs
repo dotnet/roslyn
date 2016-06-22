@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // The user is typing inside an XmlElement
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
-					token.Parent.Parent.Parent.Kind() == SyntaxKind.XmlElement)
+                    token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     items.AddRange(GetNestedTags(span, declaredSymbol));
                 }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
-					(token.Parent.Parent.Kind() == SyntaxKind.XmlEmptyElement && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
+                    (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
                     items.AddRange(GetTopLevelSingleUseNames(parentTrivia, span));
                     items.AddRange(GetTopLevelRepeatableItems(span));
