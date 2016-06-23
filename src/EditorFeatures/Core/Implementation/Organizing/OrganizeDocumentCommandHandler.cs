@@ -116,32 +116,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private void SortImports(ITextBuffer subjectBuffer, CancellationToken cancellationToken)
-        {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                var newDocument = OrganizeImportsService.OrganizeImportsAsync(document, subjectBuffer.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst), cancellationToken).WaitAndGetResult(cancellationToken);
-                if (document != newDocument)
-                {
-                    ApplyTextChange(document, newDocument);
-                }
-            }
-        }
-
-        private void RemoveUnusedImports(ITextBuffer subjectBuffer, CancellationToken cancellationToken)
-        {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (document != newDocument)
-                {
-                    ApplyTextChange(document, newDocument);
-                }
-            }
-        }
-
         private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
