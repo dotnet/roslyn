@@ -20,12 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.RemoveAndSortUsingsWithAccelerator;
-            }
-        }
+        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator =>
+            CSharpFeaturesResources.RemoveAndSortUsingsWithAccelerator;
     }
 }
