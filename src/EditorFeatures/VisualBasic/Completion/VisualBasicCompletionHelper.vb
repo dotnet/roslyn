@@ -34,12 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             MyBase.New(isCaseSensitive:=False)
         End Sub
 
-        Public Overrides ReadOnly Property QuestionTabInvokesSnippetCompletion As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
         Public Overrides Function IsBetterFilterMatch(
                 item1 As CompletionItem, item2 As CompletionItem,
                 filterText As String, trigger As CompletionTrigger,
