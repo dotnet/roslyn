@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
+            // AllInOneCSharpCode has no deconstruction.
+            syntaxKindsPatterns.Add(SyntaxKind.VariableDeconstructionDeclarator);
+
             // AllInOneCSharpCode has no replace/original.
             syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
 

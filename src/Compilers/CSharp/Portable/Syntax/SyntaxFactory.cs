@@ -2509,16 +2509,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>));
         }
 
-        /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
+        /// <summary>Creates a new VariableDeclarationSyntax instance, such as `int x`.</summary>
         public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
             return SyntaxFactory.VariableDeclaration(type, variables, default(VariableDeconstructionDeclaratorSyntax));
         }
 
-        /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
+        /// <summary>Creates a new VariableDeclarationSyntax instance, such as `(int x, int y)`.</summary>
         public static VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
         {
             return SyntaxFactory.VariableDeclaration(null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
+        }
+
+        /// <summary>Creates a new VariableDeclarationSyntax instance, such as `var (x, y)`.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
+        {
+            return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
@@ -2534,12 +2540,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static ForEachStatementSyntax ForEachStatement(TypeSyntax type, SyntaxToken identifier, ExpressionSyntax expression, StatementSyntax statement)
         {
-            return ForEachStatement(type, identifier, null, expression, statement);
+            return ForEachStatement(Token(SyntaxKind.ForEachKeyword), Token(SyntaxKind.OpenParenToken), type, identifier, Token(SyntaxKind.InKeyword), expression, Token(SyntaxKind.CloseParenToken), statement);
         }
 
         public static ForEachStatementSyntax ForEachStatement(TypeSyntax type, string identifier, ExpressionSyntax expression, StatementSyntax statement)
         {
-            return ForEachStatement(Token(SyntaxKind.ForEachKeyword), Token(SyntaxKind.OpenParenToken), type, Identifier(identifier), Token(SyntaxKind.InKeyword), expression, Token(SyntaxKind.CloseParenToken), statement);
+            return ForEachStatement(type, Identifier(identifier), expression, statement);
         }
 
         public static ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
@@ -2547,9 +2553,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ForEachStatement(forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
         }
 
-        public static LocalDeclarationStatementSyntax LocalDeclarationStatement(VariableDeclarationSyntax declaration)
+        internal static VariableDeclarationSyntax VariableDeclaration()
         {
-            return LocalDeclarationStatement(default(SyntaxTokenList), default(SyntaxToken), declaration, Token(SyntaxKind.SemicolonToken));
+            return VariableDeclaration(null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), null);
+        }
+    }
+}
+
+// PROTOTYPE(tuples) Move this to a better place
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
+{
+    public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSyntax
+    {
+        public EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+        {
+            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        }
+    }
+
+    public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
+    {
+        public FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+        {
+            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        }
+    }
+
+    public sealed partial class FixedStatementSyntax : StatementSyntax
+    {
+        public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+        {
+            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        }
+    }
+
+    public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
+    {
+        public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+        {
+            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
         }
     }
 }
