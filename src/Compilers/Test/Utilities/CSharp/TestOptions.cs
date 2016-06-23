@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
+        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
+        public static readonly CSharpParseOptions ExperimentalParseOptions =
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp7).WithFeatures(s_experimentalFeatures);
         // enable pattern-switch translation even for switches that use no new syntax.
         public static readonly CSharpParseOptions RegularWithPatterns = Regular.WithFeatures(new Dictionary<string, string>() { { "typeswitch", "true" } });
 
@@ -50,6 +53,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
         }
 
+        public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
+        {
+            return options;
+        }
+
+        public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
+        {
+            return options;
+        }
+
+        public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
+        {
+            return options;
+        }
+
+        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
+        {
+            return options;
+        }
+
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
         {
             if (features.Length == 0)
@@ -66,11 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     throw new InvalidOperationException($"{feature} is not a valid experimental feature");
                 }
 
+
                 list.Add(new KeyValuePair<string, string>(name, "true"));
             }
 
             return options.WithFeatures(options.Features.Concat(list));
         }
+
     }
 }
 

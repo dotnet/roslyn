@@ -212,6 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.DefaultSwitchLabel:
                         break;
+
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        continue;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(labelSyntax.Kind());
                 }
