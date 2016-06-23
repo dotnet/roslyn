@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public CommandState GetCommandState(OrganizeDocumentCommandArgs args, Func<CommandState> nextHandler)
         {
-            return GetCommandState(args, nextHandler, _ => EditorFeaturesResources.OrganizeDocument, needsSemantics: true);
+            return GetCommandState(args, nextHandler, _ => EditorFeaturesResources.OrganizeDocument);
         }
 
         public void ExecuteCommand(OrganizeDocumentCommandArgs args, Action nextHandler)
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args, Func<CommandState> nextHandler)
         {
-            return GetCommandState(args, nextHandler, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
+            return GetCommandState(args, nextHandler, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator);
         }
 
-        private CommandState GetCommandState(CommandArgs args, Func<CommandState> nextHandler, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
+        private CommandState GetCommandState(CommandArgs args, Func<CommandState> nextHandler, Func<IOrganizeImportsService, string> descriptionString)
         {
             Workspace workspace;
-            if (IsCommandSupported(args, needsSemantics, out workspace))
+            if (IsCommandSupported(args, out workspace))
             {
                 var organizeImportsService = workspace.Services.GetLanguageServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
                 return new CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private bool IsCommandSupported(CommandArgs args, bool needsSemantics, out Workspace workspace)
+        private bool IsCommandSupported(CommandArgs args, out Workspace workspace)
         {
             workspace = null;
             var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
             if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
-                return !needsSemantics;
+                return false;
             }
 
             return workspace.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
