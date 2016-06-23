@@ -309,17 +309,8 @@
   <data name="OrganizeImports" xml:space="preserve">
     <value>Organize Imports</value>
   </data>
-  <data name="SortImportsWithAccelerator" xml:space="preserve">
-    <value>&amp;Sort Imports</value>
-  </data>
   <data name="RemoveAndSortImportsWithAccelerator" xml:space="preserve">
     <value>Remove &amp;and Sort Imports</value>
-  </data>
-  <data name="OrganizeImportsWithAccelerator" xml:space="preserve">
-    <value>&amp;Organize Imports</value>
-  </data>
-  <data name="RemoveUnnecessaryImportsWithAccelerator" xml:space="preserve">
-    <value>&amp;Remove Unnecessary Imports</value>
   </data>
   <data name="AddressOfKeywordToolTip" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.

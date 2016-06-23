@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         ContentTypeNames.VisualBasicContentType)]
     internal class OrganizeDocumentCommandHandler :
         ICommandHandler<OrganizeDocumentCommandArgs>,
-        ICommandHandler<SortImportsCommandArgs>,
-        ICommandHandler<RemoveUnnecessaryImportsCommandArgs>,
         ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
         protected readonly IWaitIndicator WaitIndicator;
@@ -50,34 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 message: EditorFeaturesResources.OrganizingDocument,
                 allowCancel: true,
                 action: waitContext => this.Organize(args.SubjectBuffer, waitContext.CancellationToken));
-        }
-
-        public CommandState GetCommandState(SortImportsCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(args, nextHandler, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
-        }
-
-        public void ExecuteCommand(SortImportsCommandArgs args, Action nextHandler)
-        {
-            this.WaitIndicator.Wait(
-                title: EditorFeaturesResources.OrganizeDocument,
-                message: EditorFeaturesResources.OrganizingDocument,
-                allowCancel: true,
-                action: waitContext => this.SortImports(args.SubjectBuffer, waitContext.CancellationToken));
-        }
-
-        public CommandState GetCommandState(RemoveUnnecessaryImportsCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(args, nextHandler, o => o.RemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
-        }
-
-        public void ExecuteCommand(RemoveUnnecessaryImportsCommandArgs args, Action nextHandler)
-        {
-            this.WaitIndicator.Wait(
-                title: EditorFeaturesResources.OrganizeDocument,
-                message: EditorFeaturesResources.OrganizingDocument,
-                allowCancel: true,
-                action: waitContext => this.RemoveUnusedImports(args.SubjectBuffer, waitContext.CancellationToken));
         }
 
         public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args, Func<CommandState> nextHandler)

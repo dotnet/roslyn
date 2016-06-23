@@ -172,7 +172,6 @@
     <Compile Include="Commands\PasteCommandArgs.cs" />
     <Compile Include="Commands\RedoCommandArgs.cs" />
     <Compile Include="Commands\RemoveParametersCommandArgs.cs" />
-    <Compile Include="Commands\RemoveUnnecessaryImportsCommandArgs.cs" />
     <Compile Include="Commands\RenameCommandArgs.cs" />
     <Compile Include="Commands\OpenLineAboveCommandArgs.cs" />
     <Compile Include="Commands\StartAutomaticOutliningCommandArgs.cs" />
@@ -181,7 +180,6 @@
     <Compile Include="Commands\SaveCommandArgs.cs" />
     <Compile Include="Commands\SelectAllCommandArgs.cs" />
     <Compile Include="Commands\SortAndRemoveUnnecessaryImportsCommandArgs.cs" />
-    <Compile Include="Commands\SortImportsCommandArgs.cs" />
     <Compile Include="Commands\SurroundWithCommandArgs.cs" />
     <Compile Include="Commands\SyncClassViewCommandArgs.cs" />
     <Compile Include="Commands\TabKeyCommandArgs.cs" />

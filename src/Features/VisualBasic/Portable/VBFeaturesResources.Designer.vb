@@ -2193,16 +2193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("OrganizeImports", resourceCulture)
             End Get
         End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &amp;Organize Imports.
-        '''</summary>
-        Friend ReadOnly Property OrganizeImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("OrganizeImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
+
         '''<summary>
         '''  Looks up a localized string similar to Performs an inclusive logical disjunction on two Boolean expressions, or a bitwise disjunction on two numeric expressions. For Boolean expressions, returns True if at least one operand evaluates to True. Both expressions are always evaluated.
         '''&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;.
@@ -2477,15 +2468,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &amp;Remove Unnecessary Imports.
-        '''</summary>
-        Friend ReadOnly Property RemoveUnnecessaryImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("RemoveUnnecessaryImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Replace &apos;Return&apos; with &apos;Yield.
         '''</summary>
         Friend ReadOnly Property ReplaceReturnWithYield() As String
@@ -2681,15 +2663,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property SkipWhileClause() As String
             Get
                 Return ResourceManager.GetString("SkipWhileClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &amp;Sort Imports.
-        '''</summary>
-        Friend ReadOnly Property SortImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("SortImportsWithAccelerator", resourceCulture)
             End Get
         End Property
         
