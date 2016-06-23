@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
+        
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
