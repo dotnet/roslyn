@@ -2186,15 +2186,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Organize Imports.
-        '''</summary>
-        Friend ReadOnly Property OrganizeImports() As String
-            Get
-                Return ResourceManager.GetString("OrganizeImports", resourceCulture)
-            End Get
-        End Property
-
-        '''<summary>
         '''  Looks up a localized string similar to Performs an inclusive logical disjunction on two Boolean expressions, or a bitwise disjunction on two numeric expressions. For Boolean expressions, returns True if at least one operand evaluates to True. Both expressions are always evaluated.
         '''&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;.
         '''</summary>
