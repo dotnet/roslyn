@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // TODO: Change to Int64.TryParse when it supports NumberStyles.AllowBinarySpecifier (inline this method into GetValueUInt32/64)
-        private bool TryParseBinaryUInt64(string text, out ulong value)
+        private static bool TryParseBinaryUInt64(string text, out ulong value)
         {
             value = 0;
             foreach (char c in text)

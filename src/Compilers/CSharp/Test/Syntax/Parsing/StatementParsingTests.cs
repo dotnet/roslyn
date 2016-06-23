@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseStatement(text, offset, options);
         }
 
-        private StatementSyntax ParseStatementExperimental(string text)
-        {
-            return ParseStatement(text, offset: 0, options: TestOptions.ExperimentalParseOptions);
-        }
-
         [Fact]
         public void TestName()
         {
@@ -209,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithTuple()
         {
             var text = "(int, int) a;";
-            var statement = this.ParseStatement(text, options: TestOptions.Regular.WithTuplesFeature());
+            var statement = this.ParseStatement(text, options: TestOptions.Regular);
 
             (text).ToString();
 
@@ -738,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatement()
         {
             var text = "ref T a;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -765,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithInitializer()
         {
             var text = "ref T a = ref b;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -798,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithMultipleInitializers()
         {
             var text = "ref T a = ref b, c = ref d;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -1639,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -2635,7 +2630,7 @@ static void Test(int arg1, (byte, byte) arg2)
         }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithTuplesFeature());
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
             Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
         }
 

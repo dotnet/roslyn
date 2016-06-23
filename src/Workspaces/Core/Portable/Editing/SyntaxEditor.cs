@@ -111,6 +111,12 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes.Add(new ReplaceChange(node, computeReplacement));
         }
 
+        internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
+        {
+            CheckNodeInTree(node);
+            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument));
+        }
+
         /// <summary>
         /// Replace the specified node with a different node.
         /// </summary>
@@ -234,6 +240,29 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator);
+                return generator.ReplaceNode(root, current, newNode);
+            }
+        }
+
+        private class ReplaceChange<TArgument> : Change
+        {
+            private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
+            private readonly TArgument _argument;
+
+            public ReplaceChange(
+                SyntaxNode node,
+                Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
+                TArgument argument)
+                : base(node)
+            {
+                _modifier = modifier;
+                _argument = argument;
+            }
+
+            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            {
+                var current = root.GetCurrentNode(this.Node);
+                var newNode = _modifier(current, generator, _argument);
                 return generator.ReplaceNode(root, current, newNode);
             }
         }

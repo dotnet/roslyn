@@ -1722,7 +1722,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a member access expression.
         /// </summary>
-        public abstract SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode memberName);
+        public virtual SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode memberName)
+        {
+            return MemberAccessExpressionWorker(expression, memberName)
+                .WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
+        }
+
+        internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
 
         /// <summary>
         /// Creates a member access expression.

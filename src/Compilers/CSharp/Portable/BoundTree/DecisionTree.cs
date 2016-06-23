@@ -905,11 +905,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:             // a value of type int matches a pattern of type object
                 case ConversionKind.Identity:           // a value of a given type matches a pattern of that type
                 case ConversionKind.ImplicitReference:  // a value of type string matches a pattern of type object
+                    return true;
 
                 case ConversionKind.ImplicitNullable:   // a value of type int matches a pattern of type int?
                 case ConversionKind.ExplicitNullable:   // a non-null value of type "int?" matches a pattern of type int
                     // but if the types differ (e.g. one of them is type byte and the other is type int?).. no match
-                    return ConversionsBase.HasIdentityConversion(expressionType.StrippedType().TupleUnderlyingType, patternType.StrippedType().TupleUnderlyingType);
+                    return ConversionsBase.HasIdentityConversion(expressionType.StrippedType().TupleUnderlyingTypeOrSelf(), patternType.StrippedType().TupleUnderlyingTypeOrSelf());
 
                 case ConversionKind.ExplicitEnumeration:// a value of enum type does not match a pattern of integral type
                 case ConversionKind.ExplicitNumeric:    // a value of type long does not match a pattern of type int

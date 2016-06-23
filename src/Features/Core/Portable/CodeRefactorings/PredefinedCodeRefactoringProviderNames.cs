@@ -17,5 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string InvertIf = "Invert If Code Action Provider";
         public const string MoveDeclarationNearReference = "Move Declaration Near Reference Code Action Provider";
         public const string SimplifyLambda = "Simplify Lambda Code Action Provider";
+        public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
     }
 }

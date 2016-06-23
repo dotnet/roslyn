@@ -98,6 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                    .SelectMany(n => n.Usings));
         }
 
+        public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
+        {
+            return node.GetAncestorOrThis<CompilationUnitSyntax>().Externs
+                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                                   .Reverse()
+                                   .SelectMany(n => n.Externs));
+        }
+
         public static bool IsUnsafeContext(this SyntaxNode node)
         {
             if (node.GetAncestor<UnsafeStatementSyntax>() != null)
@@ -372,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
-        public static TNode ConvertToSingleLine<TNode>(this TNode node)
+        public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {
             if (node == null)
@@ -380,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return node;
             }
 
-            var rewriter = new SingleLineRewriter();
+            var rewriter = new SingleLineRewriter(useElasticTrivia);
             return (TNode)rewriter.Visit(node);
         }
 

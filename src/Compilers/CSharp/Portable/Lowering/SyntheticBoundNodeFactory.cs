@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBaseReference(Syntax, CurrentMethod.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
         }
 
+        public BoundBadExpression BadExpression(TypeSymbol type)
+        {
+            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, type, hasErrors: true);
+        }
+
         public BoundParameter Parameter(ParameterSymbol p)
         {
             return new BoundParameter(Syntax, p, p.Type) { WasCompilerGenerated = true };

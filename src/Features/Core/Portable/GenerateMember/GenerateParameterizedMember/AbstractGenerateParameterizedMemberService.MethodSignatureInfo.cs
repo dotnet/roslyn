@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -54,9 +55,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return _methodSymbol.Parameters.Select(p => p.Type).ToList();
             }
 
-            protected override IList<string> DetermineParameterNames(CancellationToken cancellationToken)
+            protected override IList<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
             {
-                return _methodSymbol.Parameters.Select(p => p.Name).ToList();
+                return _methodSymbol.Parameters.Select(p => new ParameterName(p.Name, isFixed: true))
+                                               .ToList();
             }
 
             protected override IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)

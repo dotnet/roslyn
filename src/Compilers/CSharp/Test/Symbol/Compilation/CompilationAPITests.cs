@@ -435,7 +435,7 @@ namespace A.B {
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.Regular.WithTuplesFeature()) },
+                    options: TestOptions.Regular) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
@@ -509,9 +509,9 @@ namespace A.B {
                 // (1,19): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "tuples").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7").WithLocation(1, 19),
                 // (1,20): error CS1031: Type expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
@@ -1482,6 +1482,33 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.AssemblyName);
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Name);
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
+        }
+
+        [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
+        [Fact]
+        public void CrossCorlibSystemObjectReturnType_Script()
+        {
+            // MinAsyncCorlibRef corlib is used since it provides just enough corlib type definitions
+            // and Task APIs necessary for script hosting are provided by MinAsyncRef. This ensures that
+            // `System.Object, mscorlib, Version=4.0.0.0` will not be provided (since it's unversioned).
+            //
+            // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
+            // realistic cross-compilation targets.
+            var compilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly",
+                references: new [] { MinAsyncCorlibRef },
+                syntaxTree: Parse("true", options: TestOptions.Script)
+            ).VerifyDiagnostics();
+
+            Assert.True(compilation.IsSubmission);
+
+            var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            var taskOfObject = taskOfT.Construct(compilation.ObjectType);
+            var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
+            Assert.Equal(taskOfObject, entryPoint.ReturnType);
         }
 
         [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]

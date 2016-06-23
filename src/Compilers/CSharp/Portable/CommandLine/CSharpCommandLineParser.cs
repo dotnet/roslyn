@@ -1730,11 +1730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDiagnostic(diagnostics, ErrorCode.WRN_UnimplementedCommandLineSwitch, "/" + switchName);
         }
 
-        private static void UnimplementedSwitchValue(IList<Diagnostic> diagnostics, string switchName, string value)
-        {
-            AddDiagnostic(diagnostics, ErrorCode.WRN_UnimplementedCommandLineSwitch, "/" + switchName + ":" + value);
-        }
-
         internal override void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> diagnostics)
         {
             //  no error in csc.exe

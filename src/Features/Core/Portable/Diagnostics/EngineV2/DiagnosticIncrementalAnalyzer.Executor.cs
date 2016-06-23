@@ -147,44 +147,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
             {
-                var result = ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty;
-
-                // analyzerDriver can be null if given project doesn't support compilation.
-                if (analyzerDriverOpt != null)
+                try
                 {
-                    // calculate regular diagnostic analyzers diagnostics
-                    var compilerResult = await analyzerDriverOpt.AnalyzeAsync(project, cancellationToken).ConfigureAwait(false);
-                    result = compilerResult.AnalysisResult;
+                    var result = ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty;
 
-                    // record telemetry data
-                    UpdateAnalyzerTelemetryData(compilerResult, project, cancellationToken);
+                    // analyzerDriver can be null if given project doesn't support compilation.
+                    if (analyzerDriverOpt != null)
+                    {
+                        // calculate regular diagnostic analyzers diagnostics
+                        var compilerResult = await analyzerDriverOpt.AnalyzeAsync(project, cancellationToken).ConfigureAwait(false);
+                        result = compilerResult.AnalysisResult;
+
+                        // record telemetry data
+                        UpdateAnalyzerTelemetryData(compilerResult, project, cancellationToken);
+                    }
+
+                    // check whether there is IDE specific project diagnostic analyzer
+                    return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, stateSets, analyzerDriverOpt?.Compilation, result, cancellationToken).ConfigureAwait(false);
                 }
-
-                // check whether there is IDE specific project diagnostic analyzer
-                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, stateSets, analyzerDriverOpt?.Compilation, result, cancellationToken).ConfigureAwait(false);
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets,
                 ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing, CancellationToken cancellationToken)
             {
-                // PERF: check whether we can reduce number of analyzers we need to run.
-                //       this can happen since caller could have created the driver with different set of analyzers that are different
-                //       than what we used to create the cache.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                ImmutableArray<DiagnosticAnalyzer> analyzersToRun;
-                if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out analyzersToRun))
+                try
                 {
-                    // it looks like we can reduce the set. create new CompilationWithAnalyzer.
-                    var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
-                        project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    // PERF: check whether we can reduce number of analyzers we need to run.
+                    //       this can happen since caller could have created the driver with different set of analyzers that are different
+                    //       than what we used to create the cache.
+                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                    ImmutableArray<DiagnosticAnalyzer> analyzersToRun;
+                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out analyzersToRun))
+                    {
+                        // it looks like we can reduce the set. create new CompilationWithAnalyzer.
+                        var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
+                            project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                    var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
-                    return MergeExistingDiagnostics(version, existing, result);
+                        var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
+                        return MergeExistingDiagnostics(version, existing, result);
+                    }
+
+                    // we couldn't reduce the set.
+                    return await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
                 }
-
-                // we couldn't reduce the set.
-                return await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> MergeExistingDiagnostics(
@@ -254,49 +268,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
                 Project project, IEnumerable<StateSet> stateSets, Compilation compilationOpt, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result, CancellationToken cancellationToken)
             {
-                // check whether there is IDE specific project diagnostic analyzer
-                var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer || a is DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
-                if (ideAnalyzers.Length <= 0)
+                try
                 {
-                    return result;
-                }
-
-                // create result map
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var builder = new CompilerDiagnosticExecutor.Builder(project, version);
-
-                foreach (var analyzer in ideAnalyzers)
-                {
-                    var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                    if (documentAnalyzer != null)
+                    // check whether there is IDE specific project diagnostic analyzer
+                    var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer || a is DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
+                    if (ideAnalyzers.Length <= 0)
                     {
-                        foreach (var document in project.Documents)
+                        return result;
+                    }
+
+                    // create result map
+                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                    var builder = new CompilerDiagnosticExecutor.Builder(project, version);
+
+                    foreach (var analyzer in ideAnalyzers)
+                    {
+                        var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
+                        if (documentAnalyzer != null)
                         {
-                            if (document.SupportsSyntaxTree)
+                            foreach (var document in project.Documents)
                             {
-                                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                                builder.AddSyntaxDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
-                                builder.AddSemanticDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilationOpt, cancellationToken).ConfigureAwait(false));
-                            }
-                            else
-                            {
-                                builder.AddExternalSyntaxDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
-                                builder.AddExternalSemanticDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                if (document.SupportsSyntaxTree)
+                                {
+                                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                                    builder.AddSyntaxDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                    builder.AddSemanticDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                }
+                                else
+                                {
+                                    builder.AddExternalSyntaxDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                    builder.AddExternalSemanticDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                }
                             }
                         }
+
+                        var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
+                        if (projectAnalyzer != null)
+                        {
+                            builder.AddCompilationDiagnostics(await ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilationOpt, cancellationToken).ConfigureAwait(false));
+                        }
+
+                        // merge the result to existing one.
+                        // there can be existing one from compiler driver with empty set. overwrite it with
+                        // ide one.
+                        result = result.SetItem(analyzer, builder.ToResult());
                     }
 
-                    var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                    if (projectAnalyzer != null)
-                    {
-                        builder.AddCompilationDiagnostics(await ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilationOpt, cancellationToken).ConfigureAwait(false));
-                    }
-
-                    // merge the result to existing one.
-                    result = result.Add(analyzer, builder.ToResult());
+                    return result;
                 }
-
-                return result;
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             private async Task<IEnumerable<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(

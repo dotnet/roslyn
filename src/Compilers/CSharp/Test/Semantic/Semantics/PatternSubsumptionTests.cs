@@ -8,9 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternSubsumptionTests : CSharpTestBase
     {
-        private static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
+        private static CSharpParseOptions patternParseOptions = TestOptions.RegularWithPatterns;
 
         [Fact]
         public void EqualConstant()
@@ -223,7 +221,6 @@ public class X
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
-            Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
             SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
 
-        public CompilationUnitSyntax ParseFileExperimental(string text) =>
-            ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+        internal CompilationUnitSyntax ParseFileExperimental(string text, MessageID feature) =>
+            ParseFile(text, parseOptions: TestOptions.Regular.WithExperimental(feature));
 
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();

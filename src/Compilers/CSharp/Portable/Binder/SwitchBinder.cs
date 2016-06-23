@@ -31,10 +31,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // strategy for switch statements. Once we have confirmed that it is totally upward
             // compatible with the existing syntax and semantics, we will remove *this* binder
             // and use the new one for binding all switch statements.
+            var parseOptions = switchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
             return
-                ((switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false)
+                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false &&
+                (parseOptions?.Features.ContainsKey("typeswitch") != false || IsPatternSwitch(switchSyntax)))
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
+        }
+
+        private static bool IsPatternSwitch(SwitchStatementSyntax switchSyntax)
+        {
+            foreach (var section in switchSyntax.Sections)
+            {
+                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Dictionary for the switch case/default labels.

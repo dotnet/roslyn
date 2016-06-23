@@ -2,10 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -57,16 +55,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
-        Private Shared s_defaultCompletionRules As CompletionRules =
-            CompletionRules.Create(
-                dismissIfEmpty:=True,
-                dismissIfLastCharacterDeleted:=True,
-                defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-                defaultEnterKeyRule:=EnterKeyRule.Always)
+        Private _latestRules As CompletionRules = CompletionRules.Create(
+                                                      dismissIfEmpty:=True,
+                                                      dismissIfLastCharacterDeleted:=True,
+                                                      defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+                                                      defaultEnterKeyRule:=EnterKeyRule.Always)
 
         Public Overrides Function GetRules() As CompletionRules
-            Return s_defaultCompletionRules
+            Dim options = _workspace.Options
+
+            ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
+            ' In VB the default means Always to maintain previous behavior
+            Dim rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
+
+            If rule = EnterKeyRule.Default Then
+                rule = EnterKeyRule.Always
+            End If
+
+            Dim newRules = _latestRules.WithDefaultEnterKeyRule(rule)
+
+            Interlocked.Exchange(_latestRules, newRules)
+
+            Return newRules
         End Function
+
 
         Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
             Return _completionProviders
@@ -137,18 +149,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
 
-        Public Overrides Function ShouldTriggerCompletion(text As SourceText, position As Integer, trigger As CompletionTrigger, Optional roles As ImmutableHashSet(Of String) = Nothing, Optional options As OptionSet = Nothing) As Boolean
-            options = If(options, _workspace.Options)
-
-            If Not options.GetOption(CompletionOptions.TriggerOnTyping, Me.Language) Then
-                Return False
-            End If
-
-            If trigger.Kind = CompletionTriggerKind.Deletion AndAlso (Char.IsLetterOrDigit(trigger.Character) OrElse trigger.Character = "."c) Then
-                Return True
-            Else
-                Return MyBase.ShouldTriggerCompletion(text, position, trigger, roles, options)
-            End If
+        Friend Overrides Function SupportsTriggerOnDeletion(options As OptionSet) As Boolean
+            ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
+            ' Only if the option is false do we not want to trigger.
+            Dim opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Me.Language)
+            Return If(opt = False, False, True)
         End Function
     End Class
 End Namespace

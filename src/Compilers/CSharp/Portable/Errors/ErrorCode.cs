@@ -1294,7 +1294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         ERR_FeatureIsUnimplemented = 8060,
-        // available 8061-8069
+        ERR_FeatureNotAvailableInVersion7 = 8061,
+        // available 8062-8069
         ERR_SwitchFallOut = 8070,
         // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
         ERR_NullPropagatingOpInExpressionTree = 8072,
@@ -1355,7 +1356,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // gap here; available 8122-8199
 
         #region tuple diagnostics introduced in C# 7
-
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleReservedMemberNameAnyPosition = 8202,
@@ -1364,9 +1364,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
 
+        ERR_ConversionNotTupleCompatible = 8206,
+
         #endregion tuple diagnostics introduced in C# 7
 
-        // huge gap here; available 8206-8889
+        // huge gap here; available 8207-8889
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
         ERR_AutoPropertyCannotBeRefReturning = 8890,
@@ -1382,7 +1384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefReturnExpressionTree = 8900,
         ERR_RefReturningCallInExpressionTree = 8901,
 
-        // more diagnostics for ref locals and ref returns
         ERR_RefReturnLvalueExpected = 8910,
         ERR_RefReturnNonreturnableLocal = 8911,
         ERR_RefReturnNonreturnableLocal2 = 8912,
@@ -1400,7 +1401,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
 
-        // more diagnostics for ref locals and ref returns
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
         ERR_InitializeByValueVariableWithReference = 8932,
@@ -1408,7 +1408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8934,
         ERR_ByReferenceVariableMustBeInitialized = 8935,
 
-        // more diagnostics for ref locals and ref returns
         ERR_AnonDelegateCantUseLocal = 8940,
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,

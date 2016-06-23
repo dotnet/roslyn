@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var internalsVisibleToMap = CreateInternalsVisibleToMap(sourceAssembly);
 
-            SymbolKey sourceAssemblySymbolKey = null;
+            SymbolKey? sourceAssemblySymbolKey = null;
 
             // TODO(cyrusn): What about error tolerance situations.  Do we maybe want to search
             // transitive dependencies as well?  Even if the code wouldn't compile, they may be
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (sourceAssembly.Language != targetAssembly.Language)
                         {
                             sourceAssemblySymbolKey = sourceAssemblySymbolKey ?? sourceAssembly.GetSymbolKey();
-                            var sourceAssemblyInTargetCompilation = sourceAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol as IAssemblySymbol;
+                            var sourceAssemblyInTargetCompilation = sourceAssemblySymbolKey.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol as IAssemblySymbol;
 
                             if (sourceAssemblyInTargetCompilation != null)
                             {

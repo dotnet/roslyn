@@ -598,8 +598,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NullToPointer:
 
                 // Added for C# 7.
-                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
                     return true;
+
+                case ConversionKind.ExplicitTuple:
+                    return false;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasErrors);
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private static ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
             return arguments.Arguments.ToImmutable();
         }
@@ -414,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, false, queryClause);
+                result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
             }
 
             overloadResolutionResult.Free();
@@ -482,8 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArguments,
                     analyzedArguments,
                     invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
-                    isDelegate: false,
-                    extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable);
+                    isDelegate: false);
             }
             else if (!resolution.IsEmpty)
             {
@@ -498,8 +498,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // we want to force any unbound lambda arguments to cache an appropriate conversion if possible; see 9448.
                         DiagnosticBag discarded = DiagnosticBag.GetInstance();
-                        result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, discarded,
-                                                                   resolution.ExtensionMethodsOfSameViabilityAreAvailable, queryClause);
+                        result = BindInvocationExpressionContinued(
+                            syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
+                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: discarded, queryClause: queryClause);
                         discarded.Free();
                     }
 
@@ -546,7 +547,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                             // that are not performed at compile-time.
                             // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, methodGroup, diagnostics);
+                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, 
+                                                                                                methodGroup.ReceiverOpt, 
+                                                                                                methodGroup.TypeArgumentsOpt,
+                                                                                                diagnostics);
                             if (finalApplicableCandidates.Length > 0)
                             {
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates, diagnostics, queryClause);
@@ -561,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, null, diagnostics, resolution.ExtensionMethodsOfSameViabilityAreAvailable, queryClause);
+                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: diagnostics, queryClause: queryClause);
                     }
                 }
             }
@@ -644,15 +648,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup: resolution.MethodGroup,
                 delegateTypeOpt: null,
                 diagnostics: diagnostics,
-                extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable,
                 queryClause: queryClause);
         }
 
-        private ImmutableArray<MethodSymbol> GetCandidatesPassingFinalValidation(CSharpSyntaxNode syntax, OverloadResolutionResult<MethodSymbol> overloadResolutionResult, BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
+        private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
+            CSharpSyntaxNode syntax, 
+            OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
+            BoundExpression receiverOpt,
+            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            DiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
 
-            var finalCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
+            var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
             DiagnosticBag firstFailed = null;
             DiagnosticBag candidateDiagnostics = DiagnosticBag.GetInstance();
 
@@ -669,8 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
-                    if (!MemberGroupFinalValidationAccessibilityChecks(methodGroup.ReceiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
-                        (methodGroup.TypeArgumentsOpt.IsDefault || result.Member.CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
                     {
                         finalCandidates.Add(result.Member);
                         continue;
@@ -759,10 +767,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="methodGroup">Method group if the invocation represents a potentially overloaded member.</param>
         /// <param name="delegateTypeOpt">Delegate type if method group represents a delegate.</param>
         /// <param name="diagnostics">Diagnostics.</param>
-        /// <param name="extensionMethodsOfSameViabilityAreAvailable">
-        /// Indicates that there are additional extension method candidates of the same lookup viability in cases when 
-        /// none of the instance methods are applicable to the argument list.
-        /// </param>
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <returns>BoundCall or error expression representing the invocation.</returns>
         private BoundCall BindInvocationExpressionContinued(
@@ -774,7 +778,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodGroup methodGroup,
             NamedTypeSymbol delegateTypeOpt,
             DiagnosticBag diagnostics,
-            bool extensionMethodsOfSameViabilityAreAvailable,
             CSharpSyntaxNode queryClause = null)
         {
             Debug.Assert(node != null);
@@ -826,8 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
-                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null),
-                    extensionMethodsOfSameViabilityAreAvailable: extensionMethodsOfSameViabilityAreAvailable);
+                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
             }
 
             // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
@@ -967,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <param name="node">Invocation syntax node.</param>
         /// <param name="expression">The syntax for the invoked method, including receiver.</param>
-        private Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
+        private static Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
         {
             if (node != expression)
             {
@@ -1051,8 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typeArguments,
             AnalyzedArguments analyzedArguments,
             bool invokedAsExtensionMethod,
-            bool isDelegate,
-            bool extensionMethodsOfSameViabilityAreAvailable)
+            bool isDelegate)
         {
             MethodSymbol method;
             ImmutableArray<BoundExpression> args;
@@ -1067,13 +1068,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods = constructedMethods.ToImmutableAndFree();
             }
 
-            if (methods.Length == 1 && !extensionMethodsOfSameViabilityAreAvailable)
+            if (methods.Length == 1 && !IsUnboundGeneric(methods[0]))
             {
-                // If there is only one method in the group and no additional extension methods with the same lookup viability,
-                // we should attempt to bind to it.  That includes binding any lambdas in the argument list against
-                // the method's parameter types.
                 method = methods[0];
-                args = BuildArgumentsForErrorRecovery(analyzedArguments, method.Parameters);
             }
             else
             {
@@ -1082,61 +1079,113 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? receiver.Type
                     : this.ContainingType;
                 method = new ErrorMethodSymbol(methodContainer, returnType, name);
-                args = BuildArgumentsForErrorRecovery(analyzedArguments);
             }
 
+            args = BuildArgumentsForErrorRecovery(analyzedArguments, methods);
             var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             return BoundCall.ErrorCall(node, receiver, method, args, argNames, argRefKinds, isDelegate, invokedAsExtensionMethod: invokedAsExtensionMethod, originalMethods: methods, resultKind: resultKind);
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> parameters)
+        private static bool IsUnboundGeneric(MethodSymbol method)
         {
-            ArrayBuilder<BoundExpression> oldArguments = analyzedArguments.Arguments;
-            int argumentCount = oldArguments.Count;
-            int parameterCount = parameters.Length;
+            return method.IsGenericMethod && method.ConstructedFrom() == method;
+        }
 
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods)
+        {
+            var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
+            foreach (var m in methods)
+            {
+                if (!IsUnboundGeneric(m) && m.ParameterCount > 0) parameterListList.Add(m.Parameters);
+            }
+
+            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
+            parameterListList.Free();
+            return result;
+        }
+
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<PropertySymbol> properties)
+        {
+            var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
+            foreach (var m in properties)
+            {
+                if (m.ParameterCount > 0) parameterListList.Add(m.Parameters);
+            }
+
+            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
+            parameterListList.Free();
+            return result;
+        }
+
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
+        {
+            // Since the purpose is to bind any unbound lambdas, we return early if there are none.
+            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda))
+            {
+                return analyzedArguments.Arguments.ToImmutable();
+            }
+
+            int argumentCount = analyzedArguments.Arguments.Count;
+            ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
+            newArguments.AddRange(analyzedArguments.Arguments);
             for (int i = 0; i < argumentCount; i++)
             {
-                BoundKind argumentKind = oldArguments[i].Kind;
-
-                if (argumentKind == BoundKind.UnboundLambda && i < parameterCount)
+                var argument = newArguments[i];
+                if (argument.Kind == BoundKind.UnboundLambda)
                 {
-                    ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
-                    newArguments.AddRange(oldArguments);
-
-                    do
+                    // bind the argument against each applicable parameter
+                    var unboundArgument = (UnboundLambda)argument;
+                    foreach (var parameterList in parameterListList)
                     {
-                        BoundExpression oldArgument = newArguments[i];
-
-                        if (i < parameterCount)
+                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                        if (parameterType?.Kind == SymbolKind.NamedType)
                         {
-                            switch (oldArgument.Kind)
-                            {
-                                case BoundKind.UnboundLambda:
-                                    NamedTypeSymbol parameterType = parameters[i].Type as NamedTypeSymbol;
-                                    if ((object)parameterType != null)
-                                    {
-                                        newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);
-                                    }
-                                    break;
-                            }
+                            var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
                         }
-
-                        i++;
                     }
-                    while (i < argumentCount);
 
-                    return newArguments.ToImmutableAndFree();
+                    // replace the unbound lambda with its best inferred bound version
+                    newArguments[i] = unboundArgument.BindForErrorRecovery();
                 }
             }
 
-            return oldArguments.ToImmutable();
+            return newArguments.ToImmutableAndFree();
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
+        /// <summary>
+        /// Compute the type of the corresponding parameter, if any. This is used to improve error recovery,
+        /// for bad invocations, not for semantic analysis of correct invocations, so it is a heuristic.
+        /// If no parameter appears to correspond to the given argument, we return null.
+        /// </summary>
+        /// <param name="analyzedArguments">The analyzed argument list</param>
+        /// <param name="i">The index of the argument</param>
+        /// <param name="parameterList">The parameter list to match against</param>
+        /// <returns>The type of the corresponding parameter.</returns>
+        private static TypeSymbol GetCorrespondingParameterType(AnalyzedArguments analyzedArguments, int i, ImmutableArray<ParameterSymbol> parameterList)
         {
-            return BuildArgumentsForErrorRecovery(analyzedArguments, ImmutableArray<ParameterSymbol>.Empty);
+            string name = analyzedArguments.Name(i);
+            if (name != null)
+            {
+                // look for a parameter by that name
+                foreach (var parameter in parameterList)
+                {
+                    if (parameter.Name == name) return parameter.Type;
+                }
+
+                return null;
+            }
+
+            return (i < parameterList.Length) ? parameterList[i].Type : null;
+            // CONSIDER: should we handle variable argument lists?
+        }
+
+        /// <summary>
+        /// Absent parameter types to bind the arguments, we simply use the arguments provided for error recovery.
+        /// </summary>
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
+        {
+            return BuildArgumentsForErrorRecovery(analyzedArguments, Enumerable.Empty<ImmutableArray<ParameterSymbol>>());
         }
 
         private BoundCall CreateBadCall(
