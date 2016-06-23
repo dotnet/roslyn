@@ -2531,5 +2531,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
+
+        public static ForEachStatementSyntax ForEachStatement(TypeSyntax type, SyntaxToken identifier, ExpressionSyntax expression, StatementSyntax statement)
+        {
+            return ForEachStatement(type, identifier, null, expression, statement);
+        }
+
+        public static ForEachStatementSyntax ForEachStatement(TypeSyntax type, string identifier, ExpressionSyntax expression, StatementSyntax statement)
+        {
+            return ForEachStatement(Token(SyntaxKind.ForEachKeyword), Token(SyntaxKind.OpenParenToken), type, Identifier(identifier), Token(SyntaxKind.InKeyword), expression, Token(SyntaxKind.CloseParenToken), statement);
+        }
+
+        public static ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            return ForEachStatement(forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
+        }
+
+        public static LocalDeclarationStatementSyntax LocalDeclarationStatement(VariableDeclarationSyntax declaration)
+        {
+            return LocalDeclarationStatement(default(SyntaxTokenList), default(SyntaxToken), declaration, Token(SyntaxKind.SemicolonToken));
+        }
     }
 }
