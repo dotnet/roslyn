@@ -768,8 +768,7 @@ Done:
             Return New BoundUserDefinedShortCircuitingOperator(node, leftOperand, leftPlaceholder, test, bitwise, operatorType, hasErrors)
         End Function
 
-
-        Private Sub ReportBinaryOperatorOnObject(
+        Private Shared Sub ReportBinaryOperatorOnObject(
             operatorTokenKind As SyntaxKind,
             operand As BoundExpression,
             preliminaryOperatorKind As BinaryOperatorKind,
@@ -875,7 +874,7 @@ Done:
         ''' Get symbol for a Nullable type of particular type, reuse symbols for operand types to avoid type 
         ''' lookups and construction of new instances of symbols.
         ''' </summary>
-        Private Function GetNullableTypeForBinaryOperator(
+        Private Shared Function GetNullableTypeForBinaryOperator(
             leftType As TypeSymbol,
             rightType As TypeSymbol,
             ofType As TypeSymbol
@@ -1251,7 +1250,7 @@ Done:
             Return New BoundUserDefinedUnaryOperator(node, opKind, result, result.Type)
         End Function
 
-        Private Sub ReportUndefinedOperatorError(
+        Private Shared Sub ReportUndefinedOperatorError(
             syntax As UnaryExpressionSyntax,
             operand As BoundExpression,
             diagnostics As DiagnosticBag

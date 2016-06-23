@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
 using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -225,7 +226,22 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var debugInfo = baseline.DebugInformationProvider(previousHandle);
+                EditAndContinueMethodDebugInformation debugInfo;
+                try
+                {
+                    debugInfo = baseline.DebugInformationProvider(previousHandle);
+                }
+                catch (InvalidDataException)
+                {
+                    // TODO: localize message & use better error code (https://github.com/dotnet/roslyn/issues/11512): 
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(
+                        MessageProvider.ERR_ModuleEmitFailure,
+                        method.Locations.First(),
+                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " + 
+                        $"from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
+
+                    return null;
+                }
 
                 methodId = new DebugId(debugInfo.MethodOrdinal, 0);
 
@@ -287,7 +303,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EncVariableSlotAllocator(
-                MessageProvider,
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,

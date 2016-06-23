@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -504,9 +505,13 @@ namespace Microsoft.CodeAnalysis
 
             if (tokenType == HandleKind.AssemblyReference)
             {
-                // TODO: Can refer to the containing assembly?
                 isNoPiaLocalType = false;
-                return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow((AssemblyReferenceHandle)tokenResolutionScope), ref fullName);
+                var assemblyRef = (AssemblyReferenceHandle)tokenResolutionScope;
+                if (assemblyRef.IsNil)
+                {
+                    throw new BadImageFormatException();
+                }
+                return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow(assemblyRef), ref fullName);
             }
 
             if (tokenType == HandleKind.ModuleReference)
@@ -928,7 +933,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ConstantValue DecodePrimitiveConstantValue(ref BlobReader sigReader, SignatureTypeCode typeCode, out bool isEnumTypeCode)
+        private static ConstantValue DecodePrimitiveConstantValue(ref BlobReader sigReader, SignatureTypeCode typeCode, out bool isEnumTypeCode)
         {
             switch (typeCode)
             {
@@ -1028,12 +1033,7 @@ namespace Microsoft.CodeAnalysis
                     localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 }
             }
-            catch (UnsupportedSignatureContent)
-            {
-                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                return false;
-            }
-            catch (BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
             {
                 localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 return false;

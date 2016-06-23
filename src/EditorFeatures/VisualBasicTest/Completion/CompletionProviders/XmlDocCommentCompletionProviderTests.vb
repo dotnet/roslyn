@@ -18,9 +18,13 @@ Namespace Tests
             Return New XmlDocCommentCompletionProvider()
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?) As Task
-            Await VerifyAtPositionAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
-            Await VerifyAtEndOfFileAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
+        Protected Overrides Async Function VerifyWorkerAsync(
+                code As String, position As Integer,
+                expectedItemOrNull As String, expectedDescriptionOrNull As String,
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task
@@ -104,7 +108,35 @@ Class C
 End Class
 "
 
-            Await VerifyItemsExistAsync(text, "code", "list", "para", "paramref", "typeparamref")
+            Await VerifyItemsExistAsync(text, "code", "list", "para")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "paramref name=""i""", "typeparamref name=""T""")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRepeatableNestedTypeParamRefTagOnClass() As Task
+            Dim text = "
+''' <summary>
+''' <$$
+''' </summary>
+Class C(Of T)
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "typeparamref name=""T""")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -376,7 +408,7 @@ Module Program
 End Module
 "
 
-            Await VerifyItemsExistAsync(text, "code", "list", "para", "paramref", "typeparamref")
+            Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

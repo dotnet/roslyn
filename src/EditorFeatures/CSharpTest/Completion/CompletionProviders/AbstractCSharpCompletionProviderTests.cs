@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -20,96 +18,87 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
+        protected override Task<TestWorkspace> CreateWorkspaceAsync(string fileContents)
+        {
+            return TestWorkspace.CreateCSharpAsync(fileContents);
+        }
+
         internal override CompletionServiceWithProviders CreateCompletionService(
             Workspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders)
         {
             return new CSharpCompletionService(workspace, exclusiveProviders);
         }
 
-        protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override Task BaseVerifyWorkerAsync(
+            string code, int position,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            int? glyph, int? matchPriority)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            return base.VerifyWorkerAsync(
+                code, position, expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
+                glyph, matchPriority);
+        }
+
+        protected override async Task VerifyWorkerAsync(
+            string code, int position, 
+            string expectedItemOrNull, string expectedDescriptionOrNull, 
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, 
+            bool checkForAbsence, int? glyph, int? matchPriority)
+        {
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
             }
         }
 
-        protected Task BaseVerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, int? glyph)
+        protected override string ItemPartiallyWritten(string expectedItemOrNull)
         {
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental: false, glyph: glyph);
+            return expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
         }
 
-        private Task VerifyInFrontOfCommentAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        private Task VerifyInFrontOfCommentAsync(
+            string code, int position, string insertText, bool usePreviousCharAsTrigger,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority)
         {
             code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
             position += insertText.Length;
 
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph: glyph);
+            return base.VerifyWorkerAsync(
+                code, position, expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority);
         }
 
-        private Task VerifyInFrontOfCommentAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        private Task VerifyInFrontOfCommentAsync(
+            string code, int position, bool usePreviousCharAsTrigger,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority)
         {
-            return VerifyInFrontOfCommentAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph: glyph);
+            return VerifyInFrontOfCommentAsync(
+                code, position, string.Empty, usePreviousCharAsTrigger,
+                expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, checkForAbsence, glyph, matchPriority);
         }
 
-        protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
+            string code, int position, bool usePreviousCharAsTrigger,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority)
         {
-            return VerifyInFrontOfCommentAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph: glyph);
-        }
-
-        protected Task VerifyAtPositionAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
-        {
-            code = code.Substring(0, position) + insertText + code.Substring(position);
-            position += insertText.Length;
-
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph: glyph);
-        }
-
-        protected Task VerifyAtPositionAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
-        {
-            return VerifyAtPositionAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-        }
-
-        protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
-        {
-            return VerifyAtPositionAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-        }
-
-        private async Task VerifyAtEndOfFileAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
-        {
-            // only do this if the placeholder was at the end of the text.
-            if (code.Length != position)
-            {
-                return;
-            }
-
-            code = code.Substring(startIndex: 0, length: position) + insertText;
-            position += insertText.Length;
-
-            await base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph);
-        }
-
-        protected Task VerifyAtEndOfFileAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
-        {
-            return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-        }
-
-        protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
-        {
-            return VerifyAtEndOfFileAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-        }
-
-        private static string ItemPartiallyWritten(string expectedItemOrNull)
-        {
-            return expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
+            return VerifyInFrontOfCommentAsync(
+                code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
+                expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, checkForAbsence, glyph, matchPriority);
         }
 
         protected string AddInsideMethod(string text)
@@ -135,7 +124,7 @@ usingDirectives +
 text;
         }
 
-        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
+        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
             {
@@ -145,88 +134,15 @@ text;
                 var position = hostDocument.CursorPosition.Value;
 
                 workspace.Options = workspace.Options.WithChangedOption(
-                    CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
+                    CompletionOptions.EnterKeyBehavior,
+                    LanguageNames.CSharp,
+                    sendThroughEnterOption);
 
                 var service = GetCompletionService(workspace);
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var completionRules = CompletionHelper.GetHelper(document, service);
-                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));
-            }
-        }
-
-        protected async Task VerifyTextualTriggerCharacterAsync(string markup, bool shouldTriggerWithTriggerOnLettersEnabled, bool shouldTriggerWithTriggerOnLettersDisabled)
-        {
-            await VerifyTextualTriggerCharacterWorkerAsync(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true);
-            await VerifyTextualTriggerCharacterWorkerAsync(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false);
-        }
-
-        private async Task VerifyTextualTriggerCharacterWorkerAsync(string markup, bool expectedTriggerCharacter, bool triggerOnLetter)
-        {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
-            {
-                var document = workspace.Documents.Single();
-                var position = document.CursorPosition.Value;
-                var text = document.TextBuffer.CurrentSnapshot.AsText();
-                var options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp, triggerOnLetter);
-                var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
-
-                var service = GetCompletionService(workspace);
-                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
-
-                if (expectedTriggerCharacter)
-                {
-                    var assertText = "'" + text.ToString(new Microsoft.CodeAnalysis.Text.TextSpan(position, 1)) + "' expected to be textual trigger character";
-                    Assert.True(isTextualTriggerCharacterResult, assertText);
-                }
-                else
-                {
-                    var assertText = "'" + text.ToString(new Microsoft.CodeAnalysis.Text.TextSpan(position, 1)) + "' expected to NOT be textual trigger character";
-                    Assert.False(isTextualTriggerCharacterResult, assertText);
-                }
-            }
-        }
-
-        protected async Task VerifyCommonCommitCharactersAsync(string initialMarkup, string textTypedSoFar)
-        {
-            var commitCharacters = new[]
-            {
-                ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
-                ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
-                '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'
-            };
-
-            await VerifyCommitCharactersAsync(initialMarkup, textTypedSoFar, commitCharacters);
-        }
-
-        protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null)
-        {
-            Assert.NotNull(validChars);
-            invalidChars = invalidChars ?? new[] { 'x' };
-
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
-            {
-                var hostDocument = workspace.DocumentWithCursor;
-                var documentId = workspace.GetDocumentId(hostDocument);
-                var document = workspace.CurrentSolution.GetDocument(documentId);
-                var position = hostDocument.CursorPosition.Value;
-
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
-                var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
-
-                var completionRules = CompletionHelper.GetHelper(document, service);
-
-                foreach (var ch in validChars)
-                {
-                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character");
-                }
-
-                foreach (var ch in invalidChars)
-                {
-                    Assert.False(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' NOT to be a commit character");
-                }
+                Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
             }
         }
 
@@ -263,13 +179,6 @@ text;
             {
                 await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
-        }
-
-        protected override ParseOptions CreateExperimentalParseOptions(ParseOptions parseOptions)
-        {
-            var options = (CSharpParseOptions)parseOptions;
-            var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
-            return options.WithFeatures(experimentalFeatures);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(CompletionOptions.ShowXmlDocCommentCompletion))
+            if (!context.Options.GetOption(CompletionControllerOptions.ShowXmlDocCommentCompletion))
             {
                 return;
             }
@@ -115,10 +116,48 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Select(t => GetItem(t, itemSpan));
         }
 
-        protected IEnumerable<CompletionItem> GetNestedTags(TextSpan itemSpan)
+        protected IEnumerable<string> NestedTagNames
         {
-            return new[] { CTagName, CodeTagName, ParaTagName, ListTagName, ParamRefTagName, TypeParamRefTagName }
-                .Select(t => GetItem(t, itemSpan));
+            get { return new[] { CTagName, CodeTagName, ParaTagName, ListTagName }; }
+        }
+
+        protected IEnumerable<CompletionItem> GetNestedTags(TextSpan itemSpan, ISymbol declaredSymbol)
+        {
+            return NestedTagNames.Select(t => GetItem(t, itemSpan))
+                                 .Concat(GetParamRefItems(itemSpan, declaredSymbol))
+                                 .Concat(GetTypeParamRefItems(itemSpan, declaredSymbol));
+        }
+
+        private IEnumerable<CompletionItem> GetParamRefItems(TextSpan itemSpan, ISymbol declaredSymbol)
+        {
+            var parameters = declaredSymbol?.GetParameters().Select(p => p.Name).ToSet();
+
+            if (parameters == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            }
+
+            return parameters.Select(p => CreateCompletionItem(
+                span: itemSpan,
+                displayText: FormatParameter(ParamRefTagName, p),
+                beforeCaretText: FormatParameterRefTag(ParamRefTagName, p),
+                afterCaretText: string.Empty));
+        }
+
+        private IEnumerable<CompletionItem> GetTypeParamRefItems(TextSpan itemSpan, ISymbol declaredSymbol)
+        {
+            var typeParameters = declaredSymbol?.GetTypeParameters().Select(t => t.Name).ToSet();
+
+            if (typeParameters == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            }
+
+            return typeParameters.Select(t => CreateCompletionItem(
+                span: itemSpan,
+                displayText: FormatParameter(TypeParamRefTagName, t),
+                beforeCaretText: FormatParameterRefTag(TypeParamRefTagName, t),
+                afterCaretText: string.Empty));
         }
 
         protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems(TextSpan itemSpan)
@@ -142,6 +181,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected string FormatParameter(string kind, string name)
         {
             return $"{kind} {NameAttributeName}=\"{name}\"";
+        }
+
+        private string FormatParameterRefTag(string kind, string name)
+        {
+            return $"<{kind} {NameAttributeName}=\"{name}\"/>";
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default(char?), CancellationToken cancellationToken = default(CancellationToken))

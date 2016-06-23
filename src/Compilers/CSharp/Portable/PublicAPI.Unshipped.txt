@@ -1,4 +1,6 @@
-Microsoft.CodeAnalysis.CSharp.Conversion.IsTuple.get -> bool
+Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
+Microsoft.CodeAnalysis.CSharp.Conversion.IsTupleLiteral.get -> bool
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7 = 7 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.Declaration.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken outKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax declaration) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.WithDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax declaration) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax

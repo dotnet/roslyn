@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsPatterns);
@@ -77,13 +77,13 @@ public class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
 
         [Fact]
         public void DiagnosticAnalyzerExpressionBodiedProperty()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 public class C
 {
     public int P => 10;
@@ -96,7 +96,7 @@ public class C
         [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var compilation = CreateExperimentalCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
                 compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null, logAnalyzerExceptionAsDiagnostics: true));
         }
@@ -110,7 +110,7 @@ public class C
                 new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
             );
 
-            var compilation = CreateExperimentalCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();

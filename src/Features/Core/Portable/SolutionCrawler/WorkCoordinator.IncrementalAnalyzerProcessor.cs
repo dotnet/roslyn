@@ -166,15 +166,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process all analyzers for each categories in this order - syntax, body, document
-                    var reasons = workItem.InvocationReasons;
-                    if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                    if (workItem.MustRefresh || workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                     {
-                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SemanticChanged))
+                    if (workItem.MustRefresh || workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                     {
-                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -208,11 +207,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         var root = await GetOrDefaultAsync(document, (d, c) => d.GetSyntaxRootAsync(c), cancellationToken).ConfigureAwait(false);
                         var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                        var reasons = workItem.InvocationReasons;
                         if (root == null || syntaxFactsService == null)
                         {
                             // as a fallback mechanism, if we can't run one method body due to some missing service, run whole document analyzer.
-                            await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                            await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
                             return;
                         }
 
@@ -223,12 +221,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // no active member means, change is out side of a method body, but it didn't affect semantics (such as change in comment)
                             // in that case, we update whole document (just this document) so that we can have updated locations.
-                            await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                            await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
                             return;
                         }
 
                         // re-run just the body
-                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, c), cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {

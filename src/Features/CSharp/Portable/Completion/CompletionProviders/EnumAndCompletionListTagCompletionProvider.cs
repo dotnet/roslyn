@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     span: context.DefaultItemSpan,
                     symbol: alias ?? type,
                     descriptionPosition: position,
-                    preselect: true,
+                    matchPriority: MatchPriority.Preselect,
                     rules: s_rules);
 
                 context.AddItem(item);
@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static readonly CompletionItemRules s_rules =
-            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')));
+            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')))
+                                       .WithMatchPriority(MatchPriority.Preselect)
+                                       .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
         private INamedTypeSymbol GetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {

@@ -718,5 +718,47 @@ class C
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
         }
+
+        /// <summary>
+        /// Symbol location order should be preserved when trees
+        /// are replaced in the compilation.
+        /// </summary>
+        [WorkItem(11015, "https://github.com/dotnet/roslyn/issues/11015")]
+        [Fact]
+        public void PreserveLocationOrderOnReplaceSyntaxTree()
+        {
+            var source0 = Parse("namespace N { partial class C { } } namespace N0 { } class C0 { }");
+            var source1 = Parse("namespace N { partial class C { } } namespace N1 { } class C1 { }");
+            var source2 = Parse("namespace N { struct S { } }");
+            var source3 = Parse("namespace N { partial class C { } } namespace N3 { } class C3 { }");
+            var comp0 = CreateCompilationWithMscorlib(new[] { source0, source1, source2, source3 });
+            comp0.VerifyDiagnostics();
+            Assert.Equal(new[] { source0, source1, source2, source3 }, comp0.SyntaxTrees);
+
+            // Location order of partial class should match SyntaxTrees order.
+            var locations = comp0.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source0, source1, source3 }, locations.Select(l => l.SourceTree));
+
+            // AddSyntaxTrees will add to the end.
+            var source4 = Parse("namespace N { partial class C { } } namespace N4 { } class C4 { }");
+            var comp1 = comp0.AddSyntaxTrees(source4);
+            locations = comp1.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source0, source1, source3, source4 }, locations.Select(l => l.SourceTree));
+
+            // ReplaceSyntaxTree should preserve location order.
+            var comp2 = comp0.ReplaceSyntaxTree(source1, source4);
+            locations = comp2.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source0, source4, source3 }, locations.Select(l => l.SourceTree));
+
+            // NamespaceNames and TypeNames do not match SyntaxTrees order.
+            // This is expected.
+            Assert.Equal(new[] { "", "N3", "N0", "N", "", "N4", "N" }, comp2.Declarations.NamespaceNames.ToArray());
+            Assert.Equal(new[] { "C3", "C0", "S", "C", "C4", "C" }, comp2.Declarations.TypeNames.ToArray());
+
+            // RemoveSyntaxTrees should preserve order of remaining trees.
+            var comp3 = comp2.RemoveSyntaxTrees(source0);
+            locations = comp3.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source4, source3 }, locations.Select(l => l.SourceTree));
+        }
     }
 }

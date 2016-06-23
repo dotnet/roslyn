@@ -1,11 +1,12 @@
-﻿Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+﻿Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ReplacePropertyWithMethods
     Public Class ReplacePropertyWithMethodsTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
             Return New ReplacePropertyWithMethodsCodeRefactoringProvider()
         End Function
 
@@ -350,7 +351,7 @@ end class",
 "class C
     Private _Prop As Integer
     Public Function GetProp() As Integer
-        Return Me._Prop
+        Return _Prop
     End Function
 end class")
         End Function
@@ -367,7 +368,7 @@ end class",
 "class C
     Private _Prop As Integer
     Public Function GetProp() As Integer
-        Return Me._Prop
+        Return _Prop
     End Function
     public sub new()
         me._Prop = 1
@@ -384,7 +385,7 @@ end class",
 "class C
     Private _Prop As Integer = 1
     Public Function GetProp() As Integer
-        Return Me._Prop
+        Return _Prop
     End Function
 end class")
         End Function

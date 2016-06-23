@@ -41,14 +41,11 @@
     <Compile Include="..\..\Shared\DesktopBuildClient.cs">
       <Link>DesktopBuildClient.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\ExitingTraceListener.cs">
       <Link>ExitingTraceListener.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\SimpleAnalyzerAssemblyLoader.cs">
-      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
+    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs">
+      <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\Vbc.cs">
       <Link>Vbc.cs</Link>

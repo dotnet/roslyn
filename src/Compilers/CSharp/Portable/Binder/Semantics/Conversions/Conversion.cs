@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion ImplicitNullable = new Conversion(ConversionKind.ImplicitNullable);
         internal static readonly Conversion ImplicitReference = new Conversion(ConversionKind.ImplicitReference);
         internal static readonly Conversion ImplicitEnumeration = new Conversion(ConversionKind.ImplicitEnumeration);
+        internal static readonly Conversion ImplicitTupleLiteral = new Conversion(ConversionKind.ImplicitTupleLiteral);
         internal static readonly Conversion ImplicitTuple = new Conversion(ConversionKind.ImplicitTuple);
+        internal static readonly Conversion ExplicitTuple = new Conversion(ConversionKind.ExplicitTuple);
         internal static readonly Conversion AnonymousFunction = new Conversion(ConversionKind.AnonymousFunction);
         internal static readonly Conversion Boxing = new Conversion(ConversionKind.Boxing);
         internal static readonly Conversion NullLiteral = new Conversion(ConversionKind.NullLiteral);
@@ -42,17 +42,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion InterpolatedString = new Conversion(ConversionKind.InterpolatedString);
 
         private readonly MethodSymbol _methodGroupConversionMethod;
+
         private readonly UserDefinedConversionResult _conversionResult; //no effect on Equals/GetHashCode
 
-        internal readonly ConversionKind Kind;
+        private readonly ConversionKind _kind;
         private readonly byte _flags;
 
         private const byte IsExtensionMethodMask = 1 << 0;
         private const byte IsArrayIndexMask = 1 << 1;
 
+        private readonly Conversion[] _nestedConversionsOpt;
+
         private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
+            : this()
         {
-            this.Kind = kind;
+            _kind = kind;
             _conversionResult = conversionResult;
             _methodGroupConversionMethod = methodGroupConversionMethod;
 
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
             : this()
         {
-            this.Kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
+            this._kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
                 ? ConversionKind.NoConversion
                 : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
             _conversionResult = conversionResult;
@@ -75,7 +79,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion(ConversionKind kind)
             : this()
         {
-            this.Kind = kind;
+            this._kind = kind;
+        }
+
+        internal Conversion(ConversionKind kind, Conversion[] nestedConversions)
+            : this()
+        {
+            this._kind = kind;
+            this._nestedConversionsOpt = nestedConversions;
+        }
+
+        internal ConversionKind Kind
+        {
+            get
+            {
+                return _kind;
+            }
         }
 
         internal bool IsExtensionMethod
@@ -104,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion(ConversionKind kind, MethodSymbol methodGroupConversionMethod, bool isExtensionMethod)
             : this()
         {
-            this.Kind = kind;
+            this._kind = kind;
             _methodGroupConversionMethod = methodGroupConversionMethod;
             if (isExtensionMethod)
             {
@@ -117,7 +136,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Exists && (!this.IsUserDefined || (object)this.Method != null || _conversionResult.Kind == UserDefinedConversionResultKind.Valid);
+                if (!this.Exists)
+                {
+                    return false;
+                }
+
+                if (_nestedConversionsOpt != null)
+                {
+                    foreach (var conv in _nestedConversionsOpt)
+                    {
+                        if (!conv.IsValid)
+                        {
+                            return false;
+                        }
+                    }
+
+                    Debug.Assert(!this.IsUserDefined);
+                    return true;
+                }
+
+                return !this.IsUserDefined || 
+                    (object)this.Method != null ||
+                    _conversionResult.Kind == UserDefinedConversionResultKind.Valid;
             }
         }
 
@@ -365,11 +405,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the conversion is an implicit tuple conversion.
         /// </summary>
-        public bool IsTuple
+        public bool IsTupleLiteral
         {
             get
             {
-                return Kind == ConversionKind.ImplicitTuple;
+                return Kind == ConversionKind.ImplicitTupleLiteral;
             }
         }
 

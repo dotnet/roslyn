@@ -1734,7 +1734,7 @@ ProduceBoundNode:
         End Function
 
 
-        Private Sub ReportUnspecificProcedures(
+        Private Shared Sub ReportUnspecificProcedures(
             diagnosticLocation As Location,
             bestSymbols As ImmutableArray(Of Symbol),
             diagnostics As DiagnosticBag,
@@ -1771,7 +1771,7 @@ ProduceBoundNode:
                 If isDelegateContext Then
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate2, bestSymbol, bestSymbol.ContainingType))
-                    ElseIf withContainingTypeInDiagnostics
+                    ElseIf withContainingTypeInDiagnostics Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol)))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, bestSymbol))
@@ -1779,7 +1779,7 @@ ProduceBoundNode:
                 Else
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3, bestSymbol, bestSymbol.ContainingType, notMostSpecificMessage))
-                    ElseIf withContainingTypeInDiagnostics
+                    ElseIf withContainingTypeInDiagnostics Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol), notMostSpecificMessage))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, bestSymbol, notMostSpecificMessage))

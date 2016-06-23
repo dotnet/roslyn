@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.AddConstructorParameters;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 {
     public class AddConstructorParametersTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new AddConstructorParametersCodeRefactoringProvider();
         }
@@ -75,7 +76,7 @@ index: 1);
             await TestAsync(
 @"class Program { [|(int, string) i ; (string, int) s ;|] public Program ( (int, string) i ) { this . i = i ; } } ",
 @"class Program { (int, string) i ; (string, int) s ; public Program ( (int, string) i , (string, int) s ) { this . i = i ; this . s = s ; } } ",
-index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -84,7 +85,7 @@ index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOptio
             await TestAsync(
 @"class Program { [|(int a, string b) i ; (string c, int d) s ;|] public Program ( (int a, string b) i ) { this . i = i ; } } ",
 @"class Program { (int a, string b) i ; (string c, int d) s ; public Program ( (int a, string b) i , (string c, int d) s ) { this . i = i ; this . s = s ; } } ",
-index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -92,7 +93,7 @@ index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOptio
         {
             await TestMissingAsync(
 @"class Program { [|(int a, string b) i ; (string c, int d) s ;|] public Program ( (int e, string f) i ) { this . i = i ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -101,7 +102,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"class Program { [|(int, string) i ; (string, int) s ;|] public Program ( (int, string) i ) { this . i = i ; } } ",
 @"class Program { (int, string) i ; (string, int) s ; public Program ( (int, string) i , (string, int) s = default((string, int)) ) { this . i = i ; this . s = s ; } } ",
-index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -110,7 +111,7 @@ index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOptio
             await TestAsync(
 @"class Program { [|(int a, string b) i ; (string c, int d) s ;|] public Program ( (int a, string b) i ) { this . i = i ; } } ",
 @"class Program { (int a, string b) i ; (string c, int d) s ; public Program ( (int a, string b) i , (string c, int d) s = default((string c, int d)) ) { this . i = i ; this . s = s ; } } ",
-index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -118,7 +119,7 @@ index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOptio
         {
             await TestMissingAsync(
 @"class Program { [|(int a, string b) i ; (string c, int d) s ;|] public Program ( (int e, string f) i ) { this . i = i ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -127,7 +128,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"class Program { [|(int?, bool?) i ; (byte?, long?) s ;|] public Program ( (int?, bool?) i ) { this . i = i ; } } ",
 @"class Program { (int?, bool?) i ; (byte?, long?) s ; public Program ( (int?, bool?) i , (byte?, long?) s ) { this . i = i ; this . s = s ; } } ",
-index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
@@ -136,7 +137,7 @@ index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOptio
             await TestAsync(
 @"class Program { [|(List<int>, List<bool>) i ; (List<byte>, List<long>) s ;|] public Program ( (List<int>, List<bool>) i ) { this . i = i ; } } ",
 @"class Program { (List<int>, List<bool>) i ; (List<byte>, List<long>) s ; public Program ( (List<int>, List<bool>) i , (List<byte>, List<long>) s ) { this . i = i ; this . s = s ; } } ",
-index: 0, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
     }
 }
