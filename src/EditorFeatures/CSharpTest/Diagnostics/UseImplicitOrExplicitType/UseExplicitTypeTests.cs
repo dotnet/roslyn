@@ -1019,7 +1019,7 @@ class C
 @"class C { static void M() { [|var|] s = (1, ""hello""); } }",
 @"class C { static void M() { (int, string) s = (1, ""hello""); }}",
 options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -1030,7 +1030,7 @@ withScriptOption: true);
 @"class C { static void M() { [|var|] s = (a: 1, b: ""hello""); } }",
 @"class C { static void M() { (int a, string b) s = (a: 1, b: ""hello""); }}",
 options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -1041,7 +1041,7 @@ withScriptOption: true);
 @"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
 @"class C { static void M() { (int a, string Item2) s = (a: 1, ""hello""); }}",
 options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }
