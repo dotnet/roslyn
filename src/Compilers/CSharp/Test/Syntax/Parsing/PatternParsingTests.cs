@@ -33,16 +33,16 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
-                // (9,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+            CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (9,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
                 //             case 2 when args.Length == 2:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case 2 when args.Length == 2:").WithArguments("pattern matching", "patterns").WithLocation(9, 13),
-                // (11,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 2 when args.Length == 2:").WithArguments("pattern matching", "7").WithLocation(9, 13),
+                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
                 //             case string s:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case string s:").WithArguments("pattern matching", "patterns").WithLocation(11, 13),
-                // (15,18): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case string s:").WithArguments("pattern matching", "7").WithLocation(11, 13),
+                // (15,18): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
                 //         bool b = args[0] is string s;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "args[0] is string s").WithArguments("pattern matching", "patterns").WithLocation(15, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "args[0] is string s").WithArguments("pattern matching", "7").WithLocation(15, 18)
             );
         }
     }

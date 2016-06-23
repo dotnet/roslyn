@@ -15,7 +15,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Next</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <DefineConstants>DEV15</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -73,11 +72,10 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Core\Implementation\IntelliSense\Completion\Presentation\RoslynCompletionSet.cs">
-      <Link>IntelliSense\Completion\Presentation\RoslynCompletionSet.cs</Link>
-    </Compile>
     <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

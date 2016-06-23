@@ -10,7 +10,6 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -179,7 +178,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                return diagnostic?.Severity != DiagnosticSeverity.Hidden;
+                switch (diagnostic.Severity)
+                {
+                    case DiagnosticSeverity.Info:
+                    case DiagnosticSeverity.Warning:
+                    case DiagnosticSeverity.Error:
+                        return true;
+                    case DiagnosticSeverity.Hidden:
+                    default:
+                        return false;
+                }
             }
 
             private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)

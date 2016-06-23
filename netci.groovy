@@ -121,8 +121,8 @@ commitPullList.each { isPr ->
                 }
 
   def triggerPhraseOnly = false
-  def triggerPhraseExtra = ""
-                Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
@@ -139,8 +139,8 @@ commitPullList.each { isPr ->
             }
 
   def triggerPhraseOnly = true
-  def triggerPhraseExtra = ""
-            Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  def triggerPhraseExtra = "mac"
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 
@@ -160,6 +160,23 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "determinism"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Perf Correctness
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
+  def myJob = job(jobName) {
+    description('perf test correctness')
+    label('windows-roslyn')
+    steps {
+      batchFile(""".\\cibuild.cmd /testPerfCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "perf-correctness"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }

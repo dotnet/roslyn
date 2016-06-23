@@ -17,8 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     Friend Class VisualBasicChangeSignatureService
         Inherits AbstractChangeSignatureService
 
-        Public Overrides Function GetInvocationSymbol(document As Document, position As Integer, restrictToDeclarations As Boolean, cancellationToken As CancellationToken) As ISymbol
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+        Public Overrides Async Function GetInvocationSymbolAsync(
+                document As Document,
+                position As Integer,
+                restrictToDeclarations As Boolean,
+                cancellationToken As CancellationToken) As Task(Of ISymbol)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
             Dim matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(Function(n) _invokableAncestorKinds.Contains(n.Kind))

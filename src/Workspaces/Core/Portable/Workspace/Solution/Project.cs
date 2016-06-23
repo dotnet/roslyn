@@ -281,14 +281,6 @@ namespace Microsoft.CodeAnalysis
             return new ProjectChanges(this, oldProject);
         }
 
-        private void CheckContainsDocument(DocumentId documentId)
-        {
-            if (!this.ContainsDocument(documentId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.DocumentNotInProject);
-            }
-        }
-
         /// <summary>
         /// The project version. This equates to the version of the project file.
         /// </summary>

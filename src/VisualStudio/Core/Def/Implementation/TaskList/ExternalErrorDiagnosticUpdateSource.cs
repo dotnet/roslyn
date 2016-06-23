@@ -561,11 +561,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
+                var lineColumn1 = GetOriginalOrMappedLineColumn(item1);
+                var lineColumn2 = GetOriginalOrMappedLineColumn(item2);
+
                 if (item1.DocumentId != null && item2.DocumentId != null)
                 {
-                    var lineColumn1 = GetOriginalOrMappedLineColumn(item1);
-                    var lineColumn2 = GetOriginalOrMappedLineColumn(item2);
-
                     return item1.Id == item2.Id &&
                            item1.Message == item2.Message &&
                            item1.ProjectId == item2.ProjectId &&
@@ -578,15 +578,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return item1.Id == item2.Id &&
                        item1.Message == item2.Message &&
                        item1.ProjectId == item2.ProjectId &&
+                       item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath &&
+                       lineColumn1.Item1 == lineColumn2.Item1 &&
+                       lineColumn1.Item2 == lineColumn2.Item2 &&
                        item1.Severity == item2.Severity;
             }
 
             public int GetHashCode(DiagnosticData obj)
             {
+                var lineColumn = GetOriginalOrMappedLineColumn(obj);
+
                 if (obj.DocumentId != null)
                 {
-                    var lineColumn = GetOriginalOrMappedLineColumn(obj);
-
                     return Hash.Combine(obj.Id,
                            Hash.Combine(obj.Message,
                            Hash.Combine(obj.ProjectId,
@@ -597,13 +600,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 return Hash.Combine(obj.Id,
                        Hash.Combine(obj.Message,
-                       Hash.Combine(obj.ProjectId, (int)obj.Severity)));
+                       Hash.Combine(obj.ProjectId,
+                       Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0,
+                       Hash.Combine(lineColumn.Item1,
+                       Hash.Combine(lineColumn.Item2, (int)obj.Severity))))));
             }
 
             private static ValueTuple<int, int> GetOriginalOrMappedLineColumn(DiagnosticData data)
             {
                 var workspace = data.Workspace as VisualStudioWorkspaceImpl;
                 if (workspace == null)
+                {
+                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
+                }
+
+                if (data.DocumentId == null)
                 {
                     return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }

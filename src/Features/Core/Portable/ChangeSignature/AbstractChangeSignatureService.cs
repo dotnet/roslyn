@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract ISymbol GetInvocationSymbol(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<ISymbol> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = GetInvocationSymbol(document, position, restrictToDeclarations, cancellationToken);
+            var symbol = await GetInvocationSymbolAsync(document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-lang symbols will show as metadata, so map it to source if possible.
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;

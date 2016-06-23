@@ -838,11 +838,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code, args));
         }
 
-        private SyntaxToken WithXmlParseError<TNode>(SyntaxToken node, XmlParseErrorCode code)
-        {
-            return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code));
-        }
-
         private SyntaxToken WithXmlParseError(SyntaxToken node, XmlParseErrorCode code, params string[] args)
         {
             return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code, args));
@@ -934,23 +929,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
-        }
-
-        private CSharpSyntaxNode ConsumeBadTokens()
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.BadToken)
-            {
-                var badTokens = _pool.Allocate<SyntaxToken>();
-                while (this.CurrentToken.Kind == SyntaxKind.BadToken)
-                {
-                    badTokens.Add(this.EatToken());
-                }
-                var result = badTokens.ToListNode();
-                _pool.Free(badTokens);
-                return result;
-            }
-
-            return null;
         }
 
         /// <summary>

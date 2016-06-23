@@ -1,6 +1,5 @@
 ﻿Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -22,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             Public Sub New()
             End Sub
 
-            Public Overrides Function CreateCompletionHelper(service As CompletionService) As CompletionHelper
-                Return New VisualBasicCompletionHelper(service)
+            Public Overrides Function CreateCompletionHelper() As CompletionHelper
+                Return New VisualBasicCompletionHelper()
             End Function
         End Class
     End Class
@@ -31,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
     Friend Class VisualBasicCompletionHelper
         Inherits CompletionHelper
 
-        Public Sub New(completionService As CompletionService)
-            MyBase.New(completionService)
+        Public Sub New()
+            MyBase.New(isCaseSensitive:=False)
         End Sub
 
         Public Overrides ReadOnly Property QuestionTabInvokesSnippetCompletion As Boolean
@@ -41,34 +40,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             End Get
         End Property
 
-        Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
-            ' If this Is a session started on backspace, we use a much looser prefix match check
-            ' to see if an item matches
-
-            If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso trigger.Kind = CompletionTriggerKind.Deletion Then
-                Return GetPrefixLength(item.FilterText, filterText) > 0
-            End If
-
-            Return MyBase.MatchesFilterText(item, filterText, trigger, filterReason, recentItems)
-        End Function
-
-        Protected Overrides Function GetCultureSpecificQuirks(candidate As String) As String
-            ' TODO: define way to identify this case w/o language specific check
-            If CultureInfo.CurrentCulture.Name = "tr-TR" Then
-                Return candidate.Replace("I"c, "İ"c)
-            End If
-
-            Return candidate
-        End Function
-
-        Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
-
-            If filterReason = CompletionFilterReason.BackspaceOrDelete Then
-                Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
-                Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
-                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.Preselect AndAlso Not item2.Rules.Preselect) AndAlso Not IsEnumMemberItem(item1))
-            End If
-
+        Public Overrides Function IsBetterFilterMatch(
+                item1 As CompletionItem, item2 As CompletionItem,
+                filterText As String, trigger As CompletionTrigger,
+                recentItems As ImmutableArray(Of String)) As Boolean
             If IsEnumMemberItem(item2) Then
                 Dim match1 = GetMatch(item1, filterText)
                 Dim match2 = GetMatch(item2, filterText)
@@ -87,19 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
                 End If
             End If
 
-            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems)
-        End Function
-
-        Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, trigger As CompletionTrigger) As Boolean
-
-            ' VB has additional specialized logic for soft selecting an item in completion when the only filter text Is "_"
-            If filterText.Length = 0 OrElse filterText = "_" Then
-                ' Object Creation hard selects even with no selected item
-                Return Not IsObjectCreationItem(item)
-            End If
-
-            Return MyBase.ShouldSoftSelectItem(item, filterText, trigger)
+            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, recentItems)
         End Function
     End Class
-
 End Namespace

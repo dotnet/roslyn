@@ -170,6 +170,20 @@ public static class TestReferences
                     return s_minasync;
                 }
             }
+
+            private static PortableExecutableReference s_minasynccorlib;
+            public static PortableExecutableReference minasynccorlib
+            {
+                get
+                {
+                    if (s_minasynccorlib == null)
+                    {
+                        s_minasynccorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasynccorlib).GetReference(display: "minasynccorlib.dll");
+                    }
+
+                    return s_minasynccorlib;
+                }
+            }
         }
 
         public static class ValueTuple
