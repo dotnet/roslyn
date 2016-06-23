@@ -1623,7 +1623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Fill in empty slots for variables deleted during EnC that are not followed by an existing variable
             If variableSlotAllocatorOpt IsNot Nothing Then
                 Dim previousAwaiterCount = variableSlotAllocatorOpt.PreviousAwaiterSlotCount
-                While awaiters.Count <previousAwaiterCount
+                While awaiters.Count < previousAwaiterCount
                     awaiters.Add(Nothing)
                 End While
 
