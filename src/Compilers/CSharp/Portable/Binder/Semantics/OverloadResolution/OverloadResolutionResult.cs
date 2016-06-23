@@ -556,8 +556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceExtensionInstanceArgument);
             if (inferenceFailed.IsNotNull)
             {
-                Debug.Assert(arguments.Arguments.Count > 0);
-                var instanceArgument = arguments.Arguments[0];
+                // PROTOTYPE: This used to be the following, and should be thought through:
+                //Debug.Assert(arguments.Arguments.Count > 0);
+                //var instanceArgument = arguments.Arguments[0];
+                var instanceArgument = receiver;
                 if (queryClause != null)
                 {
                     binder.ReportQueryLookupFailed(queryClause, instanceArgument, inferenceFailed.Member.Name, symbols, diagnostics);

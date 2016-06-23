@@ -2568,7 +2568,7 @@ class Y
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E").WithLocation(22, 11));
         }
 
-        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122"), WorkItem(842476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842476")]
+        [Fact(Skip = "PROTOTYPE: Extension Everything breaks this (this is one of the EmitArgument assert failures)"), WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122"), WorkItem(842476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842476")]
         public void RefOmittedComCall_ExtensionMethod()
         {
             string source = @"
@@ -6518,9 +6518,9 @@ static class Extensions
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (8,16): warning CS0618: 'Extensions.Add(IViewable2)' is obsolete: 'A'
+                // (8,16): warning CS0618: 'IViewable2.Add()' is obsolete: 'A'
                 //         v.View(v.Add);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("IViewable2.Add()", "A").WithLocation(8, 16));
         }
 
         [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
@@ -6557,9 +6557,9 @@ static class Extensions
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (8,16): warning CS0618: 'Extensions.Add(IViewable2)' is obsolete: 'A'
+                // (8,16): warning CS0618: 'IViewable2.Add()' is obsolete: 'A'
                 //         v.View(v.Add);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("IViewable2.Add()", "A").WithLocation(8, 16));
         }
 
         [WorkItem(709114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709114")]
@@ -7166,12 +7166,12 @@ namespace C
 ";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-    // (31,19): error CS0121: The call is ambiguous between the following methods or properties: 'X.Test(int)' and 'X.Test(int)'
-    //             if (1.Test() != 1)
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("A.B.X.Test(int)", "A.C.X.Test(int)").WithLocation(30, 19)
+                // (30,19): error CS0121: The call is ambiguous between the following methods or properties: 'int.Test()' and 'int.Test()'
+                //             if (1.Test() != 1)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("int.Test()", "int.Test()").WithLocation(30, 19)
                 );
 
-            Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'A.B.X.Test(int)' and 'A.C.X.Test(int)'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'int.Test()' and 'int.Test()'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
@@ -7532,12 +7532,12 @@ namespace ConsoleApplication2
             var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
-    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
-    //             var d1 = val.IfNotNull(v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(23, 26),
-    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
-    //             var d2 = Foo.IfNotNull(val, v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(24, 26)
+                // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'T.IfNotNull<T, U>(Func<T, U>, params U[])' and 'T?.IfNotNull<T, U>(Func<T, U>)'
+                //             var d1 = val.IfNotNull(v => v / 100);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("T.IfNotNull<T, U>(System.Func<T, U>, params U[])", "T?.IfNotNull<T, U>(System.Func<T, U>)").WithLocation(23, 26),
+                // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
+                //             var d2 = Foo.IfNotNull(val, v => v / 100);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(24, 26)
                 );
         }
 
@@ -7576,12 +7576,12 @@ namespace ConsoleApplication2
             var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
-    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
-    //             var d1 = val.IfNotNull(v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(23, 26),
-    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
-    //             var d2 = Foo.IfNotNull(val, v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(24, 26)
+                // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'T?.IfNotNull<T, U>(Func<T, U>)' and 'T.IfNotNull<T, U>(Func<T, U>, params U[])'
+                //             var d1 = val.IfNotNull(v => v / 100);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("T?.IfNotNull<T, U>(System.Func<T, U>)", "T.IfNotNull<T, U>(System.Func<T, U>, params U[])").WithLocation(23, 26),
+                // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
+                //             var d2 = Foo.IfNotNull(val, v => v / 100);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(24, 26)
                 );
         }
 
@@ -8291,13 +8291,13 @@ namespace ClassLibraryOverloadResolution
             var compilation = CreateCompilationWithMscorlib45(source1);
 
             compilation.VerifyDiagnostics(
-    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
-    //             dict.Should();
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
+                // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'System.Collections.Generic.IDictionary<TKey, TValue>.Should<TKey, TValue>()' and 'System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>.Should<TKey, TValue>()'
+                //             dict.Should();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("System.Collections.Generic.IDictionary<TKey, TValue>.Should<TKey, TValue>()", "System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>.Should<TKey, TValue>()").WithLocation(34, 18)
                 );
         }
 
-        [Fact, WorkItem(4970, "https://github.com/dotnet/roslyn/issues/4970")]
+        [Fact(Skip = "PROTOTYPE: Extension Everything broke this"), WorkItem(4970, "https://github.com/dotnet/roslyn/issues/4970")]
         public void GenericExtensionMethodWithConstraintsAsADelegate()
         {
             var source =

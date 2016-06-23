@@ -1849,7 +1849,7 @@ static class E
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("T.F<T>()", "A", "T", "B").WithLocation(8, 9));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1888,7 +1888,7 @@ static class E
             compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("T.F<T>()", "A", "T", "B").WithLocation(8, 9));
 
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
@@ -4054,7 +4054,7 @@ static class S
             SymbolInfo info = new SymbolInfo();
             info = model.GetSymbolInfo(call);
 
-            Assert.IsType<SourceMemberMethodSymbol>(info.Symbol);
+            Assert.IsType<ReducedExtensionMethodSymbol>(info.Symbol);
 
             src = @"
 static class S

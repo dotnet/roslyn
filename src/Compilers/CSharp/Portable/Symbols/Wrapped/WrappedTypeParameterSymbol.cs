@@ -121,6 +121,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override TypeParameterSymbol ReducedFrom
+        {
+            get
+            {
+                return _underlyingTypeParameter.ReducedFrom;
+            }
+        }
+
+        public override TypeParameterSymbol UnreducedFrom
+        {
+            get
+            {
+                return _underlyingTypeParameter.UnreducedFrom;
+            }
+        }
+
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _underlyingTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);

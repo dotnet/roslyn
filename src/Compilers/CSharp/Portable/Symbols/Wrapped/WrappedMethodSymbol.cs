@@ -319,6 +319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter);
+
+        public abstract override MethodSymbol ReducedFrom { get; }
+
+        public abstract override MethodSymbol UnreducedFrom { get; }
+
         internal override abstract bool IsExplicitInterfaceImplementation
         {
             get;

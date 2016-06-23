@@ -1491,7 +1491,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            method = (method as UnreducedExtensionMethodSymbol)?.UnreduceExtensionMethod() ?? method;
+            // We have the unreduced form (that's the type of method we want to emit), but we want to bind as the reduced form.
+            if (method.MethodKind == MethodKind.UnreducedExtension)
+            {
+                method = method.UnreducedFrom;
+                Debug.Assert((object)method != null);
+            }
+            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
 
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)

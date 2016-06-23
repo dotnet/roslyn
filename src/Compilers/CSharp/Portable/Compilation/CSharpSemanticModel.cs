@@ -1460,14 +1460,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-                    // PROTOTYPE: Extension everything
-                    TypeSymbol containingType = (TypeSymbol)container;
                     foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
                     {
-                        var reduced = extensionMethod.ReduceExtensionMethod(containingType);
-                        if ((object)reduced != null)
+                        if (extensionMethod.MethodKind == MethodKind.ReducedExtension)
                         {
-                            results.Add(reduced);
+                            // PROTOTYPE: Fix this somehow. We might have to do partial type inference to get
+                            // the receiverType to line up right, and do receiver inference on extension class methods.
+                            var receiverType = (TypeSymbol)container;
+                            var rereduced = extensionMethod.UnreduceExtensionMethod().ReduceExtensionMethod(receiverType);
+                            if (rereduced != null)
+                            {
+                                results.Add(rereduced);
+                            }
+                        }
+                        else
+                        {
+                            results.Add(extensionMethod);
                         }
                     }
                 }
@@ -1737,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var s in symbols)
                     {
                         AddUnwrappingErrorTypes(builder, s);
-                        }
+                    }
 
                     symbols = builder.ToImmutableAndFree();
                 }
@@ -1842,7 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
+                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral)
                 {
                     Debug.Assert(highestBoundExpr == boundExpr);
                     var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;
@@ -4087,7 +4095,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)receiverType != null)
             {
-                constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType);
+                // PROTOTYPE: Figure this out
+                Debug.Assert(constructedMethod.MethodKind == MethodKind.ReducedExtension);
+                constructedMethod = constructedMethod.UnreduceExtensionMethod().ReduceExtensionMethod(receiverType);
                 if ((object)constructedMethod == null)
                 {
                     return false;
@@ -4149,6 +4159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static ImmutableArray<MethodSymbol> CreateReducedExtensionMethodsFromOriginalsIfNecessary(BoundCall call)
         {
+            // PROTOTYPE: Fix this (compiler now represents methods internally as ReducedMethodSymbols)
             var methods = call.OriginalMethodsOpt;
             TypeSymbol extensionThisType = null;
             Debug.Assert(!methods.IsDefault);
@@ -4198,7 +4209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = delegateCreation.MethodOpt;
             Debug.Assert((object)method != null);
-            Debug.Assert(!delegateCreation.IsExtensionMethod || !method.IsExtensionMethod || (receiverOpt == null) || method.MethodKind != MethodKind.ReducedExtension);
+            Debug.Assert(!delegateCreation.IsExtensionMethod || !method.IsExtensionMethod || (receiverOpt == null) || method.MethodKind == MethodKind.ReducedExtension);
             return ImmutableArray.Create<Symbol>(method);
         }
 

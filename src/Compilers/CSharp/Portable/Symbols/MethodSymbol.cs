@@ -694,8 +694,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return reducedFrom;
             }
 
-            if (this.MethodKind != MethodKind.UnreducedExtension || !this.IsInExtensionClass)
+            if (this.MethodKind == MethodKind.UnreducedExtension || !this.IsInExtensionClass)
+            {
                 return null;
+            }
 
             var containingType = this.ContainingType;
             Debug.Assert(containingType != null);

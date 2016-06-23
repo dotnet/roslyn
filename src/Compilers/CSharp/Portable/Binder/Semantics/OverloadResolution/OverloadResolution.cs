@@ -338,15 +338,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TMember UnreduceExtensionMember<TMember>(TMember member) where TMember : Symbol
         {
+            TMember result;
             switch (member.Kind)
             {
                 case SymbolKind.Method:
-                    return (TMember)(Symbol)((MethodSymbol)(Symbol)member).UnreduceExtensionMethod();
+                    result = (TMember)(Symbol)((MethodSymbol)(Symbol)member).UnreduceExtensionMethod();
+                    break;
                 case SymbolKind.Property:
-                    return (TMember)(Symbol)((PropertySymbol)(Symbol)member).UnreduceExtensionProperty();
+                    result = (TMember)(Symbol)((PropertySymbol)(Symbol)member).UnreduceExtensionProperty();
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
+            Debug.Assert((object)result != null);
+            return result;
         }
 
         private static TMember ReduceExtensionMember<TMember>(TMember member) where TMember : Symbol

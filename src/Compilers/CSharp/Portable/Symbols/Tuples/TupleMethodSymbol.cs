@@ -162,6 +162,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingMethod.GetReturnTypeAttributes();
         }
 
+        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        {
+            Debug.Assert(reducedFromTypeParameter is WrappedTypeParameterSymbol);
+            return this.UnderlyingMethod.GetTypeInferredDuringReduction(reducedFromTypeParameter);
+        }
+
+        public override MethodSymbol ReducedFrom
+        {
+            get
+            {
+                return _underlyingMethod.ReducedFrom;
+            }
+        }
+
+        public override MethodSymbol UnreducedFrom
+        {
+            get
+            {
+                return _underlyingMethod.UnreducedFrom;
+            }
+        }
+
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable;

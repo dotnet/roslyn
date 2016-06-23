@@ -44,36 +44,40 @@ static class S2
             var sourceMethods = new ArrayBuilder<Symbol>();
             sourceNamespace.GetExtensionMembers(sourceMethods, null, 0, LookupOptions.AllMethodsOnArityZero);
             Utils.CheckSymbols(sourceMethods.ToImmutable(),
-                "void S1.E(object x, object y)",
-                "void S2.E<T, U>(T t, U u)");
+                "void object.E(object y)",
+                "void T.E<T, U>(U u)");
 
             var retargetingMethods = new ArrayBuilder<Symbol>();
             retargetingNamespace.GetExtensionMembers(retargetingMethods, null, 0, LookupOptions.AllMethodsOnArityZero);
             Utils.CheckSymbols(retargetingMethods.ToImmutable(),
-                "void S1.E(object x, object y)",
-                "void S2.E<T, U>(T t, U u)");
+                "void object.E(object y)",
+                "void T.E<T, U>(U u)");
 
             for (int i = 0; i < sourceMethods.Count; i++)
             {
+                sourceMethods[i] = ((MethodSymbol)sourceMethods[i]).UnreduceExtensionMethod();
+                retargetingMethods[i] = ((MethodSymbol)retargetingMethods[i]).UnreduceExtensionMethod();
                 CheckMethods(sourceMethods[i], retargetingMethods[i]);
             }
 
             sourceMethods = new ArrayBuilder<Symbol>();
             sourceNamespace.GetExtensionMembers(sourceMethods, "E", 2, LookupOptions.Default);
             Utils.CheckSymbols(sourceMethods.ToImmutable(),
-                "void S2.E<T, U>(T t, U u)");
+                "void T.E<T, U>(U u)");
             var sourceMethod = (MethodSymbol)sourceMethods[0];
 
             retargetingMethods = new ArrayBuilder<Symbol>();
             retargetingNamespace.GetExtensionMembers(retargetingMethods, "E", 2, LookupOptions.Default);
             Utils.CheckSymbols(retargetingMethods.ToImmutable(),
-                "void S2.E<T, U>(T t, U u)");
+                "void T.E<T, U>(U u)");
             var retargetingMethod = (MethodSymbol)retargetingMethods[0];
 
             var sourceType = sourceNamespace.GetMember<NamedTypeSymbol>("C");
             var retargetingType = retargetingNamespace.GetMember<NamedTypeSymbol>("C");
             CheckTypes(sourceType, retargetingType);
 
+            sourceMethod = sourceMethod.UnreduceExtensionMethod();
+            retargetingMethod = retargetingMethod.UnreduceExtensionMethod();
             CheckMethods(sourceMethod, retargetingMethod);
             var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType);
             var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType);

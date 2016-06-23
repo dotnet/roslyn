@@ -1079,10 +1079,10 @@ static class C
     static void F<T>(this T t) where T : struct { }
 }";
             CreateCompilationWithMscorlib(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
-                // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
-                // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
+                // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'T.E<T>()'
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("T.E<T>()", "T", "I").WithLocation(7, 9),
+                // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'T.F<T>()'
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("T.F<T>()", "T", "I").WithLocation(9, 9));
         }
 
         [ClrOnlyFact]
@@ -5808,7 +5808,7 @@ static class M
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "U", "System.Collections.Generic.IEnumerable<object>"),
                 // (19,9): error CS1929: 'U' does not contain a definition for 'E2' and the best extension method overload 'M.E2(System.Collections.Generic.IEnumerable<object>)' requires a receiver of type 'System.Collections.Generic.IEnumerable<object>'
                 //         o.E2();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "o").WithArguments("U", "E2", "M.E2(System.Collections.Generic.IEnumerable<object>)", "System.Collections.Generic.IEnumerable<object>")
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "o").WithArguments("U", "E2", "System.Collections.Generic.IEnumerable<object>.E2()", "System.Collections.Generic.IEnumerable<object>")
                 );
         }
 

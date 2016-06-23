@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         /// <summary>
-        /// Return the extension method in expanded form if the extension method
+        /// Return the extension method in unreduced form if the extension method
         /// is applicable, and satisfies type parameter constraints, based on the
         /// "this" argument type. Otherwise, returns null.
         /// </summary>
@@ -69,31 +69,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(method.IsInExtensionClass && method.MethodKind != MethodKind.UnreducedExtension);
 
-            // The expanded form is always created from the unconstructed method symbol.
+            // The unreduced form is always created from the unconstructed method symbol.
             var constructedFrom = method.ConstructedFrom;
-            var expandedMethod = new UnreducedExtensionMethodSymbol(constructedFrom);
+            var unreducedMethod = new UnreducedExtensionMethodSymbol(constructedFrom);
 
             if (constructedFrom == method)
             {
-                return expandedMethod;
+                return unreducedMethod;
             }
 
             // If the given method is a constructed method, the same type arguments
-            // are applied to construct the result from the expanded form.
+            // are applied to construct the result from the unreduced form.
             Debug.Assert(!method.TypeArguments.IsEmpty);
-            return expandedMethod.Construct(method.TypeArguments);
+            return unreducedMethod.Construct(method.TypeArguments);
         }
 
-        private UnreducedExtensionMethodSymbol(MethodSymbol expandedFrom)
+        private UnreducedExtensionMethodSymbol(MethodSymbol unreducedFrom)
         {
-            Debug.Assert((object)expandedFrom != null);
-            Debug.Assert(expandedFrom.IsInExtensionClass);
-            Debug.Assert((object)expandedFrom.ReducedFrom == null);
-            Debug.Assert(expandedFrom.ConstructedFrom == expandedFrom);
+            Debug.Assert((object)unreducedFrom != null);
+            Debug.Assert(unreducedFrom.IsInExtensionClass);
+            Debug.Assert((object)unreducedFrom.ReducedFrom == null);
+            Debug.Assert(unreducedFrom.ConstructedFrom == unreducedFrom);
 
-            _unreducedFrom = expandedFrom;
-            _typeMap = TypeMap.Empty.WithAlphaRename(expandedFrom, this, out _typeParameters);
-            _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(expandedFrom.TypeArguments);
+            _unreducedFrom = unreducedFrom;
+            _typeMap = TypeMap.Empty.WithAlphaRename(unreducedFrom, this, out _typeParameters);
+            _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(unreducedFrom.TypeArguments);
         }
 
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
@@ -258,14 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> MakeParameters()
         {
-            var expandedFromParameters = _unreducedFrom.Parameters;
-            int count = expandedFromParameters.Length;
+            var unreducedFromParameters = _unreducedFrom.Parameters;
+            int count = unreducedFromParameters.Length;
 
             var parameters = new ParameterSymbol[count + 1];
             parameters[0] = new UnreducedExtensionMethodThisParameterSymbol(this);
             for (int i = 0; i < count; i++)
             {
-                parameters[i + 1] = new UnreducedExtensionMethodParameterSymbol(this, expandedFromParameters[i]);
+                parameters[i + 1] = new UnreducedExtensionMethodParameterSymbol(this, unreducedFromParameters[i]);
             }
 
             return parameters.AsImmutableOrNull();

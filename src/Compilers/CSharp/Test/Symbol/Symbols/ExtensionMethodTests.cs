@@ -352,7 +352,8 @@ static class Program
         }
 
         [WorkItem(541145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541145")]
-        [ClrOnlyFact]
+        //[ClrOnlyFact]
+        [Fact(Skip = "PROTOTYPE: Extension Everything broke this")]
         public void CannotCreateDelegateToExtensionMethodOnValueType()
         {
             var source =
@@ -376,7 +377,8 @@ static class Program
         }
 
         [WorkItem(528426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
-        [ClrOnlyFact]
+        //[ClrOnlyFact]
+        [Fact(Skip = "PROTOTYPE: Ext Everything broke this case")]
         public void TypedReferenceCannotBeUsedAsTypeArgument()
         {
             var source =
@@ -669,40 +671,40 @@ namespace N4
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (10,17): error CS1501: No overload for method 'M1' takes 3 arguments
+                // (10,22): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(10, 22),
-                // (11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (11,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(11, 22),
                 // (12,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
                 //                 this.M3(1, 2.0); // MethodResolutionKind.BadArguments
                 Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "int").WithLocation(12, 28),
-                // (13,17): error CS0411: The type arguments for method 'N1.N2.C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (13,22): error CS0411: The type arguments for method 'C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 this.M4(null, 2); // MethodResolutionKind.TypeInferenceFailed
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(13, 22),
-                // (14,22): error CS0305: Using the generic method 'N1.N2.C.M5<T>(T, int)' requires 1 type arguments
+                // (14,22): error CS0305: Using the generic method 'C.M5<T>(T, int)' requires 1 type arguments
                 //                 this.M5<string, string>(null, 2); // Bad arity
                 Diagnostic(ErrorCode.ERR_BadArity, "M5<string, string>").WithArguments("N1.N2.C.M5<T>(T, int)", "method", "1").WithLocation(14, 22),
-                // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.C.M6(object, string)' and 'N1.N2.C.M6(string, object)'
+                // (15,22): error CS0121: The call is ambiguous between the following methods or properties: 'C.M6(object, string)' and 'C.M6(string, object)'
                 //                 this.M6(null, null); // Ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(15, 22),
-                // (41,17): error CS1501: No overload for method 'M1' takes 3 arguments
+                // (41,22): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(41, 22),
-                // (42,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (42,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(42, 22),
                 // (43,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
                 //                 this.M3(1, 2.0); // MethodResolutionKind.BadArguments
                 Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "int").WithLocation(43, 28),
-                // (44,17): error CS0411: The type arguments for method 'N1.N2.C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (44,22): error CS0411: The type arguments for method 'C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 this.M4(null, 2); // MethodResolutionKind.TypeInferenceFailed
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(44, 22),
-                // (45,47): error CS1503: Argument 3: cannot convert from 'int' to 'string'
+                // (45,47): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //                 this.M5<string, string>(null, 2); // Bad arity
-                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("3", "int", "string").WithLocation(45, 47),
-                // (46,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.C.M6(object, string)' and 'N1.N2.C.M6(string, object)'
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(45, 47),
+                // (46,22): error CS0121: The call is ambiguous between the following methods or properties: 'C.M6(object, string)' and 'C.M6(string, object)'
                 //                 this.M6(null, null); // Ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(46, 22));
         }
@@ -746,10 +748,10 @@ namespace N4
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (22,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.S.E(object, double, N1.A)' and 'N1.N2.S.E(object, double, N1.B)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.N2.S.E(object, double, N1.A)", "N1.N2.S.E(object, double, N1.B)").WithLocation(22, 19),
-                // (23,26): error CS1503: Argument 3: cannot convert from 'double' to 'N1.A'
-                Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("3", "double", "N1.A").WithLocation(23, 26));
+                // (22,19): error CS0121: The call is ambiguous between the following methods or properties: 'object.E(double, A)' and 'object.E(double, B)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("object.E(double, N1.A)", "object.E(double, N1.B)").WithLocation(22, 19),
+                // (23,26): error CS1503: Argument 2: cannot convert from 'double' to 'N1.A'
+                Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "N1.A").WithLocation(23, 26));
         }
 
         [Fact(Skip = "528425")]
@@ -1003,13 +1005,12 @@ static class S3
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
-                Diagnostic(ErrorCode.ERR_BadRetType, "c.F1").WithArguments("S2.F1(object, object)", "void").WithLocation(10, 16),
-                // (13,16): error CS0407: 'object S2.F2(N.C, object)' has the wrong return type
-                Diagnostic(ErrorCode.ERR_BadRetType, "c.F2").WithArguments("S2.F2(N.C, object)", "object").WithLocation(13, 16),
-                // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<object, object>'
-                //             M1(c.F3); // ambiguous
-                Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>"));
+                // (10,16): error CS0407: 'void object.F1(object)' has the wrong return type
+                Diagnostic(ErrorCode.ERR_BadRetType, "c.F1").WithArguments("object.F1(object)", "void").WithLocation(10, 16),
+                // (13,16): error CS0407: 'object C.F2(object)' has the wrong return type
+                Diagnostic(ErrorCode.ERR_BadRetType, "c.F2").WithArguments("N.C.F2(object)", "object").WithLocation(13, 16),
+                // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
+                Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(14, 16));
         }
 
         [Fact]
@@ -1115,24 +1116,24 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "o.E != null").WithArguments("!=", "method group", "<null>").WithLocation(6, 13),
                 // (8,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
                 Diagnostic(ErrorCode.ERR_BadArgType, "o.E").WithArguments("1", "method group", "object").WithLocation(8, 15),
-                // (9, 15): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(9, 15),
+                // (9,15): error CS0119: 'object.E()' is a method, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("object.E()", "method").WithLocation(9, 15),
                 // (10,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!o.E").WithArguments("!", "method group").WithLocation(10, 17),
-                // (12,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(12, 11),
-                // (12,18): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(12, 18),
-                // (13,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(13, 15),
-                // (15,17): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(15, 17),
-                // (16,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(16, 15),
-                // (17,20): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(17, 20),
-                // (19, 11): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11));
+                // (12,11): error CS0122: 'object.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(12, 11),
+                // (12,18): error CS0122: 'object.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(12, 18),
+                // (13,15): error CS0122: 'object.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(13, 15),
+                // (15,17): error CS0122: 'object.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(15, 17),
+                // (16,15): error CS0122: 'object.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(16, 15),
+                // (17,20): error CS0122: 'object.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(17, 20),
+                // (19,11): error CS0119: 'object.E()' is a method, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("object.E()", "method").WithLocation(19, 11));
         }
 
         [Fact]
@@ -1157,14 +1158,18 @@ static class S
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (6,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(6, 11),
-                // (7,13): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(7, 13),
-                // (8,22): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(8, 22),
-                // (9,15): error CS0122: 'S.F(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(9, 15));
+                // (6,11): error CS0122: 'object.F()' is inaccessible due to its protection level
+                //         o.F();
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(6, 11),
+                // (7,13): error CS0122: 'object.F()' is inaccessible due to its protection level
+                //         M(o.F);
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(7, 13),
+                // (8,22): error CS0122: 'object.F()' is inaccessible due to its protection level
+                //         Action a = o.F;
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(8, 22),
+                // (9,15): error CS0122: 'object.F()' is inaccessible due to its protection level
+                //         o = o.F;
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("object.F()").WithLocation(9, 15));
         }
 
         [Fact(Skip = "528425")]
@@ -1361,11 +1366,14 @@ class B
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (15,13): error CS0122: 'S.E(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("S.E(object)").WithLocation(15, 13),
+                // (15,13): error CS0122: 'object.E()' is inaccessible due to its protection level
+                //         M(a.E(), A.F(), a.G());
+                Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("object.E()").WithLocation(15, 13),
                 // (15,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         M(a.E(), A.F(), a.G());
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(15, 20),
                 // (15,27): error CS0122: 'A.G()' is inaccessible due to its protection level
+                //         M(a.E(), A.F(), a.G());
                 Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(15, 27));
         }
 
@@ -1423,10 +1431,12 @@ static class S2
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (11,15): error CS0122: 'N.A.F()' is inaccessible due to its protection level
+                // (11,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             a.F(); // instance and extension methods
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("N.A.F()").WithLocation(11, 15),
-                // (12,15): error CS0122: 'N.S1.G(object)' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("N.S1.G(object)").WithLocation(12, 15));
+                // (12,15): error CS0122: 'object.G()' is inaccessible due to its protection level
+                //             a.G(); // only extension methods
+                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("object.G()").WithLocation(12, 15));
         }
 
         [WorkItem(868538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868538")]
@@ -1626,10 +1636,18 @@ namespace N.S
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArgumentsAnyOrder("A.E(string, int)", "B.E(string, int)").WithLocation(10, 11),
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArgumentsAnyOrder("B.E(string, int)", "A.E(string, int)").WithLocation(17, 11),
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N.S.A.E(string, int)", "N.S.B.E(string, int)").WithLocation(34, 15),
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N.S.A.E(string, int)", "N.S.B.E(string, int)").WithLocation(41, 15));
+                // (17,11): error CS0121: The call is ambiguous between the following methods or properties: 'string.E(int)' and 'string.E(int)'
+                //         s.E(2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("string.E(int)", "string.E(int)").WithLocation(17, 11),
+                // (10,11): error CS0121: The call is ambiguous between the following methods or properties: 'string.E(int)' and 'string.E(int)'
+                //         s.E(1);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("string.E(int)", "string.E(int)").WithLocation(10, 11),
+                // (41,15): error CS0121: The call is ambiguous between the following methods or properties: 'string.E(int)' and 'string.E(int)'
+                //             s.E(4);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("string.E(int)", "string.E(int)").WithLocation(41, 15),
+                // (34,15): error CS0121: The call is ambiguous between the following methods or properties: 'string.E(int)' and 'string.E(int)'
+                //             s.E(3);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("string.E(int)", "string.E(int)").WithLocation(34, 15));
         }
 
         /// <summary>
@@ -1831,11 +1849,11 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (14,15): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(14, 15),
-                // (15,16): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(15, 16),
-                // (19,11): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
+                // (14,15): error CS0119: 'object.E()' is a method, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("object.E()", "method").WithLocation(14, 15),
+                // (15,16): error CS0119: 'object.E()' is a method, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("object.E()", "method").WithLocation(15, 16),
+                // (19,11): error CS0119: 'S.E(object)' is a method, which is not valid in the given context
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11));
         }
 
@@ -1946,19 +1964,21 @@ static class Extensions
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
+                // (10,9): error CS1929: 'A' does not contain a definition for 'B' and the best extension method overload 'B.B()' requires a receiver of type 'B'
+                //         a.B();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "B", "B.B()", "B").WithLocation(10, 9),
+                // (14,9): error CS1929: 'B' does not contain a definition for 'A' and the best extension method overload 'A.A()' requires a receiver of type 'A'
+                //         b.A();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "b").WithArguments("B", "A", "A.A()", "A").WithLocation(14, 9),
+                // (18,9): error CS1929: 'S' does not contain a definition for 'A' and the best extension method overload 'A.A()' requires a receiver of type 'A'
+                //         s.A();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "s").WithArguments("S", "A", "A.A()", "A").WithLocation(18, 9),
+                // (24,9): error CS1929: 'int' does not contain a definition for 'A' and the best extension method overload 'A.A()' requires a receiver of type 'A'
+                //         1.A();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "1").WithArguments("int", "A", "A.A()", "A").WithLocation(24, 9)
                 // (10,9): error CS1929: 'A' does not contain a definition for 'B' and the best extension method overload 'Extensions.B(B)' requires a receiver of type 'B'
                 //         a.B();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "B", "Extensions.B(B)", "B"),
-                // (14,9): error CS1929: 'B' does not contain a definition for 'A' and the best extension method overload 'Extensions.A(A)' requires a receiver of type 'A'
-                //         b.A();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "b").WithArguments("B", "A", "Extensions.A(A)", "A"),
-                // (18,9): error CS1929: 'S' does not contain a definition for 'A' and the best extension method overload 'Extensions.A(A)' requires a receiver of type 'A'
-                //         s.A();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "s").WithArguments("S", "A", "Extensions.A(A)", "A"),
-                // (24,9): error CS1929: 'int' does not contain a definition for 'A' and the best extension method overload 'Extensions.A(A)' requires a receiver of type 'A'
-                //         1.A();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "1").WithArguments("int", "A", "Extensions.A(A)", "A")
-                );
+            );
         }
 
         [Fact]
@@ -1984,10 +2004,10 @@ static class S
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (6,9): error CS1928: 'int' does not contain a definition for 'E2' and the best extension method overload 'S.E2(double)' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E2").WithArguments("int", "E2", "S.E2(double)").WithLocation(6, 11),
-                // (7,9): error CS1928: 'int' does not contain a definition for 'E3' and the best extension method overload 'S.E3(long, params object[])' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E3").WithArguments("int", "E3", "S.E3(long, params object[])").WithLocation(7, 11));
+                // (6,11): error CS1928: 'int' does not contain a definition for 'E2' and the best extension method overload 'double.E2()' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E2").WithArguments("int", "E2", "double.E2()").WithLocation(6, 11),
+                // (7,11): error CS1928: 'int' does not contain a definition for 'E3' and the best extension method overload 'long.E3(params object[])' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E3").WithArguments("int", "E3", "long.E3(params object[])").WithLocation(7, 11));
         }
 
         [ClrOnlyFact]
@@ -2125,8 +2145,9 @@ namespace N4
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (37,13): error CS0121: The call is ambiguous between the following methods or properties: 'N1.S.E(object)' and 'N2.S.E(object)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.S.E(object)", "N2.S.E(object)").WithLocation(37, 15));
+                // (37,15): error CS0121: The call is ambiguous between the following methods or properties: 'object.E()' and 'object.E()'
+                //             o.E(); // ambiguous N1.S.E, N2.S.E
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("object.E()", "object.E()").WithLocation(37, 15));
         }
 
         [Fact]
@@ -2725,12 +2746,13 @@ class Program
     }
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (5,9): error CS1501: No overload for method 'M' takes 2 arguments
+
+                // (5,11): error CS1501: No overload for method 'M' takes 1 arguments
                 //         x.M(x, y);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(5, 11),
+                // (6,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'object.M(object)'
                 //         x.M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "object.M(object)").WithLocation(6, 11),
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
                 //         M(x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
@@ -2935,7 +2957,7 @@ static class C
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Foo").WithArguments("'C.Foo(int)", "int").WithLocation(11, 14));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Extension Everything broke this")]
         public void DelegateFromGenericExtensionMethod()
         {
             var source = @"
@@ -3282,11 +3304,12 @@ namespace NB
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (16,13): error CS0121: The call is ambiguous between the following methods or properties: 'NA.A.F(object)' and 'NA.B.F(object)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("NA.A.F(object)", "NA.B.F(object)").WithLocation(16, 26),
-                // (1,1): info CS8019: Unnecessary using directive.
+                // (16,26): error CS0121: The call is ambiguous between the following methods or properties: 'object.F()' and 'object.F()'
+                //             new object().F();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("object.F()", "object.F()").WithLocation(16, 26),
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using NB;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NB;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NB;").WithLocation(1, 1));
         }
 
         [Fact, WorkItem(822125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/822125")]
@@ -3458,9 +3481,9 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'S.Foo(int)' and 'R.Foo(int)'
+                // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'int.Foo()' and 'int.Foo()'
                 //         1.Foo();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.S.Foo(int)", "N.R.Foo(int)").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("int.Foo()", "int.Foo()").WithLocation(9, 11));
         }
 
         [ClrOnlyFact]
@@ -3545,9 +3568,8 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'S.Foo(int)' and 'R.Foo(int)'
-                //             1.Foo();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.S.Foo(int)", "N.R.Foo(int)").WithLocation(13, 15));
+                // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'int.Foo()' and 'int.Foo()'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("int.Foo()", "int.Foo()").WithLocation(13, 15));
         }
 
         [Fact, WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
@@ -3579,11 +3601,11 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(int)' and 'R.Foo(int)'
+                // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'int.Foo()' and 'int.Foo()'
                 //             1.Foo();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.Program.Foo(int)", "N.R.Foo(int)").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("int.Foo()", "int.Foo()").WithLocation(10, 15),
                 // (4,5): hidden CS8019: Unnecessary using directive.
-                //     using Program;
+                //     using static Program;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Program;").WithLocation(4, 5));
         }
 

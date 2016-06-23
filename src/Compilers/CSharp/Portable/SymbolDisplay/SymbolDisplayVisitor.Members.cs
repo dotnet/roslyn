@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE: Handle extension class methods: use C# MethodSymbol.{Unreduce,Reduce}ExtensionMethod, and VB old system
                 // If we cannot reduce/unreduce to the correct form, then display in the original form
-                // Need to unreduce on default, since that was the old behavior - the compiler used to return methods in unreduced form.
+                // Leave the symbol alone (whatever format it came in as) if it's SymbolDisplayExtensionMethodStyle.Default
                 IMethodSymbol result;
-                if ((format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod || format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.Default)
+                if ((format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod)
                     && (object)(result = symbol.GetConstructedReducedFrom()) != null)
                 {
                     symbol = result;

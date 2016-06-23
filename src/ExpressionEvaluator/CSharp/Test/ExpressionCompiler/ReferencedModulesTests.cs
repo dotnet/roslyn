@@ -373,7 +373,7 @@ public class B
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.Equal(errorMessage, "error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
+            Assert.Equal(errorMessage, "error CS0121: The call is ambiguous between the following methods or properties: 'A.F()' and 'A.F()'");
 
             // Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);

@@ -196,6 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override MethodSymbol UnreducedFrom
+        {
+            get
+            {
+                return OriginalDefinition.UnreducedFrom;
+            }
+        }
+
         public sealed override Symbol ContainingSymbol
         {
             get

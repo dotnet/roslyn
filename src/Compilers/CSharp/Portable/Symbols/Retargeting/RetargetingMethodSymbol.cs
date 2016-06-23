@@ -86,6 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override TypeSymbol ReceiverType
+        {
+            get
+            {
+                var receiver = _underlyingMethod.ReceiverType;
+                return this.RetargetingTranslator.Retarget(receiver, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -242,6 +251,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 return _retargetingModule;
+            }
+        }
+
+        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        {
+            Debug.Assert(reducedFromTypeParameter is WrappedTypeParameterSymbol);
+            var wrapped = (WrappedTypeParameterSymbol)reducedFromTypeParameter;
+            reducedFromTypeParameter = wrapped.UnderlyingTypeParameter;
+            var type = this.UnderlyingMethod.GetTypeInferredDuringReduction(reducedFromTypeParameter);
+            return (object)type == null ? null : this.RetargetingTranslator.Retarget(type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+        }
+
+        public override MethodSymbol ReducedFrom
+        {
+            get
+            {
+                var method = _underlyingMethod.ReducedFrom;
+                return (object)method == null ? null : this.RetargetingTranslator.Retarget(method);
+            }
+        }
+
+        public override MethodSymbol UnreducedFrom
+        {
+            get
+            {
+                var method = _underlyingMethod.UnreducedFrom;
+                return (object)method == null ? null : this.RetargetingTranslator.Retarget(method);
             }
         }
 
