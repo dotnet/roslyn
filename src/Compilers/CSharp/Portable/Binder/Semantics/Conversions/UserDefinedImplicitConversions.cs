@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract partial class ConversionsBase
     {
         /// <remarks>
-        /// NOTE: Keep this method in sync with AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType.
+        /// NOTE: Keep this method in sync with <see cref="AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType"/>.
         /// </remarks>
         private UserDefinedConversionResult AnalyzeImplicitUserDefinedConversions(
             BoundExpression sourceExpression,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// type to any target type.
         /// </summary>
         /// <remarks>
-        /// Currently allowAnyTarget flag is only set to true by AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType,
+        /// Currently allowAnyTarget flag is only set to true by <see cref="AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType"/>,
         /// where we must consider user defined implicit conversions from the type of the switch expression to
         /// any of the possible switch governing types.
         /// </remarks>

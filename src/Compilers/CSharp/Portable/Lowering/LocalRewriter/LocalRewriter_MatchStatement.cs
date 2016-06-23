@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-
         // Rewriting for pattern-matching switch statements.
         // This is a temporary translation into a series of if-then-else statements.
         // Ultimately it will be replaced by a translation based on the decision tree.

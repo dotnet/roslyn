@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.Type == null || expression.Type.IsNonNullableValueType())
             {
+                // A null constant is handled above. Other expressions that lack a type
+                // (e.g. lambda, tuple, etc) describe objects that are never null at runtime.
                 return false;
             }
 
@@ -67,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DelegateCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.NoPiaObjectCreationExpression:
-                case BoundKind.NullCoalescingOperator:
-                case BoundKind.ObjectCreationExpression:
                     return false;
+                case BoundKind.ObjectCreationExpression:
+                    // new int?() can be null
+                    return expression.Type.IsNullableType() ? null : (bool?)false;
                 default:
                     return null;
             }
@@ -190,38 +193,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstantPattern(node, expression, constantValueOpt, hasErrors);
         }
 
-        internal BoundExpression ConvertPatternExpression(TypeSymbol leftType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
+        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
         {
             // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
             // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
             // to that effect later.
-            BoundExpression convertedCaseExpression = GenerateConversionForAssignment(leftType, expression, diagnostics);
+            BoundExpression convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
 
-            if (convertedCaseExpression.Kind == BoundKind.Conversion)
+            if (convertedExpression.Kind == BoundKind.Conversion)
             {
-                var conversion = (BoundConversion)convertedCaseExpression;
+                var conversion = (BoundConversion)convertedExpression;
                 var operand = conversion.Operand;
-                if (leftType.IsNullableType() && (convertedCaseExpression.ConstantValue == null || !convertedCaseExpression.ConstantValue.IsNull))
+                if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
                 {
                     // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
                     var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
-                    convertedCaseExpression = CreateConversion(operand, leftType.GetNullableUnderlyingType(), discardedDiagnostics);
+                    convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
                     discardedDiagnostics.Free();
                 }
                 else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
-                    && operand.ConstantValue != null && convertedCaseExpression.ConstantValue == null)
+                    && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
                 {
                     // A boxed constant (or string converted to object) is a special case because we prefer
                     // to compare to the pre-converted value by casting the input value to the type of the constant
                     // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
                     // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
                     // input value among many constant tests.
-                    convertedCaseExpression = operand;
+                    convertedExpression = operand;
                 }
             }
 
-            constantValue = convertedCaseExpression.ConstantValue;
-            return convertedCaseExpression;
+            constantValue = convertedExpression.ConstantValue;
+            return convertedExpression;
         }
 
         private bool CheckValidPatternType(
@@ -284,6 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindDeclarationPattern(
             DeclarationPatternSyntax node,
             BoundExpression operand,
+            // PROTOTYPE(typeswitch): use null state of operand vs the decl type for additional diagnostics,
+            // PROTOTYPE(typeswitch): e.g. `if (null is string s) ...`
             bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,

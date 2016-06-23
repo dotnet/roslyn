@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternMatchingTests : CSharpTestBase
     {
+        private static CSharpParseOptions noPatternParseOptions =
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         private static CSharpParseOptions patternParseOptions =
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
                     .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
@@ -2870,10 +2872,15 @@ public class X
     public static void Main()
     {
         System.Console.WriteLine(Test1);
+        new X().M();
+    }
+    void M()
+    {
+        System.Console.WriteLine(Test2);
     }
 
     static bool Test1 = 1 is int x1 && Dummy(() => x1);
-    bool Test2 = 1 is int x1 && Dummy(() => x1);
+    bool Test2 = 2 is int x1 && Dummy(() => x1);
 
     static bool Dummy(System.Func<int> x)
     {
@@ -2884,6 +2891,8 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             CompileAndVerify(compilation, expectedOutput: @"1
+True
+2
 True");
         }
 
@@ -10120,6 +10129,29 @@ hmm
 bar
 baz
 other 6");
+        }
+
+        [Fact]
+        public void SemanticAnalysisWithPatternInCsharp6()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 1 when true:
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: noPatternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (7,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                //             case 1 when true:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case 1 when true:").WithArguments("pattern matching", "patterns").WithLocation(7, 13)
+                );
         }
     }
 }

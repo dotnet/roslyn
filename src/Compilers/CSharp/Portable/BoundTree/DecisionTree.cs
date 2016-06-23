@@ -1,6 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -99,6 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// If the target branch is computed at compile-time, the corresponding label. Otherwise null.
+        /// </summary>
         public LabelSymbol ConstantTargetOpt
         {
             get
@@ -167,17 +172,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decisionTree;
-                        if (byValue.Expression.ConstantValue == null)
+                        var byValueConstant = byValue.Expression.ConstantValue;
+                        if (byValueConstant == null)
                         {
                             if (byValue.ValueAndDecision.Count != 0) return null; // can't tell which decision to take
                         }
                         else
                         {
+                            var input = byValueConstant.Value;
                             foreach (var vd in byValue.ValueAndDecision)
                             {
                                 var value = vd.Key;
                                 var decision = vd.Value;
-                                if (Equals(byValue.Expression.ConstantValue.Value, value)) return BindConstantTarget(decision);
+                                if (Equals(input, value)) return BindConstantTarget(decision);
                             }
                         }
                         return (byValue.Default != null) ? BindConstantTarget(byValue.Default) : null;
@@ -274,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            AddToDecisionTree(result, label.Pattern, label.Guard, label);
+                            AddToDecisionTree(result, label);
                         }
                     }
                 }
@@ -288,8 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void AddToDecisionTree(DecisionTree decisionTree, BoundPattern pattern, BoundExpression guard, BoundPatternSwitchLabel label)
+        private void AddToDecisionTree(DecisionTree decisionTree, BoundPatternSwitchLabel label)
         {
+            var pattern = label.Pattern;
+            var guard = label.Guard;
             if (guard?.ConstantValue == ConstantValue.False) return;
             switch (pattern.Kind)
             {
@@ -314,12 +323,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 case BoundKind.WildcardPattern:
-                    // We do not yet support a wildcard pattern syntax. It is used exclusively
-                    // to model the "default:" case, which is handled specially in the caller.
+                // We do not yet support a wildcard pattern syntax. It is used exclusively
+                // to model the "default:" case, which is handled specially in the caller.
+                default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
 
+        /// <summary>
+        /// Check if the pattern is subsumed by the decisions in the decision tree, given that the input could
+        /// (or could not) be null based on the parameter <paramref name="inputCouldBeNull"/>. If it is subsumed,
+        /// returns an error code suitable for reporting the issue. If it is not subsumed, returns 0.
+        /// </summary>
         private ErrorCode CheckSubsumed(BoundPattern pattern, DecisionTree decisionTree, bool inputCouldBeNull)
         {
             if (decisionTree.MatchIsComplete) return ErrorCode.ERR_PatternIsSubsumed;
@@ -335,7 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ErrorCode.ERR_NoImplicitConvCast;
                         }
                         bool isNull = constantPattern.Value.ConstantValue.IsNull;
+
+                        // If null inputs have been handled by previous patterns, then
+                        // the input can no longer be null. In that case a null pattern is subsumed.
                         if (isNull && !inputCouldBeNull) return ErrorCode.ERR_PatternIsSubsumed;
+
                         switch (decisionTree.Kind)
                         {
                             case DecisionTree.DecisionKind.ByValue:
@@ -343,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var byValue = (DecisionTree.ByValue)decisionTree;
                                     if (isNull) return 0; // null must be handled at a type test
                                     DecisionTree decision;
-                                    if (byValue.ValueAndDecision.TryGetValue(constantPattern.Value, out decision))
+                                    if (byValue.ValueAndDecision.TryGetValue(constantPattern.Value.ConstantValue.Value, out decision))
                                     {
                                         var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
                                         if (error != 0) return error;
@@ -421,13 +440,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var decision = td.Value;
                                         if (_conversions.ExpressionOfTypeMatchesPatternType(declarationPattern.DeclaredType.Type.TupleUnderlyingTypeOrSelf(), type) == true)
                                         {
-                                            var error = CheckSubsumed(pattern, decision, false);
+                                            var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
                                             if (error != 0) return error;
                                         }
                                     }
                                     if (byType.Default != null)
                                     {
-                                        return CheckSubsumed(pattern, byType.Default, false);
+                                        return CheckSubsumed(pattern, byType.Default, inputCouldBeNull);
                                     }
                                     return 0;
                                 }
@@ -596,7 +615,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DecisionTree forType = null;
 
-            // Find an existing decision tree for the expression's type
+            // Find an existing decision tree for the expression's type. Since this new test
+            // should logically be last, we look for the last one we can piggy-back it onto.
             for (int i = byType.TypeAndDecision.Count - 1; i >= 0 && forType == null; i--)
             {
                 var kvp = byType.TypeAndDecision[i];
@@ -700,8 +720,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, _syntax, false, RefKind.None);
-            var Expression = new BoundLocal(_syntax, localSymbol, null, type);
-            var result = makeDecision(Expression, type);
+            var expression = new BoundLocal(_syntax, localSymbol, null, type);
+            var result = makeDecision(expression, type);
             result.Parent = byType;
             byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
             if (_conversions.ExpressionOfTypeMatchesPatternType(byType.Type, type) == true && result.MatchIsComplete && byType.WhenNull?.MatchIsComplete == true)
@@ -866,10 +886,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static class PatternConversionExtensions
     {
-        // Does an expression of type expressionType "match" a pattern that looks for type patternType?
-        // 'true' if the matched type catches all of them, 'false' if it catches none of them, and
-        // 'null' if it might catch some of them. For this test we assume the expression's value
-        // isn't null.
+        /// <summary>
+        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
+        /// type <paramref name="patternType"/>?
+        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
+        /// 'null' if it might catch some of them. For this test we assume the expression's value
+        /// isn't null.
+        /// </summary>
         public static bool? ExpressionOfTypeMatchesPatternType(this Conversions conversions, TypeSymbol expressionType, TypeSymbol patternType)
         {
             if (expressionType == patternType) return true;
@@ -886,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitNullable:   // a value of type int matches a pattern of type int?
                 case ConversionKind.ExplicitNullable:   // a non-null value of type "int?" matches a pattern of type int
                     // but if the types differ (e.g. one of them is type byte and the other is type int?).. no match
-                    return expressionType.StrippedType().TupleUnderlyingType == patternType.StrippedType().TupleUnderlyingType;
+                    return ConversionsBase.HasIdentityConversion(expressionType.StrippedType().TupleUnderlyingType, patternType.StrippedType().TupleUnderlyingType);
 
                 case ConversionKind.ExplicitEnumeration:// a value of enum type does not match a pattern of integral type
                 case ConversionKind.ExplicitNumeric:    // a value of type long does not match a pattern of type int
@@ -935,7 +958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // If it is a builtin value type, we can switch on its (constant) values
+                // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
+                // If it isn't a builtin, in practice we will only use the Default part of the
+                // ByValue
                 return new ByValue(expression, type);
             }
         }

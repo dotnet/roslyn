@@ -151,14 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         key = label.Name;
                     }
 
-                    SourceLabelSymbol existingLabel;
-                    if (!map.TryGetValue(key, out existingLabel))
+                    if (!map.ContainsKey(key))
                     {
                         map.Add(key, label);
                     }
                     else
                     {
-                        // If there is a duplicate label, ignore it. It will be reported in semantic analysis.
+                        // If there is a duplicate label, ignore it. It will be reported when binding the switch label.
                     }
                 }
             }
@@ -267,8 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var result = new Dictionary<SyntaxNode, LabelSymbol>();
                     foreach (var label in Labels)
                     {
-                        var sl = label as SourceLabelSymbol;
-                        var node = sl.IdentifierNodeOrToken.AsNode();
+                        var node = ((SourceLabelSymbol)label).IdentifierNodeOrToken.AsNode();
                         if (node != null)
                         {
                             result.Add(node, label);
@@ -281,7 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        //
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();

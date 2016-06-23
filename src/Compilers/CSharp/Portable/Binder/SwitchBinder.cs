@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // compatible with the existing syntax and semantics, we will remove *this* binder
             // and use the new one for binding all switch statements.
             return
-                true || ((switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false)
+                ((switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false)
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
@@ -197,8 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.DefaultSwitchLabel:
                         break;
-                    case SyntaxKind.CasePatternSwitchLabel:
-                        continue;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(labelSyntax.Kind());
                 }
@@ -580,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     matchedLabelSymbols = GetDefaultLabels();
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
 
             // Get the corresponding matching label symbol created during BuildLabels()

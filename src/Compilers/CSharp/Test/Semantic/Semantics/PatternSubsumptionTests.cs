@@ -50,6 +50,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void EqualConstant02()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 1 when true:
+                break;
+            case 1 when true: // error: subsumed
+                break; // warning: unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            Assert.True(compilation.GetDiagnostics().HasAnyErrors());
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case 1 when true: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "1").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; // warning: unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
         public void UnEqualConstant()
         {
             var source =

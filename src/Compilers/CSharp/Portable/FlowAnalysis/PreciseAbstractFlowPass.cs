@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return true;
                         }
-                        // there are probably other cases to check. Note that reference types can, in general, fail because of null
+                        // there are many other cases to check. Note that reference types can, in general, fail because of null
                     }
                     break;
             }

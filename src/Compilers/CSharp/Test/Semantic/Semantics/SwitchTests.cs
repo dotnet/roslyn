@@ -196,9 +196,15 @@ public class A
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: break;   // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
+                // (11,21): warning CS0162: Unreachable code detected
+                //             case 1: break;   // CS0152
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 21),
                 // (23,13): error CS0152: The switch statement contains multiple cases with the label value 'f'
                 //             case 'f':       // CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'f':").WithArguments("f").WithLocation(23, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'f':").WithArguments("f").WithLocation(23, 13),
+                // (24,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(24, 17)
                 );
         }
 
@@ -268,9 +274,15 @@ public class A
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: break;   // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
+                // (11,21): warning CS0162: Unreachable code detected
+                //             case 1: break;   // CS0152
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 21),
                 // (23,13): error CS0152: The switch statement contains multiple cases with the label value '97'
                 //             case 97:       // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("97").WithLocation(23, 13),
+                // (24,17): warning CS0162: Unreachable code detected
+                //                 break;            
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(24, 17),
                 // (32,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //             case 97.0f:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(32, 18),

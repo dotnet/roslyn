@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // then we use the transitional code which translates a pattern switch into a series of
         // if-then-else statements. Ultimately we need the new translation to be used to generate
         // switch IL instructions for ordinary old-style switch statements.
-        private static bool UseNewTranslation(BoundPatternSwitchStatement node) => true;
+        private static bool UseNewTranslation(BoundPatternSwitchStatement node) => false;
 
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
