@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CancellationToken cancellationToken)
         {
             // Ignore this warning because the desktop projects don't target 4.6 yet
-#pragma warning disable RS0007 // Avoid zero-length array allocations.
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
             var buffer = new byte[0];
-#pragma warning restore RS0007 // Avoid zero-length array allocations.
+#pragma warning restore CA1825 // Avoid zero-length array allocations.
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
@@ -292,7 +292,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
-                pipeStream.Connect(timeoutMs);
+                if (!TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken))
+                {
+                    Log($"Connecting to server timed out after {timeoutMs} ms");
+                    return null;
+                }
                 Log("Named pipe '{0}' connected", pipeName);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -311,6 +315,57 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 LogException(e, "Exception while connecting to process");
                 return null;
             }
+        }
+
+        // Protected for testing
+        protected static bool TryConnectToNamedPipeWithSpinWait(NamedPipeClientStream pipeStream,
+                                                                int timeoutMs,
+                                                                CancellationToken cancellationToken)
+        {
+            Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
+
+            // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
+            // Work around is to spin wait.
+            const int maxWaitIntervalMs = 50;
+            int elapsedMs = 0;
+            var sw = new SpinWait();
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                int waitTime;
+                if (timeoutMs == Timeout.Infinite)
+                {
+                    waitTime = maxWaitIntervalMs;
+                }
+                else
+                {
+                    waitTime = Math.Min(timeoutMs - elapsedMs, maxWaitIntervalMs);
+                    if (waitTime <= 0)
+                    {
+                        return false;
+                    }
+                }
+
+                try
+                {
+                    pipeStream.Connect(waitTime);
+                    break;
+                }
+                catch (Exception e) when (e is IOException || e is TimeoutException)
+                {
+                    // Ignore timeout
+
+                    // Note: IOException can also indicate timeout. From docs:
+                    // TimeoutException: Could not connect to the server within the
+                    //                   specified timeout period.
+                    // IOException: The server is connected to another client and the
+                    //              time-out period has expired.
+                }
+                unchecked { elapsedMs += waitTime; }
+                sw.SpinOnce();
+            }
+            return true;
         }
 
         /// <summary>

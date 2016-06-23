@@ -1,0 +1,27 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- The inclusion of this file will cause the resulting .exe.config to contain redirects for our core compiler assemblies,
+       which is needed for things like analyzers to load. -->
+
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The version 0.0.0.0 in these references doesn't actually matter; the generated versions will always generate from 0.0.0.0-->
+    <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(AssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis.CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(AssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis.VisualBasic, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(AssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="System.Collections.Immutable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(SystemCollectionsImmutableVersion.Split('-')[0])</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="System.Reflection.Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(SystemReflectionMetadataVersion.Split('-')[0])</MaxVersion>
+    </SuggestedBindingRedirects>
+  </ItemGroup>
+</Project>

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
+                }
+                else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
                 }
             }
 

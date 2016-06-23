@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Function IsTrackableStructType(symbol As TypeSymbol) As Boolean
+        Private Shared Function IsTrackableStructType(symbol As TypeSymbol) As Boolean
             If IsNonPrimitiveValueType(symbol) Then
                 Dim type = TryCast(symbol.OriginalDefinition, NamedTypeSymbol)
                 Return (type IsNot Nothing) AndAlso Not type.KnownCircularStruct
@@ -812,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function GetVariableType(symbol As Symbol) As TypeSymbol
+        Private Shared Function GetVariableType(symbol As Symbol) As TypeSymbol
             Select Case symbol.Kind
 
                 Case SymbolKind.Local

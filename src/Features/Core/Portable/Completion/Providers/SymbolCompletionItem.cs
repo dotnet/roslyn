@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            bool preselect = false,
+            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name),
                 sortText: sortText ?? symbols[0].Name,
                 glyph: glyph ?? symbols[0].GetGlyph(),
-                preselect: preselect,
-                isArgumentName: isArgumentName,
+                matchPriority: matchPriority.GetValueOrDefault(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
                 tags: tags,
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            bool preselect = false,
+            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 glyph: glyph,
                 filterText: filterText,
-                preselect: preselect,
+                matchPriority: matchPriority.GetValueOrDefault(),
                 supportedPlatforms: supportedPlatforms,
                 isArgumentName: isArgumentName,
                 properties: properties,
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static string EncodeSymbol(ISymbol symbol)
         {
-            return SymbolId.CreateId(symbol);
+            return SymbolKey.ToString(symbol);
         }
 
         public static bool HasSymbols(CompletionItem item)
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ISymbol DecodeSymbol(string id, Compilation compilation)
         {
-            return SymbolId.GetFirstSymbolForId(id, compilation);
+            return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
         public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)

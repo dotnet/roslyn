@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeSymbol> _elementTypes;
 
         private ImmutableArray<Symbol> _lazyMembers;
+        private ImmutableArray<FieldSymbol> _lazyFields;
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
                 }
 
                 do
@@ -366,6 +367,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return currentSymbol;
+        }
+
+        /// <summary>
+        /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
+        /// </summary>
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            Debug.Assert((object)diagnostics != null && (object)syntax != null);
+
+            int remainder;
+            int chainLength = NumberOfValueTuples(cardinality, out remainder);
+
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+
+            if (chainLength > 1)
+            {
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+            }
         }
 
         /// <summary>
@@ -664,6 +685,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _elementNames;
             }
+        }
+
+        /// <summary>
+        /// Get the fields for the tuple's elements (in order and cached).
+        /// </summary>
+        public ImmutableArray<FieldSymbol> TupleElementFields
+        {
+            get
+            {
+                if (_lazyFields.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, CollectTupleElementFields());
+                }
+
+                return _lazyFields;
+            }
+        }
+
+        private ImmutableArray<FieldSymbol> CollectTupleElementFields()
+        {
+            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, null);
+
+            foreach (var member in GetMembers())
+            {
+                if (member.Kind != SymbolKind.Field)
+                {
+                    continue;
+                }
+
+                int index = (member as TupleFieldSymbol)?.TupleFieldId ??
+                            ((TupleErrorFieldSymbol)member).TupleFieldId;
+
+                if (index >= 0)
+                {
+                    Debug.Assert((object)builder[index] == null);
+                    builder[index] = (FieldSymbol)member;
+                }
+            }
+
+            Debug.Assert(builder.All(symbol => (object)symbol != null));
+
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>

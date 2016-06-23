@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -28,7 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        syntaxRef As SyntaxReference,
                        locations As ImmutableArray(Of Location))
 
-            MyBase.New(propertySymbol.ContainingSourceType, flags, syntaxRef, locations)
+            MyBase.New(
+                propertySymbol.ContainingSourceType,
+                If(flags.ToMethodKind() = MethodKind.PropertyGet, flags, flags And Not SourceMemberFlags.Iterator),
+                syntaxRef,
+                locations)
 
             m_property = propertySymbol
             _name = name
@@ -413,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim param = parameters(nPropertyParameters)
                 If Not IdentifierComparison.Equals(param.Name, StringConstants.ValueParameterName) Then
                     Dim paramSyntax = parameterListSyntax(0)
-                    binder.CheckParameterNameNotDuplicate(parameters, nPropertyParameters, paramSyntax, param, diagnostics)
+                    Binder.CheckParameterNameNotDuplicate(parameters, nPropertyParameters, paramSyntax, param, diagnostics)
                 End If
 
                 If parameterListSyntax.Count = 1 Then

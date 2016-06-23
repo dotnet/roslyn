@@ -14,6 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefReturnTests : CompilingTestBase
     {
+        private CompilationVerifier CompileAndVerifyRef(
+            string source,
+            string expectedOutput = null,
+            CSharpCompilationOptions options = null,
+            bool verify = true)
+        {
+            return CompileAndVerify(
+                source,
+                expectedOutput: expectedOutput,
+                options: options,
+                verify: verify);
+        }
+
         [Fact]
         public void RefReturnArrayAccess()
         {
@@ -27,7 +40,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -52,7 +65,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, verify: false).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -75,7 +88,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, verify: false).VerifyIL("Program.M(out int)", @"
+            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(out int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -102,7 +115,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, verify: false).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  3
@@ -130,7 +143,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -160,7 +173,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -224,7 +237,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: false);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -302,7 +315,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       18 (0x12)
@@ -355,7 +368,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -416,7 +429,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: false);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -489,7 +502,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       19 (0x13)
@@ -541,7 +554,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -572,7 +585,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -606,7 +619,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -635,7 +648,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -679,7 +692,7 @@ class Program2
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: false);
             compilation.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size        7 (0x7)
@@ -712,7 +725,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -739,7 +752,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -791,7 +804,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -861,7 +874,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       18 (0x12)
@@ -906,7 +919,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M(ref int, ref int, object)", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size        9 (0x9)
   .maxstack  3
@@ -936,7 +949,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
@@ -994,7 +1007,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
@@ -1073,7 +1086,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M(ref int, ref int, object)", @"
 {
   // Code size       21 (0x15)
@@ -1129,7 +1142,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M(D)", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M(D)", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1154,7 +1167,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M(D, ref int, ref int, object)", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M(D, ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
   .maxstack  4
@@ -1217,7 +1230,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
 {
   // Code size      285 (0x11d)
   .maxstack  4
@@ -1402,7 +1415,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
 {
   // Code size      168 (0xa8)
   .maxstack  4
@@ -1505,7 +1518,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -1553,7 +1566,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       34 (0x22)
   .maxstack  5
@@ -1628,7 +1641,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       36 (0x24)
   .maxstack  5
@@ -1722,7 +1735,7 @@ class Program
     }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "12")
+            CompileAndVerifyRef(text, expectedOutput: "12")
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      114 (0x72)
@@ -1814,7 +1827,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "12", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "12", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      115 (0x73)
@@ -1912,7 +1925,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "1234", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1234", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      129 (0x81)
@@ -2017,7 +2030,7 @@ class Foo : IFoo<Foo>
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "1True", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1True", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size       84 (0x54)
@@ -2115,7 +2128,7 @@ class Foo : IFoo<Foo>
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      215 (0xd7)
@@ -2218,12 +2231,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (4,12): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //     static ref int M()
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(4, 12),
-                // (6,16): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
+                // (6,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         return ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 16)
                 );
         }
 
@@ -2253,12 +2266,12 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (4,12): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //     static ref int M()
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(4, 12),
-                // (8,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
+                // (8,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         ref int N()
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"ref int N()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, @"ref int N()
         {
             ref int NN(ref int arg) => ref arg;
 
@@ -2266,31 +2279,31 @@ class Program
             r += 2;
 
             return ref r;
-        }").WithArguments("local functions", "localFunctions").WithLocation(8, 9),
-                // (8,9): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+        }").WithArguments("local functions", "7").WithLocation(8, 9),
+                // (8,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         ref int N()
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(8, 9),
-                // (10,13): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(8, 9),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref int NN(ref int arg) => ref arg;").WithArguments("local functions", "localFunctions").WithLocation(10, 13),
-                // (10,13): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int NN(ref int arg) => ref arg;").WithArguments("local functions", "7").WithLocation(10, 13),
+                // (10,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(10, 13),
-                // (10,40): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(10, 13),
+                // (10,40): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(10, 40),
-                // (12,13): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(10, 40),
+                // (12,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref var r = ref NN(ref arr[0]);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(12, 13),
-                // (12,25): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 13),
+                // (12,25): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref var r = ref NN(ref arr[0]);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(12, 25),
-                // (15,20): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 25),
+                // (15,20): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             return ref r;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(15, 20),
-                // (18,16): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(15, 20),
+                // (18,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         return ref N();
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(18, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(18, 16)
                 );
         }
 
@@ -2303,9 +2316,9 @@ delegate ref int D();
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (2,10): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 // delegate ref int D();
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(2, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(2, 10)
                 );
         }
 
@@ -2324,12 +2337,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (6,14): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // (6,14): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 14),
-                // (6,26): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 14),
+                // (6,26): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 26)
                 );
         }
 
@@ -2354,15 +2367,15 @@ class C
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (2,10): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 // delegate ref int D(int x);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(2, 10),
-                // (11,19): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(2, 10),
+                // (11,19): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         MD((x) => ref i);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(11, 19),
-                // (12,17): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(11, 19),
+                // (12,17): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         MD(x => ref i);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 17)
                 );
         }
     }

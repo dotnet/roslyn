@@ -62,7 +62,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -193,6 +193,11 @@
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.InterpolatedStringSplitter.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.SimpleStringSplitter.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.StringSplitter.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralOptions.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
     <Compile Include="TodoComment\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />

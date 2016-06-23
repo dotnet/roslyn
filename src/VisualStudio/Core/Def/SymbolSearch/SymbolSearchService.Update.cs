@@ -17,10 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using static System.FormattableString;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Options;
-using System.Linq;
-using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -51,8 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Workspace _workspace;
-
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
@@ -68,42 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        public void Dispose()
-        {
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
-        }
-
         private void LogInfo(string text) => _logService.LogInfo(text);
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
-        private void OnOptionChanged(object sender, EventArgs e)
-        {
-            var options = _workspace.Options;
-            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic))
-            {
-                // If we don't have any add-import features that would use these indices, then
-                // don't bother creating them.
-                return;
-            }
-
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
-
-            // Always pull down the nuget.org index.  It contains the MS reference assembly index
-            // inside of it.
-            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
-            foreach (var source in allSources)
-            {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
-            }
-        }
 
         // internal for testing purposes.
         internal Task UpdateSourceInBackgroundAsync(string source)

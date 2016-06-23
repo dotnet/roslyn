@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
@@ -98,6 +99,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly EventHandler<bool> s_additionalDocumentOpenedEventHandler = OnAdditionalDocumentOpened;
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
+
+        private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.ErrorReadingRulesetId,
+            title: ServicesVSResources.ERR_CantReadRulesetFileTitle,
+            messageFormat: ServicesVSResources.ERR_CantReadRulesetFileMessage,
+            category: FeaturesResources.ErrorCategory,
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
@@ -373,6 +382,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _documents.Values.ToImmutableArrayOrEmpty();
         }
 
+        public IEnumerable<IVisualStudioHostDocument> GetCurrentAdditionalDocuments()
+        {
+            return _additionalDocuments.Values.ToImmutableArrayOrEmpty();
+        }
+
         public bool ContainsFile(string moniker)
         {
             return _documentMonikers.ContainsKey(moniker);
@@ -475,11 +489,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected bool CanConvertToProjectReferences
+        {
+            get
+            {
+                if (this.Workspace != null)
+                {
+                    return this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.ProjectReferenceConversion);
+                }
+                else
+                {
+                    return InternalFeatureOnOffOptions.ProjectReferenceConversion.DefaultValue;
+                }
+            }
+        }
+
         protected int AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(string filePath, MetadataReferenceProperties properties)
         {
             // If this file is coming from a project, then we should convert it to a project reference instead
             AbstractProject project;
-            if (ProjectTracker.TryGetProjectByBinPath(filePath, out project))
+            if (this.CanConvertToProjectReferences && ProjectTracker.TryGetProjectByBinPath(filePath, out project))
             {
                 var projectReference = new ProjectReference(project.Id, properties.Aliases, properties.EmbedInteropTypes);
                 if (CanAddProjectReference(projectReference))
@@ -611,10 +640,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnAnalyzerChanged(object sender, EventArgs e)
         {
-            VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
+            // Postpone handler's actions to prevent deadlock. This AnalyzeChanged event can
+            // be invoked while the FileChangeService lock is held, and VisualStudioAnalyzer's 
+            // efforts to listen to file changes can lead to a deadlock situation.
+            // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
+            // to release the lock.
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
+                VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
 
-            RemoveAnalyzerAssembly(analyzer.FullPath);
-            AddAnalyzerAssembly(analyzer.FullPath);
+                RemoveAnalyzerAssembly(analyzer.FullPath);
+                AddAnalyzerAssembly(analyzer.FullPath);                
+            }));
         }
 
         // Internal for unit testing
@@ -962,11 +998,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Unsubscribe IVsHierarchyEvents
                 DisconnectHierarchyEvents();
 
+                var wasPushing = _pushingChangesToWorkspaceHosts;
+
+                // disable pushing down to workspaces, so we don't get redundant workspace document removed events
+                _pushingChangesToWorkspaceHosts = false;
+
                 // The project is going away, so let's remove ourselves from the host. First, we
                 // close and dispose of any remaining documents
                 foreach (var document in this.GetCurrentDocuments())
                 {
                     UninitializeDocument(document);
+                }
+
+                foreach (var document in this.GetCurrentAdditionalDocuments())
+                {
+                    UninitializeAdditionalDocument(document);
                 }
 
                 // Dispose metadata references.
@@ -994,29 +1040,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 ClearAnalyzerRuleSet();
 
+                // reinstate pushing down to workspace, so the workspace project remove event fires
+                _pushingChangesToWorkspaceHosts = wasPushing;
+
                 this.ProjectTracker.RemoveProject(this);
+
+                _pushingChangesToWorkspaceHosts = false;
             }
         }
 
         internal void TryProjectConversionForIntroducedOutputPath(string binPath, AbstractProject projectToReference)
         {
-            // We should not already have references for this, since we're only introducing the path for the first time
-            Contract.ThrowIfTrue(_metadataFileNameToConvertedProjectReference.ContainsKey(binPath));
-
-            var metadataReference = TryGetCurrentMetadataReference(binPath);
-            if (metadataReference != null)
+            if (this.CanConvertToProjectReferences)
             {
-                var projectReference = new ProjectReference(
-                    projectToReference.Id,
-                    metadataReference.Properties.Aliases,
-                    metadataReference.Properties.EmbedInteropTypes);
+                // We should not already have references for this, since we're only introducing the path for the first time
+                Contract.ThrowIfTrue(_metadataFileNameToConvertedProjectReference.ContainsKey(binPath));
 
-                if (CanAddProjectReference(projectReference))
+                var metadataReference = TryGetCurrentMetadataReference(binPath);
+                if (metadataReference != null)
                 {
-                    RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
-                    AddProjectReference(projectReference);
+                    var projectReference = new ProjectReference(
+                        projectToReference.Id,
+                        metadataReference.Properties.Aliases,
+                        metadataReference.Properties.EmbedInteropTypes);
 
-                    _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                    if (CanAddProjectReference(projectReference))
+                    {
+                        RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
+                        AddProjectReference(projectReference);
+
+                        _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                    }
                 }
             }
         }
@@ -1257,20 +1311,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                string message = string.Format(ServicesVSResources.ERR_CantReadRulesetFileMessage, ruleSetFile.FilePath, ruleSetFile.GetException().Message);
-                var data = new DiagnosticData(
-                    id: IDEDiagnosticIds.ErrorReadingRulesetId,
-                    category: FeaturesResources.ErrorCategory,
-                    message: message,
-                    enuMessageForBingSearch: ServicesVSResources.ERR_CantReadRulesetFileMessage,
-                    severity: DiagnosticSeverity.Error,
-                    isEnabledByDefault: true,
-                    warningLevel: 0,
-                    workspace: this.Workspace,
-                    projectId: this.Id,
-                    title: ServicesVSResources.ERR_CantReadRulesetFileTitle);
-
-                this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(data));
+                var messageArguments = new string[] { ruleSetFile.FilePath, ruleSetFile.GetException().Message };
+                DiagnosticData diagnostic;
+                if (DiagnosticData.TryCreate(_errorReadingRulesetRule, messageArguments, this.Id, this.Workspace, out diagnostic))
+                {
+                    this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(diagnostic));
+                }
             }
         }
 

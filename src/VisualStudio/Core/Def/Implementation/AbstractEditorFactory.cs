@@ -1,21 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -64,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         protected abstract string ContentTypeName { get; }
+        protected abstract string LanguageName { get; }
 
         public void SetEncoding(bool value)
         {
@@ -252,54 +255,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
-            // A file has been created on disk which the user added from the "Add Item" dialog. The
-            // project system hasn't told us about this file yet, so we're free to edit it directly
-            // on disk.
+            // A file has been created on disk which the user added from the "Add Item" dialog. We need
+            // to include this in a workspace to figure out the right options it should be formatted with.
+            // This requires us to place it in the correct project.
+            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
+            var solution = workspace.CurrentSolution;
 
-            var contentTypeRegistryService = ComponentModel.GetService<IContentTypeRegistryService>();
-            var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
+            ProjectId projectIdToAddTo = null;
 
-            var textDocumentFactoryService = ComponentModel.GetService<ITextDocumentFactoryService>();
-            using (var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, contentType))
+            foreach (var projectId in solution.ProjectIds)
             {
-                // Some templates will hand us files that aren't CRLF. Let's convert them. This is
-                // more or less copied from IEditorOperations.NormalizeLineEndings, but we can't use
-                // it because it assumes we have an actual view
-                using (var edit = textDocument.TextBuffer.CreateEdit())
+                if (workspace.GetHierarchy(projectId) == hierarchy)
                 {
-                    foreach (var line in textDocument.TextBuffer.CurrentSnapshot.Lines)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // If there is a linebreak at all...
-                        if (line.LineBreakLength != 0)
-                        {
-                            if (line.GetLineBreakText() != "\r\n")
-                            {
-                                edit.Replace(line.End, line.LineBreakLength, "\r\n");
-                            }
-                        }
-                    }
-
-                    edit.Apply();
+                    projectIdToAddTo = projectId;
+                    break;
                 }
-
-                var formattedTextChanges = GetFormattedTextChanges(ComponentModel.GetService<VisualStudioWorkspace>(), filePath, textDocument.TextBuffer.CurrentSnapshot.AsText(), cancellationToken);
-
-                using (var edit = textDocument.TextBuffer.CreateEdit())
-                {
-                    foreach (var change in formattedTextChanges)
-                    {
-                        edit.Replace(change.Span.ToSpan(), change.NewText);
-                    }
-
-                    edit.Apply();
-                }
-
-                textDocument.Save();
             }
-        }
 
-        protected abstract IList<TextChange> GetFormattedTextChanges(VisualStudioWorkspace workspace, string filePath, SourceText text, CancellationToken cancellationToken);
+            if (projectIdToAddTo == null)
+            {
+                // We don't have a project for this, so we'll just make up a fake project altogether
+                var temporaryProject = solution.AddProject(
+                    name: nameof(FormatDocumentCreatedFromTemplate),
+                    assemblyName: nameof(FormatDocumentCreatedFromTemplate),
+                    language: LanguageName);
+
+                solution = temporaryProject.Solution;
+                projectIdToAddTo = temporaryProject.Id;
+            }
+
+            var documentId = DocumentId.CreateNewId(projectIdToAddTo);
+            var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            var addedDocument = forkedSolution.GetDocument(documentId);
+
+            var rootToFormat = addedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, addedDocument.Options, cancellationToken);
+            var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);
+
+            // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
+            string targetLineEnding = addedDocument.Options.GetOption(FormattingOptions.NewLine);
+
+            var originalText = formattedText;
+            foreach (var originalLine in originalText.Lines)
+            {
+                string originalNewLine = originalText.ToString(CodeAnalysis.Text.TextSpan.FromBounds(originalLine.End, originalLine.EndIncludingLineBreak));
+
+                // Check if we have a line ending, so we don't go adding one to the end if we don't need to.
+                if (originalNewLine.Length > 0 && originalNewLine != targetLineEnding)
+                {
+                    var currentLine = formattedText.Lines[originalLine.LineNumber];
+                    var currentSpan = CodeAnalysis.Text.TextSpan.FromBounds(currentLine.End, currentLine.EndIncludingLineBreak);
+                    formattedText = formattedText.WithChanges(new TextChange(currentSpan, targetLineEnding));
+                }
+            }
+
+            IOUtilities.PerformIO(() =>
+            {
+                using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
+                {
+                    // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
+                    formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
+                }
+            });
+        }
     }
 }

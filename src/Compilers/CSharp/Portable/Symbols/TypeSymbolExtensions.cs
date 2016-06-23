@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
         }
 
+        public static TypeSymbol TupleUnderlyingTypeOrSelf(this TypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
+        }
+
         public static TypeSymbol EnumUnderlyingType(this TypeSymbol type)
         {
             return type.IsEnumType() ? type.GetEnumUnderlyingType() : type;
@@ -353,6 +358,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)type.DelegateInvokeMethod() != null && !type.DelegateInvokeMethod().HasUseSiteError,
                          "This method should only be called on valid delegate types.");
             return type.DelegateInvokeMethod().Parameters;
+        }
+
+        public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbol> elementTypes)
+        {
+            if (type.IsTupleType)
+            {
+                elementTypes = ((TupleTypeSymbol)type).TupleElementTypes;
+                return true;
+            }
+
+            // The following codepath should be very uncommon since it would be rare
+            // to see a tuple underlying type not represented as a tuple.
+            // It still might happen since tuple underlying types are creatable via public APIs 
+            // and it is also possible that they would be passed in.
+
+            // PERF: if allocations here become nuisance, consider caching the results
+            //       in the type symbols that can actually be tuple compatible
+            int cardinality;
+            if (!type.IsTupleCompatible(out cardinality))
+            {
+                // source not a tuple or compatible
+                elementTypes = default(ImmutableArray<TypeSymbol>);
+                return false;
+            }
+
+            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(cardinality);
+            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
+
+            Debug.Assert(elementTypesBuilder.Count == cardinality);
+
+            elementTypes = elementTypesBuilder.ToImmutableAndFree();
+            return true;
+        }
+
+       public static ImmutableArray<TypeSymbol> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
+        {
+            if (type.IsTupleType)
+            {
+                return ((TupleTypeSymbol)type).TupleElementTypes;
+            }
+
+            // The following codepath should be very uncommon since it would be rare
+            // to see a tuple underlying type not represented as a tuple.
+            // It still might happen since tuple underlying types are creatable via public APIs 
+            // and it is also possible that they would be passed in.
+
+            Debug.Assert(type.IsTupleCompatible());
+
+            // PERF: if allocations here become nuisance, consider caching the results
+            //       in the type symbols that can actually be tuple compatible
+            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
+
+            return elementTypesBuilder.ToImmutableAndFree();
         }
 
         public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)

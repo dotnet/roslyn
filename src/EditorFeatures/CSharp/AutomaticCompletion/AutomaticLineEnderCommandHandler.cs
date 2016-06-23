@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return;
             }
 
-            var changes = Formatter.GetFormattedTextChanges(root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, document.Project.Solution.Workspace, options: null, // use default
+            var changes = Formatter.GetFormattedTextChanges(root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, document.Project.Solution.Workspace, options: document.Options,
                 rules: null, // use default
                 cancellationToken: cancellationToken);
 

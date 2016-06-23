@@ -33,6 +33,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private Task<AnalyzerDependencyResults> _task = Task.FromResult(AnalyzerDependencyResults.Empty);
         private ImmutableHashSet<string> _analyzerPaths = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
 
+        private readonly DiagnosticDescriptor _missingAnalyzerReferenceRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.MissingAnalyzerReferenceId,
+            title: ServicesVSResources.WRN_MissingAnalyzerReferenceTitle,
+            messageFormat: ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
+            category: FeaturesResources.ErrorCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        private readonly DiagnosticDescriptor _analyzerDependencyConflictRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.AnalyzerDependencyConflictId,
+            title: ServicesVSResources.WRN_AnalyzerDependencyConflictTitle,
+            messageFormat: ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
+            category: FeaturesResources.ErrorCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         [ImportingConstructor]
         public AnalyzerDependencyCheckingService(
             VisualStudioWorkspaceImpl workspace,
@@ -74,7 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath1) ||
                         project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
                     {
-                        builder.Add(CreateDiagnostic(project.Id, conflict));
+                        var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
+                        DiagnosticData diagnostic;
+                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        {
+                            builder.Add(diagnostic);
+                        }
                     }
                 }
 
@@ -82,7 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
                     {
-                        builder.Add(CreateDiagnostic(project.Id, missingDependency));
+                        var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
+                        DiagnosticData diagnostic;
+                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        {
+                            builder.Add(diagnostic);
+                        }
                     }
                 }
 
@@ -121,57 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     m["Analyzer"] = missingDependency.AnalyzerPath;
                     m["Identity"] = missingDependency.DependencyIdentity;
                 }));
-        }
-
-        private DiagnosticData CreateDiagnostic(ProjectId projectId, AnalyzerDependencyConflict conflict)
-        {
-            string message = string.Format(
-                ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
-                conflict.AnalyzerFilePath1,
-                conflict.AnalyzerFilePath2,
-                conflict.Identity.ToString());
-
-            DiagnosticData data = new DiagnosticData(
-                IDEDiagnosticIds.AnalyzerDependencyConflictId,
-                FeaturesResources.ErrorCategory,
-                message,
-                ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
-                severity: DiagnosticSeverity.Warning,
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true,
-                warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
-                workspace: _workspace,
-                projectId: projectId,
-                title: ServicesVSResources.WRN_AnalyzerDependencyConflictTitle);
-
-            return data;
-        }
-
-        private DiagnosticData CreateDiagnostic(ProjectId projectId, MissingAnalyzerDependency missingDependency)
-        {
-            string message = string.Format(
-                ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
-                missingDependency.AnalyzerPath,
-                missingDependency.DependencyIdentity.ToString());
-
-            DiagnosticData data = new DiagnosticData(
-                IDEDiagnosticIds.MissingAnalyzerReferenceId,
-                FeaturesResources.ErrorCategory,
-                message,
-                ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
-                severity: DiagnosticSeverity.Warning,
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true,
-                warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
-                workspace: _workspace,
-                projectId: projectId,
-                title: ServicesVSResources.WRN_MissingAnalyzerReferenceTitle);
-
-            return data;
         }
 
         private Task<AnalyzerDependencyResults> GetConflictsAsync()

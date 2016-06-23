@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxNode root);
 
-        protected abstract bool UseSmartTokenFormatter(SyntaxNode root, ITextSnapshotLine line, IEnumerable<IFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken);
+        protected abstract bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<IFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken);
         protected abstract bool IsInvalidToken(SyntaxToken token);
 
         protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position);
@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<IIndentationService>();
-            var indentation = indentationService.GetDesiredIndentationAsync(document,
-                currentPosition.GetContainingLine().LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
+            var indentation = indentationService.GetDesiredIndentation(document,
+                currentPosition.GetContainingLine().LineNumber, cancellationToken);
 
             // looks like we can't.
             if (!indentation.HasValue)
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         private bool TryFormatUsingTokenFormatter(ITextView view, ITextBuffer subjectBuffer, Document document, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var position = view.GetCaretPoint(subjectBuffer).Value;
-            var line = position.GetContainingLine();
+            var line = position.GetContainingLine().AsTextLine();
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var options = document.Options;
             if (!UseSmartTokenFormatter(root, line, formattingRules, options, cancellationToken))
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             {
                 // if caret position is before the token, make sure we put caret at the beginning of the token so that caret
                 // is at the right position after formatting
-                var currentSnapshot = line.Snapshot;
+                var currentSnapshot = subjectBuffer.CurrentSnapshot;
                 if (position.Position < token.SpanStart)
                 {
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(currentSnapshot, token.SpanStart));

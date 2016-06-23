@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,6 +17,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
     internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
     {
         private const int MaxResults = 3;
+
+        private const int NamespaceWithNoErrorsWeight = 0;
+        private const int TypeWeight = 1;
+        private const int NamespaceWithErrorsWeight = 2;
 
         protected AbstractFullyQualifyCodeFixProvider()
         {
@@ -51,16 +54,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                     if (matchingTypes != null || matchingNamespaces != null)
                     {
-                        matchingTypes = matchingTypes ?? SpecializedCollections.EmptyEnumerable<SymbolResult<ISymbol>>();
-                        matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyEnumerable<SymbolResult<ISymbol>>();
+                        matchingTypes = matchingTypes ?? SpecializedCollections.EmptyEnumerable<SymbolResult>();
+                        matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyEnumerable<SymbolResult>();
 
                         var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
                         var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
 
                         var proposedContainers =
                             matchingTypeContainers.Concat(matchingNamespaceContainers)
-                                              .Distinct()
-                                              .Take(MaxResults);
+                                                  .Distinct()
+                                                  .Take(MaxResults);
 
                         var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
 
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<IEnumerable<SymbolResult<ISymbol>>> GetMatchingTypesAsync(
+        private async Task<IEnumerable<SymbolResult>> GetMatchingTypesAsync(
             Project project, SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Can't be on the right hand side of binary expression (like 'dot').
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     && HasValidContainer(s))
                 .ToList();
 
-            return accessibleTypeSymbols.Select(s => new SymbolResult<ISymbol>(s, weight: TypeWeight))
+            return accessibleTypeSymbols.Select(s => new SymbolResult(s, weight: TypeWeight))
                                         .ToList();
         }
 
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 (container is INamedTypeSymbol && !((INamedTypeSymbol)container).IsGenericType);
         }
 
-        private async Task<IEnumerable<SymbolResult<ISymbol>>> GetMatchingNamespacesAsync(
+        private async Task<IEnumerable<SymbolResult>> GetMatchingNamespacesAsync(
             Project project,
             SemanticModel semanticModel,
             SyntaxNode simpleName,
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             var namespaces = symbols
                 .OfType<INamespaceSymbol>()
                 .Where(n => !n.IsGlobalNamespace && HasAccessibleTypes(n, semanticModel, cancellationToken))
-                .Select(n => new SymbolResult<ISymbol>(n,
+                .Select(n => new SymbolResult(n,
                     BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight));
 
             return namespaces.ToList();
@@ -217,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
         }
 
-        private static IEnumerable<SymbolResult<INamespaceOrTypeSymbol>> GetContainers(
-            IEnumerable<SymbolResult<ISymbol>> symbols, Compilation compilation)
+        private static IEnumerable<SymbolResult> GetContainers(
+            IEnumerable<SymbolResult> symbols, Compilation compilation)
         {
             foreach (var symbolResult in symbols)
             {
@@ -235,51 +238,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(
-            IEnumerable<SymbolResult<INamespaceOrTypeSymbol>> symbols)
+        private IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
         {
-            symbols = symbols ?? SpecializedCollections.EmptyList<SymbolResult<INamespaceOrTypeSymbol>>();
+            symbols = symbols ?? SpecializedCollections.EmptyList<SymbolResult>();
             symbols = symbols.Distinct()
                              .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
-                             .OrderBy(Compare);
+                             .Order();
             return symbols.Select(n => n.Symbol).ToList();
-        }
-
-        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>> s_symbolToNameMap =
-            new ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>>();
-        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>>.CreateValueCallback s_getNameParts = GetNameParts;
-
-        private static IList<string> GetNameParts(INamespaceOrTypeSymbol symbol)
-        {
-            return symbol.ToNameDisplayString().Split('.');
-        }
-
-        private static int Compare(
-            SymbolResult<INamespaceOrTypeSymbol> n1,
-            SymbolResult<INamespaceOrTypeSymbol> n2)
-        {
-            Contract.Requires(n1.Symbol is INamespaceSymbol || !((INamedTypeSymbol)n1.Symbol).IsGenericType);
-            Contract.Requires(n2.Symbol is INamespaceSymbol || !((INamedTypeSymbol)n2.Symbol).IsGenericType);
-
-            var diff = n1.Weight - n2.Weight;
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            var names1 = s_symbolToNameMap.GetValue(n1.Symbol, GetNameParts);
-            var names2 = s_symbolToNameMap.GetValue(n2.Symbol, GetNameParts);
-
-            for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
-            {
-                var comp = names1[i].CompareTo(names2[i]);
-                if (comp != 0)
-                {
-                    return comp;
-                }
-            }
-
-            return names1.Count - names2.Count;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
@@ -287,43 +252,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(title, createChangedDocument)
             {
-            }
-        }
-
-        private const int NamespaceWithNoErrorsWeight = 0;
-        private const int TypeWeight = 1;
-        private const int NamespaceWithErrorsWeight = 2;
-
-        private struct SymbolResult<TSymbol> : IEquatable<SymbolResult<TSymbol>>
-            where TSymbol : ISymbol
-        {
-            public readonly TSymbol Symbol;
-            public readonly int Weight;
-
-            public SymbolResult(TSymbol symbol, int weight)
-            {
-                Symbol = symbol;
-                Weight = weight;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return Equals((SymbolResult<TSymbol>)obj);
-            }
-
-            public bool Equals(SymbolResult<TSymbol> other)
-            {
-                return Equals(Symbol, other.Symbol);
-            }
-
-            public override int GetHashCode()
-            {
-                return Symbol.GetHashCode();
-            }
-
-            public SymbolResult<TOther> WithSymbol<TOther>(TOther other) where TOther : ISymbol
-            {
-                return new SymbolResult<TOther>(other, Weight);
             }
         }
     }

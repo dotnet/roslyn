@@ -244,6 +244,9 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
+        System_IFormatProvider,
+
+        CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple_T1,
         System_ValueTuple_T2,
@@ -251,13 +254,11 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T4,
         System_ValueTuple_T5,
         System_ValueTuple_T6,
-        System_ValueTuple_T7,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T7,
         System_ValueTuple_TRest,
-
-        System_IFormatProvider,
 
         Available,
         Last = Available - 1,
@@ -498,6 +499,7 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
+            "System.IFormatProvider",
 
             "System.ValueTuple`1",
             "System.ValueTuple`2",
@@ -505,13 +507,11 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`4",
             "System.ValueTuple`5",
             "System.ValueTuple`6",
-            "System.ValueTuple`7",
 
             "", // extension marker
 
+            "System.ValueTuple`7",
             "System.ValueTuple`8",
-
-            "System.IFormatProvider",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeId == WellKnownType.Last)
                 {
-                    typeIdName = "System.IFormatProvider";
+                    typeIdName = "System.ValueTuple`8";
                 }
                 else if (typeId == WellKnownType.ExtSentinel)
                 {

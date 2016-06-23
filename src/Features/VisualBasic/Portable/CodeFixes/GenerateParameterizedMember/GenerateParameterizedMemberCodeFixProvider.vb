@@ -11,6 +11,7 @@ Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateMethod), [Shared]>
+    <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.PopulateSwitch)>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEvent)>
     Friend Class GenerateParameterizedMemberCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
@@ -43,6 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
+            ' If we have a diagnostic on "a.b.c" in something like a.b.c(...), then don't try to 
+            ' perform fixes on 'a' or 'a.b'.
+            Dim diagnosticSpan = diagnostic.Location.SourceSpan
+            If node.Span.Start = diagnosticSpan.Start AndAlso node.Span.End < diagnosticSpan.End Then
+                Return False
+            End If
+
             Return TypeOf node Is QualifiedNameSyntax OrElse
                 TypeOf node Is SimpleNameSyntax OrElse
                 TypeOf node Is MemberAccessExpressionSyntax OrElse

@@ -30,4 +30,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   
+  <PropertyGroup>
+    <MicroBuildVersion>0.2.0</MicroBuildVersion>
+  </PropertyGroup>
 </Project>

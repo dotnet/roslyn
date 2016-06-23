@@ -4756,8 +4756,206 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module '{0}'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name));
+                // (7,29): error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.IteratorStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(7, 29));
+        }
+
+        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
+        public void BadIteratorStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>yield return 0;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>yield return 1;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+
+            var compilation0 = CreateCompilationWithMscorlib(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            // the ctor is missing a parameter
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // (12,29): error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.IteratorStateMachineAttribute' is missing.
+                //     public IEnumerable<int> F()
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(12, 29));
+        }
+
+        [Fact]
+        public void AddedIteratorStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>yield return 0;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { public IteratorStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>yield return 1;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+
+            var compilation0 = CreateCompilationWithMscorlib(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            // older versions of mscorlib don't contain IteratorStateMachineAttribute
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var ism1 = compilation1.GetMember<TypeSymbol>("System.Runtime.CompilerServices.IteratorStateMachineAttribute");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, ism1),
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // We conclude the original method wasn't a state machine.
+            // The IDE however reports a Rude Edit in that case.
+            diff1.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void SourceIteratorStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { public IteratorStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>yield return 0;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { public IteratorStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>yield return 1;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+
+            var compilation0 = CreateCompilationWithMscorlib(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            // older versions of mscorlib don't contain IteratorStateMachineAttribute
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
         }
 
         [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
@@ -4811,10 +5009,402 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module '{0}'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name),
-                // error CS7038: Failed to emit module '{0}'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name));
+                // (6,28): error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.AsyncStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void AddedAsyncStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>await new Task<int>();</N:1>
+        return a;
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncStateMachineAttribute : Attribute { public AsyncStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>await new Task<int>();</N:1>
+        return a;
+    }
+}
+");
+                        
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            // older versions of mscorlib don't contain IteratorStateMachineAttribute
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var asm1 = compilation1.GetMember<TypeSymbol>("System.Runtime.CompilerServices.AsyncStateMachineAttribute");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, asm1),
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void SourceAsyncStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncStateMachineAttribute : Attribute { public AsyncStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>await new Task<int>();</N:1>
+        return a;
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncStateMachineAttribute : Attribute { public AsyncStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>await new Task<int>();</N:1>
+        return a;
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact, WorkItem(10190, "https://github.com/dotnet/roslyn/issues/10190")]
+        public void NonAsyncToAsync()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public Task<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>return Task.FromResult(a);</N:1>
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>return await Task.FromResult(a);</N:1>
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v4_0_30316_17626.mscorlib }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void NonAsyncToAsync_MissingAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public Task<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        a++;
+        <N:1>return new Task<int>();</N:1>
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        a++;
+        <N:1>return await new Task<int>();</N:1>
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // (6,28): error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.AsyncStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void NonIteratorToIterator_MissingAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System.Collections.Generic;
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>return new int[] { a };</N:1>
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Collections.Generic;
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>yield return a;</N:1>
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // (6,29): error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.IteratorStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void NonIteratorToIterator_SourceAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { public IteratorStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>return new int[] { a };</N:1>
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IteratorStateMachineAttribute : Attribute { public IteratorStateMachineAttribute(Type type) { } }
+}
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>yield return a;</N:1>
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void NonAsyncToAsyncLambda()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public object F()
+    {
+        return new System.Func<Task<int>>(<N:2>() =>
+        <N:3>{
+           int <N:0>a = 0</N:0>;
+           <N:1>return Task.FromResult(a);</N:1>
+        }</N:3></N:2>);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public object F()
+    {
+        return new System.Func<Task<int>>(<N:2>async () =>
+        <N:3>{
+           int <N:0>a = 0</N:0>;
+           <N:1>return await Task.FromResult(a);</N:1>
+        }</N:3></N:2>);
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v4_0_30316_17626.mscorlib }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <F>b__0_0, <<F>b__0_0>d}",
+                "C.<>c.<<F>b__0_0>d: {<>1__state, <>t__builder, <>4__this, <a>5__1, <>s__2, <>u__1, MoveNext, SetStateMachine}");
         }
     }
 }

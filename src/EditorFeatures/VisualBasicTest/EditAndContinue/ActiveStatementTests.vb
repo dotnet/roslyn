@@ -4749,6 +4749,94 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
+        <Fact>
+        Public Sub MisplacedActiveStatement2()
+            Dim src1 = "
+Class C
+    <AS:0><Attr></AS:0>
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim src2 = "
+Class C
+    <Attr>
+    <AS:0>Shared Sub Main()</AS:0>
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub MisplacedTrackingSpan1()
+            Dim src1 = "
+Class C
+    <AS:0><Attr></AS:0>
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim src2 = "
+Class C
+    <TS:0><Attr></TS:0>
+    <AS:0>Shared Sub Main()</AS:0>
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub MisplacedTrackingSpan2()
+            Dim src1 = "
+Class C
+    Dim f = <AS:0>1</AS:0>
+End Class"
+            Dim src2 = "
+Class C
+    <TS:0>Dim</TS:0> <AS:0>f = 1</AS:0>
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub MisplacedTrackingSpan3()
+            Dim src1 = "
+Class C
+    Dim <AS:0>f</AS:0>, g As New C()
+End Class"
+            Dim src2 = "
+Class C
+    <TS:0>Dim</TS:0> <AS:0>f</AS:0>, g As New C()
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub MisplacedTrackingSpan4()
+            Dim src1 = "
+Class C
+    <AS:0>Property</AS:0> f As New C()
+End Class"
+            Dim src2 = "
+Class C
+    <TS:0>Property</TS:0> <AS:0>f As New C()</AS:0>
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
         <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
         Public Sub Lambdas_LeafEdits_GeneralStatement()
             Dim src1 = "

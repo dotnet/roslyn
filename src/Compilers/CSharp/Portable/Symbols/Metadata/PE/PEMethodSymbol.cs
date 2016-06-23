@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return Accessibility.Protected;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_flags);
+                        return Accessibility.Private;
                 }
             }
         }

@@ -1733,6 +1733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            CompleteTrees(filterTree);
+        }
+
+        internal override void CompleteTrees(SyntaxTree filterTree)
+        {
             // By definition, a tree is complete when all of its compiler diagnostics have been reported.
             // Since unused imports are the last thing we compute and report, a tree is complete when
             // the unused imports have been reported.
@@ -1859,6 +1864,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _syntaxAndDeclarations.GetLazyState().DeclarationTable;
+            }
+        }
+
+        internal MergedNamespaceDeclaration MergedRootDeclaration
+        {
+            get
+            {
+                return Declarations.GetMergedRoot(this);
             }
         }
 
@@ -2763,21 +2776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
             }
 
-            if (!elementNames.IsDefault)
-            {
-                if (elementNames.Length != elementTypes.Length)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
-                }
-
-                for (int i = 0; i < elementNames.Length; i++)
-                {
-                    if ((object)elementNames[i] == null)
-                    {
-                        throw new ArgumentNullException($"{nameof(elementNames)}[{i}]");
-                    }
-                }
-            }
+            CheckTupleElementNames(elementTypes.Length, elementNames);
 
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
@@ -2792,6 +2791,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return TupleTypeSymbol.Create(null, // no location for the type declaration
                                           typesBuilder.ToImmutableAndFree(), default(ImmutableArray<Location>), elementNames, this);
+        }
+
+        /// <summary>
+        /// Check that if any names are provided, their number matches the expected cardinality and they are not null.
+        /// </summary>
+        private static void CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        {
+            if (!elementNames.IsDefault)
+            {
+                if (elementNames.Length != cardinality)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
+                }
+
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if ((object)elementNames[i] == null)
+                    {
+                        throw new ArgumentNullException($"{nameof(elementNames)}[{i}]");
+                    }
+                }
+            }
+        }
+
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames)
+        {
+            if ((object)underlyingType == null)
+            {
+                throw new ArgumentNullException(nameof(underlyingType));
+            }
+
+            var csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull<INamedTypeSymbol, NamedTypeSymbol>(nameof(underlyingType));
+
+            int cardinality;
+            if (!csharpUnderlyingTuple.IsTupleCompatible(out cardinality))
+            {
+                throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
+            }
+
+            CheckTupleElementNames(cardinality, elementNames);
+
+            return TupleTypeSymbol.Create(null, // no location
+                                          csharpUnderlyingTuple, default(ImmutableArray<Location>), elementNames);
         }
 
         protected override ITypeSymbol CommonDynamicType
@@ -2838,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return this.Declarations.ContainsName(predicate, filter, cancellationToken);
+            return DeclarationTable.ContainsName(this.MergedRootDeclaration, predicate, filter, cancellationToken);
         }
 
         /// <summary>
@@ -2930,7 +2972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new HashSet<ISymbol>();
                 var spine = new List<MergedNamespaceOrTypeDeclaration>();
 
-                AppendSymbolsWithName(spine, _compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken);
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken);
 
                 return result;
             }

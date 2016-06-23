@@ -8505,7 +8505,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8545,7 +8545,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8586,7 +8586,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Double", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -10897,7 +10897,7 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -12442,7 +12442,7 @@ struct Conv
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -12476,7 +12476,7 @@ struct Conv
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -14875,7 +14875,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<MemberAccessExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<MemberAccessExpressionSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -14906,7 +14906,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<MemberBindingExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<MemberBindingExpressionSyntax>(sourceCode);
 
             Assert.Null(semanticInfo.Type);
             Assert.Null(semanticInfo.ConvertedType);
@@ -14943,7 +14943,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<InvocationExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
 
             Assert.Equal("string", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
@@ -14974,7 +14974,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15036,7 +15036,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15067,7 +15067,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<ElementBindingExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ElementBindingExpressionSyntax>(sourceCode);
 
             Assert.Equal("char", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15097,7 +15097,7 @@ get
 {
 }
 }= new /*<bind>*/BaselineLog/*</bind>*/();
-", parseOptions: TestOptions.ExperimentalParseOptions);
+", parseOptions: TestOptions.Regular);
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Null(semanticInfo.Type);

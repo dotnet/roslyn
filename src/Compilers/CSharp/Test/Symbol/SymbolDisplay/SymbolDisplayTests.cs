@@ -4499,7 +4499,7 @@ public class C
                 text,
                 findSymbol,
                 format,
-                TestOptions.Regular.WithTuplesFeature(),
+                TestOptions.Regular,
                 "(Int32, String) f",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName, // Int32
@@ -4531,7 +4531,7 @@ public class C
                 text,
                 findSymbol,
                 format,
-                TestOptions.Regular.WithTuplesFeature(),
+                TestOptions.Regular,
                 "(Int32 x, String y) f",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName, // Int32
@@ -4569,7 +4569,7 @@ public class C
                 text,
                 findSymbol,
                 format,
-                TestOptions.Regular.WithTuplesFeature(),
+                TestOptions.Regular,
                 "(int, string, bool, byte, long, ulong, short, ushort) f",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword, // int
@@ -4620,7 +4620,7 @@ class C
                 text,
                 findSymbol,
                 format,
-                TestOptions.Regular.WithTuplesFeature(),
+                TestOptions.Regular,
                 "(int Item1, string Item2) P",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword, // int

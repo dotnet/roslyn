@@ -20,8 +20,6 @@ using Xunit;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
-#pragma warning disable RS0003 // Do not directly await a Task
-
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
     using static TestCompilationFactory;

@@ -145,16 +145,18 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
+    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
     <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
     <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
     <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
+    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
@@ -165,6 +167,7 @@
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
@@ -336,6 +339,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.cs" />
     <Compile Include="Outlining\SimpleLambdaExpressionOutlinerTests.cs" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />
@@ -347,6 +352,7 @@
     <Compile Include="SignatureHelp\GenericNameSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProviderTests.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandlerTests.cs" />
     <Compile Include="Squiggles\ErrorSquiggleProducerTests.cs" />
     <Compile Include="SymbolId\SymbolKeyCompilationsTests.cs" />
     <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.cs" />

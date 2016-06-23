@@ -3317,8 +3317,7 @@ class Program
         {
             await AssertFormatAsync(@"class Program
 {
-    [Flags]
-    public void Method() { }
+    [Flags] public void Method() { }
 }", @"class Program
 {
         [   Flags       ]       public       void       Method      (       )           {           }
@@ -7399,6 +7398,22 @@ class C
     }
 }";
             await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(11572, "https://github.com/dotnet/roslyn/issues/11572")]
+        public async Task FormatAttributeOnSameLineAsField()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr] int i;
+}",
+@"
+class C {
+    [Attr]   int   i;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

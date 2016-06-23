@@ -1,68 +1,46 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class TupleTypeSymbolKey : AbstractSymbolKey<TupleTypeSymbolKey>
+        private static class TupleTypeSymbolKey
         {
-            private readonly SymbolKey[] _types;
-            private readonly string[] _names;
-
-            internal TupleTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
-
-                _types = symbol.TupleElementTypes.Select(t => GetOrCreate(t, visitor)).ToArray();
-                _names = symbol.TupleElementNames.IsDefault ? null : symbol.TupleElementNames.ToArray();
+                visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
+                visitor.WriteStringArray(symbol.TupleElementNames);
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                return CreateSymbolInfo(Resolve(compilation, ignoreAssemblyKey));
+                // The hash of the underlying type is good enough, we don't need to include names.
+                var symbolKeyHashCode = reader.ReadSymbolKey();
+                var elementNames = reader.ReadStringArray();
+
+                return symbolKeyHashCode;
             }
 
-            private IEnumerable<INamedTypeSymbol> Resolve(
-                Compilation compilation,
-                bool ignoreAssemblyKey)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                // We need all types to have a resolution and we ignore ambiguous candidates
-                ITypeSymbol[] types = _types.Select(a => a.Resolve(compilation, ignoreAssemblyKey).Symbol as ITypeSymbol).ToArray();
-                if (types.Any(a => a == null))
+                var underlyingTypeResolution = reader.ReadSymbolKey();
+                var tupleElementNames = reader.ReadStringArray();
+
+                try
                 {
-                    return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+                    var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
+                        t => reader.Compilation.CreateTupleTypeSymbol(t, tupleElementNames));
+                    return CreateSymbolInfo(result);
                 }
-
-                if (_names == null)
+                catch (ArgumentException)
                 {
-                    return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(types.ToImmutableArray()));
+                    return new SymbolKeyResolution(reader.Compilation.ObjectType);
                 }
-                else
-                {
-                    return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(types.ToImmutableArray(), _names.ToImmutableArray()));
-                }
-            }
-
-            internal override bool Equals(TupleTypeSymbolKey other, ComparisonOptions options)
-            {
-                var comparer = SymbolKeyComparer.GetComparer(options);
-
-                return SequenceEquals(other._types, _types, comparer)
-                       && SequenceEquals(other._names, _names, StringComparer.Ordinal);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                // Types are good enough for hash code, we don't need to include names.
-                return Hash.CombineValues(_types);
             }
         }
     }
