@@ -2577,5 +2577,51 @@ class C
                 // expect ERR_DeconstructTooFewElements
                 );
         }
+
+        [Fact]
+        public void DeconstructionDeclarationInCSharp6()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, x2) = null;
+        //(int x3, int x4) = null; 
+        //foreach ((int x5, var (x6, x7)) in null) { }
+        //for ((int x8, var (x9, x10)) = null; ; ) { }
+    }
+}
+";
+
+            // PROTOTYPE(tuples) uncomment above once binding is fixed
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                //         var (x1, x2) = null;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "var (x1, x2) = null").WithArguments("tuples", "tuples").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationInCSharp7()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, x2) = null;
+        //(int x3, int x4) = null; 
+        //foreach ((int x5, var (x6, x7)) in null) { }
+        //for ((int x8, var (x9, x10)) = null; ; ) { }
+    }
+}
+";
+
+            // PROTOTYPE(tuples) uncomment above once binding is fixed
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
     }
 }

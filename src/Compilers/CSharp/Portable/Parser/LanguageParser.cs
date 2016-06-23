@@ -7780,7 +7780,7 @@ tryAgain:
                 }
                 else if (decl == null)
                 {
-                    // Not a type followed by an identifier, so it must be an expression list.
+                    // Not a type followed by an identifier, and not a deconstruction-declaration, so it must be an expression list.
                     if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                     {
                         this.ParseForStatementExpressionList(ref openParen, initializers);
@@ -8585,10 +8585,11 @@ tryAgain:
                 var resetPoint = this.GetResetPoint();
                 try
                 {
+                    // We don't need to parse the expression following the equals token
                     var variables = ParseDeconstructionDeclaration(withEquals: false);
                     var equalsToken = this.EatToken(SyntaxKind.EqualsToken);
 
-                    // We need the equals token and one other confirmation that this is a deconstruction syntax
+                    // We just need the equals token and one other confirmation that this is a deconstruction syntax
                     return DeconstructionVariableLooksGood(variables, withEquals: false) && !equalsToken.IsMissing;
                 }
                 finally
@@ -8620,7 +8621,8 @@ tryAgain:
 
             if (node.Type != null)
             {
-                if (node.Type.Kind == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)node.Type).Identifier.IsVar() && node.Deconstruction != null && !node.Deconstruction.OpenParenToken.IsMissing && !node.Deconstruction.CloseParenToken.IsMissing)
+                if (node.Type.Kind == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)node.Type).Identifier.IsVar()
+                    && node.Deconstruction != null && !node.Deconstruction.OpenParenToken.IsMissing && !node.Deconstruction.CloseParenToken.IsMissing)
                 {
                     // `var (..., ....)` with var and both parens present
                     return true;
