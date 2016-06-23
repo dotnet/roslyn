@@ -565,6 +565,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+            Return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
+                             needDeclaration:=True,
+                             syntaxNodeOpt:=syntaxNodeOpt,
+                             diagnostics:=diagnostics)
+        End Function
+
+        Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
             Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)
@@ -572,10 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info)
             End If
 
-            Return Translate(typeSymbol,
-                             needDeclaration:=True,
-                             syntaxNodeOpt:=syntaxNodeOpt,
-                             diagnostics:=diagnostics)
+            Return typeSymbol
         End Function
 
         Public Overrides Function GetInitArrayHelper() As Cci.IMethodReference
@@ -639,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Sub EnsurePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
             If details.GetMethod(WellKnownMemberNames.StaticConstructorName) Is Nothing Then
-                details.TryAddSynthesizedMethod(New SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)))
+                details.TryAddSynthesizedMethod(New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, diagnostics, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)))
             End If
         End Sub
     End Class

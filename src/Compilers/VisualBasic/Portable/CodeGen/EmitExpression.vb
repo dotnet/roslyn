@@ -2184,7 +2184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Debug.Assert(node.Method.IsDefinition)
             Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
             _builder.EmitOpCode(ILOpCode.Ldtoken)
-            EmitSymbolToken(node.Method, node.Syntax, Nothing, encodeAsRawDefinitionToken:=True)
+            EmitSymbolToken(node.Method, node.Syntax, encodeAsRawDefinitionToken:=True)
         End Sub
 
         Private Sub EmitMaximumMethodDefIndexExpression(node As BoundMaximumMethodDefIndex)

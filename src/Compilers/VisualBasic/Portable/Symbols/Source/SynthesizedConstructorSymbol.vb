@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' This class represents a compiler generated parameterless constructor 
     ''' </summary>
-    Partial Friend NotInheritable Class SynthesizedConstructorSymbol
+    Partial Friend Class SynthesizedConstructorSymbol
         Inherits SynthesizedConstructorBase
 
         Private ReadOnly _debuggable As Boolean
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._debuggable = isDebuggable
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Dev11 emits DebuggerNonUserCodeAttribute. This attribute is not needed since we don't emit any debug info for the constructor.
