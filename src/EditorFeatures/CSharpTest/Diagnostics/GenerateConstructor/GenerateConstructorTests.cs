@@ -946,7 +946,7 @@ class D {
             await TestAsync(
 @"class C { void M() { new [|C|](out var a); } }",
 @"class C { public C(out object a) { a = null; } void M() { new C(out var a); } }",
-parseOptions: TestOptions.Regular.WithOutVarFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -957,7 +957,7 @@ withScriptOption: true);
             await TestAsync(
 @"class C { void M() { new C([|b|]: out var a); } }",
 @"class C { public C(out object b) { b = null; } void M() { new C(b: out var a); } }",
-parseOptions: TestOptions.Regular.WithOutVarFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -968,7 +968,7 @@ withScriptOption: true);
             await TestAsync(
 @"class C { void M() { new [|C|](out int a); } }",
 @"class C { public C(out int a) { a = 0; } void M() { new C(out int a); } }",
-parseOptions: TestOptions.Regular.WithOutVarFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -979,7 +979,7 @@ withScriptOption: true);
             await TestAsync(
 @"class C { void M() { new C([|b|]: out int a); } }",
 @"class C { public C(out int b) { b = 0; } void M() { new C(b: out int a); } }",
-parseOptions: TestOptions.Regular.WithOutVarFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

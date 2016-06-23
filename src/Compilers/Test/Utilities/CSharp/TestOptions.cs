@@ -68,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             return options.WithFeatures(options.Features.Concat(list));
         }
-
-        public static CSharpParseOptions WithOutVarFeature(this CSharpParseOptions options)
-        {
-            return options.WithFeature("outVar", "true");
-        }
     }
 }
 
