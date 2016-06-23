@@ -1198,6 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // cases:
             //  const var
+            //  out var
             //  for (var
             //  foreach (var
             //  using (var
@@ -1209,6 +1210,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.ConstKeyword) &&
                 token.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.OutKeyword) &&
+                token.Parent.IsKind(SyntaxKind.Argument) &&
+                ((ArgumentSyntax)token.Parent).RefOrOutKeyword == token)
             {
                 return true;
             }
