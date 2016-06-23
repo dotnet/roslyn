@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 using Xunit;
 
@@ -202,28 +203,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitInvocationExpression(IInvocationExpression operation)
         {
-            var targetMethod = operation.TargetMethod;
             var isVirtual = operation.IsVirtual;
-            // base.VisitInvocationExpression only visit operations in ArgumentsInSourceOrder
+            // base.VisitInvocationExpression only visits operations in ArgumentsInEvaluationOrder.
+            VisitArgumentsInParameterOrder(operation, operation.TargetMethod?.Parameters);
+            base.VisitInvocationExpression(operation);
+        }
+
+        private void VisitArgumentsInParameterOrder(IHasArgumentsExpression operation, ImmutableArray<IParameterSymbol>? parameters)
+        {
             foreach (var argument in operation.ArgumentsInParameterOrder)
             {
                 Visit(argument);
             }
-            if (targetMethod != null)
+
+            if (parameters.HasValue)
             {
-                foreach (var parameter in targetMethod.Parameters)
+                foreach (var parameter in parameters.Value)
                 {
                     var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
                     Visit(matchingArgument);
                 }
             }
-
-            base.VisitInvocationExpression(operation);
         }
 
         public override void VisitArgument(IArgument operation)
         {
-            var argumentKind = operation.ArgumentKind;
             var parameter = operation.Parameter;
 
             base.VisitArgument(operation);
@@ -331,16 +335,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
         {
             var member = operation.Member;
-            var property = operation.Property;
-            if (property != null)
-            {
-                foreach (var parameter in property.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
-
+            // base.VisitPropertyReferenceExpression only visits operations in ArgumentsInEvaluationOrder.
+            VisitArgumentsInParameterOrder(operation, operation.Property?.Parameters);
             base.VisitIndexedPropertyReferenceExpression(operation);
         }
 
@@ -429,16 +425,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
-            var ctor = operation.Constructor;
-            if (ctor != null)
-            {
-                foreach (var parameter in ctor.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
-
+            // base.VisitObjectCreationExpression only visits operations in ArgumentsInEvaluationOrder.
+            VisitArgumentsInParameterOrder(operation, operation.Constructor?.Parameters);
             base.VisitObjectCreationExpression(operation);
         }
 

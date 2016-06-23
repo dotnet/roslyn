@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IHasArgumentsExpression : IOperation
     {
         /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order that they will be evaluated,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+        /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
         /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
         /// optional arguments missing in source.
@@ -45,12 +51,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the invocation uses a virtual mechanism, and false otherwise.
         /// </summary>
         bool IsVirtual { get; }
-        /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
-        /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
-        /// unless supplied in source.
-        /// </summary>
-        ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
     }
 
     /// <summary>
@@ -62,10 +62,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IArgument : IOperation
     {
-        /// <summary>
-        /// Kind of argument.
-        /// </summary>
-        ArgumentKind ArgumentKind { get; }
         /// <summary>
         /// Parameter the argument matches.
         /// </summary>
@@ -82,31 +78,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
         IOperation OutConversion { get; }
-    }
-
-    /// <summary>
-    /// Kinds of arguments.
-    /// </summary>
-    public enum ArgumentKind
-    {
-        None = 0x0,
-
-        /// <summary>
-        /// Argument is specified positionally and matches the parameter of the same ordinality.
-        /// </summary>
-        Positional = 0x1,
-        /// <summary>
-        /// Argument is specified by name and matches the parameter of the same name.
-        /// </summary>
-        Named = 0x2,
-        /// <summary>
-        /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
-        /// </summary>
-        ParamArray = 0x3,
-        /// <summary>
-        /// Argument was omitted in source but has a default value supplied automatically.
-        /// </summary>
-        DefaultValue = 0x4
     }
 
     /// <summary>

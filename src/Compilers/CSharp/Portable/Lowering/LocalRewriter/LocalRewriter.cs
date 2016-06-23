@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private readonly DiagnosticBag _diagnostics;
+        private readonly bool _inIOperationContext;
 
-        private LocalRewriter(
+        internal LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,
             int containingMethodOrdinal,
@@ -33,16 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool inIOperationContext = false)
         {
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentMethod = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod?.ContainingType));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _diagnostics = diagnostics;
+            _inIOperationContext = inIOperationContext;
         }
 
         /// <summary>

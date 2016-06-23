@@ -297,9 +297,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
-        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
+                Return IHasArgumentsExpression_ArgumentsInParameterOrder
             End Get
         End Property
 
@@ -311,12 +311,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInvocationExpression_IsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
-                Dim method As IMethodSymbol = Me.Method
-                Dim instance As IOperation = Me.ReceiverOpt
-
-                Return method IsNot Nothing AndAlso instance IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso instance.Kind <> BoundKind.MyBaseReference AndAlso instance.Kind <> BoundKind.MyClassReference
+                Return IsVirtualReference(Me.Method, Me.ReceiverOpt)
             End Get
         End Property
+
+        Friend Shared Function IsVirtualReference(method As Symbols.MethodSymbol, receiver As BoundExpression) As Boolean
+            Return method IsNot Nothing AndAlso receiver IsNot Nothing AndAlso (method.IsOverridable OrElse method.IsMustOverride OrElse method.IsOverrides) AndAlso Not receiver.SuppressVirtualCalls
+        End Function
 
         Private ReadOnly Property IInvocationExpression_TargetMethod As IMethodSymbol Implements IInvocationExpression.TargetMethod
             Get
@@ -374,16 +375,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         argument,
                         Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
-                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return s_argumentMappings.GetValue(
                         argument,
-                        Function(argumentValue)
-                            If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
-                                Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
-                            Else
-                                Return New Argument(ArgumentKind.Positional, If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
-                            End If
-                        End Function)
+                        Function(argumentValue) New Argument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue))
             End Select
         End Function
 
@@ -420,7 +414,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public MustOverride ReadOnly Property ArgumentKind As ArgumentKind Implements IArgument.ArgumentKind
             Public MustOverride ReadOnly Property Value As IOperation Implements IArgument.Value
             Public MustOverride ReadOnly Property InConversion As IOperation Implements IArgument.InConversion
             Public MustOverride ReadOnly Property OutConversion As IOperation Implements IArgument.OutConversion
@@ -450,12 +443,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits ArgumentBase
 
             Private ReadOnly _value As IOperation
-            Private ReadOnly _kind As ArgumentKind
 
-            Public Sub New(kind As ArgumentKind, parameter As IParameterSymbol, value As IOperation)
+            Public Sub New(parameter As IParameterSymbol, value As IOperation)
                 MyBase.New(parameter)
                 _value = value
-                _kind = kind
             End Sub
 
             Public Overrides ReadOnly Property Value As IOperation
@@ -475,12 +466,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
                 End Get
             End Property
-
-            Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
-                Get
-                    Return _kind
-                End Get
-            End Property
         End Class
 
         Private NotInheritable Class ByRefArgument
@@ -493,22 +478,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _argument = argument
             End Sub
 
-            Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
-                Get
-                    ' Do the VB bound trees encode named arguments?
-                    Return ArgumentKind.Positional
-                End Get
-            End Property
-
             Public Overrides ReadOnly Property InConversion As IOperation
                 Get
-                    Return _argument.InConversion
+                    Dim conversion As BoundExpression = _argument.InConversion
+                    ' The bound trees can contain a simple placeholder as a conversion. Don't treat this as a conversion.
+                    If conversion IsNot Nothing AndAlso conversion.Kind <> BoundKind.ByRefArgumentPlaceholder Then
+                        Return conversion
+                    End If
+
+                    Return Nothing
                 End Get
             End Property
 
             Public Overrides ReadOnly Property OutConversion As IOperation
                 Get
-                    Return _argument.OutConversion
+                    Dim conversion As BoundExpression = _argument.OutConversion
+                    ' The bound trees can contain a simple placeholder as a conversion. Don't treat this as a conversion.
+                    If conversion IsNot Nothing AndAlso conversion.Kind <> BoundKind.RValuePlaceholder Then
+                        Return conversion
+                    End If
+
+                    Return Nothing
                 End Get
             End Property
 
@@ -1178,6 +1168,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
+            Get
+                Return IHasArgumentsExpression_ArgumentsInParameterOrder
+            End Get
+        End Property
+
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
@@ -1457,6 +1453,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
+            Get
+                Return IHasArgumentsExpression_ArgumentsInParameterOrder
+            End Get
+        End Property
+
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
@@ -1533,7 +1535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
             Get
-                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
+                Return BoundCall.IsVirtualReference(Me.Method, Me.ReceiverOpt)
             End Get
         End Property
 

@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
-    /// <summary>Analyzer used to test invocaton IOperations.</summary>
+    /// <summary>Analyzer used to test invocation IOperations.</summary>
     public class InvocationTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
@@ -486,14 +486,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor UseDefaultArgumentDescriptor = new DiagnosticDescriptor(
-            "UseDefaultArgument",
-            "Use default argument",
-            "Invocation uses default argument {0}",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
         public static readonly DiagnosticDescriptor InvalidArgumentDescriptor = new DiagnosticDescriptor(
             "InvalidArgument",
             "Invalid argument",
@@ -509,7 +501,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 return ImmutableArray.Create(BigParamArrayArgumentsDescriptor,
                                              OutOfNumericalOrderArgumentsDescriptor,
-                                             UseDefaultArgumentDescriptor,
                                              InvalidArgumentDescriptor);
             }
         }
@@ -529,14 +520,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              return;
                          }
 
-                         if (argument.ArgumentKind == ArgumentKind.DefaultValue)
-                         {
-                             operationContext.ReportDiagnostic(Diagnostic.Create(UseDefaultArgumentDescriptor, invocation.Syntax.GetLocation(), argument.Parameter.Name));
-                         }
-
                          TestAscendingArgument(operationContext, argument.Value, ref priorArgumentValue);
 
-                         if (argument.ArgumentKind == ArgumentKind.ParamArray)
+                         if (argument.Parameter.IsParams)
                          {
                              IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
                              if (arrayArgument != null)
@@ -1085,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
 
-                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
+                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
                          if (argument.Parameter.IsParams)
                          {
@@ -1777,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     }
                     if (operation.Kind == OperationKind.Argument)
                     {
-                        if (((IArgument)operation).ArgumentKind == ArgumentKind.ParamArray)
+                        if (((IArgument)operation).Parameter.IsParams)
                         {
                             _paramsList.Add(operation);
                         }
