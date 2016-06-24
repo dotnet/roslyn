@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // If null, the document's language service will be used.
         private readonly ISnippetInfoService _snippetInfoService;
 
-        internal override bool IsSnippetProvider
-        {
-            get { return true; }
-        }
+        internal override bool IsSnippetProvider => true;
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {
@@ -36,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            if (!options.GetOption(CSharpCompletionOptions.IncludeSnippets))
-            {
-                return false;
-            }
-
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
@@ -58,11 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
                      workspace.Kind == WorkspaceKind.Debugger ||
                      workspace.Kind == WorkspaceKind.Interactive)
-                {
-                    return;
-                }
-
-                if (!options.GetOption(CSharpCompletionOptions.IncludeSnippets))
                 {
                     return;
                 }

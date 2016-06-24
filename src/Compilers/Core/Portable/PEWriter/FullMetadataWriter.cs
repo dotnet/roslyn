@@ -12,8 +12,6 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection.Metadata.Ecma335;
-
     internal sealed class FullMetadataWriter : MetadataWriter
     {
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;

@@ -1229,7 +1229,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
                 bool okToDowngradeToNeither;
-                var r = BetterConversionFromExpression(arguments[i],
+                BetterResult r;
+
+                if (argumentKind == BoundKind.OutVarLocalPendingInference)
+                {
+                    // If argument is an out variable that needs type inference,
+                    // neither candidate is better in this argument.
+                    r = BetterResult.Neither;
+                    okToDowngradeToNeither = false;
+                }
+                else
+                {
+                    r = BetterConversionFromExpression(arguments[i],
                                                        type1,
                                                        m1.Result.ConversionForArg(i),
                                                        refKind1,
@@ -1239,6 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        considerRefKinds,
                                                        ref useSiteDiagnostics,
                                                        out okToDowngradeToNeither);
+                }
 
                 if (r == BetterResult.Neither)
                 {
@@ -2918,6 +2930,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // defer applicability check to runtime:
                 return Conversion.ImplicitDynamic;
+            }
+
+            if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+            {
+                Debug.Assert(argRefKind != RefKind.None);
+
+                // Any parameter type is good, we'll use it for the var local.
+                return Conversion.Identity;
             }
 
             if (argRefKind == RefKind.None)

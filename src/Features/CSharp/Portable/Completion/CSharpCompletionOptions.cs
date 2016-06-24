@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         [Obsolete("This option is superceded by CompletionOptions.EnterKeyBehavior")]
         public static readonly Option<bool> AddNewLineOnEnterAfterFullyTypedWord = new Option<bool>(FeatureName, "Add New Line On Enter After Fully Typed Word", defaultValue: false);
 
+        [Obsolete("This option is superceded by CompletionOptions.SnippetsBehavior")]
         public static readonly Option<bool> IncludeSnippets = new Option<bool>(FeatureName, "Include Code Snippets", defaultValue: true);
     }
 }
