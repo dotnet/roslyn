@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider())))
             {
                 var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-                Assert.True(service is PreviewSolutionCrawlerRegistrationService);
+                Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
 
                 var persistentService = previewWorkspace.Services.GetService<IPersistentStorageService>();
                 Assert.NotNull(persistentService);
