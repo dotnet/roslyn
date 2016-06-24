@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                         .Where(item => !_analyzerReferences.Contains(item.AnalyzerReference))
                                         .ToArray();
 
-                var referencesToAdd = _analyzerReferences
+                var referencesToAdd = GetFilteredAnalyzers(_analyzerReferences, project)
                                         .Where(r => !_analyzerItems.Any(item => item.AnalyzerReference == r))
                                         .ToArray();
 
@@ -105,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _analyzerItems.Add(new AnalyzerItem(_analyzersFolder, reference, _commandHandler.AnalyzerContextMenuController));
                 }
 
-                var sorted = GetSortedAnalyzerItems(_analyzerItems, project);
+                var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
                 for (int i = 0; i < sorted.Length; i++)
                 {
                     _analyzerItems.Move(_analyzerItems.IndexOf(sorted[i]), i);
@@ -159,8 +160,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     if (project != null)
                     {
                         _analyzerReferences = project.AnalyzerReferences;
-                        var items = _analyzerReferences.Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
-                        var initialSet = GetSortedAnalyzerItems(items, project);
+                        var initialSet = GetFilteredAnalyzers(_analyzerReferences, project)
+                                            .OrderBy(ar => ar.Display)
+                                            .Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
                         _analyzerItems.AddRange(initialSet);
                     }
                 }
@@ -181,27 +183,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private static ImmutableArray<AnalyzerItem> GetSortedAnalyzerItems(IEnumerable<AnalyzerItem> analyzerItems, Project project)
+        private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
         {
-            // We want to display the analyzers sorted by their display name, but place analyzers with no rules towards the end (analyzer dependencies).
-            var itemsWithRules = new List<AnalyzerItem>();
-            var itemsWithoutRules = new List<AnalyzerItem>();
-            foreach (var item in analyzerItems)
+            var vsWorkspace = _analyzersFolder.Workspace as VisualStudioWorkspaceImpl;
+            if (vsWorkspace != null)
             {
-                if (item.AnalyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty)
-                {
-                    itemsWithoutRules.Add(item);
-                }
-                else
-                {
-                    itemsWithRules.Add(item);
-                }
+                var vsProject = vsWorkspace.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
+                var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();
+                return vsAnalyzersMap.Where(kvp => kvp.Value.HasLoadErrors).Select(kvp => kvp.Key).ToImmutableHashSet();
             }
 
-            var sortedItemsWithRules = itemsWithRules.OrderBy(a => a.AnalyzerReference.Display);
-            var sortedItemsWithoutRules = itemsWithoutRules.OrderBy(a => a.AnalyzerReference.Display);
+            return ImmutableHashSet<string>.Empty;
+        }
 
-            return sortedItemsWithRules.Concat(sortedItemsWithoutRules).ToImmutableArray();
+        private ImmutableArray<AnalyzerReference> GetFilteredAnalyzers(IEnumerable<AnalyzerReference> analyzerReferences, Project project)
+        {
+            var analyzersWithLoadErrors = GetAnalyzersWithLoadErrors();
+
+            // Filter out analyzer dependencies which have no diagnostic analyzers, but still retain the unresolved analyzers and analyzers with load errors.
+            var builder = ImmutableArray.CreateBuilder<AnalyzerReference>();
+            foreach (var analyzerReference in analyzerReferences)
+            {
+                // Analyzer dependency:
+                // 1. Must be an Analyzer file reference (we don't understand other analyzer dependencies).
+                // 2. Mush have no diagnostic analyzers.
+                // 3. Must have non-null full path.
+                // 4. Must not have any assembly or analyzer load failures.
+                if (analyzerReference is AnalyzerFileReference &&
+                    analyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty &&
+                    analyzerReference.FullPath != null &&
+                    !analyzersWithLoadErrors.Contains(analyzerReference.FullPath))
+                {
+                    continue;
+                }
+
+                builder.Add(analyzerReference);
+            }
+
+            return builder.ToImmutable();
         }
     }
 }
