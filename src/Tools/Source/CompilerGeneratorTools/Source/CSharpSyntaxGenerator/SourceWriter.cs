@@ -1181,7 +1181,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
-            Write("    {0} {1} Update(", node.InternalConstructor ? "internal" : "public", node.Name);
+            Write("    {0} {1} Update(", node.InternalFactory ? "internal" : "public", node.Name);
 
             // parameters
             for (int f = 0; f < node.Fields.Count; f++)
@@ -1448,7 +1448,7 @@ namespace CSharpSyntaxGenerator
                 var node = nodes[i];
                 this.WriteRedFactory(node);
 
-                if (!node.InternalConstructor)
+                if (!node.InternalFactory)
                 {
                     this.WriteRedFactoryWithNoAutoCreatableTokens(node);
                     this.WriteRedMinimalFactory(node);
@@ -1535,7 +1535,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
 
-            Write("    {0} static {1} {2}(", nd.InternalConstructor ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", nd.InternalFactory ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
             if (nd.Kinds.Count > 1)
             {
                 Write("SyntaxKind kind, ");

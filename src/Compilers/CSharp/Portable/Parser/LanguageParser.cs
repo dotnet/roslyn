@@ -4374,7 +4374,7 @@ tryAgain:
 
                 return _syntaxFactory.FieldDeclaration(
                     attributes, modifiers.ToTokenList(),
-                    _syntaxFactory.VariableDeclaration(type, variables, null),
+                    _syntaxFactory.VariableDeclaration(type, variables, deconstruction: null),
                     semicolon);
             }
             finally
@@ -4521,7 +4521,7 @@ tryAgain:
                 return _syntaxFactory.FieldDeclaration(
                     attributes,
                     modifiers.ToTokenList(),
-                    _syntaxFactory.VariableDeclaration(type, variables, null),
+                    _syntaxFactory.VariableDeclaration(type, variables, deconstruction: null),
                     semicolon);
             }
             finally
@@ -4568,7 +4568,7 @@ tryAgain:
                     attributes,
                     modifiers.ToTokenList(),
                     eventToken,
-                    _syntaxFactory.VariableDeclaration(type, variables, null),
+                    _syntaxFactory.VariableDeclaration(type, variables, deconstruction: null),
                     semicolon);
             }
             finally
@@ -5056,7 +5056,7 @@ tryAgain:
                 return _syntaxFactory.FieldDeclaration(
                     attributes,
                     modifiers.ToTokenList(),
-                    _syntaxFactory.VariableDeclaration(type, variables, null),
+                    _syntaxFactory.VariableDeclaration(type, variables, deconstruction: null),
                     semicolon);
             }
             finally
@@ -8366,7 +8366,7 @@ tryAgain:
                 return _syntaxFactory.LocalDeclarationStatement(
                     mods.ToTokenList(),
                     refKeyword,
-                    _syntaxFactory.VariableDeclaration(type, variables, null),
+                    _syntaxFactory.VariableDeclaration(type, variables, deconstruction: null),
                     semicolon);
             }
             finally

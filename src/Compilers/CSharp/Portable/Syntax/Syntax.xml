@@ -1810,7 +1810,7 @@
     </Field>
   </Node>
 
-  <Node Name="VariableDeconstructionDeclaratorSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalConstructor="true">
+  <Node Name="VariableDeconstructionDeclaratorSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalFactory="true">
     <Kind Name="VariableDeconstructionDeclarator"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
@@ -1825,7 +1825,7 @@
     <Field Name="Value" Type="ExpressionSyntax" Optional="true"/>
   </Node>
 
-  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalConstructor="true">
+  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalFactory="true">
     <Kind Name="VariableDeclaration"/>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
     <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
@@ -2052,7 +2052,7 @@
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
 
-  <Node Name="ForEachStatementSyntax" Base="StatementSyntax" InternalConstructor="true">
+  <Node Name="ForEachStatementSyntax" Base="StatementSyntax" InternalFactory="true">
     <Kind Name="ForEachStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>

@@ -25,7 +25,7 @@ namespace CSharpSyntaxGenerator
         /// Other factory methods are not generated and have to be written by hand.
         /// </summary>
         [XmlAttribute]
-        public bool InternalConstructor = false;
+        public bool InternalFactory = false;
 
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;

@@ -544,7 +544,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 
                 return SyntaxFactory.LocalDeclarationStatement(
-                    default(SyntaxTokenList),
                     SyntaxFactory.VariableDeclaration(typeNode)
                           .AddVariables(SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variable.Name)).WithInitializer(equalsValueClause)));
             }

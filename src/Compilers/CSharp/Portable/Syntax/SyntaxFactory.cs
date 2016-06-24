@@ -2524,6 +2524,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new VariableDeclarationSyntax instance, such as `var (x, y)`.</summary>
         public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
         {
+            if (!type.IsVar)
+            {
+                throw new ArgumentException(CSharpResources.TypeMustBeVar, nameof(type));
+            }
+
             return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
         }
 
@@ -2551,11 +2556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
             return ForEachStatement(forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
-        }
-
-        internal static VariableDeclarationSyntax VariableDeclaration()
-        {
-            return VariableDeclaration(null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), null);
         }
     }
 }

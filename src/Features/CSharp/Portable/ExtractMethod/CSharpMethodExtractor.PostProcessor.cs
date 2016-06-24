@@ -145,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // use type name from the first decl statement
                     yield return
                         SyntaxFactory.LocalDeclarationStatement(
-                            default(SyntaxTokenList),
                             SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, SyntaxFactory.SeparatedList(variables)));
                 }
 

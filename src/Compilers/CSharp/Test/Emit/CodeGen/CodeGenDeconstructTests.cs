@@ -2587,7 +2587,7 @@ class C
     static void Main()
     {
         var (x1, x2) = null;
-        //(int x3, int x4) = null; 
+        //(int x3, int x4) = null;
         //foreach ((int x5, var (x6, x7)) in null) { }
         //for ((int x8, var (x9, x10)) = null; ; ) { }
     }
@@ -2612,7 +2612,7 @@ class C
     static void Main()
     {
         var (x1, x2) = null;
-        //(int x3, int x4) = null; 
+        //(int x3, int x4) = null;
         //foreach ((int x5, var (x6, x7)) in null) { }
         //for ((int x8, var (x9, x10)) = null; ; ) { }
     }

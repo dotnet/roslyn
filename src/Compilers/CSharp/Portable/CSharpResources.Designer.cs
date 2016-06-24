@@ -10503,6 +10503,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type must be &apos;var&apos;..
+        /// </summary>
+        internal static string TypeMustBeVar {
+            get {
+                return ResourceManager.GetString("TypeMustBeVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens..
         /// </summary>
         internal static string UseLiteralForNumeric {
