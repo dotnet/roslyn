@@ -33,17 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
-            diagnostics As DiagnosticBag,
-            Optional voidType As TypeSymbol = Nothing
+            diagnostics As DiagnosticBag
         )
             MyBase.New(container)
 
             m_syntaxReference = syntaxReference
             m_isShared = isShared
 
-            If voidType IsNot Nothing Then
-                m_voidType = voidType
-            ElseIf binder IsNot Nothing Then
+            If binder IsNot Nothing Then
                 Debug.Assert(diagnostics IsNot Nothing)
                 m_voidType = binder.GetSpecialType(SpecialType.System_Void, syntaxReference.GetSyntax(), diagnostics)
             Else

@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return Microsoft.Cci.TypeMemberVisibility.Public
 
                 Case Accessibility.Private
-                    If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Submission Then
+                    If symbol.ContainingType.TypeKind = TypeKind.Submission Then
                         Return Microsoft.Cci.TypeMemberVisibility.Public
                     Else
                         Return Microsoft.Cci.TypeMemberVisibility.Private

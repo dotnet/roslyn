@@ -130,7 +130,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function InstrumentReturnStatement(original As BoundReturnStatement, rewritten As BoundStatement) As BoundStatement
-            Return AddDynamicAnalysis(original, MyBase.InstrumentReturnStatement(original, rewritten))
+            Dim previous As BoundStatement = MyBase.InstrumentReturnStatement(original, rewritten)
+            If Not original.IsEndOfMethodReturn Then
+                Return AddDynamicAnalysis(original, previous)
+            End If
+            Return previous
         End Function
 
         Public Overrides Function InstrumentThrowStatement(original As BoundThrowStatement, rewritten As BoundStatement) As BoundStatement

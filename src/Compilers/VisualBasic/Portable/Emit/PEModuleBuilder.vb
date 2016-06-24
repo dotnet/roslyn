@@ -623,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Function JITOptimizationIsDisabled(methodSymbol As MethodSymbol) As Boolean
-            Debug.Assert((methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition) OrElse methodSymbol.ContainingModule Is Nothing)
+            Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 

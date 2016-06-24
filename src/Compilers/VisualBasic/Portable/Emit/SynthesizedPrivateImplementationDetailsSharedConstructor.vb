@@ -8,10 +8,11 @@ Imports Microsoft.CodeAnalysis.CodeGen
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedPrivateImplementationDetailsSharedConstructor
-        Inherits SynthesizedConstructorSymbol
+        Inherits SynthesizedGlobalMethodBase
 
-        Private _containingModule As SourceModuleSymbol
-        Private _privateImplementationType As PrivateImplementationDetails
+        Private ReadOnly _containingModule As SourceModuleSymbol
+        Private ReadOnly _privateImplementationType As PrivateImplementationDetails
+        Private ReadOnly _voidType As TypeSymbol
 
         Friend Sub New(
             containingModule As SourceModuleSymbol,
@@ -19,11 +20,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics As DiagnosticBag,
             voidType As NamedTypeSymbol
         )
-            MyBase.New(Nothing, Nothing, True, False, Nothing, diagnostics, voidType)
+            MyBase.New(containingModule, WellKnownMemberNames.StaticConstructorName, privateImplementationType)
 
             _containingModule = containingModule
             _privateImplementationType = privateImplementationType
+            _voidType = voidType
         End Sub
+
+        Public Overrides ReadOnly Property IsSub As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ReturnType As TypeSymbol
+            Get
+                Return _voidType
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MethodKind As MethodKind
+            Get
+                Return MethodKind.SharedConstructor
+            End Get
+        End Property
 
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
