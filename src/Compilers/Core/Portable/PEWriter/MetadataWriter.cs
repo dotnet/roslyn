@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
-using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.Cci
 {
@@ -924,7 +923,7 @@ namespace Microsoft.Cci
 
         private static uint GetManagedResourceOffset(BlobBuilder resource, BlobBuilder resourceWriter)
         {
-            int result = resourceWriter.Position;
+            int result = resourceWriter.Count;
             resourceWriter.WriteInt32(resource.Count);
             resource.WriteContentTo(resourceWriter);
             resourceWriter.Align(8);

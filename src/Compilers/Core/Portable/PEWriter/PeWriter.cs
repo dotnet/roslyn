@@ -198,19 +198,19 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private static void PatchModuleVersionIds(Blob guidFixup, Blob stringFixup, byte[] mvidBytes)
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob stringFixup, Guid mvid)
         {
             if (!guidFixup.IsDefault)
             {
                 var writer = new BlobWriter(guidFixup);
-                writer.WriteBytes(mvidBytes);
+                writer.WriteGuid(mvid);
                 Debug.Assert(writer.RemainingBytes == 0);
             }
 
             if (!stringFixup.IsDefault)
             {
                 var writer = new BlobWriter(stringFixup);
-                writer.WriteUserString(new Guid(mvidBytes).ToString());
+                writer.WriteUserString(mvid.ToString());
                 Debug.Assert(writer.RemainingBytes == 0);
             }
         }
