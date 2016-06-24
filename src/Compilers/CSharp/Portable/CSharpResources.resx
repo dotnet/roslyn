@@ -4896,4 +4896,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CannotDeconstructDynamic" xml:space="preserve">
     <value>Cannot deconstruct dynamic objects.</value>
   </data>
+  <data name="ERR_DeconstructTooFewElements" xml:space="preserve">
+    <value>Deconstruction must contain at least two variables.</value>
+  </data>
+  <data name="TypeMustBeVar" xml:space="preserve">
+    <value>The type must be 'var'.</value>
+  </data>
 </root>

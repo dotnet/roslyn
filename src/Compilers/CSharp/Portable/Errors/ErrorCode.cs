@@ -1398,5 +1398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructRequiresExpression = 8210,
         ERR_DeconstructWrongCardinality = 8211,
         ERR_CannotDeconstructDynamic = 8212,
+        ERR_DeconstructTooFewElements = 8213,
     }
 }

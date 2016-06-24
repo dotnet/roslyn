@@ -2611,7 +2611,7 @@ class C
             var source = @"
 class C1
 {
-static void Test(int arg1, (byte, byte) arg2)
+    static void Test(int arg1, (byte, byte) arg2)
     {
         (int, int) t1 = new(int, int)();
         (int, int)? t2 = default((int a, int b));
@@ -2629,10 +2629,10 @@ static void Test(int arg1, (byte, byte) arg2)
                 from j in ""ee""
                 select (i, j);
 
-            foreach ((int, int) e in new (int, int)[10])
-            {
-            }
+        foreach ((int, int) e in new (int, int)[10])
+        {
         }
+    }
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithTuplesFeature());

@@ -26,6 +26,8 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.WithRefKeyword(Mi
 Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken equalsToken, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax value) -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.DeconstructionVariables.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.WithDeconstructionVariables(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax deconstructionVariables) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken forKeyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> initializers, Microsoft.CodeAnalysis.SyntaxToken firstSemicolonToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition, Microsoft.CodeAnalysis.SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> incrementors, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax
@@ -117,6 +119,20 @@ Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Update(Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.WithElements(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax> elements) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax.Deconstruction.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax.WithDeconstruction(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax deconstruction) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.AddVariables(params Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.EqualsToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.Value.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.Variables.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.WithEqualsToken(Microsoft.CodeAnalysis.SyntaxToken equalsToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.WithValue(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax value) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.WithVariables(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax> variables) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Condition.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken whenKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
@@ -134,6 +150,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ReplaceKeyword = 8439 -> Microsoft.Code
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleElement = 8926 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleExpression = 8927 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleType = 8925 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.VariableDeconstructionDeclarator = 8928 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhenClause = 9013 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitConstantPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ConstantPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -144,6 +161,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitOriginalExpress
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitTupleElement(Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitTupleExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitTupleType(Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitVariableDeconstructionDeclarator(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
@@ -165,6 +183,8 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax.Accept(Micro
 override Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax declarationSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
@@ -201,6 +221,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleExpression(Microsoft.Cod
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleExpression(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax> arguments, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleType(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax> elements = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleType(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax> elements, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VariableDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax deconstructionDeclaration) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VariableDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax deconstructionDeclaration) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.SyntaxToken whenKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> void
@@ -212,6 +234,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitOriginalExpressio
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitTupleElement(Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitTupleExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitTupleType(Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitVariableDeconstructionDeclarator(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitConstantPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ConstantPatternSyntax node) -> TResult
@@ -222,4 +245,5 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitOriginal
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitTupleElement(Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitTupleExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitTupleType(Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitVariableDeconstructionDeclarator(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax node) -> TResult
