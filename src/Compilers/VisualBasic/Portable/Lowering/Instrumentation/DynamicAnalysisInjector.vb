@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
             Dim createPayload As MethodSymbol = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics)
 
-            ' Do Not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it Is instrumented.
+            ' Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it Is instrumented.
             If DirectCast(createPayload, Object) IsNot Nothing AndAlso Not method.IsImplicitlyDeclared AndAlso Not method.Equals(createPayload) Then
                 Return New DynamicAnalysisInjector(method, methodBody, factory, createPayload, diagnostics, debugDocumentProvider, previous)
             End If
@@ -46,10 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Sub New(methoD As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, createPayload As MethodSymbol, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter)
+        Private Sub New(method As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, createPayload As MethodSymbol, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter)
             MyBase.New(previous)
             _createPayload = createPayload
-            _method = methoD
+            _method = method
             _methodBody = methodBody
             _spansBuilder = ArrayBuilder(Of SourceSpan).GetInstance()
             Dim payloadElementType As TypeSymbol = factory.SpecialType(SpecialType.System_Boolean)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _methodPayload = factory.SynthesizedLocal(_payloadType, kind:=SynthesizedLocalKind.InstrumentationPayload, syntax:=methodBody.Syntax)
             _diagnostics = diagnostics
             _debugDocumentProvider = debugDocumentProvider
-            _methodHasExplicitBlock = MethodHasExplicitBlock(methoD)
+            _methodHasExplicitBlock = MethodHasExplicitBlock(method)
             _factory = factory
 
             ' The first point indicates entry into the method And has the span of the method definition.

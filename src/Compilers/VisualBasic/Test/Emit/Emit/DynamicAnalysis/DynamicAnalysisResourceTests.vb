@@ -31,7 +31,7 @@ End Namespace
                                                                     </file>
 
         ReadOnly ExampleSource As Xml.Linq.XElement = <file name="c.vb">
-                                                                            <![CDATA[
+                                                          <![CDATA[
 Imports System
 
 Public Class C
@@ -59,14 +59,13 @@ Public Class C
     Public Shared ReadOnly Property Betty As Integer
 End Class
 ]]>
-                                                                        </file>
+                                                      </file>
 
-#If True Then
         <Fact>
         Public Sub TestSpansPresentInResource()
             Dim source As Xml.Linq.XElement = <compilation></compilation>
-            source.Add(InstrumentationHelperSource)
             source.Add(ExampleSource)
+            source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -74,42 +73,40 @@ End Class
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'a.vb'", "'c.vb'")
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
 
             Assert.Equal(11, reader.Methods.Length)
 
-            VerifySpans(reader, reader.Methods(2),                                 ' Main
-                "(5,4)-(9,5)",
-                "(7,8)-(7,31)",
-                "(8,8)-(8,31)")
+            VerifySpans(reader, reader.Methods(1),                                      ' Main
+                "(3,4)-(6,11)",
+                "(4,8)-(4,30)",
+                "(5,8)-(5,30)")
 
-            VerifySpans(reader, reader.Methods(1),                                      ' Fred get
-                "(11,4)-(11,32)",
-                "(11,30)-(11,31)")
+            VerifySpans(reader, reader.Methods(2),                                      ' Fred get
+                "(8,4)-(10,16)",
+                "(9,8)-(9,16)")
 
-            VerifySpans(reader, reader.Methods(2),                                      ' Barney
-                "(13,4)-(13,41)",
-                "(13,39)-(13,40)")
+            VerifySpans(reader, reader.Methods(3),                                      ' Barney
+                "(12,4)-(14,16)",
+                "(13,8)-(13,16)")
 
-            VerifySpans(reader, reader.Methods(3),                                      ' Wilma get
-                "(17,8)-(17,26)",
-                "(17,14)-(17,24)")
+            VerifySpans(reader, reader.Methods(4),                                      ' Wilma get
+                "(17,8)-(19,15)",
+                "(18,12)-(18,21)")
 
-            VerifySpans(reader, reader.Methods(4),                                      ' Wilma set
-                "(18,8)-(18,15)")
+            VerifySpans(reader, reader.Methods(5),                                      ' Wilma set
+                "(20,8)-(21,15)")
 
-            VerifySpans(reader, reader.Methods(5),                                      ' Betty get
-                "(21,4)-(21,36)",
-                "(21,30)-(21,34)")
+            VerifySpans(reader, reader.Methods(6))                                      ' Betty get -- VB does not supply a valid syntax node for the body.
 
-            VerifySpans(reader, reader.Methods(6))
+            VerifySpans(reader, reader.Methods(7))
         End Sub
 
         <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
             Dim source As Xml.Linq.XElement = <compilation></compilation>
-            source.Add(InstrumentationHelperSource)
             source.Add(ExampleSource)
+            source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default)
@@ -136,6 +133,5 @@ End Class
 
             AssertEx.Equal(expected, actual)
         End Sub
-#End If
     End Class
 End Namespace
