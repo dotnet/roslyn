@@ -71,11 +71,14 @@ fi
 echo Building this commit:
 git show --no-patch --pretty=raw HEAD
 
-echo Building Bootstrap
-$MAKE bootstrap $MAKE_ARGS 
+# PROTOTYPE: Bootstrap disabled!
+#echo Building Bootstrap
+#$MAKE bootstrap $MAKE_ARGS 
 
 echo Building CrossPlatform.sln
-$MAKE all $MAKE_ARGs BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
+# PROTOTYPE: Bootstrap disabled!
+#$MAKE all $MAKE_ARGs BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
+$MAKE all $MAKE_ARGs BUILD_LOG_PATH=Binaries/Build.log
 
 $MAKE test
 
