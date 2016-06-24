@@ -19,14 +19,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics As DiagnosticBag,
             voidType As NamedTypeSymbol
         )
-            MyBase.New(Nothing, Nothing, True, False, Nothing, diagnostics)
+            MyBase.New(Nothing, Nothing, True, False, Nothing, diagnostics, voidType)
 
             _containingModule = containingModule
             _privateImplementationType = privateImplementationType
         End Sub
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
+
+            Dim factory As New SyntheticBoundNodeFactory(Me, Me, VisualBasicSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics)
 
             ' Initialize the payload root for for each kind of dynamic analysis instrumentation.
             ' A payload root Is an array of arrays of per-method instrumentation payloads.
@@ -48,49 +50,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim analysisKind As Integer = payloadRoot.Key
                 Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type, ArrayTypeSymbol)
 
-                Dim maxMethodIndex As BoundExpression = New BoundMaximumMethodDefIndex(Syntax, factory.SpecialType(SpecialType.System_Int32))
-                maxMethodIndex.SetWasCompilerGenerated()
-
-                Dim payloadArray As BoundExpression = New BoundArrayCreation(Syntax, ImmutableArray.Create(maxMethodIndex), Nothing, payloadArrayType)
-                payloadArray.SetWasCompilerGenerated()
-
-                Dim payloadRootReference As BoundExpression = New BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadArrayType)
-                payloadRootReference.SetWasCompilerGenerated()
-
-                Dim payloadAssignment As BoundExpression = New BoundAssignmentOperator(Syntax, payloadRootReference, payloadArray, True)
-                payloadAssignment.SetWasCompilerGenerated()
-
-                Dim payloadAssignmentStatement As BoundStatement = New BoundExpressionStatement(Syntax, payloadAssignment)
-                payloadAssignmentStatement.SetWasCompilerGenerated()
-
-                body.Add(payloadAssignmentStatement)
+                body.Add(
+                    factory.Assignment(
+                        factory.InstrumentationPayloadRoot(analysisKind, payloadArrayType, True),
+                        factory.Array(payloadArrayType.ElementType, ImmutableArray.Create(factory.MaximumMethodDefIndex()), ImmutableArray(Of BoundExpression).Empty)))
             Next
 
             ' Initialize the module version ID (MVID) field. Dynamic instrumentation requires the MVID of the executing module, and this field makes that accessible.
             ' MVID = Guid.Parse(ModuleVersionIdString)
 
-            Dim moduleVersionIdString As BoundExpression = New BoundModuleVersionIdString(Syntax, factory.SpecialType(SpecialType.System_String))
-            moduleVersionIdString.SetWasCompilerGenerated()
+            Dim guidParse As MethodSymbol = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Guid__Parse)
+            If guidParse IsNot Nothing Then
+                body.Add(
+                    factory.Assignment(
+                       factory.ModuleVersionId(True),
+                       factory.Call(Nothing, guidParse, ImmutableArray.Create(factory.ModuleVersionIdString()))))
+            End If
 
-            Dim guidParse As BoundExpression = New BoundCall(Syntax, factory.WellKnownMethod(WellKnownMember.System_Guid__Parse), Nothing, Nothing, ImmutableArray.Create(moduleVersionIdString), Nothing, True, factory.WellKnownType(WellKnownType.System_Guid))
-            guidParse.SetWasCompilerGenerated()
+            body.Add(factory.Return())
 
-            Dim moduleVersionId As BoundExpression = New BoundModuleVersionId(Syntax, factory.WellKnownType(WellKnownType.System_Guid))
-            moduleVersionId.SetWasCompilerGenerated()
+            Dim block As BoundBlock = factory.Block(body.ToImmutableAndFree())
+            ' factory.CloseMethod(block)
 
-            Dim moduleVersionIdAssignment As BoundExpression = New BoundAssignmentOperator(Syntax, moduleVersionId, guidParse, True)
-            moduleVersionIdAssignment.SetWasCompilerGenerated()
-
-            Dim moduleVersionIdAssignmentStatement As BoundStatement = New BoundExpressionStatement(Syntax, moduleVersionIdAssignment)
-            moduleVersionIdAssignmentStatement.SetWasCompilerGenerated()
-
-            body.Add(moduleVersionIdAssignmentStatement)
-
-            Dim returnStatement = New BoundReturnStatement(Me.Syntax, Nothing, Nothing, Nothing)
-            returnStatement.SetWasCompilerGenerated()
-            body.Add(returnStatement)
-
-            Return New BoundBlock(Me.Syntax, Nothing, ImmutableArray(Of LocalSymbol).Empty, body.ToImmutableAndFree())
+            Return block
         End Function
+
+        Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
+            Get
+                Return _containingModule
+            End Get
+        End Property
     End Class
 End Namespace

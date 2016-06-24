@@ -21,15 +21,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="isDebuggable">if set to <c>true</c> if this constructor will include debuggable initializers.</param>
         ''' <param name="binder">Binder to be used for error reporting, or Nothing.</param>
         ''' <param name="diagnostics">Diagnostic bag, or Nothing.</param>
+        ''' <param name="voidType">Type symbol for no type.</param>
         Friend Sub New(
             syntaxReference As SyntaxReference,
             container As NamedTypeSymbol,
             isShared As Boolean,
             isDebuggable As Boolean,
             binder As Binder,
-            diagnostics As DiagnosticBag
+            diagnostics As DiagnosticBag,
+            Optional voidType As TypeSymbol = Nothing
         )
-            MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
+            MyBase.New(syntaxReference, container, isShared, binder, diagnostics, voidType)
             Me._debuggable = isDebuggable
         End Sub
 

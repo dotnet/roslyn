@@ -74,12 +74,11 @@ End Class
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents,
-                "'C:\myproject\doc1.cs' 87-3F-1A-28-F7-34-C9-43-19-00-ED-0F-8F-2F-0D-EB-DD-32-D4-8E (SHA1)")
+            VerifyDocuments(reader, reader.Documents, "'a.vb'", "'c.vb'")
 
-            Assert.Equal(10, reader.Methods.Length)
+            Assert.Equal(11, reader.Methods.Length)
 
-            VerifySpans(reader, reader.Methods(0),                                      ' Main
+            VerifySpans(reader, reader.Methods(2),                                 ' Main
                 "(5,4)-(9,5)",
                 "(7,8)-(7,31)",
                 "(8,8)-(8,31)")
@@ -126,7 +125,7 @@ End Class
         End Sub
 
         Private Sub VerifyDocuments(reader As DynamicAnalysisDataReader, documents As ImmutableArray(Of DynamicAnalysisDocument), ParamArray expected As String())
-            Dim sha1 = New Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460")
+            Dim sha1 = New Guid("ff1816ec-aa5e-4d10-87F7-6F4963833460")
 
             Dim actual = From d In documents
                          Let name = reader.GetDocumentName(d.Name)

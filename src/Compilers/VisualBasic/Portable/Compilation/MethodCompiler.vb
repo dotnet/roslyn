@@ -829,10 +829,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CompileSynthesizedMethods(privateImplClass As PrivateImplementationDetails)
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
+            Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
             For Each method As MethodSymbol In privateImplClass.GetMethods(Nothing)
                 Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
 
-                Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
+                Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
                 Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
@@ -842,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                                      stateMachineTypeOpt:=Nothing,
                                                      variableSlotAllocatorOpt:=Nothing,
-                                                     debugDocumentProvider:=Nothing,
+                                                     debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData, _debugDocumentProvider, Nothing),
                                                      diagnostics:=diagnosticsThisMethod,
                                                      emittingPdb:=False,
                                                      dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
@@ -857,6 +858,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
             Next
+
+            Debug.Assert(Not compilationState.HasSynthesizedMethods)
+            compilationState.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(additionalTypes As ImmutableArray(Of NamedTypeSymbol))
@@ -869,7 +873,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each method In additionalType.GetMethodsToEmit()
                     Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
 
-                    Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
+                    Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
                     Dim emittedBody As MethodBody = Nothing
 
@@ -1277,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim containingType = prop.ContainingType
                 Debug.Assert(containingType Is getter.ContainingType AndAlso containingType Is setter.ContainingType)
 
-                Dim getterBody = getter.GetBoundMethodBody(diagnostics, containingTypeBinder)
+                Dim getterBody = getter.GetBoundMethodBody(compilationState, diagnostics, containingTypeBinder)
 
                 ' no need to rewrite getter, they are pretty simple and 
                 ' are already in a lowered form.
@@ -1285,7 +1289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, getter)
 
                 ' setter needs to rewritten as it may require lambda conversions
-                Dim setterBody = setter.GetBoundMethodBody(diagnostics, containingTypeBinder)
+                Dim setterBody = setter.GetBoundMethodBody(compilationState, diagnostics, containingTypeBinder)
 
                 Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                 Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
@@ -1649,7 +1653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             injectDefaultConstructorCall = False
             methodBodyBinder = Nothing
 
-            Dim body = method.GetBoundMethodBody(diagnostics, methodBodyBinder)
+            Dim body = method.GetBoundMethodBody(compilationState, diagnostics, methodBodyBinder)
             Debug.Assert(body IsNot Nothing)
 
             Analyzer.AnalyzeMethodBody(method, body, diagnostics)

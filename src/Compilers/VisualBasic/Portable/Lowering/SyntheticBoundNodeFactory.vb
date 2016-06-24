@@ -949,8 +949,8 @@ nextm:
         ''' <summary>
         ''' Synthesizes an expression that evaluates to the current module's MVID.
         ''' </summary>
-        Public Function ModuleVersionId() As BoundExpression
-            Dim boundNode As New BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid))
+        Public Function ModuleVersionId(isLValue As Boolean) As BoundExpression
+            Dim boundNode As New BoundModuleVersionId(Syntax, isLValue, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -969,8 +969,8 @@ nextm:
         ''' </summary>
         ''' <param name="analysisKind">Uniquely identifies the kind of dynamic analysis.</param>
         ''' <param name="payloadType">Type of an analysis payload cell for the particular analysis kind.</param>
-        Public Function InstrumentationPayloadRoot(analysisKind As Integer, payloadType As TypeSymbol) As BoundExpression
-            Dim boundNode As New BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType)
+        Public Function InstrumentationPayloadRoot(analysisKind As Integer, payloadType As TypeSymbol, isLValue As Boolean) As BoundExpression
+            Dim boundNode As New BoundInstrumentationPayloadRoot(Syntax, analysisKind, isLValue, payloadType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -1001,6 +1001,15 @@ nextm:
             Dim boundArrayInit = New BoundArrayInitialization(_syntax, elements, arrayType)
             boundArrayInit.SetWasCompilerGenerated()
             Return New BoundArrayCreation(_syntax, ImmutableArray.Create(Of BoundExpression)(Literal(elements.Length)), boundArrayInit, arrayType)
+        End Function
+
+        Public Function Array(elementType As TypeSymbol, bounds As ImmutableArray(Of BoundExpression), elements As ImmutableArray(Of BoundExpression)) As BoundExpression
+            Dim arrayType = Me.Compilation.CreateArrayTypeSymbol(elementType)
+            Dim arrayInitialization As BoundArrayInitialization = If(Not elements.IsDefaultOrEmpty, New BoundArrayInitialization(_syntax, elements, arrayType), Nothing)
+            arrayInitialization?.SetWasCompilerGenerated()
+            Dim arrayCreation As New BoundArrayCreation(_syntax, bounds, arrayInitialization, arrayType)
+            arrayCreation.SetWasCompilerGenerated()
+            Return arrayCreation
         End Function
 
         Public Function Conditional(condition As BoundExpression, consequence As BoundExpression, alternative As BoundExpression, type As TypeSymbol) As BoundTernaryConditionalExpression

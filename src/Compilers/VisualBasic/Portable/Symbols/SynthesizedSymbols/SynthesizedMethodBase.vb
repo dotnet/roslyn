@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyMeParameter As ParameterSymbol
 
         Protected Sub New(container As NamedTypeSymbol)
-            Debug.Assert(container IsNot Nothing)
             m_containingType = container
         End Sub
 
@@ -94,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
             Get
                 ' Methods of ComImport types are marked as Runtime implemented and InternalCall
-                Return If(m_containingType.IsComImport AndAlso Not m_containingType.IsInterface,
+                Return If(m_containingType IsNot Nothing AndAlso m_containingType.IsComImport AndAlso Not m_containingType.IsInterface,
                           System.Reflection.MethodImplAttributes.Runtime Or Reflection.MethodImplAttributes.InternalCall, Nothing)
             End Get
         End Property

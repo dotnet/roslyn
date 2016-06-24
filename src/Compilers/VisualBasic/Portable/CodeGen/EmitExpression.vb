@@ -1860,6 +1860,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Me.EmitSideEffects(sequence.SideEffects)
                     lhsUsesStack = EmitAssignmentPreamble(sequence.ValueOpt)
 
+                Case BoundKind.ModuleVersionId, BoundKind.InstrumentationPayloadRoot
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind)
 
@@ -1956,6 +1958,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             Me.FreeLocal(local)
                         Next
                     End If
+
+                Case BoundKind.ModuleVersionId
+                    EmitModuleVersionIdStore(DirectCast(expression, BoundModuleVersionId))
+
+                Case BoundKind.InstrumentationPayloadRoot
+                    EmitInstrumentationPayloadRootStore(DirectCast(expression, BoundInstrumentationPayloadRoot))
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(expression.Kind)
