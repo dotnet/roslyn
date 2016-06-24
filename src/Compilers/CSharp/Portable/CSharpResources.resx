@@ -4890,4 +4890,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConversionNotTupleCompatible" xml:space="preserve">
     <value>Tuple with {0} elements cannot be converted to type '{1}'.</value>
   </data>
+  <data name="IDS_FeatureOutVar" xml:space="preserve">
+    <value>out variable declaration</value>
+  </data>
+  <data name="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList" xml:space="preserve">
+    <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
+  </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed out variable.</value>
+  </data>
 </root>

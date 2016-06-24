@@ -843,6 +843,12 @@ public class X
             Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
 
+            var type = ((LocalSymbol)symbol).Type;
+            if (!decl.Type.IsVar || !type.IsErrorType())
+            {
+                Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
+            }
+
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
@@ -859,6 +865,12 @@ public class X
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            var type = ((LocalSymbol)symbol).Type;
+            if (!decl.Type.IsVar || !type.IsErrorType())
+            {
+                Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
+            }
         }
 
         private static void VerifyNotAPatternLocal(SemanticModel model, IdentifierNameSyntax reference)
