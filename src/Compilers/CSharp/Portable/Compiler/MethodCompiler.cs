@@ -174,12 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (filterOpt == null)
             {
                 WarnUnusedFields(compilation, diagnostics, cancellationToken);
-            }
 
-            MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
-            if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
-            {
-                moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics);
+                MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
+                if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
+                {
+                    moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics);
+                }
             }
         }
 
