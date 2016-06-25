@@ -2533,6 +2533,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        public sealed override BoundNode VisitDeconstructionLocalPendingInference(DeconstructionLocalPendingInference node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
         #endregion visitors
     }
 }

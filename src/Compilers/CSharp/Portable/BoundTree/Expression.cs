@@ -2886,4 +2886,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.None;
     }
+
+    /// <summary>
+    /// Providing implementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// </summary>
+    internal partial class DeconstructionLocalPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
+    }
 }

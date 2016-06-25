@@ -77,7 +77,7 @@
   </AbstractNode>
 
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Type" Type="TypeSymbol" Override="true"/>
   </AbstractNode>
 
   <!--

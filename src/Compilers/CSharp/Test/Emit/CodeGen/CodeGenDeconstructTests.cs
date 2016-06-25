@@ -2604,23 +2604,19 @@ class C
         }
 
         [Fact]
-        public void DeconstructionDeclarationInCSharp7()
+        public void DeconstructionDeclaration()
         {
             string source = @"
 class C
 {
     static void Main()
     {
-        var (x1, x2) = null;
-        //(int x3, int x4) = null;
-        //foreach ((int x5, var (x6, x7)) in null) { }
-        //for ((int x8, var (x9, x10)) = null; ; ) { }
+        var (x1, x2) = (1, ""hello"");
     }
 }
 ";
 
-            // PROTOTYPE(tuples) uncomment above once binding is fixed
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics();
         }
     }
