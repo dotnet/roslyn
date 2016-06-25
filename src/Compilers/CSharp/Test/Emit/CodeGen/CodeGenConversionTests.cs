@@ -995,5 +995,41 @@ class C
   IL_0030:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(11751, "https://github.com/dotnet/roslyn/issues/11751")]
+        public void ExprTreeCOM_IntPtr()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices;
+
+unsafe class Program
+{
+
+    static void Main(string[] args)
+    {
+        IntPtr y = new IntPtr();
+                
+        IAaa i = null;
+
+        Expression<Action> e = () =>  i.Test((ulong)y, null);
+    }
+}
+
+[ComImport]
+[Guid(""A88A175D-2448-447A-B786-64682CBEF156"")]
+public interface IAaa
+{
+    void Test(ulong y, object z);
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            CompileAndVerify(compilation);
+        }
     }
 }

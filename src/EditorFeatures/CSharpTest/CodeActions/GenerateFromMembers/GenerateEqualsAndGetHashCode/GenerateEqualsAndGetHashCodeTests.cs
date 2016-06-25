@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 {
     public class GenerateEqualsAndGetHashCodeTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new GenerateEqualsAndGetHashCodeCodeRefactoringProvider();
         }
@@ -193,7 +194,7 @@ index: 0,
 @"using System . Collections . Generic ; class C { [|(int, string) a ;|] } ",
 @"using System . Collections . Generic ; class C { (int, string) a ; public override bool Equals ( object obj ) { var c = obj as C ; return c != null && EqualityComparer < (int, string) > . Default . Equals ( a , c . a ) ; } } ",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -203,7 +204,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
 @"using System . Collections . Generic ; class C { [|(int x, string y) a ;|] } ",
 @"using System . Collections . Generic ; class C { (int x, string y) a ; public override bool Equals ( object obj ) { var c = obj as C ; return c != null && EqualityComparer < (int x, string y) > . Default . Equals ( a , c . a ) ; } } ",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -213,7 +214,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
 @"using System . Collections . Generic ; class Program { [|(int, string) i ;|] } ",
 @"using System . Collections . Generic ; class Program { (int, string) i ; public override int GetHashCode ( ) { return EqualityComparer < (int, string) > . Default . GetHashCode ( i ) ; } } ",
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -223,7 +224,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
 @"using System . Collections . Generic ; class Program { [|(int x, string y) i ;|] } ",
 @"using System . Collections . Generic ; class Program { (int x, string y) i ; public override int GetHashCode ( ) { return EqualityComparer < (int x, string y) > . Default . GetHashCode ( i ) ; } } ",
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

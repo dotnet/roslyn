@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -74,7 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
+                case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
                     // None of these things should reach codegen (yet? maybe?)

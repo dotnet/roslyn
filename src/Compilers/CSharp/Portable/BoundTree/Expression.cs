@@ -726,7 +726,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
+                    case CSharp.ConversionKind.ImplicitTupleLiteral:
                     case CSharp.ConversionKind.ImplicitTuple:
+                    case CSharp.ConversionKind.ExplicitTuple:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:
                     case CSharp.ConversionKind.ExplicitNumeric:
@@ -2867,4 +2869,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.None;
     }
 
+    /// <summary>
+    /// Providing iplementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// </summary>
+    internal partial class OutVarLocalPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
+    }
 }

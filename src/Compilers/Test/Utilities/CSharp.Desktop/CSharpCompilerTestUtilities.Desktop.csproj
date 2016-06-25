@@ -60,22 +60,48 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicCompilationUtils.cs" />
-    <Compile Include="CompilationTestUtils.cs" />
-    <Compile Include="CompilingTestBase.cs" />
+    <Compile Include="..\CSharp\CompilingTestBase.cs">
+      <Link>CompilingTestBase.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\CSharpTrackingDiagnosticAnalyzer.cs">
+      <Link>CSharpTrackingDiagnosticAnalyzer.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\DiagnosticTestUtilities.cs">
+      <Link>DiagnosticTestUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\ScriptTestFixtures.cs">
+      <Link>ScriptTestFixtures.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\SemanticModelTestBase.cs">
+      <Link>SemanticModelTestBase.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\SymbolUtilities.cs">
+      <Link>SymbolUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\SyntaxTreeExtensions.cs">
+      <Link>SyntaxTreeExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\TestOptions.cs">
+      <Link>TestOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\BasicCompilationUtils.cs">
+      <Link>BasicCompilationUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\CompilationTestUtils.cs">
+      <Link>CompilationTestUtils.cs</Link>
+    </Compile>
     <Compile Include="CSharpTestBase.cs" />
-    <Compile Include="CSharpTrackingDiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticExtensions.cs" />
-    <Compile Include="DiagnosticTestUtilities.cs" />
+    <Compile Include="..\CSharp\DiagnosticExtensions.cs">
+      <Link>DiagnosticExtensions.cs</Link>
+    </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="LocalVariableDeclaratorsCollector.cs" />
-    <Compile Include="MetadataTestHelpers.cs" />
+    <Compile Include="..\CSharp\LocalVariableDeclaratorsCollector.cs">
+      <Link>LocalVariableDeclaratorsCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\MetadataTestHelpers.cs">
+      <Link>MetadataTestHelpers.cs</Link>
+    </Compile>
     <Compile Include="MockCSharpCompiler.cs" />
-    <Compile Include="ScriptTestFixtures.cs" />
-    <Compile Include="SemanticModelTestBase.cs" />
-    <Compile Include="SymbolUtilities.cs" />
-    <Compile Include="SyntaxTreeExtensions.cs" />
-    <Compile Include="TestOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         internal enum SymbolKeyComparison
         {
             None = 0x0,
-            CaseSensitive = 0x1,
+            IgnoreCase = 0x1,
             IgnoreAssemblyIds = 0x2
         }
 
@@ -77,8 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         internal static ISymbol ResolveSymbol(ISymbol originalSymbol, Compilation targetCompilation, SymbolKeyComparison comparison)
         {
             var sid = SymbolKey.Create(originalSymbol, CancellationToken.None);
-            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
 
+            // Verify that serialization works.
+            var serialized = sid.ToString();
+            var deserialized = new SymbolKey(serialized);
+            var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+            Assert.True(comparer.Equals(sid, deserialized));
+
+            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
             return symInfo.Symbol;
         }
 
@@ -88,16 +94,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             var sid2 = SymbolKey.Create(symbol2, CancellationToken.None);
 
             // default is Insensitive
-            var isCaseSensitive = (comparison & SymbolKeyComparison.CaseSensitive) == SymbolKeyComparison.CaseSensitive;
+            var ignoreCase = (comparison & SymbolKeyComparison.IgnoreCase) == SymbolKeyComparison.IgnoreCase;
 
             // default is NOT ignore
             var ignoreAssemblyIds = (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds;
             var message = string.Concat(
-                isCaseSensitive ? "SymbolID CaseSensitive" : "SymbolID CaseInsensitive",
+                ignoreCase ? "SymbolID IgnoreCase" : "SymbolID",
                 ignoreAssemblyIds ? " IgnoreAssemblyIds " : " ",
                 "Compare");
 
-            var ret = CodeAnalysis.SymbolKey.GetComparer(isCaseSensitive, ignoreAssemblyIds).Equals(sid2, sid1);
+            var ret = CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1);
             if (expectEqual)
             {
                 Assert.True(ret, message);

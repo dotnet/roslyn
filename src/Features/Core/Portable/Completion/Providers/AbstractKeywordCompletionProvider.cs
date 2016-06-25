@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
-            if (!options.GetOption(CompletionOptions.IncludeKeywords, document.Project.Language))
-            {
-                return;
-            }
-
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
                 var keywords = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
@@ -78,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 tags: s_Tags,
-                preselect: keyword.ShouldPreselect);
+                matchPriority: keyword.ShouldPreselect ? MatchPriority.Preselect : MatchPriority.Default);
         }
 
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(

@@ -206,7 +206,7 @@ class C
 }
 
 class M<,> { }
-", options: TestOptions.Regular.WithTuplesFeature());
+", options: TestOptions.Regular);
 
             CheckTypeArguments2();
         }

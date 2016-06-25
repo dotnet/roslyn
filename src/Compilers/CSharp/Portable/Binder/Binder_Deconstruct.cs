@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // expression without type such as `null`
                     Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
-                    return BadExpression(node, FlattenDeconstructVariables(checkedVariables).Concat(boundRHS).ToArray());
+                    return BadExpression(node, FlattenDeconstructVariables(checkedVariables).Concat(boundRHS).Cast<BoundNode>().ToImmutableArray());
                 }
             }
 

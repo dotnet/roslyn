@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Add braces.
         /// </summary>
@@ -616,6 +616,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ContainsAnonymousType {
             get {
                 return ResourceManager.GetString("ContainsAnonymousType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to interpolated string.
+        /// </summary>
+        internal static string ConvertToInterpolatedString {
+            get {
+                return ResourceManager.GetString("ConvertToInterpolatedString", resourceCulture);
             }
         }
         
@@ -2024,6 +2033,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property cannot safely be replaced with a method call.
+        /// </summary>
+        internal static string Property_cannot_safely_be_replaced_with_a_method_call {
+            get {
+                return ResourceManager.GetString("Property_cannot_safely_be_replaced_with_a_method_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property referenced implicitly.
+        /// </summary>
+        internal static string Property_referenced_implicitly {
+            get {
+                return ResourceManager.GetString("Property_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
         internal static string RangeVariable {
@@ -2101,6 +2128,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string RenamingCapturedVariable {
             get {
                 return ResourceManager.GetString("RenamingCapturedVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with method.
+        /// </summary>
+        internal static string Replace_0_with_method {
+            get {
+                return ResourceManager.GetString("Replace_0_with_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with methods.
+        /// </summary>
+        internal static string Replace_0_with_methods {
+            get {
+                return ResourceManager.GetString("Replace_0_with_methods", resourceCulture);
             }
         }
         

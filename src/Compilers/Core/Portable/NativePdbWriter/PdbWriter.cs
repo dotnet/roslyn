@@ -21,9 +21,6 @@ using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-    using Roslyn.Reflection.PortableExecutable;
-
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating
     /// from writing PDBs. We resurface such exceptions as this type, to eventually
@@ -82,7 +79,7 @@ namespace Microsoft.Cci
             // that should be very rare though.
             if (_logData.Count + space >= bufferFlushLimit)
             {
-                _incrementalHash.AppendData(_logData);
+                _incrementalHash.AppendData(_logData.GetBlobs());
                 _logData.Clear();
             }
         }
@@ -91,7 +88,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_logData != null);
 
-            _incrementalHash.AppendData(_logData);
+            _incrementalHash.AppendData(_logData.GetBlobs());
             _logData.Clear();
 
             return _incrementalHash.GetHashAndReset();
@@ -837,7 +834,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe ContentId GetContentId()
+        public unsafe BlobContentId GetContentId()
         {
             if (_deterministic)
             {
@@ -913,7 +910,7 @@ namespace Microsoft.Cci
             Debug.Assert(age == Age);
 
             Debug.Assert(BitConverter.IsLittleEndian);
-            return new ContentId(guidBytes, BitConverter.GetBytes(stamp));
+            return new BlobContentId(new Guid(guidBytes), stamp);
         }
 
         public void SetEntryPoint(uint entryMethodToken)
@@ -1254,17 +1251,32 @@ namespace Microsoft.Cci
         {
             Debug.Assert(value != null);
 
+            int encodedLength;
+
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
             // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+
             if (!MetadataHelpers.IsValidUnicodeString(value))
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(value);
+                encodedLength = bytes.Length;
                 value = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
             }
+            else
+            {
+                encodedLength = Encoding.UTF8.GetByteCount(value);
+            }
 
-            // EDMAURER If defining a string constant and it is too long (length limit is undocumented), this method throws
-            // an ArgumentException.
-            // (see EMITTER::EmitDebugLocalConst)
+            // +1 for terminating NUL character
+            encodedLength++;
+
+            // If defining a string constant and it is too long (length limit is not documented by the API), DefineConstant2 throws an ArgumentException.
+            // However, diasymreader doesn't calculate the length correctly in presence of NUL characters in the string.
+            // Until that's fixed we need to check the limit ourselves. See http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988
+            if (encodedLength > 2032)
+            {
+                return;
+            }
 
             try
             {

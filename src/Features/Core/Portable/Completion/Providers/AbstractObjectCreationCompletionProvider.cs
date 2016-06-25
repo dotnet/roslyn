@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
-                preselect: preselect,
+                matchPriority: MatchPriority.Preselect, // Always preselect
                 tags: s_Tags,
                 rules: GetCompletionItemRules(symbols, context));
         }

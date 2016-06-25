@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -17,11 +18,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
             Return semanticModel.GenerateNameForArgument(argument)
         End Function
 
-        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IEnumerable(Of ArgumentSyntax), Optional reservedNames As IList(Of String) = Nothing) As IList(Of String)
+        Protected Overrides Function GenerateParameterNames(
+                semanticModel As SemanticModel,
+                arguments As IEnumerable(Of ArgumentSyntax),
+                Optional reservedNames As IList(Of String) = Nothing) As IList(Of ParameterName)
             Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames)
         End Function
 
-        Protected Overrides Function GetArgumentType(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As Microsoft.CodeAnalysis.ITypeSymbol
+        Protected Overrides Function GetArgumentType(
+                semanticModel As SemanticModel,
+                argument As ArgumentSyntax,
+                cancellationToken As CancellationToken) As ITypeSymbol
             Return argument.DetermineType(semanticModel, cancellationToken)
         End Function
 

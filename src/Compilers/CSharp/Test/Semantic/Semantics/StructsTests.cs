@@ -602,7 +602,7 @@ public struct X1
 }
 
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     // (11,5): error CS0568: Structs cannot contain explicit parameterless constructors
     //     X1()
     Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X1").WithLocation(11, 5),

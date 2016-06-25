@@ -409,8 +409,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
+        Public Function IsStringLiteralOrInterpolatedStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteralOrInterpolatedStringLiteral
             Return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken)
+        End Function
+
+        Public Function IsNumericLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNumericLiteralExpression
+            Return If(node Is Nothing, False, node.IsKind(SyntaxKind.NumericLiteralExpression))
         End Function
 
         Public Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFactsService.IsBindableToken
@@ -442,6 +446,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetExpressionOfConditionalMemberAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalMemberAccessExpression
             Return TryCast(node, ConditionalAccessExpressionSyntax)?.Expression
+        End Function
+
+        Public Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInterpolation
+            Return TryCast(node, InterpolationSyntax)?.Expression
         End Function
 
         Public Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInNamespaceOrTypeContext
@@ -481,16 +489,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is AttributeSyntax
         End Function
 
-        Public Function IsAttributeNamedArgumentIdentifier(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier
+        Public Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier
             Dim identifierName = TryCast(node, IdentifierNameSyntax)
-            If identifierName IsNot Nothing Then
-                Dim simpleArgument = TryCast(identifierName.Parent, SimpleArgumentSyntax)
-                If simpleArgument IsNot Nothing AndAlso simpleArgument.IsNamed AndAlso identifierName Is simpleArgument.NameColonEquals.Name Then
-                    Return simpleArgument.Parent.IsParentKind(SyntaxKind.Attribute)
-                End If
-            End If
-
-            Return False
+            Return identifierName.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
+                identifierName.Parent.IsParentKind(SyntaxKind.SimpleArgument) AndAlso
+                identifierName.Parent.Parent.IsParentKind(SyntaxKind.ArgumentList) AndAlso
+                identifierName.Parent.Parent.Parent.IsParentKind(SyntaxKind.Attribute)
         End Function
 
         Public Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingTypeDeclaration
@@ -555,10 +559,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' VB doesn't have a specialized node for element access.  Instead, it just uses an
             ' invocation expression or dictionary access expression.
             Return node.Kind = SyntaxKind.InvocationExpression OrElse node.Kind = SyntaxKind.DictionaryAccessExpression
-        End Function
-
-        Public Function ConvertToSingleLine(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
-            Return node.ConvertToSingleLine()
         End Function
 
         Public Function ToIdentifierToken(name As String) As SyntaxToken Implements ISyntaxFactsService.ToIdentifierToken
@@ -1298,6 +1298,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot
             Return If(TryCast(node, QualifiedNameSyntax)?.Right,
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
+        End Function
+
+        Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+        End Function
+
+        Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+        End Function
+
+        Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
+            Return TryCast(node, AssignmentStatementSyntax)?.Right
+        End Function
+
+        Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
+            Return node.IsKind(SyntaxKind.InferredFieldInitializer)
+        End Function
+
+        Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
+            Return False
+        End Function
+
+        Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
+            Return False
+        End Function
+
+        Public Function GetContentsOfInterpolatedString(interpolatedString As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetContentsOfInterpolatedString
+            Return (TryCast(interpolatedString, InterpolatedStringExpressionSyntax)?.Contents).Value
+        End Function
+
+        Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
+            Return token.IsKind(SyntaxKind.StringLiteralToken)
+        End Function
+
+        Public Function GetArgumentsForInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsForInvocationExpression
+            Return (TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList.Arguments).Value
+        End Function
+
+        Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
+            Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
     End Class
 End Namespace

@@ -2697,7 +2697,7 @@ index: 1);
             await TestAsync(
 @"interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
 @"using System; interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : IInterface { (int, string) x; public (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2706,7 +2706,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
 @"using System; interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : IInterface { (int, string) x; public (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2715,7 +2715,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
 @"using System; interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string), int) Method1 (((int, string), int) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2724,7 +2724,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
 @"using System; interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string) a, int b) Method1 (((int, string) a, int b) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
     }
 }

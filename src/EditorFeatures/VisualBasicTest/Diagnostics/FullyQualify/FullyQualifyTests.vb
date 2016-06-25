@@ -30,6 +30,35 @@ NewLines("Class Class1 \n Dim v As [|SomeClass1|] \n End Class \n Namespace Some
 NewLines("Class Class1 \n Dim v As SomeNamespace.SomeClass1 \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"))
         End Function
 
+        Public Async Function TestOrdering() As Task
+            Dim code = "
+namespace System.Windows.Controls
+    public class TextBox
+    end class
+end namespace
+
+namespace System.Windows.Forms
+    public class TextBox
+    end class
+end namespace
+
+namespace System.Windows.Forms.VisualStyles.VisualStyleElement
+    public class TextBox
+    end class
+end namespace
+
+Public Class TextBoxEx
+    Inherits TextBox
+
+End Class"
+
+            Await TestExactActionSetOfferedAsync(
+                code,
+                {"System.Windows.Controls.TextBox",
+                 "System.Windows.Forms.TextBox",
+                 "System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox"})
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestSimpleQualifyFromReference() As Task
             Await TestAsync(

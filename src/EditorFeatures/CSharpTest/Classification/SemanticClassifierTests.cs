@@ -1474,8 +1474,8 @@ class C
         public async Task Tuples()
         {
             await TestAsync(@"class C { (int a, int b) x; }",
-                TestOptions.Regular.WithTuplesFeature(),
-                Options.Script.WithTuplesFeature());
+                TestOptions.Regular,
+                Options.Script);
         }
     }
 }

@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             private const char QuoteCharacter = '"';
             private readonly SyntaxToken _token;
 
-            public SimpleStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken)
+            public SimpleStringSplitter(Document document, int position, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, cancellationToken)
             {
                 _token = token;
             }

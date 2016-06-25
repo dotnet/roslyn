@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return false;
             }
 
-            public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+            public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
                 // right now, there is no way to observe diagnostics for closed file.
                 if (!_workspace.IsDocumentOpen(document.Id) ||
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
-            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
             {
                 // right now, there is no way to observe diagnostics for closed file.
                 if (!_workspace.IsDocumentOpen(document.Id) ||
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId));
             }
 
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable;
@@ -15,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     public class IntroduceVariableTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new IntroduceVariableCodeRefactoringProvider();
         }
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
@@ -2706,7 +2707,7 @@ var expected =
     var i = (1, V).ToString();
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2725,7 +2726,7 @@ var expected =
     var i = p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2744,7 +2745,7 @@ var expected =
     var i = p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2763,7 +2764,7 @@ var expected =
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2782,7 +2783,7 @@ var expected =
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2801,7 +2802,7 @@ var expected =
     var i = p.ToString() + (c: 1, d: ""hello"").ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2820,10 +2821,10 @@ var expected =
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
 
             // no third action available
-            await TestActionCountAsync(code, 2, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            await TestActionCountAsync(code, 2, parseOptions: TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2835,7 +2836,7 @@ var expected =
                 @"class C { void Foo() { Bar([|(1, ""hello"")|]); Bar((1, ""hello""); } }",
                 @"",
                 index: 3,
-                parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                parseOptions: TestOptions.Regular,
                 withScriptOption: true)
             );
         }

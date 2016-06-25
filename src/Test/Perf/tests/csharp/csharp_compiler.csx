@@ -1,11 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 #r "../../../Roslyn.Test.Performance.Utilities.dll"
 
-// TestThisPlease()
-#load "../../util/test_util.csx"
-// IsVerbose()
-#load "../../util/tools_util.csx"
-
 using System.IO;
 using System.Collections.Generic;
 using Roslyn.Test.Performance.Utilities;
@@ -34,7 +29,7 @@ class CSharpCompilerTest: PerfTest
 
         string workingDirectory = Path.Combine(TempDirectory, "csharp");
 
-        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, IsVerbose(), _logger, workingDirectory);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, workingDirectory);
         _logger.Flush();
     }
     
