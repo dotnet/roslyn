@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case 1:
                 break;
-            case var i when ((i&1) == 0): // error: subsumed
+            case var i when ((i&1) == 0):
                 break; // warning: unreachable (1)
             case 1: // error: duplicate case label
                 break; // warning: unreachable (2)
@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: // error: duplicate case label
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case var i when ((i&1) == 0): // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(9, 18),
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable (1)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
@@ -90,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 break; // warning: unreachable code (impossible given the value)
             case 1 when true:
                 break;
-            case 1:
-                break;
+            case 1: // error: handled previously
+                break; // warning
         }
     }
 }";
@@ -152,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case bool n:
                 break;
-            case ""foo"": // error: subsumed by previous case
-                break;
+            case ""foo"": // wrong type
+                break; // unreachable
         }
     }
 }";
@@ -184,7 +181,7 @@ public class X
             case IComparable i1:
                 break;
             case string s: // error: subsumed by previous case
-                break;
+                break; // unreachable
         }
     }
 }";
@@ -216,7 +213,7 @@ public class X
             case IEnumerable i:
                 break;
             case IEnumerable<string> i: // error: subsumed by previous case
-                break;
+                break; // unreachable
         }
     }
 }";
@@ -246,7 +243,7 @@ public class X : List<string>
             case List<string> list:
                 break;
             case X list: // error: subsumed by previous case
-                break;
+                break; // unreachable
         }
     }
 }";
@@ -276,13 +273,20 @@ public class X : List<string>
             case true:
             case false:
                 break;
-            case var x: // OK; there are 256 values of bool!, and in any case we do not do value-based exhaustiveness checking
-                break;
+            case var x: // error: subsumed
+                break; // unreachable
         }
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var x: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
         }
 
         [Fact]
@@ -300,7 +304,7 @@ public class X : List<string>
             case null:
                 break;
             case var x: // error: subsumed by previous cases
-                break;
+                break; // unreachable
         }
     }
 }";
@@ -490,6 +494,174 @@ null";
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        public void Subsumption01()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case int i:
+                break;
+            case 11: // error: subsumed
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 11: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 11:").WithLocation(9, 13),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption02()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (args.Length == 1)
+        {
+            case true:
+            case false:
+                break;
+            case bool b: // error: subsumed
+                break; // unreachable
+            default: //ok
+                break; // always considered reachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case bool b: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption03()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (1)
+        {
+            case 2 when true:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption04()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch ((object)null)
+        {
+            case object o:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption05()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (""silly"")
+        {
+            case null when true:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption06()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (new object())
+        {
+            case null when true:
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Subsumption07()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch ((bool?)null)
+        {
+            case null when true:
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
                 );
         }
     }

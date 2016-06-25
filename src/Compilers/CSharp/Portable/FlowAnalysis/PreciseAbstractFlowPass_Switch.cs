@@ -150,6 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // simulate the dispatch (setting pattern variables and jumping to labels) using the decision tree
             VisitDecisionTree(node.DecisionTree);
 
+            // we always consider the default label reachable for flow analysis purposes.
+            if (node.DefaultLabel != null)
+            {
+                _pendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
+            }
+
             // visit switch sections
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
@@ -182,11 +188,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decisionTree;
+                        var expressionIsConstant = byValue.Expression.ConstantValue != null;
+                        bool valueHandled = false;
                         foreach (var kvp in byValue.ValueAndDecision)
                         {
-                            VisitDecisionTree(kvp.Value);
+                            if (!expressionIsConstant || Equals(byValue.Expression.ConstantValue, kvp.Key))
+                            {
+                                VisitDecisionTree(kvp.Value);
+                                valueHandled = true;
+                            }
                         }
-                        VisitDecisionTree(byValue.Default);
+                        if (!expressionIsConstant || !valueHandled) VisitDecisionTree(byValue.Default);
                         return;
                     }
                 case DecisionTree.DecisionKind.Guarded:
