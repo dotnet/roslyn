@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace.EnableDiagnostic();
             }
 
-            return diffViewer;
+            return new DifferenceViewerPreview(diffViewer);
         }
 
         private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
