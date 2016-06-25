@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 1:
+                //             case 1: // error: handled previously
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:").WithLocation(11, 13),
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable code (impossible given the value)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17),
                 // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
+                //                 break; // warning
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // error: subsumed by previous case
+                //             case "foo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
+                //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
@@ -192,7 +192,7 @@ public class X
                 //             case string s: // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "string s").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
+                //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
@@ -223,7 +223,7 @@ public class X
                 //             case IEnumerable<string> i: // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<string> i").WithLocation(12, 18),
                 // (13,17): warning CS0162: Unreachable code detected
-                //                 break;
+                //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
                 );
         }
@@ -254,7 +254,7 @@ public class X : List<string>
                 //             case X list: // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "X list").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
+                //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
@@ -314,7 +314,7 @@ public class X : List<string>
                 //             case var x: // error: subsumed by previous cases
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
+                //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }

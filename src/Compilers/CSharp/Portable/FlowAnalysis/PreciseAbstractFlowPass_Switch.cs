@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool valueHandled = false;
                         foreach (var kvp in byValue.ValueAndDecision)
                         {
-                            if (!expressionIsConstant || Equals(byValue.Expression.ConstantValue, kvp.Key))
+                            if (!expressionIsConstant || Equals(byValue.Expression.ConstantValue.Value, kvp.Key))
                             {
                                 VisitDecisionTree(kvp.Value);
                                 valueHandled = true;

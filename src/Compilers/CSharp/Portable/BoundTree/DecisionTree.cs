@@ -928,6 +928,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public enum DecisionKind { ByType, ByValue, Guarded }
         public abstract DecisionKind Kind { get; }
 
+#if DEBUG
+        internal string Dump()
+        {
+            var builder = new StringBuilder();
+            DumpInternal(builder, 0);
+            return builder.ToString();
+        }
+        internal abstract void DumpInternal(StringBuilder builder, int indent);
+#endif
         public DecisionTree(BoundExpression expression, TypeSymbol type)
         {
             this.Expression = expression;
@@ -961,6 +970,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByType;
             public ByType(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
+#if DEBUG
+            internal override void DumpInternal(StringBuilder builder, int indent)
+            {
+                builder.AppendLine($"{"".PadLeft(indent)}ByType");
+                if (WhenNull != null)
+                {
+                    builder.AppendLine($"{"".PadLeft(indent+2)}null");
+                    WhenNull.DumpInternal(builder, indent + 4);
+                }
+                foreach (var kv in TypeAndDecision)
+                {
+                    builder.AppendLine($"{"".PadLeft(indent + 2)}{kv.Key}");
+                    kv.Value.DumpInternal(builder, indent + 4);
+                }
+                if (Default != null)
+                {
+                    builder.AppendLine($"{"".PadLeft(indent + 2)}default");
+                    Default.DumpInternal(builder, indent + 4);
+                }
+            }
+#endif
         }
 
         public class ByValue : DecisionTree
@@ -970,6 +1000,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByValue;
             public ByValue(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
+#if DEBUG
+            internal override void DumpInternal(StringBuilder builder, int indent)
+            {
+                builder.AppendLine($"{"".PadLeft(indent)}ByValue");
+                foreach (var kv in ValueAndDecision)
+                {
+                    builder.AppendLine($"{"".PadLeft(indent + 2)}{kv.Key}");
+                    kv.Value.DumpInternal(builder, indent + 4);
+                }
+                if (Default != null)
+                {
+                    builder.AppendLine($"{"".PadLeft(indent + 2)}default");
+                    Default.DumpInternal(builder, indent + 4);
+                }
+            }
+#endif
         }
 
         public class Guarded : DecisionTree
@@ -995,6 +1041,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.MatchIsComplete =
                     (guard == null) || (guard.ConstantValue == ConstantValue.True);
             }
+#if DEBUG
+            internal override void DumpInternal(StringBuilder builder, int indent)
+            {
+                builder.Append($"{"".PadLeft(indent)}Guarded");
+                if (Guard != null) builder.Append($" guard={Guard.Syntax.ToString()}");
+                builder.AppendLine($" label={Label.Syntax.ToString()}");
+            }
+#endif
         }
     }
 }
