@@ -549,7 +549,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = GetBinder(node);
             Debug.Assert(binder != null);
 
-            return binder.WrapWithVariablesIfAny(node, binder.BindDeclarationStatementParts(node, diagnostics));
+            if (node.Declaration.Deconstruction == null)
+            {
+                return binder.WrapWithVariablesIfAny(node, binder.BindDeclarationStatementParts(node, diagnostics));
+            }
+            else
+            {
+                return binder.WrapWithVariablesIfAny(node, binder.BindDeconstructionDeclarationStatementParts(node, diagnostics));
+            }
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)

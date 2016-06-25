@@ -412,6 +412,80 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return BadExpression(syntax, childNode);
         }
+
+        private BoundStatement BindDeconstructionDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            ImmutableArray<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, diagnostics);
+            // those variables may contain error types for 'var'
+            // prepare deconstruction steps and infer types
+            // return a BoundDeconstructionAssignmentOperator
+
+            throw new System.NotImplementedException();
+        }
+
+        // There are four cases for VariableDeclaration:
+        // - type and declarators are set, but deconstruction is null. This could represent `int x`, which is a single variable.
+        // - type is null, declarators are set, but deconstruction is null. This could represent `x`, which is a single variable.
+        // - type is set to 'var', declarators are null, and deconstruction is set. This could represent `var (...)`
+        // - type and declarators are null, but deconstruction is set. Thi could represent `(int x, ...)`
+        private ImmutableArray<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.Deconstruction != null);
+            var variables = node.Deconstruction.Variables;
+
+            var localsBuilder = ArrayBuilder<BoundLocalDeclaration>.GetInstance(variables.Count);
+            var variablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(variables.Count);
+            foreach (var variable in variables)
+            {
+                if (variable.Deconstruction == null)
+                {
+                    variablesBuilder.Add(new DeconstructionVariable(BindDeconstructionDeclarationVariable(node, node.Type, localsBuilder, diagnostics)));
+                }
+                else
+                {
+                    variablesBuilder.Add(new DeconstructionVariable(BindDeconstructionDeclarationVariables(node, diagnostics)));
+                }
+            }
+
+            return variablesBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Returns a BoundLocal when the type was explicit, otherwise returns a DeconstructionLocalPendingInference.
+        /// </summary>
+        private BoundExpression BindDeconstructionDeclarationVariable(VariableDeclarationSyntax node, TypeSyntax varSyntax, ArrayBuilder<BoundLocalDeclaration> locals, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.Deconstruction == null);
+            Debug.Assert(varSyntax != null || node.Type != null);
+            Debug.Assert(node.Variables.Count == 1);
+
+            var declarator = node.Variables[0];
+            var typeSyntax = varSyntax ?? node.Type;
+
+            bool isConst = false;
+
+            AliasSymbol alias;
+            bool isVar;
+            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+            Debug.Assert((varSyntax != null) == isVar);
+
+            var localSymbol = LocateDeclaredVariableSymbol(declarator, typeSyntax);
+
+            // Check for variable declaration errors.
+            // Use the binder that owns the scope for the local because this (the current) binder
+            // might own nested scope.
+            bool hasErrors = localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+
+            if (isVar)
+            {
+                return new DeconstructionLocalPendingInference(declarator, localSymbol);
+            }
+            else
+            {
+                DeclareLocalVariable(localSymbol, declarator.Identifier, declType);
+                return new BoundLocal(declarator, localSymbol, constantValueOpt: null, type: declType);
+            }
+        }
     }
 }
 
