@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 {
@@ -395,7 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                     // Get the Method symbol for the Delegate to be created
                     if (generateTypeServiceStateOptions.IsDelegateAllowed &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1)
+                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1 &&
+                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression != null)
                     {
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression, cancellationToken);
                     }
@@ -522,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return false;
         }
 
-        protected override IList<string> GenerateParameterNames(
+        protected override IList<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IList<ArgumentSyntax> arguments)
         {
             return semanticModel.GenerateParameterNames(arguments);
@@ -945,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
                 var parameterTypes = newObjectCreation.ArgumentList.Arguments.Select(
-                    a => speculativeModel.GetTypeInfo(a.Expression, cancellationToken).ConvertedType).ToList();
+                    a => a.DetermineParameterType(speculativeModel, cancellationToken)).ToList();
 
                 return GenerateConstructorHelpers.GetDelegatingConstructor(
                     document, symbolInfo, candidates, namedType, parameterTypes);

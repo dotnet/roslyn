@@ -148,9 +148,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Bind constant to ensure diagnostics are captured,
                             ' only generate a field initializer for decimals and dates, because they can't be compile time
                             ' constant in CLR/IL.
-                            initializerBinder.BindConstFieldInitializer(fieldSymbol,
-                                                                        initializerNode,
-                                                                        boundInitializers)
+                            BindConstFieldInitializer(fieldSymbol,
+                                                      initializerNode,
+                                                      boundInitializers)
 
                             If fieldSymbol.Type.SpecialType = SpecialType.System_DateTime Then
                                 '  report proper diagnostics for System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor if needed
@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="fieldSymbol">The field symbol.</param>
         ''' <param name="equalsValueOrAsNewSyntax">The syntax node for the optional initialization.</param>
         ''' <param name="boundInitializers">The array of bound initializers to add the newly bound ones to.</param>
-        Private Sub BindConstFieldInitializer(
+        Private Shared Sub BindConstFieldInitializer(
             fieldSymbol As SourceFieldSymbol,
             equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer))

@@ -24,12 +24,6 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-    using Roslyn.Reflection.Metadata;
-    using Roslyn.Reflection.Metadata.Ecma335;
-    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
-    using Roslyn.Reflection.PortableExecutable;
-
     internal abstract partial class MetadataWriter
     {
         private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
@@ -96,7 +90,6 @@ namespace Microsoft.Cci
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
 
             _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-            _exportedTypeIndex = new Dictionary<ITypeReference, int>(_numTypeDefsEstimate);
             _exportedTypeList = new List<ITypeReference>(_numTypeDefsEstimate);
 
             this.Context = context;
@@ -430,7 +423,6 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
         private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
-        private readonly Dictionary<ITypeReference, int> _exportedTypeIndex; // value is a RowId
         private readonly List<ITypeReference> _exportedTypeList;
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
@@ -476,7 +468,6 @@ namespace Microsoft.Cci
             this.CreateInitialAssemblyRefIndex();
             this.CreateInitialFileRefIndex();
             this.CreateIndicesForModule();
-            this.CreateInitialExportedTypeIndex();
 
             // Find all references and assign tokens.
             _referenceVisitor = this.CreateReferenceVisitor();
@@ -671,23 +662,6 @@ namespace Microsoft.Cci
             foreach (IAssemblyReference assemblyRef in this.module.GetAssemblyReferences(Context))
             {
                 this.GetOrAddAssemblyReferenceHandle(assemblyRef);
-            }
-        }
-
-        private void CreateInitialExportedTypeIndex()
-        {
-            Debug.Assert(!_tableIndicesAreComplete);
-
-            if (this.IsFullMetadata)
-            {
-                foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
-                {
-                    if (!_exportedTypeIndex.ContainsKey(exportedType))
-                    {
-                        _exportedTypeList.Add(exportedType);
-                        _exportedTypeIndex.Add(exportedType, _exportedTypeList.Count);
-                    }
-                }
             }
         }
 
@@ -934,7 +908,7 @@ namespace Microsoft.Cci
                 return resource.Offset;
             }
 
-            int result = resourceWriter.Position;
+            int result = resourceWriter.Count;
             resource.WriteData(resourceWriter);
             return (uint)result;
         }
@@ -1089,8 +1063,6 @@ namespace Microsoft.Cci
                 var typeRef = typeReference;
                 SerializeTypeReference(encoder.AddArgument(), typeRef);
             }
-
-            encoder.EndArguments();
 
             result = metadata.GetOrAddBlob(builder);
             _methodInstanceSignatureIndex.Add(methodInstanceReference, result);
@@ -1788,9 +1760,9 @@ namespace Microsoft.Cci
             return new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
         }
 
-        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, MethodDefinitionHandle debugEntryPoint)
+        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
         {
-            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPoint, IsMinimalDelta);
+            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPoint, IsMinimalDelta, deterministicIdProviderOpt);
         }
 
         internal void GetEntryPoints(out MethodDefinitionHandle entryPointHandle, out MethodDefinitionHandle debugEntryPointHandle)
@@ -1823,7 +1795,7 @@ namespace Microsoft.Cci
             return GetGenericParameters().OrderBy((x, y) =>
             {
                 // Spec: GenericParam table is sorted by Owner and then by Number.
-                int result = (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
+                int result = CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
                 if (result != 0)
                 {
                     return result;
@@ -2131,79 +2103,56 @@ namespace Microsoft.Cci
 
         private void PopulateExportedTypeTableRows()
         {
-            if (this.IsFullMetadata)
+            if (!IsFullMetadata)
             {
-                metadata.SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
+                return;
+            }
 
-                foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
+            var exportedTypes = module.GetExportedTypes(Context.Diagnostics);
+            if (exportedTypes.Length == 0)
+            {
+                return;
+            }
+
+            metadata.SetCapacity(TableIndex.ExportedType, exportedTypes.Length);
+
+            foreach (var exportedType in exportedTypes)
+            {
+                INestedTypeReference nestedRef;
+                INamespaceTypeReference namespaceTypeRef;
+                TypeAttributes attributes;
+                StringHandle typeName;
+                StringHandle typeNamespace;
+                EntityHandle implementation;
+
+                if ((namespaceTypeRef = exportedType.Type.AsNamespaceTypeReference) != null)
                 {
-                    INestedTypeReference nestedRef;
-                    INamespaceTypeReference namespaceTypeRef;
-
-                    TypeFlags flags;
-                    int typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
-                    StringHandle typeName;
-                    StringHandle typeNamespace;
-                    EntityHandle implementation;
-
-                    if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
-                    {
-                        flags = TypeFlags.PublicAccess;
-
-                        string mangledTypeName = GetMangledName(namespaceTypeRef);
-                        typeName = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                        typeNamespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
-                        implementation = GetExportedTypeImplementation(namespaceTypeRef);
-
-                        if (implementation.Kind == HandleKind.AssemblyReference)
-                        {
-                            flags = TypeFlags.PrivateAccess | TypeFlags.ForwarderImplementation;
-                            typeDefinitionId = 0; // Must be cleared for type forwarders.
-                        }
-                    }
-                    else if ((nestedRef = exportedType.AsNestedTypeReference) != null)
-                    {
-                        flags = TypeFlags.NestedPublicAccess;
-                        typeName = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
-                        typeNamespace = default(StringHandle);
-
-                        ITypeReference containingType = nestedRef.GetContainingType(Context);
-
-                        int exportedTypeIndex = _exportedTypeIndex[containingType];
-                        implementation = MetadataTokens.ExportedTypeHandle(exportedTypeIndex);
-
-                        var parentFlags = (TypeFlags)metadata.GetExportedTypeFlags(exportedTypeIndex - 1);
-                        if (parentFlags == TypeFlags.PrivateAccess)
-                        {
-                            flags = TypeFlags.PrivateAccess;
-                        }
-
-                        ITypeReference topLevelType = containingType;
-                        INestedTypeReference tmp;
-                        while ((tmp = topLevelType.AsNestedTypeReference) != null)
-                        {
-                            topLevelType = tmp.GetContainingType(Context);
-                        }
-
-                        var topLevelFlags = (TypeFlags)metadata.GetExportedTypeFlags(_exportedTypeIndex[topLevelType] - 1);
-                        if ((topLevelFlags & TypeFlags.ForwarderImplementation) != 0)
-                        {
-                            flags = TypeFlags.PrivateAccess;
-                            typeDefinitionId = 0; // Must be cleared for type forwarders and types they contain.
-                        }
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(exportedType);
-                    }
-
-                    metadata.AddExportedType(
-                        attributes: (TypeAttributes)flags,
-                        @namespace: typeNamespace,
-                        name: typeName,
-                        implementation: implementation,
-                        typeDefinitionId: typeDefinitionId);
+                    string mangledTypeName = GetMangledName(namespaceTypeRef);
+                    typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                    typeNamespace = GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    implementation = GetExportedTypeImplementation(namespaceTypeRef);
+                    attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic | Constants.TypeAttributes_TypeForwarder : TypeAttributes.Public;
                 }
+                else if ((nestedRef = exportedType.Type.AsNestedTypeReference) != null)
+                {
+                    Debug.Assert(exportedType.ParentIndex != -1);
+
+                    typeName = GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
+                    typeNamespace = default(StringHandle);
+                    implementation = MetadataTokens.ExportedTypeHandle(exportedType.ParentIndex + 1);
+                    attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic : TypeAttributes.NestedPublic;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(exportedType);
+                }
+
+                metadata.AddExportedType(
+                    attributes: attributes,
+                    @namespace: typeNamespace,
+                    name: typeName,
+                    implementation: implementation,
+                    typeDefinitionId: exportedType.IsForwarder ? 0 : MetadataTokens.GetToken(exportedType.Type.TypeDef));
             }
         }
 
@@ -2270,13 +2219,13 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                int rva = mappedFieldDataWriter.Position;
+                int offset = mappedFieldDataWriter.Count;
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
-                mappedFieldDataWriter.Align(ManagedTextSection.MappedFieldDataAlignment);
+                mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 
                 metadata.AddFieldRelativeVirtualAddress(
                     field: GetFieldDefinitionHandle(fieldDef),
-                    relativeVirtualAddress: rva);
+                    offset: offset);
             }
         }
 
@@ -2399,7 +2348,7 @@ namespace Microsoft.Cci
                     : metadata.GetOrAddString(methodDef.Name); // Length checked while populating the method def table.
 
                 metadata.AddMethodImport(
-                    member: GetMethodDefinitionHandle(methodDef),
+                    method: GetMethodDefinitionHandle(methodDef),
                     attributes: data.Flags,
                     name: importName,
                     module: GetModuleReferenceHandle(data.ModuleName));
@@ -2444,7 +2393,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Count % ManagedTextSection.ManagedResourcesDataAlignment) == 0);
+            Debug.Assert((resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment) == 0);
         }
 
         private void PopulateMemberRefTableRows()
@@ -2501,7 +2450,7 @@ namespace Microsoft.Cci
                     name: GetStringHandleForNameAndCheckLength(methodDef.Name, methodDef),
                     signature: GetMethodSignatureHandle(methodDef),
                     bodyOffset: methodBodyOffsets[i],
-                    paramList: GetFirstParameterHandle(methodDef));
+                    parameterList: GetFirstParameterHandle(methodDef));
 
                 i++;
             }
@@ -2520,18 +2469,18 @@ namespace Microsoft.Cci
                 var association = GetPropertyDefIndex(propertyDef);
                 foreach (IMethodReference accessorMethod in propertyDef.Accessors)
                 {
-                    ushort semantics;
+                    MethodSemanticsAttributes semantics;
                     if (accessorMethod == propertyDef.Setter)
                     {
-                        semantics = 0x0001;
+                        semantics = MethodSemanticsAttributes.Setter;
                     }
                     else if (accessorMethod == propertyDef.Getter)
                     {
-                        semantics = 0x0002;
+                        semantics = MethodSemanticsAttributes.Getter;
                     }
                     else
                     {
-                        semantics = 0x0004;
+                        semantics = MethodSemanticsAttributes.Other;
                     }
 
                     metadata.AddMethodSemantics(
@@ -2546,22 +2495,22 @@ namespace Microsoft.Cci
                 var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.Accessors)
                 {
-                    ushort semantics;
+                    MethodSemanticsAttributes semantics;
                     if (accessorMethod == eventDef.Adder)
                     {
-                        semantics = 0x0008;
+                        semantics = MethodSemanticsAttributes.Adder;
                     }
                     else if (accessorMethod == eventDef.Remover)
                     {
-                        semantics = 0x0010;
+                        semantics = MethodSemanticsAttributes.Remover;
                     }
                     else if (accessorMethod == eventDef.Caller)
                     {
-                        semantics = 0x0020;
+                        semantics = MethodSemanticsAttributes.Raiser;
                     }
                     else
                     {
-                        semantics = 0x0004;
+                        semantics = MethodSemanticsAttributes.Other;
                     }
 
                     metadata.AddMethodSemantics(
@@ -2891,8 +2840,6 @@ namespace Microsoft.Cci
                 SerializeLocalVariableType(encoder.AddVariable(), local);
             }
 
-            encoder.EndVariables();
-
             BlobHandle blobIndex = metadata.GetOrAddBlob(builder);
 
             var handle = GetOrAddStandaloneSignatureHandle(blobIndex);
@@ -3163,8 +3110,6 @@ namespace Microsoft.Cci
                 ITypeReference typeRef = genericArgument;
                 SerializeTypeReference(argsEncoder.AddArgument(), typeRef);
             }
-
-            argsEncoder.EndArguments();
         }
 
         private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
@@ -3182,8 +3127,6 @@ namespace Microsoft.Cci
                 SerializeMetadataExpression(fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
             }
 
-            fixedArgsEncoder.EndArguments();
-
             SerializeCustomAttributeNamedArguments(namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
         }
 
@@ -3200,8 +3143,6 @@ namespace Microsoft.Cci
                 nameEncoder.Name(namedArgument.ArgumentName);
                 SerializeMetadataExpression(literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
             }
-
-            encoder.EndArguments();
         }
 
         private void SerializeNamedArgumentType(NamedArgumentTypeEncoder encoder, ITypeReference type)
@@ -3257,8 +3198,6 @@ namespace Microsoft.Cci
                 {
                     SerializeMetadataExpression(literalsEncoder.AddLiteral(), elemValue, targetElementType);
                 }
-
-                literalsEncoder.EndLiterals();
             }
             else
             {
@@ -3525,8 +3464,6 @@ namespace Microsoft.Cci
                     SerializeParameterInformation(parametersEncoder.AddParameter(), parameter);
                 }
             }
-
-            parametersEncoder.EndParameters();
         }
 
         private void SerializeTypeReference(SignatureTypeEncoder encoder, ITypeReference typeReference)
@@ -3550,7 +3487,7 @@ namespace Microsoft.Cci
                 var primitiveType = typeReference.TypeCode(Context);
                 if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
                 {
-                    encoder.PrimitiveType(primitiveType);
+                    SerializePrimitiveType(encoder, primitiveType);
                     return;
                 }
 
@@ -3624,9 +3561,9 @@ namespace Microsoft.Cci
                     typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, this.Context);
 
                     var genericArgsEncoder = encoder.GenericInstantiation(
-                        typeReference.IsValueType,
                         GetTypeHandle(uninstantiatedTypeReference, treatRefAsPotentialTypeSpec: false),
-                        consolidatedTypeArguments.Count);
+                        consolidatedTypeArguments.Count,
+                        typeReference.IsValueType);
 
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
                     {
@@ -3634,12 +3571,80 @@ namespace Microsoft.Cci
                     }
 
                     consolidatedTypeArguments.Free();
-                    genericArgsEncoder.EndArguments();
                     return;
                 }
 
-                encoder.TypeDefOrRefOrSpec(typeReference.IsValueType, GetTypeHandle(typeReference));
+                encoder.Type(GetTypeHandle(typeReference), typeReference.IsValueType);
                 return;
+            }
+        }
+
+        private static void SerializePrimitiveType(SignatureTypeEncoder encoder, PrimitiveTypeCode primitiveType)
+        {
+            switch (primitiveType)
+            {
+                case PrimitiveTypeCode.Boolean:
+                    encoder.Boolean();
+                    break;
+
+                case PrimitiveTypeCode.UInt8:
+                    encoder.Byte();
+                    break;
+
+                case PrimitiveTypeCode.Int8:
+                    encoder.SByte();
+                    break;
+
+                case PrimitiveTypeCode.Char:
+                    encoder.Char();
+                    break;
+
+                case PrimitiveTypeCode.Int16:
+                    encoder.Int16();
+                    break;
+
+                case PrimitiveTypeCode.UInt16:
+                    encoder.UInt16();
+                    break;
+
+                case PrimitiveTypeCode.Int32:
+                    encoder.Int32();
+                    break;
+
+                case PrimitiveTypeCode.UInt32:
+                    encoder.UInt32();
+                    break;
+
+                case PrimitiveTypeCode.Int64:
+                    encoder.Int64();
+                    break;
+
+                case PrimitiveTypeCode.UInt64:
+                    encoder.UInt64();
+                    break;
+
+                case PrimitiveTypeCode.Float32:
+                    encoder.Single();
+                    break;
+
+                case PrimitiveTypeCode.Float64:
+                    encoder.Double();
+                    break;
+
+                case PrimitiveTypeCode.IntPtr:
+                    encoder.IntPtr();
+                    break;
+
+                case PrimitiveTypeCode.UIntPtr:
+                    encoder.UIntPtr();
+                    break;
+
+                case PrimitiveTypeCode.String:
+                    encoder.String();
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(primitiveType);
             }
         }
 
@@ -3675,7 +3680,7 @@ namespace Microsoft.Cci
             var primitiveType = typeReference.TypeCode(Context);
             if (primitiveType != PrimitiveTypeCode.NotPrimitive)
             {
-                encoder.PrimitiveType(primitiveType);
+                SerializePrimitiveType(encoder, primitiveType);
             }
             else if (module.IsPlatformType(typeReference, PlatformType.SystemType))
             {
@@ -3685,6 +3690,67 @@ namespace Microsoft.Cci
             {
                 Debug.Assert(typeReference.IsEnum);
                 encoder.Enum(typeReference.GetSerializedTypeName(this.Context));
+            }
+        }
+
+        private static void SerializePrimitiveType(CustomAttributeElementTypeEncoder encoder, PrimitiveTypeCode primitiveType)
+        {
+            switch (primitiveType)
+            {
+                case PrimitiveTypeCode.Boolean:
+                    encoder.Boolean();
+                    break;
+
+                case PrimitiveTypeCode.UInt8:
+                    encoder.Byte();
+                    break;
+
+                case PrimitiveTypeCode.Int8:
+                    encoder.SByte();
+                    break;
+
+                case PrimitiveTypeCode.Char:
+                    encoder.Char();
+                    break;
+
+                case PrimitiveTypeCode.Int16:
+                    encoder.Int16();
+                    break;
+
+                case PrimitiveTypeCode.UInt16:
+                    encoder.UInt16();
+                    break;
+
+                case PrimitiveTypeCode.Int32:
+                    encoder.Int32();
+                    break;
+
+                case PrimitiveTypeCode.UInt32:
+                    encoder.UInt32();
+                    break;
+
+                case PrimitiveTypeCode.Int64:
+                    encoder.Int64();
+                    break;
+
+                case PrimitiveTypeCode.UInt64:
+                    encoder.UInt64();
+                    break;
+
+                case PrimitiveTypeCode.Float32:
+                    encoder.Single();
+                    break;
+
+                case PrimitiveTypeCode.Float64:
+                    encoder.Double();
+                    break;
+
+                case PrimitiveTypeCode.String:
+                    encoder.String();
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(primitiveType);
             }
         }
 
@@ -3698,10 +3764,8 @@ namespace Microsoft.Cci
             for (int i = 0; i < count; i++)
             {
                 var modifier = modifiers[start + i];
-                encoder = encoder.AddModifier(modifier.IsOptional, GetTypeHandle(modifier.GetModifier(Context)));
+                encoder = encoder.AddModifier(GetTypeHandle(modifier.GetModifier(Context)), modifier.IsOptional);
             }
-
-            encoder.EndModifiers();
         }
 
         private int GetNumberOfInheritedTypeParameters(ITypeReference type)

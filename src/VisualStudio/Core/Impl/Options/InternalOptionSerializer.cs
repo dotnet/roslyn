@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         CacheOptions.FeatureName,
         InternalDiagnosticsOptions.OptionName,
         InternalSolutionCrawlerOptions.OptionName), Shared]
-    internal class InternalOptionSerializer : AbstractSettingStoreOptionSerializer
+    internal class InternalOptionSerializer : AbstractLocalUserRegistryOptionSerializer
     {
         [ImportingConstructor]
         public InternalOptionSerializer(SVsServiceProvider serviceProvider)
@@ -29,62 +29,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
         }
 
-        protected override Tuple<string, string> GetCollectionPathAndPropertyNameForOption(IOption key, string languageName)
+        protected override string GetCollectionPathForOption(OptionKey key)
         {
-            if (key.Feature == EditorComponentOnOffOptions.OptionName)
+            if (key.Option.Feature == EditorComponentOnOffOptions.OptionName)
             {
-                return Tuple.Create(@"Roslyn\Internal\OnOff\Components", key.Name);
+                return @"Roslyn\Internal\OnOff\Components";
             }
-            else if (key.Feature == InternalFeatureOnOffOptions.OptionName)
+            else if (key.Option.Feature == InternalFeatureOnOffOptions.OptionName)
             {
-                return Tuple.Create(@"Roslyn\Internal\OnOff\Features", key.Name);
+                return @"Roslyn\Internal\OnOff\Features";
             }
-            else if (key.Feature == PerformanceFunctionIdOptionsProvider.Name)
+            else if (key.Option.Feature == PerformanceFunctionIdOptionsProvider.Name)
             {
-                return Tuple.Create(@"Roslyn\Internal\Performance\FunctionId", key.Name);
+                return @"Roslyn\Internal\Performance\FunctionId";
             }
-            else if (key.Feature == LoggerOptions.FeatureName)
+            else if (key.Option.Feature == LoggerOptions.FeatureName)
             {
-                return Tuple.Create(@"Roslyn\Internal\Performance\Logger", key.Name);
+                return @"Roslyn\Internal\Performance\Logger";
             }
-            else if (key.Feature == InternalDiagnosticsOptions.OptionName)
+            else if (key.Option.Feature == InternalDiagnosticsOptions.OptionName)
             {
-                return Tuple.Create(@"Roslyn\Internal\Diagnostics", key.Name);
+                return @"Roslyn\Internal\Diagnostics";
             }
-            else if (key.Feature == InternalSolutionCrawlerOptions.OptionName)
+            else if (key.Option.Feature == InternalSolutionCrawlerOptions.OptionName)
             {
-                return Tuple.Create(@"Roslyn\Internal\SolutionCrawler", key.Name);
+                return @"Roslyn\Internal\SolutionCrawler";
             }
-            else if (key.Feature == CacheOptions.FeatureName)
+            else if (key.Option.Feature == CacheOptions.FeatureName)
             {
-                return Tuple.Create(@"Roslyn\Internal\Performance\Cache", key.Name);
+                return @"Roslyn\Internal\Performance\Cache";
             }
 
             throw ExceptionUtilities.Unreachable;
-        }
-
-        public override bool TryFetch(OptionKey optionKey, out object value)
-        {
-            switch (optionKey.Option.Feature)
-            {
-                case CacheOptions.FeatureName:
-                case InternalSolutionCrawlerOptions.OptionName:
-                    return TryFetch(optionKey, (r, k, o) => r.GetValue(k, defaultValue: o.DefaultValue), out value);
-            }
-
-            return base.TryFetch(optionKey, out value);
-        }
-
-        public override bool TryPersist(OptionKey optionKey, object value)
-        {
-            switch (optionKey.Option.Feature)
-            {
-                case CacheOptions.FeatureName:
-                case InternalSolutionCrawlerOptions.OptionName:
-                    return TryPersist(optionKey, value, (r, k, o, v) => r.SetValue(k, v, o.Type == typeof(int) ? RegistryValueKind.DWord : RegistryValueKind.QWord));
-            }
-
-            return base.TryPersist(optionKey, value);
         }
     }
 }

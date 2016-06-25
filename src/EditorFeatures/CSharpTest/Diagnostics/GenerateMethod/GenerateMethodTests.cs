@@ -27,6 +27,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")]
+        public async Task NameMatchesNamespaceName()
+        {
+            await TestAsync(
+@"namespace N {
+    class Class {
+        void Method() {
+            [|N|]();
+        }
+    }
+}",
+@"
+using System;
+
+namespace N {
+    class Class {
+        void Method() {
+            N();
+        }
+
+        private void N() {
+            throw new NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationOffOfThis()
         {
             await TestAsync(
@@ -2729,8 +2757,24 @@ namespace ConsoleApplication1
         public async Task TestGenerateMethodWithMethodChaining()
         {
             await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ; } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await Foo ( ) . ConfigureAwait ( false ) ; } private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ;
+using System . Collections . Generic ;
+using System . Linq ;
+using System . Threading . Tasks ;
+class Program {
+    static void Main ( string [ ] args ) {
+        bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ;
+    }
+}",
+@"using System ;
+using System . Collections . Generic ;
+using System . Linq ;
+using System . Threading . Tasks ;
+class Program {
+    static void Main ( string [ ] args ) {
+        bool x = await Foo ( ) . ConfigureAwait ( false ) ;
+    }
+    private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
@@ -2738,8 +2782,19 @@ namespace ConsoleApplication1
         public async Task TestGenerateMethodWithMethodChaining2()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await [|M|] ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } private static Task < bool > M ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ;
+using System . Threading . Tasks ;
+class C {
+    static async void T ( ) {
+        bool x = await [|M|] ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ;
+    }
+} ",
+@"using System ;
+using System . Threading . Tasks ;
+class C {
+    static async void T ( ) {
+        bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; }
+        private static Task<object> M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
@@ -2986,7 +3041,7 @@ class C
                 await TestAsync(
 @"class Class { void Method() { (int, string) d = [|NewMethod|]((1, ""hello"")); } }",
 @"using System; class Class { void Method() { (int, string) d = NewMethod((1, ""hello"")); } private (int, string) NewMethod((int, string) p) { throw new NotImplementedException(); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
             }
 
@@ -2996,7 +3051,7 @@ withScriptOption: true);
                 await TestAsync(
 @"class Class { void Method() { (int a, string b) d = [|NewMethod|]((c: 1, d: ""hello"")); } }",
 @"using System; class Class { void Method() { (int a, string b) d = NewMethod((c: 1, d: ""hello"")); } private (int a, string b) NewMethod((int c, string d) p) { throw new NotImplementedException(); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
             }
 
@@ -3006,8 +3061,44 @@ withScriptOption: true);
                 await TestAsync(
 @"class Class { void Method() { (int a, string) d = [|NewMethod|]((c: 1, ""hello"")); } }",
 @"using System; class Class { void Method() { (int a, string) d = NewMethod((c: 1, ""hello"")); } private (int a, string Item2) NewMethod((int c, string Item2) p) { throw new NotImplementedException(); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](out var c); } }",
+@"using System; class Class { void Method() { Undefined(out var c); } private void Undefined(out object c) { throw new NotImplementedException(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](out int c); } }",
+@"using System; class Class { void Method() { Undefined(out int c); } private void Undefined(out int c) { throw new NotImplementedException(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](a: out var c); } }",
+@"using System; class Class { void Method() { Undefined(a: out var c); } private void Undefined(out object a) { throw new NotImplementedException(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](a: out int c); } }",
+@"using System; class Class { void Method() { Undefined(a: out int c); } private void Undefined(out int a) { throw new NotImplementedException(); } }");
         }
     }
 }

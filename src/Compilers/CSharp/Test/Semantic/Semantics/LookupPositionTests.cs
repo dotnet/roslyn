@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -47,7 +48,7 @@ class C
                     "System.Type System.Object.GetType()"),
                 s_pop);
 
-            TestLookupNames(text, expectedNames, experimental: true);
+            TestLookupNames(text, expectedNames);
         }
 
         [Fact]
@@ -1527,10 +1528,10 @@ class Derived : Base<int>
         /// For each region of the program, a list of expected names must be provided.  This method
         /// will assert if any region contains different names than expected.
         /// </summary>
-        private static void TestLookupNames(string text, string[][] expectedNames, bool experimental = false)
+        private static void TestLookupNames(string text, string[][] expectedNames)
         {
             int[] keyPositions;
-            var model = GetModelAndKeyPositions(text, out keyPositions, experimental);
+            var model = GetModelAndKeyPositions(text, out keyPositions);
 
             // There should be one more list of expectedNames than there are backticks.
             // Number of key positions = number of backticks + 2 (start and end)
@@ -1554,7 +1555,7 @@ class Derived : Base<int>
         /// Strip the backticks out of "markedText" and record their positions.
         /// Return a SemanticModel for the compiled text.
         /// </summary>
-        private static SemanticModel GetModelAndKeyPositions(string markedText, out int[] keyPositions, bool experimental = false)
+        private static SemanticModel GetModelAndKeyPositions(string markedText, out int[] keyPositions)
         {
             ArrayBuilder<int> keyPositionBuilder = ArrayBuilder<int>.GetInstance();
             StringBuilder textBuilder = new StringBuilder();
@@ -1580,9 +1581,8 @@ class Derived : Base<int>
             keyPositions = keyPositionBuilder.ToArrayAndFree();
             var text = textBuilder.ToString();
 
-            var compilation = experimental
-                ? CreateExperimentalCompilationWithMscorlib45(text)
-                : CreateCompilationWithMscorlibAndDocumentationComments(text);
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var compilation = CreateCompilationWithMscorlib(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }

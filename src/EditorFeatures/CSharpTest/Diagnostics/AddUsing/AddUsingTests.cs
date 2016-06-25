@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
@@ -44,6 +45,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             await TestAsync(
 @"class Class { [|IDictionary|] Method() { Foo(); } }",
 @"using System.Collections; class Class { IDictionary Method() { Foo(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
+        public async Task TestAddImportWithCaseChange()
+        {
+            await TestAsync(
+@"namespace N1
+{
+    public class TextBox { }
+}
+
+class Class1 : [|Textbox|] { }
+",
+@"
+using N1;
+
+namespace N1
+{
+    public class TextBox { }
+}
+
+class Class1 : TextBox { }
+", priority: CodeActionPriority.Low);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
@@ -312,8 +337,31 @@ parseOptions: Options.Regular);
         public async Task TestMultiplePresortedUsings2()
         {
             await TestAsync(
-@"using B.X; using B.Y; class Class { void Method() { [|Foo|].Bar(); } } namespace B.A { class Foo { public static void Bar() { } } }",
-@"using B.A; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B.A { class Foo { public static void Bar() { } } }");
+@"using B.X;
+using B.Y;
+class Class {
+    void Method() {
+        [|Foo|].Bar();
+    }
+}
+namespace B.A {
+    class Foo {
+        public static void Bar() { }
+    }
+}",
+@"using B.A;
+using B.X;
+using B.Y;
+class Class {
+    void Method() {
+        Foo.Bar();
+    }
+}
+namespace B.A {
+    class Foo {
+        public static void Bar() { }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
@@ -1428,8 +1476,27 @@ class Test
         public async Task TestAddInsideUsingDirective5()
         {
             await TestAsync(
-@"using System.IO; namespace ns2 { using System.Diagnostics; namespace ns3 { using System.Collections; namespace ns { using B = [|Byte|]; } } }",
-@"using System.IO; namespace ns2 { using System.Diagnostics; namespace ns3 { using System; using System.Collections; namespace ns { using B = Byte; } } }");
+@"using System.IO;
+namespace ns2 {
+    using System.Diagnostics;
+    namespace ns3 {
+        using System.Collections;
+        namespace ns {
+            using B = [|Byte|];
+        }
+    }
+}",
+@"using System.IO;
+namespace ns2 {
+    using System.Diagnostics;
+    namespace ns3 {
+        using System;
+        using System.Collections;
+        namespace ns {
+            using B = Byte;
+        }
+    }
+}");
         }
 
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
@@ -1537,8 +1604,35 @@ public class C
         public async Task TestAmbiguousUsingName()
         {
             await TestAsync(
-@"namespace ClassLibrary1 { using System ; public class SomeTypeUser { [|SomeType|] field ; } } namespace SubNamespaceName { using System ; class SomeType { } } namespace ClassLibrary1 . SubNamespaceName { using System ; class SomeOtherFile { } } ",
-@"namespace ClassLibrary1 { using System ; using global::SubNamespaceName ; public class SomeTypeUser { SomeType field ; } } namespace SubNamespaceName { using System ; class SomeType { } } namespace ClassLibrary1 . SubNamespaceName { using System ; class SomeOtherFile { } } ");
+@"namespace ClassLibrary1 {
+    using System ;
+    public class SomeTypeUser { 
+        [|SomeType|] field ;
+    }
+}
+namespace SubNamespaceName {
+    using System ;
+    class SomeType { }
+}
+namespace ClassLibrary1 . SubNamespaceName { 
+    using System ;
+    class SomeOtherFile { }
+} ",
+@"namespace ClassLibrary1 {
+    using System ;
+    using global::SubNamespaceName ;
+    public class SomeTypeUser {
+        SomeType field ;
+    }
+}
+namespace SubNamespaceName {
+    using System ;
+    class SomeType { }
+}
+namespace ClassLibrary1 . SubNamespaceName { 
+    using System ;
+    class SomeOtherFile { }
+} ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
@@ -1720,7 +1814,7 @@ namespace A.B
 namespace A.C
 {
     using System;
-    using B;
+    using A.B;
     class T2
     {
         void Test()
@@ -1729,7 +1823,7 @@ namespace A.C
             T1 t1;
         }
     }
-}");
+}", systemSpecialCase: true);
         }
 
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
@@ -1773,8 +1867,23 @@ namespace A.C
         public async Task TestNestedNamespaceSimplified()
         {
             await TestAsync(
-@"namespace Microsoft . MyApp { using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
-@"namespace Microsoft . MyApp { using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+@"namespace Microsoft . MyApp {
+    using Win32 ;
+    class Program {
+        static void Main ( string [ ] args ) {
+            [|SafeRegistryHandle|] h ;
+        }
+    }
+} ",
+@"namespace Microsoft . MyApp {
+    using Microsoft.Win32 . SafeHandles ;
+    using Win32 ;
+    class Program {
+        static void Main ( string [ ] args ) {
+            SafeRegistryHandle h ;
+        }
+    }
+} ");
         }
 
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
@@ -1782,8 +1891,23 @@ namespace A.C
         public async Task TestNestedNamespaceSimplified2()
         {
             await TestAsync(
-@"namespace Microsoft . MyApp { using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
-@"namespace Microsoft . MyApp { using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+@"namespace Microsoft . MyApp {
+    using Zin32 ;
+    class Program {
+       static void Main ( string [ ] args ) { 
+            [|SafeRegistryHandle|] h ;
+        }
+    }
+} ",
+@"namespace Microsoft . MyApp {
+    using Microsoft . Win32 . SafeHandles ;
+    using Zin32 ;
+    class Program { 
+        static void Main ( string [ ] args ) { 
+            SafeRegistryHandle h ;
+        }
+    }
+} ");
         }
 
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
@@ -1791,8 +1915,25 @@ namespace A.C
         public async Task TestNestedNamespaceSimplified3()
         {
             await TestAsync(
-@"namespace Microsoft . MyApp { using System ; using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
-@"namespace Microsoft . MyApp { using System ; using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+@"namespace Microsoft . MyApp {
+    using System ;
+    using Win32 ;
+    class Program {
+        static void Main ( string [ ] args ) { 
+            [|SafeRegistryHandle|] h ;
+        }
+    }
+} ",
+@"namespace Microsoft . MyApp { 
+    using System ; 
+    using Microsoft.Win32 . SafeHandles ; 
+    using Win32 ; 
+    class Program { 
+        static void Main ( string [ ] args ) { 
+            SafeRegistryHandle h ;
+        }
+    }
+} ");
         }
 
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
@@ -1800,8 +1941,25 @@ namespace A.C
         public async Task TestNestedNamespaceSimplified4()
         {
             await TestAsync(
-@"namespace Microsoft . MyApp { using System ; using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
-@"namespace Microsoft . MyApp { using System ; using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+@"namespace Microsoft . MyApp {
+    using System ;
+    using Zin32 ;
+    class Program {
+        static void Main ( string [ ] args ) {
+            [|SafeRegistryHandle|] h ;
+        }
+    }
+} ",
+@"namespace Microsoft . MyApp {
+    using System ;
+    using Microsoft . Win32 . SafeHandles ;
+    using Zin32 ;
+    class Program { 
+        static void Main ( string [ ] args ) { 
+            SafeRegistryHandle h ;
+        }
+    }
+} ");
         }
 
         [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
@@ -1827,8 +1985,8 @@ namespace A.C
 @"namespace Microsoft.MyApp
 {
 #if true
+    using Microsoft.Win32.SafeHandles;
     using Win32;
-    using Win32.SafeHandles;
 #else
     using System;
 #endif
@@ -1865,11 +2023,11 @@ namespace A.C
 @"namespace Microsoft.MyApp
 {
     using System;
+    using Microsoft.Win32.SafeHandles;
 #if false
     using Win32;
 #endif
     using Win32;
-    using Win32.SafeHandles;
     class Program
     {
         static void Main(string[] args)

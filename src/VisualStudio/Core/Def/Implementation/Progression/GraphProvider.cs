@@ -350,7 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // TODO: The check here is to see if the SymbolId property exists on the node
                 // and if so, that's been created by us. However, eventually we'll want to extend
                 // this to other scenarios where C#\VB nodes that aren't created by us are passed in.
-                if (graphNode.GetValue<SymbolKey>(RoslynGraphProperties.SymbolId) == null)
+                if (graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null)
                 {
                     return null;
                 }

@@ -441,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MakeBinaryExpression(syntax, binaryOpKind, left, right, False, left.Type)
         End Function
 
-        Private Function MakeNullLiteral(syntax As VisualBasicSyntaxNode, type As TypeSymbol) As BoundLiteral
+        Private Shared Function MakeNullLiteral(syntax As VisualBasicSyntaxNode, type As TypeSymbol) As BoundLiteral
             Return New BoundLiteral(syntax, ConstantValue.Nothing, type)
         End Function
 

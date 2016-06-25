@@ -1287,7 +1287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         ERR_FeatureIsUnimplemented = 8060,
-        // available 8061-8069
+        ERR_FeatureNotAvailableInVersion7 = 8061,
+        // available 8062-8069
         ERR_SwitchFallOut = 8070,
         // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
         ERR_NullPropagatingOpInExpressionTree = 8072,
@@ -1353,7 +1354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefReturnExpressionTree = 8900,
         ERR_RefReturningCallInExpressionTree = 8901,
 
-        // more diagnostics for ref locals and ref returns
         ERR_RefReturnLvalueExpected = 8910,
         ERR_RefReturnNonreturnableLocal = 8911,
         ERR_RefReturnNonreturnableLocal2 = 8912,
@@ -1370,8 +1370,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal = 8924,
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
+        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8927,
+        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8928,
 
-        // more diagnostics for ref locals and ref returns
+        // Available  = 8929,
+
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
         ERR_InitializeByValueVariableWithReference = 8932,
@@ -1379,14 +1382,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8934,
         ERR_ByReferenceVariableMustBeInitialized = 8935,
 
-        // more diagnostics for ref locals and ref returns
         ERR_AnonDelegateCantUseLocal = 8940,
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
+
+        // replace/original errors
         ERR_NoOriginalMember = 8944,
         ERR_DuplicateReplace = 8945,
         ERR_PartialReplace = 8946,
+
+        // tuple related errors
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleReservedMemberNameAnyPosition = 8202,
@@ -1399,5 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructWrongCardinality = 8211,
         ERR_CannotDeconstructDynamic = 8212,
         ERR_DeconstructTooFewElements = 8213,
+
+        ERR_ConversionNotTupleCompatible = 8214,
     }
 }

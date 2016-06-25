@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.UpdateReferencesAfterAdd(oldSolution);
+                var newSolution = UpdateReferencesAfterAdd(oldSolution);
 
                 if (newSolution != oldSolution)
                 {
@@ -912,7 +912,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private Solution UpdateReferencesAfterAdd(Solution solution)
+        [System.Diagnostics.Contracts.Pure]
+        private static Solution UpdateReferencesAfterAdd(Solution solution)
         {
             // Build map from output assembly path to ProjectId
             // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
@@ -947,10 +948,10 @@ namespace Microsoft.CodeAnalysis
 
                             if (!project.ProjectReferences.Contains(newProjRef))
                             {
-                                project = project.WithProjectReferences(project.ProjectReferences.Concat(newProjRef));
+                                project = project.AddProjectReference(newProjRef);
                             }
 
-                            project = project.WithMetadataReferences(project.MetadataReferences.Where(mr => mr != meta));
+                            project = project.RemoveMetadataReference(meta);
                         }
                     }
                 }

@@ -510,6 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
+            SyntaxNode parent;
+
             if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
             {
                 return SymbolInfo.None;
@@ -519,10 +521,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else
+            else if ((parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+                     ((VariableDeclarationSyntax)parent).Type == expression &&
+                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument && 
+                     ((ArgumentSyntax)parent).Type == expression)
             {
-                return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+                TypeSymbol outVarType = (GetDeclaredSymbol(((ArgumentSyntax)parent).Declaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+
+                if (outVarType?.IsErrorType() == false)
+                {
+                    return new SymbolInfo(outVarType);
+                }
+
+                return SymbolInfo.None;
             }
+
+            return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
         }
 
         /// <summary>
@@ -873,7 +887,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Conversion GetSpeculativeConversion(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            var csnode = (CSharpSyntaxNode)expression;
             var info = this.GetSpeculativeTypeInfoWorker(position, expression, bindingOption);
             return info.ImplicitConversion;
         }
@@ -1850,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = convertedLiteral.Type;
                     conversion = convertedType.Equals(type, ignoreDynamic: true) ?
                                         Conversion.Identity :
-                                        Conversion.ImplicitTuple;
+                                        Conversion.ImplicitTupleLiteral;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {

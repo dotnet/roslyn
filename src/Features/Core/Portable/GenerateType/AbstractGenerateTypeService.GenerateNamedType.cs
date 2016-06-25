@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     {
                         if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
                         {
-                            parameterToNewFieldMap[parameterName] = parameterName;
+                            parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
                         }
                     }
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         refKind: refKind,
                         isParams: false,
                         type: parameterType,
-                        name: parameterName));
+                        name: parameterName.BestNameForParameter));
                 }
 
                 // Empty Constructor for Struct is not allowed

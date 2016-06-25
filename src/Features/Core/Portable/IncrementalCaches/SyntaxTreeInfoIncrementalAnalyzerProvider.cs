@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
                 return SyntaxTreeInfo.PrecalculateAsync(document, cancellationToken);
             }

@@ -398,21 +398,33 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
+            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReference.AnalyzerLoadFailed += errorHandler;
-                    resolvedReference.AddAnalyzers(analyzerBuilder, language);
-                    resolvedReference.AddGenerators(generatorBuilder, language);
-                    resolvedReference.AnalyzerLoadFailed -= errorHandler;
+                    resolvedReferences.Add(resolvedReference);
+
+                    // register the reference to the analyzer loader:
+                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
                 }
                 else
                 {
                     diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_MetadataFileNotFound, reference.FilePath));
                 }
             }
+
+            // All analyzer references are registered now, we can start loading them:
+            foreach (var resolvedReference in resolvedReferences)
+            {
+                resolvedReference.AnalyzerLoadFailed += errorHandler;
+                resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddGenerators(generatorBuilder, language);
+                resolvedReference.AnalyzerLoadFailed -= errorHandler;
+            }
+
+            resolvedReferences.Free();
 
             analyzers = analyzerBuilder.ToImmutable();
             generators = generatorBuilder.ToImmutable();

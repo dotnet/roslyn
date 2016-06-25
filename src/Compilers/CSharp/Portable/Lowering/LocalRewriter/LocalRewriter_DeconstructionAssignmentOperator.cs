@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
                 }
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty, tupleElementTypes[i]);
+                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
 
                 AddPlaceholderReplacement(deconstruction.OutputPlaceholders[i], fieldAccess);
                 placeholders.Add(deconstruction.OutputPlaceholders[i]);
