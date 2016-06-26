@@ -183,7 +183,7 @@ expression  is not String";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [Fact, WorkItem(10932, "https://github.com/dotnet/roslyn/issues/10932")]
         public void PatternErrors()
         {
             var source =
@@ -194,26 +194,31 @@ public class X
     public static void Main()
     {
         var s = nameof(Main);
+        byte b = 1;
         if (s is string t) { } else Console.WriteLine(t); // t not in scope
         if (null is dynamic t) { } // null not allowed
         if (s is NullableInt x) { } // error: cannot use nullable type
         if (s is long l) { } // error: cannot convert string to long
+        if (b is 1000) { } // error: cannot convert 1000 to byte
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
             compilation.VerifyDiagnostics(
-                // (8,55): error CS0103: The name 't' does not exist in the current context
+                // (9,55): error CS0103: The name 't' does not exist in the current context
                 //         if (s is string t) { } else Console.WriteLine(t); // t not in scope
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(8, 55),
-                // (9,13): error CS8117: Invalid operand for pattern match.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(9, 55),
+                // (10,13): error CS8117: Invalid operand for pattern match.
                 //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(9, 13),
-                // (10,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(10, 13),
+                // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(10, 18),
-                // (11,18): error CS8121: An expression of type string cannot be handled by a pattern of type long.
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
+                // (12,18): error CS8121: An expression of type string cannot be handled by a pattern of type long.
                 //         if (s is long l) { } // error: cannot convert string to long
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),
+                // (13,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
+                //         if (b is 1000) { } // error: cannot convert 1000 to byte
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(13, 18)
                 );
         }
 
