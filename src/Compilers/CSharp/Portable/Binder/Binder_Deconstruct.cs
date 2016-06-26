@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Whether the target is a tuple or a type that requires Deconstruction, this will generate and stack appropriate deconstruction and assignment steps.
-        /// Note that the variables may either be plain or nested variables. The variables may be updated with inferred types if they didn't have types initially.
+        /// Note that the variables may either be plain or nested variables.
+        /// The variables may be updated with inferred types if they didn't have types initially.
         /// Returns false if there was an error.
         /// </summary>
         private bool DeconstructIntoSteps(
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             deconstructionSteps.Add(step);
 
             // outputs will either need a conversion step and assignment step, or if they are nested variables, they will need further deconstruction
-            return DeconstructOrAssignOutputs(step, variables, syntax, diagnostics, deconstructionSteps, assignmentSteps);
+            return DeconstructOrAssignOutputs(step, ref variables, syntax, diagnostics, deconstructionSteps, assignmentSteps);
         }
 
         /// <summary>
@@ -215,13 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool DeconstructOrAssignOutputs(
                         BoundDeconstructionDeconstructStep deconstructionStep,
-                        ImmutableArray<DeconstructionVariable> variables,
+                        ref ImmutableArray<DeconstructionVariable> variables,
                         ExpressionSyntax syntax,
                         DiagnosticBag diagnostics,
                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
                         ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             bool hasErrors = false;
+
+            var variablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(variables.Length);
 
             for (int i = 0; i < variables.Length; i++)
             {
@@ -231,19 +234,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (variable.IsNested)
                 {
                     var nested = variable.Nested;
-                    // PROTOTYPE(tuples) handling changes that can happen to "nested"
                     if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, ref nested, deconstructionSteps, assignmentSteps))
                     {
                         hasErrors = true;
                     }
+                    variablesBuilder.Add(new DeconstructionVariable(nested));
                 }
                 else
                 {
                     var assignment = MakeDeconstructionAssignmentStep(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
                     assignmentSteps.Add(assignment);
+                    variablesBuilder.Add(variable);
                 }
             }
 
+            variables = variablesBuilder.ToImmutableAndFree();
             return !hasErrors;
         }
 
@@ -453,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Declaration.Deconstruction != null);
 
-            ImmutableArray<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, diagnostics);
+            ImmutableArray<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, null, diagnostics);
 
             return new BoundExpressionStatement(node, BindDeconstructionAssignment(node.Declaration.Deconstruction.Value, node.Declaration.Deconstruction.Value, variables, diagnostics));
         }
@@ -463,10 +468,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         // - type is null, declarators are set, but deconstruction is null. This could represent `x`, which is a single variable.
         // - type is set to 'var', declarators are null, and deconstruction is set. This could represent `var (...)`
         // - type and declarators are null, but deconstruction is set. Thi could represent `(int x, ...)`
-        private ImmutableArray<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, DiagnosticBag diagnostics)
+        private ImmutableArray<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax varSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Deconstruction != null);
             var variables = node.Deconstruction.Variables;
+
+            if (varSyntax == null)
+            {
+                varSyntax = node.Type;
+            }
 
             var localsBuilder = ArrayBuilder<BoundLocalDeclaration>.GetInstance(variables.Count);
             var variablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(variables.Count);
@@ -474,11 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (variable.Deconstruction == null)
                 {
-                    variablesBuilder.Add(new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, node.Type, localsBuilder, diagnostics)));
+                    variablesBuilder.Add(new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, varSyntax, localsBuilder, diagnostics)));
                 }
                 else
                 {
-                    variablesBuilder.Add(new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, diagnostics)));
+                    variablesBuilder.Add(new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, varSyntax, diagnostics)));
                 }
             }
 
@@ -502,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             bool isVar;
             TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-            Debug.Assert((varSyntax != null) == isVar); // PROTOTYPE(tuples): some cleanup here
+            Debug.Assert((varSyntax != null) == isVar);
 
             var localSymbol = LocateDeclaredVariableSymbol(declarator, typeSyntax);
 

@@ -2620,5 +2620,23 @@ class C
             var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void NestedDeconstructionDeclaration()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, (x2, x3)) = (1, (2, ""hello""));
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics();
+        }
     }
 }
