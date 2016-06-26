@@ -2612,6 +2612,7 @@ class C
     static void Main()
     {
         var (x1, x2) = (1, ""hello"");
+        System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
 ";

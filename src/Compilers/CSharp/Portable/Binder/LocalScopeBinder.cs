@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -162,13 +163,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 locals = ArrayBuilder<LocalSymbol>.GetInstance();
                             }
 
-                            RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
-                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
-                            foreach (var vdecl in decl.Declaration.Variables)
+                            if (decl.Declaration.Deconstruction == null)
                             {
-                                var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
-                                locals.Add(localSymbol);
+                                RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
+                                LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+
+                                foreach (var vdecl in decl.Declaration.Variables)
+                                {
+                                    var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
+                                    locals.Add(localSymbol);
+                                }
+                            }
+                            else
+                            {
+                                CollectLocalsFromDeconstruction(decl.Declaration, locals);
                             }
                         }
                         break;
@@ -181,6 +189,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalSymbol>.Empty;
         }
 
+        // When a VariableDeclaration is used in a deconstruction, there are two cases:
+        // - deconstruction is set, type may be set (for "var"), and no declarators. For instance, `var (x, ...)` or `(int x, ...)`.
+        // - deconstruction is null, type may be set, and there is one declarator holding the identifier. For instance, `int x` or `x`.
+        private void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, ArrayBuilder<LocalSymbol> locals)
+        {
+            if (declaration.Deconstruction != null)
+            {
+                foreach (var variable in declaration.Deconstruction.Variables)
+                {
+                    CollectLocalsFromDeconstruction(variable, locals);
+                }
+            }
+            else
+            {
+                Debug.Assert(declaration.Variables.Count == 1);
+                var declarator = declaration.Variables[0];
+
+                // Note that the declaration may not have a type, but that is ok.
+                // The symbol for the local will get fixed once the type is figured out when binding the statement.
+                var localSymbol = MakeLocal(RefKind.None, declaration, declarator, LocalDeclarationKind.RegularVariable);
+                locals.Add(localSymbol);
+            }
+        }
 
         protected ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
         {

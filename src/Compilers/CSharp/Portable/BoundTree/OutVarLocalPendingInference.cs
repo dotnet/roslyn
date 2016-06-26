@@ -29,20 +29,4 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SetInferredType(binder.CreateErrorType("var"), success: false);
         }
     }
-
-    // PROTOTYPE(tuples) move to a separate file
-    internal partial class DeconstructionLocalPendingInference
-    {
-        public BoundLocal SetInferredType(TypeSymbol type, bool success)
-        {
-            var syntaxNode = (VariableDeclaratorSyntax)this.Syntax;
-
-            Binder.DeclareLocalVariable(
-                (SourceLocalSymbol)this.LocalSymbol,
-                syntaxNode.Identifier,
-                type);
-
-            return new BoundLocal(syntaxNode, this.LocalSymbol, constantValueOpt: null, type: type, hasErrors: this.HasErrors || !success);
-        }
-    }
 }
