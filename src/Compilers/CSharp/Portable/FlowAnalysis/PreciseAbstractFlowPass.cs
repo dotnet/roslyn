@@ -949,6 +949,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitConstantPattern(BoundConstantPattern node)
+        {
+            // All patterns are handled by VisitPattern
+            throw ExceptionUtilities.Unreachable;
+        }
+
         /// <summary>
         /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
         /// Return true for known match, false for known fail, and null otherwise.
@@ -965,9 +971,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return true;
                         }
-                        // there are many other cases to check. Note that reference types can, in general, fail because of null
+                        Debug.Assert(!declPattern.IsVar);
+                        switch (expression.ConstantValue?.IsNull)
+                        {
+                            case true: return false;
+                            case false: return true;
+                            default: return null;
+                        }
                     }
-                    break;
+                case BoundKind.ConstantPattern:
+                    {
+                        var constPattern = (BoundConstantPattern)pattern;
+                        if (expression.ConstantValue == null || constPattern.ConstantValue == null) return null;
+                        return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
+                    }
             }
 
             return null;

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         switch (1)
         {
-            case 2:
+            case 2 when true:
                 break; // warning: unreachable code (impossible given the value)
             case 1 when true:
                 break;
