@@ -196,7 +196,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected string Dump()
         {
-            return Dump(this.State);
+            return IsConditionalState
+                ? $"true: {Dump(this.StateWhenTrue)} false: {Dump(this.StateWhenFalse)}"
+                : Dump(this.State);
         }
 
 #if DEBUG
