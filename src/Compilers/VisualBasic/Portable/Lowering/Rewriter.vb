@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
             instrumentForDynamicAnalysis As Boolean,
-            ByRef dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
+            <Out> ByRef dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
             debugDocumentProvider As DebugDocumentProvider,
             diagnostics As DiagnosticBag,
             ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
@@ -36,6 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
             Dim localDiagnostics = DiagnosticBag.GetInstance()
+            dynamicAnalysisSpans = ImmutableArray(Of SourceSpan).Empty
 
             Try
                 Dim dynamicInstrumenter As DynamicAnalysisInjector =

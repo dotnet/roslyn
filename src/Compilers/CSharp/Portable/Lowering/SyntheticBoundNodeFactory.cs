@@ -970,16 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
         }
-
-        public BoundExpression TypeOfPrivateImplementationDetails()
-        {
-            return new BoundTypeOfPrivateImplementationDetails(
-                Syntax,
-                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
-                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
-            { WasCompilerGenerated = true };
-        }
-
+        
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
             return typeArguments.SelectAsArray(Typeof);

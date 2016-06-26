@@ -1288,17 +1288,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitModuleVersionId(BoundModuleVersionId node)
         {
             return null;
         }
 
-        public override BoundNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node)
+        public override BoundNode VisitModuleVersionIdString(BoundModuleVersionIdString node)
         {
             return null;
         }
 
-        public override BoundNode VisitTypeOfPrivateImplementationDetails(BoundTypeOfPrivateImplementationDetails node)
+        public override BoundNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node)
         {
             return null;
         }

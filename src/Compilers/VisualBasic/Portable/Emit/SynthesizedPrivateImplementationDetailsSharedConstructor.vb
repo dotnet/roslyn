@@ -17,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub New(
             containingModule As SourceModuleSymbol,
             privateImplementationType As PrivateImplementationDetails,
-            diagnostics As DiagnosticBag,
             voidType As NamedTypeSymbol
         )
             MyBase.New(containingModule, WellKnownMemberNames.StaticConstructorName, privateImplementationType)
@@ -101,10 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             body.Add(factory.Return())
 
-            Dim block As BoundBlock = factory.Block(body.ToImmutableAndFree())
-            ' factory.CloseMethod(block)
-
-            Return block
+            Return factory.Block(body.ToImmutableAndFree())
         End Function
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol

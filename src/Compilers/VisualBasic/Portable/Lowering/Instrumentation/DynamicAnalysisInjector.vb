@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim createPayload As MethodSymbol = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics)
 
             ' Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it Is instrumented.
-            If DirectCast(createPayload, Object) IsNot Nothing AndAlso Not method.IsImplicitlyDeclared AndAlso Not method.Equals(createPayload) Then
+            If createPayload IsNot Nothing AndAlso Not method.IsImplicitlyDeclared AndAlso Not method.Equals(createPayload) Then
                 Return New DynamicAnalysisInjector(method, methodBody, factory, createPayload, diagnostics, debugDocumentProvider, previous)
             End If
 
@@ -166,7 +166,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function InstrumentDoLoopStatementEntryOrConditionalGotoStart(original As BoundDoLoopStatement, ifConditionGotoStartOpt As BoundStatement) As BoundStatement
-            Return AddDynamicAnalysis(original, MyBase.InstrumentDoLoopStatementEntryOrConditionalGotoStart(original, ifConditionGotoStartOpt))
+            Dim previous As BoundStatement = MyBase.InstrumentDoLoopStatementEntryOrConditionalGotoStart(original, ifConditionGotoStartOpt)
+            If (original.ConditionOpt IsNot Nothing) Then
+                Return AddDynamicAnalysis(original, previous)
+            End If
+            Return previous
         End Function
 
         Public Overrides Function InstrumentIfStatementConditionalGoto(original As BoundIfStatement, condGoto As BoundStatement) As BoundStatement
@@ -181,12 +185,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             rewritten = MyBase.InstrumentFieldOrPropertyInitializer(original, rewritten, symbolIndex, createTemporary)
             Dim syntax As VisualBasicSyntaxNode = original.Syntax
 
-            Select Case Syntax.Parent.Parent.Kind()
+            Select Case syntax.Parent.Parent.Kind()
                 Case SyntaxKind.VariableDeclarator, SyntaxKind.PropertyStatement
                     Return AddDynamicAnalysis(original, rewritten)
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Syntax.Parent.Parent.Kind())
+                    Throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind())
             End Select
         End Function
 
@@ -220,7 +224,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function CollectDynamicAnalysis(original As BoundStatement, rewritten As BoundStatement) As BoundStatement
             Dim statementFactory As New SyntheticBoundNodeFactory(_factory.TopLevelMethod, _method, original.Syntax, _factory.CompilationState, _diagnostics)
-            Return statementFactory.Block(ImmutableArray.Create(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten))
+            Return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten)
+            ' Return statementFactory.Block(ImmutableArray.Create(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten))
         End Function
 
         Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
@@ -243,36 +248,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function SyntaxForSpan(statement As BoundStatement) As VisualBasicSyntaxNode
-            SyntaxForSpan = statement.Syntax
-
             Select Case statement.Kind
                 Case BoundKind.IfStatement
-                    SyntaxForSpan = DirectCast(statement, BoundIfStatement).Condition.Syntax
+                    Return DirectCast(statement, BoundIfStatement).Condition.Syntax
                 Case BoundKind.WhileStatement
-                    SyntaxForSpan = DirectCast(statement, BoundWhileStatement).Condition.Syntax
+                    Return DirectCast(statement, BoundWhileStatement).Condition.Syntax
                 Case BoundKind.ForEachStatement
-                    SyntaxForSpan = DirectCast(statement, BoundForEachStatement).Collection.Syntax
+                    Return DirectCast(statement, BoundForEachStatement).Collection.Syntax
                 Case BoundKind.DoLoopStatement
-                    Dim condition As BoundExpression = DirectCast(statement, BoundDoLoopStatement).ConditionOpt
-                    If condition IsNot Nothing Then
-                        SyntaxForSpan = condition.Syntax
-                    End If
+                    Return DirectCast(statement, BoundDoLoopStatement).ConditionOpt.Syntax
                 Case BoundKind.UsingStatement
                     Dim usingStatement As BoundUsingStatement = DirectCast(statement, BoundUsingStatement)
-                    SyntaxForSpan = If(usingStatement.ResourceExpressionOpt IsNot Nothing, DirectCast(usingStatement.ResourceExpressionOpt, BoundNode), usingStatement).Syntax
+                    Return If(usingStatement.ResourceExpressionOpt IsNot Nothing, DirectCast(usingStatement.ResourceExpressionOpt, BoundNode), usingStatement).Syntax
                 Case BoundKind.SyncLockStatement
-                    SyntaxForSpan = DirectCast(statement, BoundSyncLockStatement).LockExpression.Syntax
+                    Return DirectCast(statement, BoundSyncLockStatement).LockExpression.Syntax
                 Case BoundKind.SelectStatement
-                    SyntaxForSpan = DirectCast(statement, BoundSelectStatement).ExpressionStatement.Expression.Syntax
-                Case Else
-                    SyntaxForSpan = statement.Syntax
+                    Return DirectCast(statement, BoundSelectStatement).ExpressionStatement.Expression.Syntax
             End Select
+
+            Return statement.Syntax
         End Function
 
         Private Shared Function MethodHasExplicitBlock(method As MethodSymbol) As Boolean
             Dim asSourceMethod As SourceMethodSymbol = TryCast(method.OriginalDefinition, SourceMethodSymbol)
-            If DirectCast(asSourceMethod, Object) IsNot Nothing Then
-                Return TypeOf asSourceMethod.Syntax Is MethodBlockSyntax
+            If asSourceMethod IsNot Nothing Then
+                Return TypeOf asSourceMethod.Syntax Is MethodBlockBaseSyntax
             End If
             Return False
         End Function

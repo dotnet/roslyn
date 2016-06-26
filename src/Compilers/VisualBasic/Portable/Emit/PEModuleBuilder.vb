@@ -643,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Sub EnsurePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
             If details.GetMethod(WellKnownMemberNames.StaticConstructorName) Is Nothing Then
-                details.TryAddSynthesizedMethod(New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, diagnostics, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)))
+                details.TryAddSynthesizedMethod(New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)))
             End If
         End Sub
     End Class

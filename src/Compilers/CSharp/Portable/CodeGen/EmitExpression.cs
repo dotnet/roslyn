@@ -197,11 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitDefaultExpression((BoundDefaultOperator)expression, used);
                     break;
 
-                case BoundKind.TypeOfPrivateImplementationDetails:
-                    Debug.Assert(used);
-                    EmitTypeOfPrivateImplementationDetailsExpression((BoundTypeOfPrivateImplementationDetails)expression);
-                    break;
-
                 case BoundKind.TypeOfOperator:
                     if (used) // unused typeof has no side-effects
                     {
@@ -2658,13 +2653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var getTypeMethod = boundTypeOf.GetTypeFromHandle;
             Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
             EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
-        }
-
-        private void EmitTypeOfPrivateImplementationDetailsExpression(BoundTypeOfPrivateImplementationDetails boundTypeOfOperator)
-        {
-            _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitTypeReferenceToken(_module.GetPrivateImplClass(boundTypeOfOperator.Syntax, _diagnostics), boundTypeOfOperator.Syntax);
-            EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
         private void EmitTypeOfExpression(BoundTypeOfOperator boundTypeOfOperator)
