@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     [ExportLanguageServiceFactory(typeof(SignatureHelpService), LanguageNames.CSharp), Shared]
-    internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
+    internal class CSharpSignatureHelpServiceFactory : ILanguageServiceFactory
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
     internal class CSharpSignatureHelpService : CommonSignatureHelpService
     {
-        private readonly ImmutableArray<ISignatureHelpProvider> _defaultProviders =
-            ImmutableArray.Create<ISignatureHelpProvider>(
+        private readonly ImmutableArray<SignatureHelpProvider> _defaultProviders =
+            ImmutableArray.Create<SignatureHelpProvider>(
                 new AttributeSignatureHelpProvider(),
                 new ConstructorInitializerSignatureHelpProvider(),
                 new ElementAccessExpressionSignatureHelpProvider(),
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         public override string Language => LanguageNames.CSharp;
 
-        protected override ImmutableArray<ISignatureHelpProvider> GetBuiltInProviders()
+        protected override ImmutableArray<SignatureHelpProvider> GetBuiltInProviders()
         {
             return _defaultProviders;
         }

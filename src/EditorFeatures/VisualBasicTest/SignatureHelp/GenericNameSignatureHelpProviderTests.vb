@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
+        Friend Overrides Function CreateSignatureHelpProvider() As SignatureHelpProvider
             Return New GenericNameSignatureHelpProvider()
         End Function
 

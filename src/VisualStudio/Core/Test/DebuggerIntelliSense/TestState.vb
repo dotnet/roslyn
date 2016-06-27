@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
+                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of SignatureHelpProvider, OrderableLanguageMetadata)),
                         isImmediateWindow As Boolean)
 
             MyBase.New(
@@ -133,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 documentElement As XElement,
                 isImmediateWindow As Boolean,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
+                Optional extraSignatureHelpProviders As SignatureHelpProvider() = Nothing) As TestState
 
             Return New TestState(documentElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
@@ -145,7 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 workspaceElement As XElement,
                 isImmediateWindow As Boolean,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
+                Optional extraSignatureHelpProviders As SignatureHelpProvider() = Nothing) As TestState
 
             Return New TestState(
                 workspaceElement,

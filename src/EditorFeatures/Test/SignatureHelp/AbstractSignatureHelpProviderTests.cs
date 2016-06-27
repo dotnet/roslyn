@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
     {
         protected TWorkspaceFixture workspaceFixture;
 
-        internal abstract ISignatureHelpProvider CreateSignatureHelpProvider();
+        internal abstract SignatureHelpProvider CreateSignatureHelpProvider();
 
         protected AbstractSignatureHelpProviderTests(TWorkspaceFixture workspaceFixture)
         {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private void VerifyTriggerCharactersWorker(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters, SourceCodeKind sourceCodeKind)
         {
-            ISignatureHelpProvider signatureHelpProvider = CreateSignatureHelpProvider();
+            var signatureHelpProvider = CreateSignatureHelpProvider();
 
             foreach (var expectedTriggerCharacter in expectedTriggerCharacters)
             {
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private static async Task<SignatureHelpState> GetArgumentStateAsync(ISignatureHelpProvider provider, Document document, int position, SignatureHelpTrigger trigger)
+        private static async Task<SignatureHelpState> GetArgumentStateAsync(SignatureHelpProvider provider, Document document, int position, SignatureHelpTrigger trigger)
         {
             var context = new SignatureContext(document, position, trigger, document.Project.Solution.Workspace.Options, CancellationToken.None);
             await provider.ProvideSignaturesAsync(context);
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         }
 
         private void CompareAndAssertCollectionsAndCurrentParameter(
-            IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureList actualSignatureHelpItems, ISignatureHelpProvider signatureHelpProvider, Document document, int cursorPosition)
+            IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureList actualSignatureHelpItems, SignatureHelpProvider signatureHelpProvider, Document document, int cursorPosition)
         {
             Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
 
@@ -212,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             SignatureList items,
             SignatureHelpItem actualSignatureHelpItem,
             SignatureHelpTestItem expectedTestItem,
-            ISignatureHelpProvider signatureHelpProvider,
+            SignatureHelpProvider signatureHelpProvider,
             Document document,
             int cursorPosition,
             TextSpan applicableSpan)

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             _state = state;
         }
 
-        internal SignatureList ToSignatureList(ISignatureHelpProvider provider)
+        internal SignatureList ToSignatureList(SignatureHelpProvider provider)
         {
             if (_items == null || !_items.Any() || _state == null)
             {

@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public int ArgumentCount { get; }
         public string ArgumentName { get; }
         public int? SelectedParameter { get; }
-        public ISignatureHelpProvider Provider { get; }
+        public SignatureHelpProvider Provider { get; }
 
         public Model(
             DisconnectedBufferGraph disconnectedBufferGraph,
             TextSpan textSpan,
-            ISignatureHelpProvider provider,
+            SignatureHelpProvider provider,
             IList<SignatureHelpItem> items,
             SignatureHelpItem selectedItem,
             int argumentIndex,

@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Optional documentProvider As Mock(Of IDocumentProvider) = Nothing,
             Optional presenterSession As Mock(Of ISignatureHelpPresenterSession) = Nothing,
             Optional items As IList(Of SignatureHelpItem) = Nothing,
-            Optional provider As ISignatureHelpProvider = Nothing,
+            Optional provider As SignatureHelpProvider = Nothing,
             Optional waitForPresentation As Boolean = False,
             Optional triggerSession As Boolean = True
         ) As TestData

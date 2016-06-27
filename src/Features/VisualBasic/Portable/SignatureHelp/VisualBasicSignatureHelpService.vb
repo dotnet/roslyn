@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class VisualBasicSignatureHelpService
         Inherits CommonSignatureHelpService
 
-        Private ReadOnly _defaultProviders As ImmutableArray(Of ISignatureHelpProvider) = ImmutableArray.Create(Of ISignatureHelpProvider)(
+        Private ReadOnly _defaultProviders As ImmutableArray(Of SignatureHelpProvider) = ImmutableArray.Create(Of SignatureHelpProvider)(
             New AddRemoveHandlerSignatureHelpProvider(),
             New AttributeSignatureHelpProvider(),
             New BinaryConditionalExpressionSignatureHelpProvider(),
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Public Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
-        Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of ISignatureHelpProvider)
+        Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of SignatureHelpProvider)
             Return _defaultProviders
         End Function
     End Class

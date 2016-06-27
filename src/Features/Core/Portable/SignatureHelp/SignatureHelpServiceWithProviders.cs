@@ -13,28 +13,28 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     /// <summary>
-    /// A subtype of <see cref="SignatureHelpService"/> that aggregates signatures from one or more <see cref="ISignatureHelpProvider"/>s.
+    /// A subtype of <see cref="SignatureHelpService"/> that aggregates signatures from one or more <see cref="SignatureHelpProvider"/>s.
     /// </summary>
     internal abstract class SignatureHelpServiceWithProviders : SignatureHelpService
     {
-        private ImmutableArray<ISignatureHelpProvider> _testProviders = ImmutableArray<ISignatureHelpProvider>.Empty;
+        private ImmutableArray<SignatureHelpProvider> _testProviders = ImmutableArray<SignatureHelpProvider>.Empty;
         private bool _testAugmentBuiltInProviders;
 
-        internal void SetTestProviders(IEnumerable<ISignatureHelpProvider> testProviders, bool augmentBuiltInProviders = false)
+        internal void SetTestProviders(IEnumerable<SignatureHelpProvider> testProviders, bool augmentBuiltInProviders = false)
         {
             _testProviders = testProviders != null
                 ? testProviders.ToImmutableArray()
-                : ImmutableArray<ISignatureHelpProvider>.Empty;
+                : ImmutableArray<SignatureHelpProvider>.Empty;
 
             _testAugmentBuiltInProviders = augmentBuiltInProviders;
         }
 
-        protected virtual ImmutableArray<ISignatureHelpProvider> GetBuiltInProviders()
+        protected virtual ImmutableArray<SignatureHelpProvider> GetBuiltInProviders()
         {
-            return ImmutableArray<ISignatureHelpProvider>.Empty;
+            return ImmutableArray<SignatureHelpProvider>.Empty;
         }
 
-        private ImmutableArray<ISignatureHelpProvider> GetProviders()
+        private ImmutableArray<SignatureHelpProvider> GetProviders()
         {
             if (_testProviders.Length > 0)
             {
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         private void FilterTextuallyTriggeredProviders(
-            ImmutableArray<ISignatureHelpProvider> providers,
+            ImmutableArray<SignatureHelpProvider> providers,
             char ch,
-            out ImmutableArray<ISignatureHelpProvider> triggeredProviders,
-            out ImmutableArray<ISignatureHelpProvider> untriggeredProviders)
+            out ImmutableArray<SignatureHelpProvider> triggeredProviders,
+            out ImmutableArray<SignatureHelpProvider> untriggeredProviders)
         {
-            var triggeredBuilder = ImmutableArray.CreateBuilder<ISignatureHelpProvider>();
-            var untriggeredBuilder = ImmutableArray.CreateBuilder<ISignatureHelpProvider>();
+            var triggeredBuilder = ImmutableArray.CreateBuilder<SignatureHelpProvider>();
+            var untriggeredBuilder = ImmutableArray.CreateBuilder<SignatureHelpProvider>();
 
             foreach (var provider in providers)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     // other providers could still be valid, but doesn't explicitly treat the typed character as
                     // a trigger character.
 
-                    ImmutableArray<ISignatureHelpProvider> triggeredProviders, untriggeredProviders;
+                    ImmutableArray<SignatureHelpProvider> triggeredProviders, untriggeredProviders;
                     FilterTextuallyTriggeredProviders(allProviders, trigger.Character, out triggeredProviders, out untriggeredProviders);
 
                     return await GetSignaturesAsync(triggeredProviders, document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         private async Task<SignatureList> GetSignaturesAsync(
-            ImmutableArray<ISignatureHelpProvider> providers,
+            ImmutableArray<SignatureHelpProvider> providers,
             Document document,
             int caretPosition,
             SignatureHelpTrigger trigger = default(SignatureHelpTrigger),

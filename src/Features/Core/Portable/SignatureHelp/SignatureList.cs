@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     internal sealed class SignatureList
     {
         /// <summary>
-        /// The <see cref="ISignatureHelpProvider"/> that produced this <see cref="SignatureList"/>.
+        /// The <see cref="SignatureHelpProvider"/> that produced this <see cref="SignatureList"/>.
         /// </summary>
-        public ISignatureHelpProvider Provider { get; }
+        public SignatureHelpProvider Provider { get; }
 
         /// <summary>
         /// The list of items to present to the user.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public int? SelectedItemIndex { get; }
 
         public SignatureList(
-            ISignatureHelpProvider provider,
+            SignatureHelpProvider provider,
             IList<SignatureHelpItem> items,
             TextSpan applicableSpan,
             int argumentIndex,
