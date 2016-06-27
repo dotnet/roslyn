@@ -44,6 +44,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
 
+        public void ShutdownAnalyzerFrom(Workspace workspace)
+        {
+            // this should be only called once analyzer associated with the workspace is done.
+            BaseDiagnosticIncrementalAnalyzer analyzer;
+            if (_map.TryGetValue(workspace, out analyzer))
+            {
+                analyzer.Shutdown();
+            }
+        }
+
         private BaseDiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
         {
             // subscribe to active context changed event for new workspace
@@ -179,6 +189,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }
             #endregion
+
+            public override void Shutdown()
+            {
+                Analyzer.Shutdown();
+            }
 
             public override void LogAnalyzerCountSummary()
             {
