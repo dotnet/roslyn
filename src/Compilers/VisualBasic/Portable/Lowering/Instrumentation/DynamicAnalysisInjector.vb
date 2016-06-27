@@ -224,8 +224,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function CollectDynamicAnalysis(original As BoundStatement, rewritten As BoundStatement) As BoundStatement
             Dim statementFactory As New SyntheticBoundNodeFactory(_factory.TopLevelMethod, _method, original.Syntax, _factory.CompilationState, _diagnostics)
-            Return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten)
-            ' Return statementFactory.Block(ImmutableArray.Create(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten))
+            Dim analysisPoint As BoundStatement = AddAnalysisPoint(SyntaxForSpan(original), statementFactory)
+            Return If(rewritten IsNot Nothing, statementFactory.StatementList(analysisPoint, rewritten), analysisPoint)
         End Function
 
         Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
@@ -253,6 +253,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(statement, BoundIfStatement).Condition.Syntax
                 Case BoundKind.WhileStatement
                     Return DirectCast(statement, BoundWhileStatement).Condition.Syntax
+                Case BoundKind.ForToStatement
+                    Return DirectCast(statement, BoundForToStatement).InitialValue.Syntax
                 Case BoundKind.ForEachStatement
                     Return DirectCast(statement, BoundForEachStatement).Collection.Syntax
                 Case BoundKind.DoLoopStatement
@@ -264,17 +266,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(statement, BoundSyncLockStatement).LockExpression.Syntax
                 Case BoundKind.SelectStatement
                     Return DirectCast(statement, BoundSelectStatement).ExpressionStatement.Expression.Syntax
+                Case BoundKind.LocalDeclaration
+                    Dim initializer As BoundExpression = DirectCast(statement, BoundLocalDeclaration).InitializerOpt
+                    If initializer IsNot Nothing Then
+                        Return initializer.Syntax
+                    End If
             End Select
 
             Return statement.Syntax
         End Function
 
         Private Shared Function MethodHasExplicitBlock(method As MethodSymbol) As Boolean
-            Dim asSourceMethod As SourceMethodSymbol = TryCast(method.OriginalDefinition, SourceMethodSymbol)
-            If asSourceMethod IsNot Nothing Then
-                Return TypeOf asSourceMethod.Syntax Is MethodBlockBaseSyntax
-            End If
-            Return False
+            Return TypeOf TryCast(method.OriginalDefinition, SourceMethodSymbol)?.Syntax Is MethodBlockBaseSyntax
         End Function
 
         Private Shared Function GetCreatePayload(compilation As VisualBasicCompilation, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol

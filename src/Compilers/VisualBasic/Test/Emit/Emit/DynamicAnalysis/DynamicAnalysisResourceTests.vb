@@ -4,6 +4,7 @@ Imports System
 Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Reflection.PortableExecutable
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -15,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
     Public Class DynamicAnalysisResourceTests
         Inherits BasicTestBase
 
-        ReadOnly InstrumentationHelperSource As Xml.Linq.XElement = <file name="a.vb">
-                                                                        <![CDATA[
+        ReadOnly InstrumentationHelperSource As XElement = <file name="a.vb">
+                                                               <![CDATA[
 Namespace Microsoft.CodeAnalysis.Runtime
     Public Class Instrumentation
         Public Shared Function CreatePayload(mvid As System.Guid, methodToken As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
@@ -28,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.Runtime
     End Class
 End Namespace
 ]]>
-                                                                    </file>
+                                                           </file>
 
-        ReadOnly ExampleSource As Xml.Linq.XElement = <file name="c.vb">
-                                                          <![CDATA[
+        ReadOnly ExampleSource As XElement = <file name="c.vb">
+                                                 <![CDATA[
 Imports System
 
 Public Class C
@@ -59,11 +60,11 @@ Public Class C
     Public Shared ReadOnly Property Betty As Integer
 End Class
 ]]>
-                                                      </file>
+                                             </file>
 
         <Fact>
         Public Sub TestSpansPresentInResource()
-            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            Dim source As XElement = <compilation></compilation>
             source.Add(ExampleSource)
             source.Add(InstrumentationHelperSource)
 
@@ -100,6 +101,140 @@ End Class
             VerifySpans(reader, reader.Methods(6))                                      ' Betty get -- VB does not supply a valid syntax node for the body.
 
             VerifySpans(reader, reader.Methods(7))
+        End Sub
+
+        <Fact>
+        Public Sub TestLoopSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Function TestIf(a As Boolean, b As Boolean) As Integer
+        Dim x As Integer = 0
+        If a Then x += 1 Else x += 10
+        If a Then
+            x += 1
+        ElseIf a AndAlso b Then
+            x += 10
+        Else
+            x += 100
+        End If
+        If b Then
+            x += 1
+        End If
+        If a AndAlso b Then
+            x += 10
+        End If
+        Return x
+    End Function
+
+    Function TestDoLoops() As Integer
+        Dim x As Integer = 100
+        While x < 150
+            x += 1
+        End While
+        While x < 150
+            x += 1
+        End While
+        Do While x < 200
+            x += 1
+        Loop
+        Do Until x = 200
+            x += 1
+        Loop
+        Do
+            x += 1
+        Loop While x < 200
+        Do
+            x += 1
+        Loop Until x = 202
+        Do
+            Return x
+        Loop
+    End Function
+
+    Sub TestForLoops()
+        Dim x As Integer = 0
+        Dim y As Integer = 10
+        Dim z As Integer = 3
+        For a As Integer = x To y Step z
+            z += 1
+        Next
+        For b As Integer = 1 To 10
+            z += 1
+        Next
+        For Each c As Integer In {x, y, z}
+            z += 1
+        Next
+    End Sub
+
+    Public Sub Main(args As String())
+        TestIf(False, False)
+        TestIf(True, False)
+        TestDoLoops()
+        TestForLoops()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            VerifySpans(reader, reader.Methods(0),                                      ' TestIf
+                "(1,4)-(18,16)",
+                "(2,27)-(2,28)",
+                "(3,18)-(3,24)",
+                "(3,30)-(3,37)",
+                "(3,11)-(3,12)",
+                "(5,12)-(5,18)",
+                "(7,12)-(7,19)",
+                "(9,12)-(9,20)",
+                "(6,15)-(6,26)",
+                "(4,11)-(4,12)",
+                "(12,12)-(12,18)",
+                "(11,11)-(11,12)",
+                "(15,12)-(15,19)",
+                "(14,11)-(14,22)",
+                "(17,8)-(17,16)")
+
+            VerifySpans(reader, reader.Methods(1),                                      ' TestLoops
+                "(20,4)-(43,16)",
+                "(21,27)-(21,30)",
+                "(23,12)-(23,18)",
+                "(22,14)-(22,21)",
+                "(26,12)-(26,18)",
+                "(25,14)-(25,21)",
+                "(29,12)-(29,18)",
+                "(28,17)-(28,24)",
+                "(32,12)-(32,18)",
+                "(31,17)-(31,24)",
+                "(35,12)-(35,18)",
+                "(36,19)-(36,26)",
+                "(38,12)-(38,18)",
+                "(39,19)-(39,26)",
+                "(41,12)-(41,20)")
+
+            VerifySpans(reader, reader.Methods(2),                                      ' TestForLoops
+                "(45,4)-(58,11)",
+                "(46,27)-(46,28)",
+                "(47,27)-(47,29)",
+                "(48,27)-(48,28)",
+                "(49,27)-(49,28)",
+                "(50,12)-(50,18)",
+                "(52,27)-(52,28)",
+                "(53,12)-(53,18)",
+                "(55,33)-(55,42)",
+                "(56,12)-(56,18)")
+
         End Sub
 
         <Fact>

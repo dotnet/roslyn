@@ -231,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
             return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten);
-            // return statementFactory.Block(ImmutableArray.Create(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten));
         }
 
         private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)

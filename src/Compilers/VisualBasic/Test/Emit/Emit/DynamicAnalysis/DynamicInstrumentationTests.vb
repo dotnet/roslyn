@@ -135,6 +135,154 @@ True
 
         End Sub
 
+        <Fact>
+        Public Sub TestLoops()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Function TestIf(a As Boolean, b As Boolean) As Integer              ' Method 1
+        Dim x As Integer = 0
+        If a Then x += 1 Else x += 10
+        If a Then
+            x += 1
+        ElseIf a AndAlso b Then
+            x += 10
+        Else
+            x += 100
+        End If
+        If b Then
+            x += 1
+        End If
+        If a AndAlso b Then
+            x += 10
+        End If
+        Return x
+    End Function
+    
+    Function TestDoLoops() As Integer                                   ' Method 2
+        Dim x As Integer = 100
+        While x < 150
+            x += 1
+        End While
+        While x < 150
+            x += 1
+        End While
+        Do While x < 200
+            x += 1
+        Loop
+        Do Until x = 200
+            x += 1
+        Loop
+        Do
+            x += 1
+        Loop While x < 200
+        Do
+            x += 1
+        Loop Until x = 202
+        Do
+            Return x
+        Loop
+    End Function
+
+    Sub TestForLoops()                                                  ' Method 3
+        Dim x As Integer = 0
+        Dim y As Integer = 10
+        Dim z As Integer = 3
+        For a As Integer = x To y Step z
+            z += 1
+        Next
+        For b As Integer = 1 To 10
+            z += 1
+        Next
+        For Each c As Integer In {x, y, z}
+            z += 1
+        Next
+    End Sub
+
+    Public Sub Main(args As String())
+        TestIf(False, False)
+        TestIf(True, False)
+        TestDoLoops()
+        TestForLoops()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+True
+True
+True
+False
+True
+True
+True
+False
+True
+False
+True
+True
+2
+True
+True
+True
+True
+False
+True
+True
+True
+False
+True
+True
+True
+True
+True
+True
+3
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+4
+True
+True
+True
+True
+True
+True
+7
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
         Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
             Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument("Test.Flag"))
         End Function
