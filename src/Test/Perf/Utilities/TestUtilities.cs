@@ -16,43 +16,23 @@ namespace Roslyn.Test.Performance.Utilities
         /// Used as a pseudo-return value for tests to send test objects 
         /// back to the runner.
         /// </summary>
-        public static PerfTest[] resultTests = null;
+        public static PerfTest[] ResultTests = null;
         /// <summary>
         /// The logger that is being used by the process.
         /// </summary>
-        public static ILogger logger = new ConsoleAndFileLogger();
+        public static ILogger Logger = new ConsoleAndFileLogger();
         /// <summary>
         /// True if the logger should be verbose.
         /// </summary>
-        public static bool isVerbose = true;
+        public static bool IsVerbose = true;
         /// <summary>
         /// True if a runner is orchestrating the test runs.
         /// </summary>
-        public static bool isRunnerAttached = false;
+        public static bool IsRunnerAttached = false;
     }
 
     public static class TestUtilities
     {
-        /// <returns> True if the tests are being run by the runner. </returns>
-        public static bool IsRunFromRunner()
-        {
-            return RuntimeSettings.isRunnerAttached;
-        }
-
-        /// <returns> True if the log level is verbose </returns>
-        public static bool IsVerbose()
-        {
-            return RuntimeSettings.isVerbose;
-        }
-
-        /// <returns>
-        /// Returns the logger implementation
-        /// </returns>
-        public static ILogger Logger()
-        {
-            return RuntimeSettings.logger;
-        }
-
         /// <returns>
         /// Returns the path to CPC
         /// </returns>
@@ -87,7 +67,7 @@ namespace Roslyn.Test.Performance.Utilities
             /// </summary>
             public string Args { get; set; }
             /// <summary>
-            /// The exit code of the process
+            /// The exit code of the process.
             /// </summary>
             public int Code { get; set; }
             /// <summary>
@@ -153,7 +133,7 @@ namespace Roslyn.Test.Performance.Utilities
                 cancellationToken.Register(() => process.Kill());
             }
 
-            if (RuntimeSettings.isVerbose)
+            if (RuntimeSettings.IsVerbose)
             {
                 Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
             }
@@ -215,25 +195,29 @@ namespace Roslyn.Test.Performance.Utilities
             return result.StdOut.Trim();
         }
 
-        // Logs a message.
-        //
-        // The actual implementation of this method may change depending on
-        // if the script is being run standalone or through the test runner.
+        /// <summary>
+        /// Logs a message.
+        ///
+        /// The actual implementation of this method may change depending on
+        /// if the script is being run standalone or through the test runner.
+        /// </summary>
         public static void Log(string info)
         {
-            RuntimeSettings.logger.Log(info);
-            RuntimeSettings.logger.Flush();
+            RuntimeSettings.Logger.Log(info);
+            RuntimeSettings.Logger.Flush();
         }
 
+        /// <summary>
         /// Logs the result of a finished process
+        /// </summary>
         public static void LogProcessResult(ProcessResult result)
         {
-            RuntimeSettings.logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
+            RuntimeSettings.Logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
                 $"{result.ExecutablePath} {result.Args}",
                 result.Failed ? "failed" : "succeeded",
                 result.Code));
-            RuntimeSettings.logger.Log($"Standard Out:\n{result.StdOut}");
-            RuntimeSettings.logger.Log($"\nStandard Error:\n{result.StdErr}");
+            RuntimeSettings.Logger.Log($"Standard Out:\n{result.StdOut}");
+            RuntimeSettings.Logger.Log($"\nStandard Error:\n{result.StdErr}");
         }
 
         /// <summary>
@@ -242,9 +226,9 @@ namespace Roslyn.Test.Performance.Utilities
         /// </summary>
         public static void TestThisPlease(params PerfTest[] tests)
         {
-            if (IsRunFromRunner())
+            if (RuntimeSettings.IsRunnerAttached)
             {
-                RuntimeSettings.resultTests = tests;
+                RuntimeSettings.ResultTests = tests;
             }
             else
             {

@@ -18,7 +18,7 @@ namespace Roslyn.Test.Performance.Utilities
         void Log(string v);
 
         /// <summary>
-        /// Flushes the cache (if one exists)
+        /// Flushes the cache (if one exists).
         /// </summary>
         void Flush();
     }
@@ -42,16 +42,13 @@ namespace Roslyn.Test.Performance.Utilities
             _file = file;
         }
 
-        /// <summary>
-        /// Flushes 
-        /// </summary>
-        public void Flush()
+        void ILogger.Flush()
         {
             File.AppendAllText(_file, _buffer.ToString());
             _buffer.Clear();
         }
 
-        public void Log(string v)
+        void ILogger.Log(string v)
         {
             Console.WriteLine(DateTime.Now + " : " + v);
             _buffer.AppendLine(DateTime.Now + " : " + v);

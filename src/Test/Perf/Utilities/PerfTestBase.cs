@@ -29,7 +29,7 @@ namespace Roslyn.Test.Performance.Utilities
         /// </summary>
         public virtual int Iterations => 1;
         /// <summary>
-        /// The human-readable name of the test
+        /// The human-readable name of the test.
         /// </summary>
         public abstract string Name { get; }
         /// <summary>

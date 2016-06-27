@@ -96,7 +96,7 @@ namespace Roslyn.Test.Performance.Runner
         /// Gets a csv file with metrics and converts them to ViBench supported JSON file
         private static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
         {
-            RuntimeSettings.logger.Log("Convert the csv to JSON using ViBench tool");
+            RuntimeSettings.Logger.Log("Convert the csv to JSON using ViBench tool");
             string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
             string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
             string hash = FirstLine(StdoutFrom("git", $"show --format=\"%h\" {branch} --"));

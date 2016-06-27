@@ -55,7 +55,7 @@ namespace Runner
         private static async Task AsyncMain(bool isRunningUnderCI)
         {
 
-            RuntimeSettings.isRunnerAttached = true;
+            RuntimeSettings.IsRunnerAttached = true;
 
             var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");
 
@@ -72,8 +72,8 @@ namespace Runner
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
                 var state = await RunFile(script).ConfigureAwait(false);
-                var tests = RuntimeSettings.resultTests;
-                RuntimeSettings.resultTests = null;
+                var tests = RuntimeSettings.ResultTests;
+                RuntimeSettings.ResultTests = null;
                 foreach (var test in tests)
                 {
                     test.SetWorkingDirectory(Path.GetDirectoryName(script));
