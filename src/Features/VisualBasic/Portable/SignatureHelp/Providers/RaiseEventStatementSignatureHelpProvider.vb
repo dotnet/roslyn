@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return False
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Protected Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim statement As RaiseEventStatementSyntax = Nothing
             If TryGetRaiseEventStatement(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, statement) AndAlso
                 currentSpan.Start = statement.Name.SpanStart Then

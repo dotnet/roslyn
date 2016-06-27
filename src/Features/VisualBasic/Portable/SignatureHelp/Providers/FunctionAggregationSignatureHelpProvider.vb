@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return ch = ")"c
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Protected Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim functionAggregation As FunctionAggregationSyntax = Nothing
             If TryGetFunctionAggregation(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, functionAggregation) AndAlso
                 functionAggregation.SpanStart = currentSpan.Start Then

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        protected override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             ConstructorInitializerSyntax expression;
             if (TryGetConstructorInitializer(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, out expression) &&
