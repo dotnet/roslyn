@@ -2226,7 +2226,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void NestedTypelessTupleAssignment2()
         {
             string source = @"
@@ -2241,8 +2241,18 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "nothing", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         (x, (y, z)) = (null, (null, null));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 24),
+                // (8,31): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         (x, (y, z)) = (null, (null, null));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 31),
+                // (8,37): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         (x, (y, z)) = (null, (null, null));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 37)
+                );
         }
 
         [Fact]
