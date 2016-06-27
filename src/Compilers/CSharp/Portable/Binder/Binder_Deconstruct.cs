@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // expression without type such as `null`
                     Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
+                    FailRemainingInferences(checkedVariables, diagnostics);
                     return BadExpression(node, FlattenDeconstructVariables(checkedVariables).Concat(boundRHS).Cast<BoundNode>().ToImmutableArray());
                 }
             }
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var deconstructions = deconstructionSteps.ToImmutable();
                 var assignments = assignmentSteps.ToImmutable();
 
+                FailRemainingInferences(checkedVariables, diagnostics);
                 TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
                 return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
             }
@@ -122,13 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
             var tupleTypes = targetPlaceholder.Type.TupleElementTypes;
+            SetInferredTypes(variables, tupleTypes);
+
             if (variables.Count != tupleTypes.Length)
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructWrongCardinality, syntax, tupleTypes.Length, variables.Count);
                 return null;
             }
-
-            SetInferredTypes(variables, tupleTypes);
 
             return new BoundDeconstructionDeconstructStep(syntax, null, targetPlaceholder, tupleTypes.SelectAsArray((t, s) => new BoundDeconstructValuePlaceholder(s, t), syntax));
         }
@@ -148,7 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // symbol and parameters for Deconstruct
             ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
             var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count, targetPlaceholder, syntax, diagnostics, out outPlaceholders);
-
             if (deconstructInvocation.HasAnyErrors)
             {
                 return null;
@@ -160,22 +162,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Inform the variables about found types
+        /// Inform the variables about found types (whether one was found or not).
         /// </summary>
-        private static void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
+        static private void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
         {
             if (!variables.Any(v => !v.IsNested && v.Single.Kind == BoundKind.DeconstructionLocalPendingInference))
             {
                 return;
             }
-            var count = variables.Count;
-            for (int i = 0; i < count; i++)
+
+            var varCount = variables.Count;
+            var foundCount = foundTypes.Length;
+
+            var matchCount = Math.Min(varCount, foundCount);
+            for (int i = 0; i < varCount; i++)
             {
                 var variable = variables[i];
                 if (!variable.IsNested && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
                 {
-                    var local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], true);
-                    variables[i] = new DeconstructionVariable(local);
+                    if (i < foundCount)
+                    {
+                        var local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], true);
+                        variables[i] = new DeconstructionVariable(local);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Find any deconstruction locals that are still pending inference and fail their inference.
+        /// </summary>
+        private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics)
+        {
+            var count = variables.Count;
+            for (int i = 0; i < count; i++)
+            {
+                var variable = variables[i];
+                if (variable.IsNested)
+                {
+                    FailRemainingInferences(variable.Nested, diagnostics);
+                }
+                else
+                {
+                    if (variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
+                    {
+                        var local = ((DeconstructionLocalPendingInference)variable.Single).FailInference(this, diagnostics);
+                        variables[i] = new DeconstructionVariable(local);
+                    }
                 }
             }
         }
@@ -500,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             bool isVar;
             TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-            Debug.Assert((varSyntax != null) == isVar);
+            Debug.Assert(isVar || varSyntax == null); // if varSyntax is set, then isVar is true
 
             var localSymbol = LocateDeclaredVariableSymbol(declarator, typeSyntax);
 

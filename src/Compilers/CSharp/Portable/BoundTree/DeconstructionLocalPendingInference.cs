@@ -15,5 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundLocal(syntaxNode, this.LocalSymbol, constantValueOpt: null, type: type, hasErrors: this.HasErrors || !success);
         }
+
+        public BoundLocal FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        {
+            if (diagnosticsOpt != null)
+            {
+                Binder.Error(diagnosticsOpt, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, ((VariableDeclaratorSyntax)this.Syntax).Identifier);
+            }
+
+            return this.SetInferredType(binder.CreateErrorType("var"), success: false);
+        }
     }
 }
