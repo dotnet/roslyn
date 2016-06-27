@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)switchStatement.Expression.Type != null);
-            Debug.Assert(switchStatement.Expression.Type.IsValidSwitchGoverningType());
+            Debug.Assert(switchStatement.Expression.Type.IsValidV6SwitchGoverningType());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
             Debug.Assert(!switchStatement.Expression.Type.IsNullableType());
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
-                expression.Type.IsValidSwitchGoverningType());
+                expression.Type.IsValidV6SwitchGoverningType());
             Debug.Assert(switchCaseLabels.Length > 0);
 
             Debug.Assert(switchCaseLabels != null);

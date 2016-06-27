@@ -8014,7 +8014,7 @@ tryAgain:
                             }
                             if (node is PatternSyntax)
                             {
-                                var whenClause = ParseWhenClauseOpt();
+                                var whenClause = ParseWhenClause();
                                 colon = this.EatToken(SyntaxKind.ColonToken);
                                 label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, whenClause, colon);
                                 label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
@@ -8262,7 +8262,7 @@ tryAgain:
             }
         }
 
-        private WhenClauseSyntax ParseWhenClauseOpt()
+        private WhenClauseSyntax ParseWhenClause()
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
             {

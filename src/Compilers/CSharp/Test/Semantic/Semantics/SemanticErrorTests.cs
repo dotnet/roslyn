@@ -4041,7 +4041,7 @@ public class iii
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
             DiagnosticsUtils.VerifyErrorCodes(
                 comp,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
         }
 
         [Fact]

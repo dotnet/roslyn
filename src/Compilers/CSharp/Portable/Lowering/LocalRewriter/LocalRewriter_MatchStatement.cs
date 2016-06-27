@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class LocalRewriter
     {
         // Rewriting for pattern-matching switch statements.
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        // This is a temporary translation into a series of if-then-else statements.
+        // Ultimately it will be replaced by a translation based on the decision tree.
+        private BoundNode VisitPatternSwitchStatement_Ifchain(BoundPatternSwitchStatement node)
         {
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
 
@@ -24,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // save the default label, if and when we find it.
             LabelSymbol defaultLabel = null;
 
-            foreach (var section in node.PatternSwitchSections)
+            foreach (var section in node.SwitchSections)
             {
                 BoundExpression sectionCondition = _factory.Literal(false);
                 bool isDefaultSection = false;
-                foreach (var label in section.PatternSwitchLabels)
+                foreach (var label in section.SwitchLabels)
                 {
                     if (label.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
                     {
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             statements.Add(_factory.Label(node.BreakLabel));
+            _factory.Syntax = node.Syntax;
             return _factory.Block(node.InnerLocals.Add(switchExpressionTemp.LocalSymbol), node.InnerLocalFunctions, statements.ToImmutableAndFree());
         }
     }

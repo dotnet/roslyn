@@ -614,7 +614,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 
-        internal Conversion ClassifyImplicitUserDefinedConversionForSwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        /// <summary>
+        /// Classify a conversion needed to convert the source type to a type that was legal as the governing type of
+        /// a switch statement in C# 6. Even when we support pattern-matching in C# 7 and later, we still perform these
+        /// conversions on a switch expression if they are unambiguously applicable.
+        /// </summary>
+        internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
@@ -627,16 +632,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE:    We should be called only if (1) is false for source type.
             Debug.Assert((object)sourceType != null);
-            Debug.Assert(!sourceType.IsValidSwitchGoverningType());
+            Debug.Assert(!sourceType.IsValidV6SwitchGoverningType());
 
-            UserDefinedConversionResult result = AnalyzeImplicitUserDefinedConversionForSwitchGoverningType(sourceType, ref useSiteDiagnostics);
+            UserDefinedConversionResult result = AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType(sourceType, ref useSiteDiagnostics);
 
             if (result.Kind == UserDefinedConversionResultKind.Valid)
             {
                 UserDefinedConversionAnalysis analysis = result.Results[result.Best];
 
                 switchGoverningType = analysis.ToType;
-                Debug.Assert(switchGoverningType.IsValidSwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
+                Debug.Assert(switchGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
             }
             else
             {

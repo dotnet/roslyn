@@ -1712,11 +1712,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // This handles the case where we have a nullable user-defined struct type compared against null, eg:
             //
-            // struct S {} ... S? s = whatever; if (s != null) 
+            // struct S {} ... S? s = whatever; if (s != null)
             //
-            // If S does not define an overloaded != operator then this is lowered to s.HasValue.  
+            // If S does not define an overloaded != operator then this is lowered to s.HasValue.
             //
-            // If the type already has a user-defined or built-in operator then comparing to null is 
+            // If the type already has a user-defined or built-in operator then comparing to null is
             // treated as a lifted equality operator.
 
             Debug.Assert(loweredLeft != null);
@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: returnType);
             }
 
-            // arr?.Length == null   
+            // arr?.Length == null
             var conditionalAccess = nullable as BoundLoweredConditionalAccess;
             if (conditionalAccess != null &&
                 (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))

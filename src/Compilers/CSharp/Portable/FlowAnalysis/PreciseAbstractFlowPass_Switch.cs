@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class PreciseAbstractFlowPass<LocalState>
     {
+        #region implementation for the old-style (no-patterns) variation of the switch statement.
+
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // visit switch header
@@ -118,14 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual void VisitSwitchSectionLabel(LabelSymbol label, BoundSwitchSection node)
+        private void VisitSwitchSectionLabel(LabelSymbol label, BoundSwitchSection node)
         {
             VisitLabel(label, node);
         }
 
-        // ===========================
-        // Below here is the implementation for the pattern-matching variation of the switch statement.
-        // ===========================
+        #endregion implementation for the old-style (no-patterns) variation of the switch statement.
+
+        #region implementation for the pattern-matching variation of the switch statement.
 
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
@@ -142,14 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitPatternSwitchBlock(BoundPatternSwitchStatement node)
         {
             var afterSwitchState = UnreachableState();
-            var switchSections = node.PatternSwitchSections;
+            var switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
-            var dispatchState = this.State.Clone();
+
+            // simulate the dispatch (setting pattern variables and jumping to labels) using the decision tree
+            VisitDecisionTree(node.DecisionTree);
 
             // visit switch sections
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
-                SetState(dispatchState.Clone());
                 VisitPatternSwitchSection(switchSections[iSection], node.Expression, iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
@@ -159,36 +162,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(afterSwitchState);
         }
 
+        // Visit all the branches in the decision tree
+        private void VisitDecisionTree(DecisionTree decisionTree)
+        {
+            if (decisionTree == null) return;
+            switch (decisionTree.Kind)
+            {
+                case DecisionTree.DecisionKind.ByType:
+                    {
+                        var byType = (DecisionTree.ByType)decisionTree;
+                        VisitDecisionTree(byType.WhenNull);
+                        foreach (var kvp in byType.TypeAndDecision)
+                        {
+                            VisitDecisionTree(kvp.Value);
+                        }
+                        VisitDecisionTree(byType.Default);
+                        return;
+                    }
+                case DecisionTree.DecisionKind.ByValue:
+                    {
+                        var byValue = (DecisionTree.ByValue)decisionTree;
+                        foreach (var kvp in byValue.ValueAndDecision)
+                        {
+                            VisitDecisionTree(kvp.Value);
+                        }
+                        VisitDecisionTree(byValue.Default);
+                        return;
+                    }
+                case DecisionTree.DecisionKind.Guarded:
+                    {
+                        VisitGuardedDecisionTree((DecisionTree.Guarded)decisionTree);
+                        return;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);
+            }
+        }
+
+        private void VisitGuardedDecisionTree(DecisionTree.Guarded guarded)
+        {
+            var initialState = this.State;
+            SetState(initialState.Clone());
+
+            // assign pattern variables
+            VisitGuardedPattern(guarded);
+
+            if (guarded.Guard != null)
+            {
+                VisitCondition(guarded.Guard);
+                SetState(StateWhenTrue);
+                // discard StateWhenFalse
+            }
+
+            // goto the label for the switch block
+            _pendingBranches.Add(new PendingBranch(guarded.Label, this.State));
+
+            // put the state back where we found it for the next case
+            SetState(initialState);
+
+            // Handle the "default" case when the guard fails
+            VisitDecisionTree(guarded.Default);
+        }
+
+        protected virtual void VisitGuardedPattern(DecisionTree.Guarded guarded)
+        {
+        }
+
         /// <summary>
         /// Visit the switch expression, and return the initial break state.
         /// </summary>
         private LocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
         {
-            // decide if the switch has the moral equivalent of a default label.
-            bool hasDefaultLabel = false;
-            foreach (var section in node.PatternSwitchSections)
-            {
-                foreach (var boundPatternSwitchLabel in section.PatternSwitchLabels)
-                {
-                    if (boundPatternSwitchLabel.Guard != null && !IsConstantTrue(boundPatternSwitchLabel.Guard))
-                    {
-                        continue;
-                    }
-
-                    if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern ||
-                        boundPatternSwitchLabel.Pattern.Kind == BoundKind.DeclarationPattern && ((BoundDeclarationPattern)boundPatternSwitchLabel.Pattern).IsVar)
-                    {
-                        hasDefaultLabel = true;
-                        goto foundDefaultLabel;
-                    }
-                }
-            }
-            foundDefaultLabel:;
+            // decide if the switch handles every input.
+            bool hasDefaultLabel = node.DecisionTree.MatchIsComplete == true;
 
             // visit switch expression
             VisitRvalue(node.Expression);
 
-            // return the state to use if no pattern matches
+            // return the exit state to use if no pattern matches
             if (hasDefaultLabel)
             {
                 return UnreachableState();
@@ -201,68 +252,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            // visit switch section labels
-            var initialState = this.State;
-            var afterGuardState = UnreachableState();
-            foreach (var label in node.PatternSwitchLabels)
+            SetState(UnreachableState());
+            foreach (var label in node.SwitchLabels)
             {
-                SetState(initialState.Clone());
-                VisitPattern(switchExpression, label.Pattern);
-                SetState(StateWhenTrue);
-                if (label.Guard != null)
-                {
-                    VisitCondition(label.Guard);
-                    SetState(StateWhenTrue);
-                }
-                IntersectWith(ref afterGuardState, ref this.State);
+                VisitLabel(label.Label, node);
             }
 
-            // visit switch section body
-            SetState(afterGuardState);
             VisitStatementList(node);
         }
 
-        public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
-        {
-            Split();
-            bool? knownMatch = CheckRefutations(expression, pattern);
-            switch (knownMatch)
-            {
-                case true:
-                    SetState(StateWhenTrue);
-                    SetConditionalState(this.State, UnreachableState());
-                    break;
-                case false:
-                    SetState(StateWhenFalse);
-                    SetConditionalState(UnreachableState(), this.State);
-                    break;
-                case null:
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
-        /// Return true for known match, false for known fail, and null otherwise.
-        /// </summary>
-        private static bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
-        {
-            switch (pattern.Kind)
-            {
-                case BoundKind.DeclarationPattern:
-                    {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        if (declPattern.IsVar|| // var pattern always matches
-                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
-                        {
-                            return true;
-                        }
-                        // there are probably other cases to check. Note that reference types can, in general, fail because of null
-                    }
-                    break;
-            }
-
-            return null;
-        }
+        #endregion implementation for the pattern-matching variation of the switch statement.
     }
 }
