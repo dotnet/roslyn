@@ -147,6 +147,7 @@
     <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />
+    <Compile Include="IntelliSense\MockSignatureHelpProvider.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
