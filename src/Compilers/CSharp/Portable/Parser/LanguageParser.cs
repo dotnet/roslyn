@@ -7317,12 +7317,17 @@ tryAgain:
                 case SyntaxKind.FinallyKeyword:
                     return !_isInTry;
 
+                // Accessibility modifiers are not legal in a statement,
+                // but a common mistake for local functions. Parse to give a
+                // better error message.
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.PrivateKeyword:
+                    return acceptAccessibilityMods;
+
                 default:
-                    // Accessibility modifiers are not legal in a statement,
-                    // but a common mistake for local functions. Parse to give a 
-                    // better error message.
-                    return (acceptAccessibilityMods && IsAccessibilityModifier(tk))
-                        || IsPredefinedType(tk)
+                    return IsPredefinedType(tk)
                         || IsPossibleExpression();
             }
         }
@@ -8451,10 +8456,16 @@ tryAgain:
             {
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                // Not a valid modifier, but we should parse to give a good
+                // error message
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.PrivateKeyword:
                     return true;
 
                 default:
-                    return IsAccessibilityModifier(kind);
+                    return false;
             }
         }
 
