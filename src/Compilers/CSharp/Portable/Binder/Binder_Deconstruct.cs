@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = ((TupleExpressionSyntax)node.Left).Arguments;
-            ImmutableArray<DeconstructionVariable> checkedVariables = BindDeconstructionVariables(arguments, diagnostics);
+            ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionVariables(arguments, diagnostics);
 
             return BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics);
         }
 
-        private BoundExpression BindDeconstructionAssignment(ExpressionSyntax node, ExpressionSyntax right, ImmutableArray<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics)
+        private BoundExpression BindDeconstructionAssignment(ExpressionSyntax node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics)
         {
             // receiver for first Deconstruct step
             var boundRHS = BindValue(right, diagnostics, BindValueKind.RValue);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var assignmentSteps = ArrayBuilder<BoundDeconstructionAssignmentStep>.GetInstance(1);
             try
             {
-                bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(right, boundRHS.Type), node, diagnostics, ref checkedVariables, deconstructionSteps, assignmentSteps);
+                bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
 
                 var deconstructions = deconstructionSteps.ToImmutable();
                 var assignments = assignmentSteps.ToImmutable();
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundDeconstructValuePlaceholder targetPlaceholder,
                         ExpressionSyntax syntax,
                         DiagnosticBag diagnostics,
-                        ref ImmutableArray<DeconstructionVariable> variables,
+                        ArrayBuilder<DeconstructionVariable> variables,
                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
                         ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetPlaceholder.Type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-                step = MakeTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, ref variables, deconstructionSteps, assignmentSteps);
+                step = MakeTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
             }
             else
             {
-                step = MakeNonTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, ref variables, deconstructionSteps, assignmentSteps);
+                step = MakeNonTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
             }
 
             if (step == null)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             deconstructionSteps.Add(step);
 
             // outputs will either need a conversion step and assignment step, or if they are nested variables, they will need further deconstruction
-            return DeconstructOrAssignOutputs(step, ref variables, syntax, diagnostics, deconstructionSteps, assignmentSteps);
+            return DeconstructOrAssignOutputs(step, variables, syntax, diagnostics, deconstructionSteps, assignmentSteps);
         }
 
         /// <summary>
@@ -115,20 +115,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         BoundDeconstructValuePlaceholder targetPlaceholder,
                                                         ExpressionSyntax syntax,
                                                         DiagnosticBag diagnostics,
-                                                        ref ImmutableArray<DeconstructionVariable> variables,
+                                                        ArrayBuilder<DeconstructionVariable> variables,
                                                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
                                                         ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
             var tupleTypes = targetPlaceholder.Type.TupleElementTypes;
-            if (variables.Length != tupleTypes.Length)
+            if (variables.Count != tupleTypes.Length)
             {
-                Error(diagnostics, ErrorCode.ERR_DeconstructWrongCardinality, syntax, tupleTypes.Length, variables.Length);
+                Error(diagnostics, ErrorCode.ERR_DeconstructWrongCardinality, syntax, tupleTypes.Length, variables.Count);
                 return null;
             }
 
-            SetInferredTypes(ref variables, tupleTypes);
+            SetInferredTypes(variables, tupleTypes);
 
             return new BoundDeconstructionDeconstructStep(syntax, null, targetPlaceholder, tupleTypes.SelectAsArray((t, s) => new BoundDeconstructValuePlaceholder(s, t), syntax));
         }
@@ -141,20 +141,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             BoundDeconstructValuePlaceholder targetPlaceholder,
                                                             ExpressionSyntax syntax,
                                                             DiagnosticBag diagnostics,
-                                                            ref ImmutableArray<DeconstructionVariable> variables,
+                                                            ArrayBuilder<DeconstructionVariable> variables,
                                                             ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
                                                             ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             // symbol and parameters for Deconstruct
             ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
-            var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Length, targetPlaceholder, syntax, diagnostics, out outPlaceholders);
+            var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count, targetPlaceholder, syntax, diagnostics, out outPlaceholders);
 
             if (deconstructInvocation.HasAnyErrors)
             {
                 return null;
             }
 
-            SetInferredTypes(ref variables, outPlaceholders.SelectAsArray(p => p.Type));
+            SetInferredTypes(variables, outPlaceholders.SelectAsArray(p => p.Type));
 
             return new BoundDeconstructionDeconstructStep(syntax, deconstructInvocation, targetPlaceholder, outPlaceholders);
         }
@@ -162,29 +162,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Inform the variables about found types
         /// </summary>
-        private static void SetInferredTypes(ref ImmutableArray<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
+        private static void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
         {
             if (!variables.Any(v => !v.IsNested && v.Single.Kind == BoundKind.DeconstructionLocalPendingInference))
             {
                 return;
             }
-            var count = variables.Count();
-            var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(count);
+            var count = variables.Count;
             for (int i = 0; i < count; i++)
             {
                 var variable = variables[i];
                 if (!variable.IsNested && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
                 {
                     var local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], true);
-                    builder.Add(new DeconstructionVariable(local));
-                }
-                else
-                {
-                    builder.Add(variable);
+                    variables[i] = new DeconstructionVariable(local);
                 }
             }
-
-            variables = builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -193,21 +186,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class DeconstructionVariable
         {
             public readonly BoundExpression Single;
-            public readonly ImmutableArray<DeconstructionVariable> Nested;
+            public readonly ArrayBuilder<DeconstructionVariable> Nested;
 
             public DeconstructionVariable(BoundExpression variable)
             {
                 Single = variable;
-                Nested = default(ImmutableArray<DeconstructionVariable>);
+                Nested = null;
             }
 
-            public DeconstructionVariable(ImmutableArray<DeconstructionVariable> variables)
+            public DeconstructionVariable(ArrayBuilder<DeconstructionVariable> variables)
             {
                 Single = null;
                 Nested = variables;
             }
 
-            public bool IsNested => !Nested.IsDefault;
+            public bool IsNested => Nested != null;
         }
 
         /// <summary>
@@ -216,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool DeconstructOrAssignOutputs(
                         BoundDeconstructionDeconstructStep deconstructionStep,
-                        ref ImmutableArray<DeconstructionVariable> variables,
+                        ArrayBuilder<DeconstructionVariable> variables,
                         ExpressionSyntax syntax,
                         DiagnosticBag diagnostics,
                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
@@ -224,9 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = false;
 
-            var variablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(variables.Length);
-
-            for (int i = 0; i < variables.Length; i++)
+            int count = variables.Count;
+            for (int i = 0; i < count; i++)
             {
                 var variable = variables[i];
                 var valuePlaceholder = deconstructionStep.OutputPlaceholders[i];
@@ -234,30 +226,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (variable.IsNested)
                 {
                     var nested = variable.Nested;
-                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, ref nested, deconstructionSteps, assignmentSteps))
+                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, nested, deconstructionSteps, assignmentSteps))
                     {
                         hasErrors = true;
                     }
-                    variablesBuilder.Add(new DeconstructionVariable(nested));
                 }
                 else
                 {
                     var assignment = MakeDeconstructionAssignmentStep(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
                     assignmentSteps.Add(assignment);
-                    variablesBuilder.Add(variable);
                 }
             }
 
-            variables = variablesBuilder.ToImmutableAndFree();
             return !hasErrors;
         }
 
         /// <summary>
         /// For cases where the RHS of a deconstruction-assignment has no type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
         /// </summary>
-        static private TypeSymbol MakeTupleTypeFromDeconstructionLHS(ImmutableArray<DeconstructionVariable> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        static private TypeSymbol MakeTupleTypeFromDeconstructionLHS(ArrayBuilder<DeconstructionVariable> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Length);
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Count);
             foreach (var variable in topLevelCheckedVariables)
             {
                 if (variable.IsNested)
@@ -277,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns an array of variables, where some may be nested variables (BoundDeconstructionVariables).
         /// Checks that all the variables are assignable to.
         /// </summary>
-        private ImmutableArray<DeconstructionVariable> BindDeconstructionVariables(SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionVariables(SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
         {
             int numElements = arguments.Count;
             Debug.Assert(numElements >= 2); // this should not have parsed as a tuple.
@@ -301,8 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var checkedVariables = checkedVariablesBuilder.ToImmutableAndFree();
-            return checkedVariables;
+            return checkedVariablesBuilder;
         }
 
         /// <summary>
@@ -320,15 +308,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDeconstructionAssignmentStep(node, op, inputPlaceholder, outputPlaceholder);
         }
 
-        static private ImmutableArray<BoundExpression> FlattenDeconstructVariables(ImmutableArray<DeconstructionVariable> variables)
+        static private ImmutableArray<BoundExpression> FlattenDeconstructVariables(ArrayBuilder<DeconstructionVariable> variables)
         {
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(variables.Count);
             FlattenDeconstructVariables(variables, builder);
 
             return builder.ToImmutableAndFree();
         }
 
-        static private void FlattenDeconstructVariables(ImmutableArray<DeconstructionVariable> variables, ArrayBuilder<BoundExpression> builder)
+        static private void FlattenDeconstructVariables(ArrayBuilder<DeconstructionVariable> variables, ArrayBuilder<BoundExpression> builder)
         {
             foreach (var variable in variables)
             {
@@ -458,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Declaration.Deconstruction != null);
 
-            ImmutableArray<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, null, diagnostics);
+            ArrayBuilder<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, null, diagnostics);
 
             return new BoundExpressionStatement(node, BindDeconstructionAssignment(node.Declaration.Deconstruction.Value, node.Declaration.Deconstruction.Value, variables, diagnostics));
         }
@@ -468,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // - type is null, declarators are set, but deconstruction is null. This could represent `x`, which is a single variable.
         // - type is set to 'var', declarators are null, and deconstruction is set. This could represent `var (...)`
         // - type and declarators are null, but deconstruction is set. Thi could represent `(int x, ...)`
-        private ImmutableArray<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax varSyntax, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax varSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Deconstruction != null);
             var variables = node.Deconstruction.Variables;
@@ -492,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return variablesBuilder.ToImmutableAndFree();
+            return variablesBuilder;
         }
 
         /// <summary>
