@@ -598,5 +598,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, GetChunks(newText).Length);
             Assert.NotSame(chunk1, GetChunks(newText)[0]);
         }
+
+        [Fact]
+        [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
+        public void TestEmptyChangeAfterChange()
+        {
+            SourceText.From("Hello World")
+                .WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)) // prepare a ChangedText instance
+                .WithChanges(); // this should not cause exception
+        }
+
+        [Fact]
+        [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
+        public void TestEmptyChangeAfterChange2()
+        {
+            SourceText.From("Hello World")
+                .WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)) // prepare a ChangedText instance
+                .WithChanges(new TextChange(new TextSpan(2, 0), string.Empty)); // this should not cause exception
+        }
     }
 }
