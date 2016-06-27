@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDeconstructionAssignment(ExpressionSyntax node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics)
         {
+            TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
+
             // receiver for first Deconstruct step
             var boundRHS = BindValue(right, diagnostics, BindValueKind.RValue);
             if ((object)boundRHS.Type == null)
@@ -47,7 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // expression without type such as `null`
                     Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
                     FailRemainingInferences(checkedVariables, diagnostics);
-                    return BadExpression(node, FlattenDeconstructVariables(checkedVariables).Concat(boundRHS).Cast<BoundNode>().ToImmutableArray());
+
+                    return new BoundDeconstructionAssignmentOperator(
+                                node, FlattenDeconstructVariables(checkedVariables), boundRHS,
+                                ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
+                                voidType, hasErrors: true);
                 }
             }
 
@@ -61,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assignments = assignmentSteps.ToImmutable();
 
                 FailRemainingInferences(checkedVariables, diagnostics);
-                TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
                 return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
             }
             finally

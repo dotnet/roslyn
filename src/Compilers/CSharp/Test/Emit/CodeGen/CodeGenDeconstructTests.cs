@@ -1277,10 +1277,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,9): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (x, x) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(x, x) = null").WithLocation(7, 9),
-                // (7,10): error CS0165: Use of unassigned local variable 'x'
-                //         (x, x) = null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 10)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(x, x) = null").WithLocation(7, 9)
                 );
         }
 
@@ -2786,7 +2783,6 @@ class C
 }
 ";
 
-            // PROTOTYPE(tuples) That last error seems incorrect
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
                 // (6,28): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
@@ -2835,18 +2831,11 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples)
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (int x1, int x2) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 28),
-                // (6,14): error CS0165: Use of unassigned local variable 'x1'
-                //         (int x1, int x2) = null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 14),
-                // (6,22): error CS0165: Use of unassigned local variable 'x2'
-                //         (int x1, int x2) = null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 28)
                 );
         }
 
@@ -2862,7 +2851,6 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples) last two errors seem incorrect
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
@@ -2873,13 +2861,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x1").WithLocation(6, 14),
                 // (6,18): error CS8215: Cannot infer the type of implicitly-typed deconstruction local.
                 //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x2").WithLocation(6, 18),
-                // (6,14): error CS0165: Use of unassigned local variable 'x1'
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 14),
-                // (6,18): error CS0165: Use of unassigned local variable 'x2'
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x2").WithLocation(6, 18)
                 );
         }
 
