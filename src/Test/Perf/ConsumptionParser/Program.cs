@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
 
                 var date = lastPath.Substring(prefix.Length);
                 var consumptionXml = Path.Combine(directory, "ConsumptionTempResults.xml");
-                var resultJson = Directory.EnumerateFiles(directory, "Roslyn*.json").First();
+                var resultJson = Directory.EnumerateFiles(directory, "Roslyn*.json").Single();
 
                 var parse = ConsumptionParse.Parse(File.ReadAllText(consumptionXml));
                 var runInfo = RunInfo.Parse(File.ReadAllText(resultJson));
@@ -37,13 +38,11 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
             runs.Sort((run1, run2) => run1.Item1.CompareTo(run2.Item1));
 
             // Collect all of the metric names first 
-            var metrics = new HashSet<string>();
-            metrics.UnionWith(
+            var metrics = new HashSet<string>(
                 from run in runs
                 from scenario in run.Item2.Scenarios
                 from metric in scenario.Counters
-                select metric.Name
-            );
+                select metric.Name);
 
             // Write the column titles
             Console.Write("build, username, branch, scenario");
@@ -65,10 +64,12 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
                     foreach (var metric in metrics)
                     {
                         var m = scenario[metric];
-                        if (m != null) {
+                        if (m != null)
+                        {
                             var mm = m.Value;
                             Console.Write($", {mm.Value}");
-                        } else
+                        }
+                        else
                         {
                             Console.Write(",");
                         }
