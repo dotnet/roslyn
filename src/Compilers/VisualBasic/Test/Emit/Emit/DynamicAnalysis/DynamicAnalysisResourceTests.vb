@@ -206,7 +206,7 @@ End Module
                 "(14,11)-(14,22)",
                 "(17,8)-(17,16)")
 
-            VerifySpans(reader, reader.Methods(1),                                      ' TestLoops
+            VerifySpans(reader, reader.Methods(1),                                      ' TestDoLoops
                 "(20,4)-(43,16)",
                 "(21,27)-(21,30)",
                 "(23,12)-(23,18)",
