@@ -77,22 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override TypeParameterSymbol ReducedFrom
-        {
-            get
-            {
-                return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.ReducedFrom);
-            }
-        }
-
-        public override TypeParameterSymbol UnreducedFrom
-        {
-            get
-            {
-                return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.UnreducedFrom);
-            }
-        }
-
         internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress));

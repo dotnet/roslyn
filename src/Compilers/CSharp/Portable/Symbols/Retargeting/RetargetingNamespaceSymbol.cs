@@ -222,6 +222,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             _underlyingNamespace.GetExtensionMembers(underlyingMembers, nameOpt, arity, options);
             foreach (var underlyingMember in underlyingMembers)
             {
+                if (underlyingMember.Kind == SymbolKind.Method)
+                {
+                    var underlyingMethod = (MethodSymbol)underlyingMember;
+                    if (underlyingMethod.MethodKind == MethodKind.ReducedExtension)
+                    {
+                        var original = underlyingMethod.UnreduceExtensionMethod();
+                        var retargeted = this.RetargetingTranslator.Retarget(original);
+                        var reduced = retargeted.ReduceExtensionMethod();
+                        members.Add(reduced);
+                        continue;
+                    }
+                }
                 members.Add(this.RetargetingTranslator.Retarget(underlyingMember));
             }
             underlyingMembers.Free();
