@@ -185,6 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
                 return true;
             }
+            else if (patternType.IsStatic)
+            {
+                Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
+                return true;
+            }
             else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
             {
                 // It is an error to use pattern-matching with a null, method group, or lambda

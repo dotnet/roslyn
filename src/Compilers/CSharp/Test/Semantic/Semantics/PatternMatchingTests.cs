@@ -10164,5 +10164,33 @@ other 6");
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7").WithLocation(7, 13)
                 );
         }
+
+        [Fact, WorkItem(11379, "https://github.com/dotnet/roslyn/issues/11379")]
+        public void DeclarationPatternWithStaticClass()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object o = args;
+        switch (o)
+        {
+            case StaticType t:
+                break;
+        }
+    }
+}
+public static class StaticType
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0723: Cannot declare a variable of static type 'StaticType'
+                //             case StaticType t:
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("StaticType").WithLocation(8, 18)
+                );
+        }
     }
 }
