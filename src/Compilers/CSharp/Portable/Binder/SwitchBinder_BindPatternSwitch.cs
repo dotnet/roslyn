@@ -58,18 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return FindMatchingSwitchLabel(s_defaultKey);
         }
 
-        private static object _nullKey = new object();
+        private static readonly object s_nullKey = new object();
         private static object KeyForConstant(ConstantValue constantValue)
         {
             Debug.Assert(constantValue != (object)null);
-            return constantValue.IsNull ? _nullKey : constantValue.Value;
+            return constantValue.IsNull ? s_nullKey : constantValue.Value;
         }
 
         private SourceLabelSymbol FindMatchingSwitchCaseLabel(ConstantValue constantValue, CSharpSyntaxNode labelSyntax)
         {
             // SwitchLabelsMap: Dictionary for the switch case/default labels.
             // Case labels with a non-null constant value are indexed on their ConstantValue.
-            // Invalid case labels with null constant value are indexed on the labelName.
+            // Invalid case labels (with null constant value) are indexed on the label syntax.
 
             object key;
             if (constantValue != (object)null)

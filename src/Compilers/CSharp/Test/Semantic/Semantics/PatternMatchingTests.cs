@@ -590,7 +590,7 @@ public class X
         }
 
         [Fact]
-        public void PatternVariablesAreReadonly()
+        public void PatternVariablesAreMutable()
         {
             var source =
 @"
@@ -599,29 +599,18 @@ public class X
     public static void Main()
     {
         if (12 is var x) {
-        x = x + 1; // error: x is readonly
-        x++;       // error: x is readonly
-        M1(ref x); // error: x is readonly
-        M2(out x); // error: x is readonly
-    }}
+            x = x + 1;
+            x++;
+            M1(ref x);
+            M2(out x);
+        }
+    }
     public static void M1(ref int x) {}
     public static void M2(out int x) { x = 1; }
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
             compilation.VerifyDiagnostics(
-                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         x = x + 1; // error: x is readonly
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x").WithLocation(7, 9),
-                // (8,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         x++;       // error: x is readonly
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "x").WithLocation(8, 9),
-                // (9,16): error CS1510: A ref or out argument must be an assignable variable
-                //         M1(ref x); // error: x is readonly
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(9, 16),
-                // (10,16): error CS1510: A ref or out argument must be an assignable variable
-                //         M2(out x); // error: x is readonly
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(10, 16)
                 );
         }
 
@@ -10191,6 +10180,29 @@ public static class StaticType
                 //             case StaticType t:
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("StaticType").WithLocation(8, 18)
                 );
+        }
+
+        [Fact]
+        public void PatternVariablesAreMutable02()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object o = ""  whatever  "";
+        if (o is string s)
+        {
+            s = s.Trim();
+            System.Console.WriteLine(s);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
     }
 }
