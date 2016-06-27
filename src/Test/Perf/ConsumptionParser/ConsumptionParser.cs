@@ -14,9 +14,9 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
             this.Scenarios = scenarios;
         }
 
-        public static ConsumptionParse Parse(String s)
+        public static ConsumptionParse Parse(string xmlString)
         {
-            var document = XDocument.Parse(s);
+            var document = XDocument.Parse(xmlString);
 
             var scenariosOut = new List<ScenarioResult>();
             foreach (var scenario in document.Descendants("ScenarioResult"))
@@ -77,7 +77,6 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
 
         public string Name { get; }
         public IEnumerable<CounterResult> Counters { get; }
-
     }
 
     internal struct CounterResult
