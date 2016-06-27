@@ -6,16 +6,16 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
 {
     internal class RunInfo 
     {
-        public string Username { get; }
+        public string UserName { get; }
         public string Branch { get; }
 
         public RunInfo(string username, string branch)
         {
-            this.Username = username;
+            this.UserName = username;
             this.Branch = branch;
         }
 
-        public static RunInfo Parse(String s)
+        public static RunInfo Parse(string s)
         {
             dynamic obj = JObject.Parse(s);
             string username = obj.roots[0].job.user.userName;

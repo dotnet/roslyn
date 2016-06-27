@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
 {
-    class Program
+    internal class Program
     {
         public static void Main()
         {
@@ -48,6 +48,8 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
             Console.Write("build, username, branch, scenario");
             foreach (var metric in metrics)
             {
+                // Prepend a 'z_' so that in PowerBI all of the metrics
+                // are grouped together in the alphabetically sorted list of fields
                 Console.Write($", z_{metric}");
             }
             Console.WriteLine();
@@ -60,7 +62,7 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
 
                 foreach (var scenario in consumption.Scenarios)
                 {
-                    Console.Write($"{NormalizeDate(date)}, {NormalizeUsername(runInfo.Username)}, {NormalizeBranch(runInfo.Branch)}, {NormalizeScenario(scenario.Name)}");
+                    Console.Write($"{NormalizeDate(date)}, {NormalizeUserName(runInfo.UserName)}, {NormalizeBranch(runInfo.Branch)}, {NormalizeScenario(scenario.Name)}");
                     foreach (var metric in metrics)
                     {
                         var m = scenario[metric];
@@ -84,7 +86,7 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
         /// </summary>
         private static string RemovePrefix(string target, string prefix)
         {
-            if (target.StartsWith(prefix))
+            if (target.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 target = target.Substring(prefix.Length);
             }
@@ -101,7 +103,7 @@ namespace Roslyn.Test.Performance.Utilities.ConsumptionParser
             return s;
         }
 
-        private static string NormalizeUsername(string s)
+        private static string NormalizeUserName(string s)
         {
             return RemovePrefix(s, @"redmond\");
         }
