@@ -19,19 +19,23 @@ namespace Roslyn.Test.Performance.Utilities
         /// setup, including downloading files and preparing paths.
         /// </summary>
         public abstract void Setup();
+
         /// <summary>
         /// The body of the test.  In most cases, this method will be shelling out to an 
         /// external tool.
         /// </summary>
         public abstract void Test();
+
         /// <summary>
         /// The number of iterations that the test should run for.
         /// </summary>
         public virtual int Iterations => 1;
+
         /// <summary>
         /// The human-readable name of the test.
         /// </summary>
         public abstract string Name { get; }
+
         /// <summary>
         /// The name of the process that the profiler should pay attention to.
         /// 
@@ -43,6 +47,7 @@ namespace Roslyn.Test.Performance.Utilities
         /// Returns true if the test provides its own CPC scenarios.
         /// </summary>
         public abstract bool ProvidesScenarios { get; }
+
         /// <summary>
         /// A list of scenarios.
         /// </summary>
