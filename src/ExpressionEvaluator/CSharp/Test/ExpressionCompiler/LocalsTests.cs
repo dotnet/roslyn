@@ -1483,6 +1483,7 @@ class C
         }
 
         [WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")]
+        [WorkItem(10649, "https://github.com/dotnet/roslyn/issues/10649")]
         [Fact]
         public void AsyncAndLambda()
         {
