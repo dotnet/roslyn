@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         };
 
         protected VisualStudioBaseDiagnosticListTable(
-            SVsServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+            Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(workspace, provider, StandardTables.ErrorsTable)
         {
         }
