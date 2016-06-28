@@ -36,8 +36,8 @@ class P
 class D
 {
 }";
-            var generator = new MyGenerator(c => c.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(source1)));
-            var generatorReference = new MyGeneratorReference(ImmutableArray.Create<SourceGenerator>(generator));
+            var generator = new SimpleSourceGenerator(c => c.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(source1)));
+            var generatorReference = new SourceGeneratorReference(ImmutableArray.Create<SourceGenerator>(generator));
 
             using (var directory = new DisposableDirectory(Temp))
             {
@@ -106,26 +106,11 @@ class D
             }
         }
 
-        private sealed class MyGenerator : SourceGenerator
-        {
-            private readonly Action<SourceGeneratorContext> _execute;
-
-            internal MyGenerator(Action<SourceGeneratorContext> execute)
-            {
-                _execute = execute;
-            }
-
-            public override void Execute(SourceGeneratorContext context)
-            {
-                _execute(context);
-            }
-        }
-
-        private sealed class MyGeneratorReference : AnalyzerReference
+        private sealed class SourceGeneratorReference : AnalyzerReference
         {
             private readonly ImmutableArray<SourceGenerator> _generators;
 
-            internal MyGeneratorReference(ImmutableArray<SourceGenerator> generators)
+            internal SourceGeneratorReference(ImmutableArray<SourceGenerator> generators)
             {
                 _generators = generators;
             }

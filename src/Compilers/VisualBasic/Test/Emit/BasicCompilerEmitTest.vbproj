@@ -178,6 +178,7 @@
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
     <Compile Include="Semantics\StaticLocalsSemanticTests.vb" />
+    <Compile Include="SourceGeneratorTests.vb" />
     <Compile Include="XmlLiteralTests.vb" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
