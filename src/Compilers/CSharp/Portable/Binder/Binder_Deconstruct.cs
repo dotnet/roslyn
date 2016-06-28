@@ -76,21 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var deconstructionSteps = ArrayBuilder<BoundDeconstructionDeconstructStep>.GetInstance(1);
             var assignmentSteps = ArrayBuilder<BoundDeconstructionAssignmentStep>.GetInstance(1);
-            try
-            {
-                bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
+            bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
 
-                var deconstructions = deconstructionSteps.ToImmutable();
-                var assignments = assignmentSteps.ToImmutable();
+            var deconstructions = deconstructionSteps.ToImmutableAndFree();
+            var assignments = assignmentSteps.ToImmutableAndFree();
 
-                FailRemainingInferences(checkedVariables, diagnostics);
-                return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
-            }
-            finally
-            {
-                deconstructionSteps.Free();
-                assignmentSteps.Free();
-            }
+            FailRemainingInferences(checkedVariables, diagnostics);
+            return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
         }
 
         /// <summary>
@@ -188,27 +180,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         static private void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
         {
-            if (!variables.Any(v => !v.IsNested && v.Single.Kind == BoundKind.DeconstructionLocalPendingInference))
+            if (!variables.Any(v => IsDeconstructionLocalPendingInference(v)))
             {
                 return;
             }
 
-            var varCount = variables.Count;
-            var foundCount = foundTypes.Length;
-
-            var matchCount = Math.Min(varCount, foundCount);
-            for (int i = 0; i < varCount; i++)
+            var matchCount = Math.Min(variables.Count, foundTypes.Length);
+            for (int i = 0; i < matchCount; i++)
             {
                 var variable = variables[i];
-                if (!variable.IsNested && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
+                if (IsDeconstructionLocalPendingInference(variable))
                 {
-                    if (i < foundCount)
-                    {
-                        var local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], true);
-                        variables[i] = new DeconstructionVariable(local);
-                    }
+                    var local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], true);
+                    variables[i] = new DeconstructionVariable(local);
                 }
             }
+        }
+
+        private static bool IsDeconstructionLocalPendingInference(DeconstructionVariable variable)
+        {
+            return !variable.IsNested && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference;
         }
 
         /// <summary>
