@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -82,7 +83,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var items = await GetItemsWorkerAsync(context.Document, context.Position, context.DefaultItemSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+            var items = await GetItemsWorkerAsync(
+                context.Document, context.Position, context.DefaultItemSpan,
+                context.Trigger, context.CancellationToken).ConfigureAwait(false);
             if (items != null)
             {
                 context.AddItems(items);

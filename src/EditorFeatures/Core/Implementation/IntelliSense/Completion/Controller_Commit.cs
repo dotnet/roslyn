@@ -100,10 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             textChange = new TextChange(textChange.Value.Span, textChange.Value.NewText + commitChar.Value);
                         }
 
-                        var currentSpan = GetItemSpan(model, commitItem);
-                        //var trackingSpan = triggerSnapshot.CreateTrackingSpan(
-                        //    textChange.Value.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                        //var currentSpan = trackingSpan.GetSpan(this.SubjectBuffer.CurrentSnapshot);
+                        var currentSpan = GetCurrentTextChangeSpan(model, textChange.Value);
 
                         // In order to play nicely with automatic brace completion, we need to 
                         // not touch the opening paren. We'll check our span and textchange 
@@ -194,10 +191,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.MakeMostRecentItem(item.Item.DisplayText);
         }
 
-        private SnapshotSpan GetItemSpan(Model model, CompletionItem item)
+        private SnapshotSpan GetCurrentTextChangeSpan(Model model, TextChange change)
         {
             var textSnapshot = this.SubjectBuffer.CurrentSnapshot;
-            var start = model.TriggerSnapshot.CreateTrackingPoint(item.Span.Start, PointTrackingMode.Negative)
+            var start = model.TriggerSnapshot.CreateTrackingPoint(change.Span.Start, PointTrackingMode.Negative)
                                              .GetPosition(textSnapshot);
             var end = Math.Max(start, model.CommitTrackingSpanEndPoint.GetPosition(textSnapshot));
             return new SnapshotSpan(
