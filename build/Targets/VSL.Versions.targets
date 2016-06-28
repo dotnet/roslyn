@@ -5,9 +5,9 @@
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynSemanticVersion)</MicrosoftVisualStudioInteractiveWindowVersion>
     <!-- These are the versions of dependencies we insert into VS -->
-    <SystemReflectionMetadataVersion>1.4.1-beta-24223-07</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24227-04</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60617-01</MicrosoftDiaSymReaderVersion>
+    <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
