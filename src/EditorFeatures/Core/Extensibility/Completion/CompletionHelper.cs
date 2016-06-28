@@ -7,9 +7,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -451,16 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor
             char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var change = await service.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
-
-            // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
-            if (change.TextChanges.Length == 1)
-            {
-                return change.TextChanges[0];
-            }
-            else
-            {
-                return new TextChange(item.Span, item.DisplayText);
-            }
+            return change.TextChange;
         }
     }
 }

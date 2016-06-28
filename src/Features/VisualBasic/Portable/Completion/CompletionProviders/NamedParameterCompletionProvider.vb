@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             argumentList = Nothing
         End Sub
 
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Dim symbolItem = selectedItem
             Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
             Dim change As TextChange
@@ -212,6 +212,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
             Return Task.FromResult(Of TextChange?)(change)
         End Function
-
     End Class
 End Namespace

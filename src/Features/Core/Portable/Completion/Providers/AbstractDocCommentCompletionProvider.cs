@@ -168,7 +168,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             replacementText += afterCaretText;
 
-            return CompletionChange.Create(ImmutableArray.Create(new TextChange(replacementSpan, replacementText)), newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(
+                new TextChange(replacementSpan, replacementText),
+                newPosition, includesCommitCharacter: true);
         }
 
         private TextSpan ComputeReplacementSpan(CompletionItem completionItem, SourceText text)
