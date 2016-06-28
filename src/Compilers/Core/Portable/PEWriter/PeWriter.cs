@@ -103,7 +103,7 @@ namespace Microsoft.Cci
             nativePdbWriterOpt = null;
 
             ushort portablePdbVersion = 0;
-            var metadataSerializer = mdWriter.GetTypeSystemMetadataSerializer();
+            var metadataRootBuilder = mdWriter.GetRootBuilder();
 
             var peHeaderBuilder = new PEHeaderBuilder(
                 machine: properties.Machine,
@@ -134,16 +134,16 @@ namespace Microsoft.Cci
             {
                 Debug.Assert(getPortablePdbStreamOpt != null);
 
-                var debugMetadataBuilder = new BlobBuilder();
-                var debugMetadataSerializer = mdWriter.GetStandaloneDebugMetadataSerializer(metadataSerializer.MetadataSizes, debugEntryPointHandle, deterministicIdProvider);
-                debugMetadataSerializer.SerializeMetadata(debugMetadataBuilder, out pdbContentId);
-                portablePdbVersion = debugMetadataSerializer.FormatVersion;
+                var portablePdbBlob = new BlobBuilder();
+                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes, debugEntryPointHandle, deterministicIdProvider);
+                pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
+                portablePdbVersion = portablePdbBuilder.FormatVersion;
 
                 // write to Portable PDB stream:
                 Stream portablePdbStream = getPortablePdbStreamOpt();
                 if (portablePdbStream != null)
                 {
-                    debugMetadataBuilder.WriteContentTo(portablePdbStream);
+                    portablePdbBlob.WriteContentTo(portablePdbStream);
                 }
             }
 
@@ -169,7 +169,7 @@ namespace Microsoft.Cci
 
             var peBuilder = new ManagedPEBuilder(
                 peHeaderBuilder,
-                metadataSerializer,
+                metadataRootBuilder,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,

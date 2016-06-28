@@ -1934,7 +1934,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only methods with a single argument can be replaced with a property..
+        ///   Looks up a localized string similar to Only methods with a single argument, which is not an out variable declaration, can be replaced with a property..
         /// </summary>
         internal static string OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty {
             get {

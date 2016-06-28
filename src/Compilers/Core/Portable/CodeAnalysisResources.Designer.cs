@@ -1082,6 +1082,34 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Source Generator Failure.
+        /// </summary>
+        internal static string SourceGeneratorFailure {
+            get {
+                return ResourceManager.GetString("SourceGeneratorFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source generator &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        /// </summary>
+        internal static string SourceGeneratorThrows {
+            get {
+                return ResourceManager.GetString("SourceGeneratorThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source generator &apos;{0}&apos; threw the following exception:
+        ///&apos;{1}&apos;..
+        /// </summary>
+        internal static string SourceGeneratorThrowsDescription {
+            get {
+                return ResourceManager.GetString("SourceGeneratorThrowsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The span does not include the end of a line..
         /// </summary>
         internal static string SpanDoesNotIncludeEndOfLine {

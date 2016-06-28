@@ -1739,9 +1739,9 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
-            var serializer = new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
-            serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
-            metadataSizes = serializer.MetadataSizes;
+            var rootBuilder = new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion);
+            rootBuilder.Serialize(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
+            metadataSizes = rootBuilder.Sizes;
 
             ilBuilder.WriteContentTo(ilStream);
             metadataBuilder.WriteContentTo(metadataStream);
@@ -1782,14 +1782,14 @@ namespace Microsoft.Cci
             PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, dynamicAnalysisDataOpt, out mvidFixup);
         }
 
-        public TypeSystemMetadataSerializer GetTypeSystemMetadataSerializer()
+        public MetadataRootBuilder GetRootBuilder()
         {
-            return new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
+            return new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion);
         }
 
-        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
+        public PortablePdbBuilder GetPortablePdbBuilder(MetadataSizes typeSystemMetadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
         {
-            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPoint, IsMinimalDelta, deterministicIdProviderOpt);
+            return new PortablePdbBuilder(_debugMetadataOpt, typeSystemMetadataSizes.RowCounts, debugEntryPoint, deterministicIdProviderOpt);
         }
 
         internal void GetEntryPoints(out MethodDefinitionHandle entryPointHandle, out MethodDefinitionHandle debugEntryPointHandle)

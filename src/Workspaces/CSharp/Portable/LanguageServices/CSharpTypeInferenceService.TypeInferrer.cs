@@ -1510,20 +1510,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (invocation.ArgumentList.Arguments.Count > 0)
                         {
                             var argumentExpression = invocation.ArgumentList.Arguments[0].Expression;
-                            var argumentTypes = GetTypes(argumentExpression);
-                            var delegateType = argumentTypes.FirstOrDefault().GetDelegateType(this.Compilation);
-                            var typeArg = delegateType?.TypeArguments.Length > 0
-                                ? delegateType.TypeArguments[0]
-                                : this.Compilation.ObjectType;
 
-                            if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax)
+                            if (argumentExpression != null)
                             {
-                                typeArg = InferTypeForFirstParameterOfLambda((LambdaExpressionSyntax)argumentExpression) ??
-                                    this.Compilation.ObjectType;
-                            }
+                                var argumentTypes = GetTypes(argumentExpression);
+                                var delegateType = argumentTypes.FirstOrDefault().GetDelegateType(this.Compilation);
+                                var typeArg = delegateType?.TypeArguments.Length > 0
+                                    ? delegateType.TypeArguments[0]
+                                    : this.Compilation.ObjectType;
 
-                            return SpecializedCollections.SingletonEnumerable(
-                                ienumerableType.Construct(typeArg));
+                                if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax)
+                                {
+                                    typeArg = InferTypeForFirstParameterOfLambda((LambdaExpressionSyntax)argumentExpression) ??
+                                        this.Compilation.ObjectType;
+                                }
+
+                                return SpecializedCollections.SingletonEnumerable(
+                                    ienumerableType.Construct(typeArg));
+                            }
                         }
                     }
                 }
