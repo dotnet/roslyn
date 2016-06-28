@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (var scope = binder; scope != null; scope = scope.Next)
             {
-                if (scope.SupportsExtensionMethods)
+                if (scope.SupportsExtensionMembers)
                 {
                     return new ExtensionMethodScope(scope, searchUsingsNotNamespace: false);
                 }

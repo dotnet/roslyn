@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDelegateCreationExpression(node.Syntax, loweredReceiver, methodOpt: null, isExtensionMethod: false, type: node.Type);
             }
 
+            if (node.IsExtensionMethod)
+            {
+                var method = node.MethodOpt;
+                Debug.Assert((object)method != null);
+                Debug.Assert(method.IsInExtensionClass || method.MethodKind == MethodKind.ReducedExtension);
+                method = method.UnreduceExtensionMethod();
+                node = node.Update(node.Argument, method, isExtensionMethod: true, type: node.Type);
+            }
+
             return base.VisitDelegateCreationExpression(node);
         }
     }

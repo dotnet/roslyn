@@ -72,6 +72,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override TypeParameterSymbol UnreducedFrom
+        {
+            get
+            {
+                if (_container.Kind == SymbolKind.Method)
+                {
+                    MethodSymbol unreducedFrom = ((MethodSymbol)_container).UnreducedFrom;
+
+                    if ((object)unreducedFrom != null)
+                    {
+                        return unreducedFrom.TypeParameters[this.Ordinal];
+                    }
+                }
+
+                return null;
+            }
+        }
+
         public override int Ordinal
         {
             get

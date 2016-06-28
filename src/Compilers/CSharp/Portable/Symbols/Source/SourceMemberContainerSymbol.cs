@@ -27,35 +27,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // | |yy|xxxxxxxxxxxxxxxxxxxxxxx|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  22 bits.
+            // x = modifiers.  23 bits.
             // y = IsManagedType.  2 bits.
-            // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
             private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 27;
+            private const int IsManagedTypeOffset = 29;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
             private const int IsManagedTypeMask = 0x3;
-
-            private const int FieldDefinitionsNotedBit = 1 << 29;
 
             private int _flags;
 
             // More flags.
             //
-            // |                           |zzzz|f|
+            // |                          |zzzz|f|d|
             //
+            // d = FieldDefinitionsNoted. 1 bit.
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
-            private const int TypeKindOffset = 1;
+            private const int TypeKindOffset = 2;
 
             private const int TypeKindMask = 0xF;
 
-            private const int FlattenedMembersIsSortedBit = 1 << 0;
+
+            private const int FieldDefinitionsNotedBit = 1 << 0;
+            private const int FlattenedMembersIsSortedBit = 1 << 1;
 
             private int _flags2;
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool FieldDefinitionsNoted
             {
-                get { return (_flags & FieldDefinitionsNotedBit) != 0; }
+                get { return (_flags2 & FieldDefinitionsNotedBit) != 0; }
             }
 
             // True if "lazyMembersFlattened" is sorted.
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void SetFieldDefinitionsNoted()
             {
-                ThreadSafeFlagOperations.Set(ref _flags, FieldDefinitionsNotedBit);
+                ThreadSafeFlagOperations.Set(ref _flags2, FieldDefinitionsNotedBit);
             }
 
             public void SetFlattenedMembersIsSorted()
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Submission:
                     // static, sealed, and abstract allowed if a class
-                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe | DeclarationModifiers.Extension;
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Interface:
@@ -264,6 +264,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
+
+            if (!modifierErrors &&
+                (mods & DeclarationModifiers.Extension) != 0 &&
+                ((mods & DeclarationModifiers.Abstract) != 0 ||
+                 (mods & DeclarationModifiers.Sealed) != 0 ||
+                 (mods & DeclarationModifiers.Static) != 0))
+            {
+                modifierErrors = true;
+                diagnostics.Add(ErrorCode.ERR_ExtensionBadAbstractSealedStatic, Locations[0], this);
+            }
 
             if (!modifierErrors &&
                 (mods & DeclarationModifiers.Abstract) != 0 &&
@@ -1081,8 +1091,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(s_emptyTypeMembers.Count == 0);
-                return symbols.Count > 0 ? 
-                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) : 
+                return symbols.Count > 0 ?
+                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) :
                     s_emptyTypeMembers;
             }
             finally
@@ -1289,6 +1299,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     memberNames.AddRange(membersDictionary.Keys);
                     MergeReplacedMembers(memberNames, membersDictionary, diagnostics);
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
+                    if (this.IsExtensionClass)
+                    {
+                        // PROTOTYPE: Is this needed?
+                        //ReplaceExtensionClassMembers(memberNames, membersDictionary, diagnostics);
+                    }
                     memberNames.Free();
                     AddDeclarationDiagnostics(diagnostics);
                     state.NotePartComplete(CompletionPart.Members);
@@ -2381,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var method = member as SourceMethodSymbol;
                         if ((object)method != null && method.IsPartial)
                         {
-                            continue; 
+                            continue;
                         }
                         if ((object)last == null)
                         {
@@ -3230,13 +3245,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Extension Methods
 
-        internal bool ContainsExtensionMethods
+        public override bool IsExtensionClass
+        {
+            get { return this.declaration.IsExtensionClass; }
+        }
+
+        internal bool ContainsExtensionMembers
         {
             get
             {
                 if (!_lazyContainsExtensionMethods.HasValue())
                 {
-                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && this.declaration.ContainsExtensionMethods;
+                    bool containsExtensionMethods = this.IsExtensionClass || ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && this.declaration.ContainsExtensionMethods;
                     _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
                 }
 
@@ -3258,11 +3278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensionMembers
         {
             get
             {
-                return this.ContainsExtensionMethods;
+                return this.ContainsExtensionMembers;
             }
         }
 

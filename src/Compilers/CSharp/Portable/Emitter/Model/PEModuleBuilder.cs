@@ -219,10 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         location = GetSmallestSourceLocationOrNull(symbol);
                         if (location != null)
                         {
+                            var namedType = (NamedTypeSymbol)symbol;
                             //  add this named type location
-                            AddSymbolLocation(result, location, (Cci.IDefinition)symbol);
+                            AddSymbolLocation(result, location, namedType);
 
-                            foreach (var member in symbol.GetMembers())
+                            foreach (var member in namedType.GetUnderlyingMembers())
                             {
                                 switch (member.Kind)
                                 {
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                             break;
                                         }
 
-                                        AddSymbolLocation(result, member);
+                                        AddSymbolLocation(result, method);
                                         break;
 
                                     case SymbolKind.Property:

@@ -597,7 +597,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.OverloadResolution.MethodInvocationOverloadResolution(candidateMethods, typeArguments, arguments, overloadResolutionResult, ref useSiteDiagnostics);
+            // Passing in null for the receiver expression is okay, since it's only ever used for extension methods - and foreach methods can't be extension methods.
+            this.OverloadResolution.MethodInvocationOverloadResolution(candidateMethods, typeArguments, arguments, null, overloadResolutionResult, ref useSiteDiagnostics);
             diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
             MethodSymbol result = null;

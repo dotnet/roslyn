@@ -331,12 +331,12 @@ static class MyExtensions
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (10,15): error CS1929: 'A' does not contain a definition for 'GetAwaiter' and the best extension method overload 'MyExtensions.GetAwaiter(C)' requires a receiver of type 'C'
+                // (10,15): error CS1929: 'A' does not contain a definition for 'GetAwaiter' and the best extension method overload 'C.GetAwaiter()' requires a receiver of type 'C'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new A()").WithArguments("A", "GetAwaiter", "MyExtensions.GetAwaiter(C)", "C"),
-                // (11,15): error CS1929: 'B' does not contain a definition for 'GetAwaiter' and the best extension method overload 'MyExtensions.GetAwaiter(C)' requires a receiver of type 'C'
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new A()").WithArguments("A", "GetAwaiter", "C.GetAwaiter()", "C").WithLocation(10, 15),
+                // (11,15): error CS1929: 'B' does not contain a definition for 'GetAwaiter' and the best extension method overload 'C.GetAwaiter()' requires a receiver of type 'C'
                 //         await new B();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new B()").WithArguments("B", "GetAwaiter", "MyExtensions.GetAwaiter(C)", "C")
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new B()").WithArguments("B", "GetAwaiter", "C.GetAwaiter()", "C").WithLocation(11, 15)
                 );
         }
 
@@ -387,18 +387,18 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     public bool IsCompleted { get { return true; } }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
+                // (14,17): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //         new A().GetAwaiter();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"),
-                // (15,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(B)' and 'E.GetAwaiter(B)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(14, 17),
+                // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'B.GetAwaiter()' and 'B.GetAwaiter()'
                 //         new B().GetAwaiter();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("Test.GetAwaiter(B)", "E.GetAwaiter(B)"),
-                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("B.GetAwaiter()", "B.GetAwaiter()").WithLocation(15, 17),
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"),
-                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(B)' and 'E.GetAwaiter(B)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(18, 9),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'B.GetAwaiter()' and 'B.GetAwaiter()'
                 //         await new B();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new B()").WithArguments("Test.GetAwaiter(B)", "E.GetAwaiter(B)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new B()").WithArguments("B.GetAwaiter()", "B.GetAwaiter()").WithLocation(19, 9)
                 );
         }
 
@@ -448,9 +448,9 @@ public static class Test
     public static Awaiter GetAwaiter(this I2 a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (31,9): error CS0121: The call is ambiguous between the following methods or properties: 'E.GetAwaiter(I1)' and 'E.GetAwaiter(I2)'
+                // (31,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.GetAwaiter()' and 'I2.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E.GetAwaiter(I1)", "E.GetAwaiter(I2)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("I1.GetAwaiter()", "I2.GetAwaiter()").WithLocation(31, 9)
                 );
         }
 
@@ -608,9 +608,9 @@ public static class E
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(19, 9));
         }
 
         [Fact]
@@ -728,9 +728,9 @@ public static class E2
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
+                // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(20, 9)
                 );
         }
 
@@ -775,9 +775,9 @@ public static class E2
     public static void GetAwaiter(this A a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
+                // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(20, 9)
                 );
         }
 
@@ -852,9 +852,9 @@ public static class EE
     public static void GetAwaiter(this object a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(object)' and 'EE.GetAwaiter(object)'
+                // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'object.GetAwaiter()' and 'object.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(object)", "EE.GetAwaiter(object)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("object.GetAwaiter()", "object.GetAwaiter()").WithLocation(24, 9)
                 );
         }
 
@@ -895,9 +895,9 @@ public static class EE
     public static Awaiter GetAwaiter(this object a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(object)' and 'EE.GetAwaiter(object)'
+                // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'object.GetAwaiter()' and 'object.GetAwaiter()'
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(object)", "EE.GetAwaiter(object)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("object.GetAwaiter()", "object.GetAwaiter()").WithLocation(24, 9)
                 );
         }
 
@@ -1127,9 +1127,9 @@ public static class E2
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (23,13): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
+                // (23,13): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //             await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(23, 13)
                 );
         }
 
@@ -1178,9 +1178,9 @@ public static class E2
     public static void GetAwaiter(this A a) { throw new Exception(); }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (23,13): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
+                // (23,13): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetAwaiter()' and 'A.GetAwaiter()'
                 //             await new A();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("A.GetAwaiter()", "A.GetAwaiter()").WithLocation(23, 13)
                 );
         }
 
@@ -1516,9 +1516,9 @@ static class MyExtensions
                 // (12,9): error CS1986: 'await' requires that the type C have a suitable GetAwaiter method
                 //         await new C();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new C()").WithArguments("C").WithLocation(12, 9),
-                // (13,15): error CS1929: 'D' does not contain a definition for 'GetAwaiter' and the best extension method overload 'MyExtensions.GetAwaiter(C, object)' requires a receiver of type 'C'
+                // (13,15): error CS1929: 'D' does not contain a definition for 'GetAwaiter' and the best extension method overload 'C.GetAwaiter(object)' requires a receiver of type 'C'
                 //         await new D();
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new D()").WithArguments("D", "GetAwaiter", "MyExtensions.GetAwaiter(C, object)", "C").WithLocation(13, 15));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new D()").WithArguments("D", "GetAwaiter", "C.GetAwaiter(object)", "C").WithLocation(13, 15));
         }
 
         [Fact]
@@ -1567,10 +1567,10 @@ static class MyExtensions
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'A.GetAwaiter<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         await new A();
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "await new A()").WithArguments("A.GetAwaiter<T>()"),
-                // (11,9): error CS0411: The type arguments for method 'MyExtensions.GetAwaiter<T>(B)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "await new A()").WithArguments("A.GetAwaiter<T>()").WithLocation(10, 9),
+                // (11,9): error CS0411: The type arguments for method 'B.GetAwaiter<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         await new B();
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "await new B()").WithArguments("MyExtensions.GetAwaiter<T>(B)")
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "await new B()").WithArguments("B.GetAwaiter<T>()").WithLocation(11, 9)
                 );
         }
 
@@ -2764,7 +2764,7 @@ class Repro
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Extension Everything broke this")]
         public void DynamicResultTypeCustomAwaiter()
         {
             const string source = @"

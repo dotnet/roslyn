@@ -4890,4 +4890,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConversionNotTupleCompatible" xml:space="preserve">
     <value>Tuple with {0} elements cannot be converted to type '{1}'.</value>
   </data>
+  <data name="IDS_FeatureExtensionEverything" xml:space="preserve">
+    <value>extension everything</value>
+  </data>
+  <data name="ERR_ExtensionBadAbstractSealedStatic" xml:space="preserve">
+    <value>'{0}': an extension class cannot be abstract, sealed, or static</value>
+  </data>
+  <data name="ERR_ExtensionMethodInExtensionClass" xml:space="preserve">
+    <value>An extension method cannot be defined in an extension class.</value>
+  </data>
 </root>

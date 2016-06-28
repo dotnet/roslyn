@@ -21,5 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Set if the group has a receiver but none was not specified in syntax.
         /// </summary>
         HasImplicitReceiver = 2,
+
+        /// <summary>
+        /// In some cases, extension methods must be looked up when doing member lookup,
+        /// instead of being lazily looked up after overload resolution fails to find any applicable methods.
+        /// This flag indicates that extension method lookup has already been performed and the methods are included,
+        /// and lookup does not have to be repeated.
+        /// </summary>
+        ExtensionMethodsAlreadyIncluded = 4,
     }
 }

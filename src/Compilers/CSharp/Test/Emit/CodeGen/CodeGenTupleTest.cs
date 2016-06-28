@@ -11672,9 +11672,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (10,13): error CS0121: The call is ambiguous between the following methods or properties: 'NS2.C2.M1(string, (int, int))' and 'NS1.C1.M1(string, (int, int))'
+                // (10,13): error CS0121: The call is ambiguous between the following methods or properties: 'string.M1((int, int))' and 'string.M1((int, int))'
                 //         "x".M1((1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("NS2.C2.M1(string, (int, int))", "NS1.C1.M1(string, (int, int))").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("string.M1((int, int))", "string.M1((int, int))").WithLocation(10, 13)
                                 );
 
             var source4 = @"

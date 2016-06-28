@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+            OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, methodGroup.Receiver, overloadResolutionResult, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments
@@ -828,7 +828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         queryClause: queryClause);
                 }
 
-                return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
+                Debug.Assert(!(invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0]));
+                return CreateBadCall(node, methodGroup.Name, methodGroup.Receiver,
                     GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
             }
 
@@ -836,12 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = methodResult.Member.ReturnType;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
-
             var method = methodResult.Member;
-            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -852,50 +848,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, method.IsStatic && !invokedAsExtensionMethod, diagnostics);
 
+            var returnType = methodResult.Member.ReturnType;
+            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+            var argsToParams = methodResult.Result.ArgsToParamsOpt;
+            this.CoerceArguments(methodResult, ref receiver, analyzedArguments.Arguments, diagnostics);
+
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
             // Note: final validation wants the receiver that corresponds to the source representation
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
+            // Method resolution should never return method kind of UnreducedExtension
+            Debug.Assert(method.MethodKind != MethodKind.UnreducedExtension);
             // Skip building up a new array if the first argument doesn't have to be modified.
-            ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
-            {
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
-
-                // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-                // conversion here.
-                Debug.Assert(method.ParameterCount > 0);
-                Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
-                builder.Add(convertedReceiver);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
-                {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver), since we added our own.
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
-                }
-                args = builder.ToImmutableAndFree();
-            }
-            else
-            {
-                args = analyzedArguments.Arguments.ToImmutable();
-            }
+            // PROTOTYPE: Deal with the comment and commented-out code.
+            // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
+            // conversion here.
+            //Debug.Assert(method.ParameterCount > 0);
+            //Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+            //BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
+            var args = analyzedArguments.Arguments.ToImmutable();
 
             // This will be the receiver of the BoundCall node that we create.
-            // For extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.
             // For static methods, we may have synthesized a type expression.  It serves no purpose, so we'll drop it.
-            if (invokedAsExtensionMethod || (method.IsStatic && receiver != null && receiver.WasCompilerGenerated))
+            if (method.IsStatic && receiver != null && receiver.WasCompilerGenerated)
             {
                 receiver = null;
             }
@@ -952,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     gotError = true;
                 }
 
-                if (!method.IsStatic)
+                if (!method.IsStatic && !invokedAsExtensionMethod)
                 {
                     WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
                                                 ((InvocationExpressionSyntax)node).Expression :

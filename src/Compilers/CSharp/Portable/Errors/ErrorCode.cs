@@ -1398,5 +1398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
 
         ERR_ConversionNotTupleCompatible = 8206,
+
+        // extension everything errors
+        ERR_ExtensionBadAbstractSealedStatic = 8207,
+        ERR_ExtensionMethodInExtensionClass = 8208,
     }
 }

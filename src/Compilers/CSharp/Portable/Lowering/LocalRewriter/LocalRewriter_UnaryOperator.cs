@@ -826,6 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _dynamicFactory.MakeDynamicGetMember(dynamicMemberAccess.Receiver, dynamicMemberAccess.Name, resultIndexed: false).ToExpression();
 
                 case BoundKind.IndexerAccess:
+                    // No need to rewrite arguments to unreduced form (if it's an extension method), the access is already transformed.
                     var indexerAccess = (BoundIndexerAccess)transformedExpression;
                     return MakePropertyGetAccess(transformedExpression.Syntax, indexerAccess.ReceiverOpt, indexerAccess.Indexer, indexerAccess.Arguments);
 

@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so we can decide to synthesize a static constructor.
             bool hasStaticConstructor = false;
 
-            var members = containingType.GetMembers();
+            var members = containingType.GetUnderlyingMembers();
             // 'extendedOrdinal' is used for replaced methods, to ensure all methods
             // defined in source in the containing type have unique ordinals.
             int extendedOrdinal = members.Length;
@@ -1490,6 +1490,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             importChain = null;
 
             BoundBlock body;
+
+            // We have the unreduced form (that's the type of method we want to emit), but we want to bind as the reduced form.
+            if (method.MethodKind == MethodKind.UnreducedExtension)
+            {
+                method = method.UnreducedFrom;
+                Debug.Assert((object)method != null);
+            }
+            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
 
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)

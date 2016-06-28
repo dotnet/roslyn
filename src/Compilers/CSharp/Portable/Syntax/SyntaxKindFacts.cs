@@ -1079,6 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhenKeyword:
                 case SyntaxKind.ReplaceKeyword:
                 case SyntaxKind.OriginalKeyword:
+                case SyntaxKind.ExtensionKeyword:
                     return true;
                 default:
                     return false;
@@ -1182,6 +1183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ReplaceKeyword;
                 case "original":
                     return SyntaxKind.OriginalKeyword;
+                case "extension":
+                    return SyntaxKind.ExtensionKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1583,6 +1586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "replace";
                 case SyntaxKind.OriginalKeyword:
                     return "original";
+                case SyntaxKind.ExtensionKeyword:
+                    return "extension";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:

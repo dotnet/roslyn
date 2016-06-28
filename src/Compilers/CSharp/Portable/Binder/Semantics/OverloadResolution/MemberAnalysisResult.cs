@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<Conversion> ConversionsOpt;
         public readonly ImmutableArray<int> BadArgumentsOpt;
         public readonly ImmutableArray<int> ArgsToParamsOpt;
+        public readonly Conversion? ReceiverConversionOpt;
 
         public readonly int BadParameter;
         public readonly MemberResolutionKind Kind;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly bool HasAnyRefOmittedArgument;
 
         private MemberAnalysisResult(MemberResolutionKind kind)
-            : this(kind, default(ImmutableArray<int>), default(ImmutableArray<int>), default(ImmutableArray<Conversion>))
+            : this(kind, default(ImmutableArray<int>), default(ImmutableArray<int>), default(ImmutableArray<Conversion>), null)
         {
         }
 
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> badArgumentsOpt,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<Conversion> conversionsOpt,
+            Conversion? receiverConversionOpt,
             int missingParameter = -1,
             bool hasAnyRefOmittedArgument = false)
         {
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.BadArgumentsOpt = badArgumentsOpt;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.ConversionsOpt = conversionsOpt;
+            this.ReceiverConversionOpt = receiverConversionOpt;
             this.BadParameter = missingParameter;
             this.HasAnyRefOmittedArgument = hasAnyRefOmittedArgument;
         }
@@ -164,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionKind.NameUsedForPositional,
                 ImmutableArray.Create<int>(argumentPosition),
                 default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                default(ImmutableArray<Conversion>),
+                null);
         }
 
         public static MemberAnalysisResult NoCorrespondingParameter(int argumentPosition)
@@ -173,7 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionKind.NoCorrespondingParameter,
                 ImmutableArray.Create<int>(argumentPosition),
                 default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                default(ImmutableArray<Conversion>),
+                null);
         }
 
         public static MemberAnalysisResult NoCorrespondingNamedParameter(int argumentPosition)
@@ -182,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionKind.NoCorrespondingNamedParameter,
                 ImmutableArray.Create<int>(argumentPosition),
                 default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                default(ImmutableArray<Conversion>),
+                null);
         }
 
         public static MemberAnalysisResult RequiredParameterMissing(int parameterPosition)
@@ -192,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ImmutableArray<int>),
                 default(ImmutableArray<int>),
                 default(ImmutableArray<Conversion>),
+                null,
                 missingParameter: parameterPosition);
         }
 
@@ -213,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionKind.BadArguments,
                 badArguments,
                 argsToParamsOpt,
-                conversions);
+                conversions,
+                null);
         }
 
         public static MemberAnalysisResult InaccessibleTypeArgument()
@@ -238,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ImmutableArray<int>),
                 default(ImmutableArray<int>),
                 default(ImmutableArray<Conversion>),
+                null,
                 missingParameter: parameterPosition);
         }
 
@@ -248,12 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static MemberAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, null, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
         }
 
         public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, null, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
         }
 
         public static MemberAnalysisResult Worse()
@@ -264,6 +273,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static MemberAnalysisResult Worst()
         {
             return new MemberAnalysisResult(MemberResolutionKind.Worst);
+        }
+
+        private static readonly System.Func<int, int> subtractOne = x => x - 1;
+
+        // Used specifically for when an analysis is done on unreduced extension members, but a reduced form is needed for the actual returned result.
+        internal MemberAnalysisResult RemoveFirstParameter()
+        {
+            var receiverConversion = ConversionsOpt.IsDefaultOrEmpty ? (Conversion?)null : ConversionsOpt[0];
+            var conversions = ConversionsOpt.IsDefaultOrEmpty ? ConversionsOpt : ConversionsOpt.RemoveAt(0);
+            var badArguments = BadArgumentsOpt.IsDefaultOrEmpty ? BadArgumentsOpt : BadArgumentsOpt.SelectAsArray(subtractOne);
+            var argsToParams = ArgsToParamsOpt.IsDefaultOrEmpty ? ArgsToParamsOpt : ArgsToParamsOpt.RemoveAt(0).SelectAsArray(subtractOne);
+            var badParameter = BadParameter == -1 ? -1 : BadParameter - 1;
+            return new MemberAnalysisResult(Kind, badArguments, argsToParams, conversions, receiverConversion, badParameter, HasAnyRefOmittedArgument);
         }
     }
 }

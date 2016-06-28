@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
+        public static CSharpParseOptions WithExtensionEverythingFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("extensionEverything", "true");
+        }
+
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
         {
             if (features.Length == 0)
@@ -99,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             return options.WithFeatures(options.Features.Concat(list));
         }
-
     }
 }
 

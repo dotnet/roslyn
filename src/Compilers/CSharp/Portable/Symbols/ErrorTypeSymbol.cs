@@ -411,12 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public sealed override bool MightContainExtensionMethods
+        public override bool IsExtensionClass
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
+        }
+
+        public sealed override bool MightContainExtensionMembers
+        {
+            get { return false; }
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics

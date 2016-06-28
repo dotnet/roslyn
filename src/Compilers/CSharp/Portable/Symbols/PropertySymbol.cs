@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this property can be accessed through an object, returns the type of object it is accessed through.
+        /// </summary>
+        public virtual TypeSymbol ReceiverType => this.ContainingType.ExtensionClassType ?? this.ContainingType;
+
+        /// <summary>
         /// Returns whether the property is really an indexer.
         /// </summary>
         /// <remarks>
@@ -278,6 +283,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Properties imported from metadata can explicitly implement more than one property.
         /// </remarks>
         public abstract ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get; }
+
+        /// <summary>
+        /// If this is an extension class property, returns an reduced extension
+        /// property symbol representing the property. Otherwise, returns null.
+        /// </summary>
+        public PropertySymbol ReduceExtensionProperty()
+        {
+            // PROTOTYPE: Inconsistent with MethodSymbols - MethodSymbols return null on failure, instead of throwing
+            // We should never get to calling this method on a property
+            // that isn't an unreduced property originally from an extension class.
+            Debug.Assert(this.IsInExtensionClass);
+            // PROTOTYPE: Consider loaded symbols.
+            var unreduced = (UnreducedExtensionPropertySymbol)this;
+            var unreducedFrom = unreduced.UnreducedFrom;
+            return unreducedFrom;
+        }
+
+        /// <summary>
+        /// If this is an extension class property, returns an unreduced extension
+        /// property symbol representing the property. Otherwise, returns null.
+        /// </summary>
+        public PropertySymbol UnreduceExtensionProperty()
+        {
+            Debug.Assert(!(this is UnreducedExtensionPropertySymbol));
+            if (!this.IsInExtensionClass)
+                return null;
+
+            var containingType = this.ContainingType;
+            Debug.Assert(containingType != null);
+            var underlying = containingType.GetUnderlyingMember(this);
+            if (underlying == null)
+            {
+                return null;
+            }
+            return (PropertySymbol)underlying;
+        }
 
         /// <summary>
         /// Gets the kind of this symbol.

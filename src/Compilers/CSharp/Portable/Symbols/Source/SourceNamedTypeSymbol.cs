@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private string _lazyDocComment;
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
+
+        /// <summary>
+        /// Map from source symbols to their underlying members. Used for the implementation of <see cref="GetUnderlyingMember" />, built lazily.
+        /// </summary>
+        private ConcurrentDictionary<Symbol, Symbol> _underlyingMembersMap;
 
         protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
         {
@@ -1060,7 +1066,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            if (this.ContainsExtensionMethods)
+            // put [Extension] on both extension classes and classes containing methods with `this`-marked parameters.
+            if (this.ContainsExtensionMembers)
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
@@ -1082,6 +1089,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
             }
+        }
+
+        public override Symbol GetUnderlyingMember(Symbol symbol)
+        {
+            if (!this.IsExtensionClass)
+            {
+                return null;
+            }
+
+            var underlyingMembersMap = _underlyingMembersMap;
+            if (underlyingMembersMap == null)
+            {
+                Interlocked.CompareExchange(ref _underlyingMembersMap, new ConcurrentDictionary<Symbol, Symbol>(), null);
+                underlyingMembersMap = _underlyingMembersMap;
+            }
+
+            // PROTOTYPE: Strip generic constructions off of symbol?
+            Symbol cachedResult;
+            if (underlyingMembersMap.TryGetValue(symbol, out cachedResult))
+            {
+                return cachedResult;
+            }
+
+            Symbol result; // make a new variable so we get unassigned variable errors if a case is forgotten.
+            // PROTOTYPE: Fill in the rest of the extension class possible members.
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Property:
+                    // PROTOTYPE: this is weird.
+                    result = symbol;
+                    {
+                        var property = (PropertySymbol)symbol;
+                        if (property.IsStatic)
+                        {
+                            result = property;
+                        }
+                        else
+                        {
+                            result = new UnreducedExtensionPropertySymbol(property);
+                        }
+                    }
+                    break;
+                case SymbolKind.Method:
+                    {
+                        var method = (MethodSymbol)symbol;
+                        switch (method.MethodKind)
+                        {
+                            case MethodKind.Ordinary:
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                                if (method.IsStatic)
+                                {
+                                    result = method;
+                                }
+                                else
+                                {
+                                    result = UnreducedExtensionMethodSymbol.Create(method);
+                                }
+                                // PROTOTYPE: Generics/construction of result? (probably put in Create method)
+                                break;
+                            case MethodKind.UnreducedExtension:
+                            case MethodKind.ReducedExtension:
+                                Debug.Assert(false);
+                                goto default;
+                            default:
+                                result = null;
+                                break;
+                        }
+                    }
+                    break;
+                default:
+                    result = null;
+                    break;
+            }
+
+            result = underlyingMembersMap.GetOrAdd(symbol, result);
+
+            return result;
         }
 
         #endregion

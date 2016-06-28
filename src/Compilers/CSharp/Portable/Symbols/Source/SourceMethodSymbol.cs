@@ -18,13 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // The flags type is used to compact many different bits of information.
         protected struct Flags
         {
-            // We currently pack everything into a 32 bit int with the following layout:
+            // We currently pack everything into two 32 bit ints with the following layout:
             //
-            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // |    |xxxxxxxxxxxxxxxxxxxxxxx|wwwww| -> _flags
+            // |                           |s|r|q|z|y| -> _flags2
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  22 bits.
+            // x = modifiers.  23 bits.
             //
             // y = returnsVoid. 1 bit.
             //
@@ -40,20 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
-
-            private const int ReturnsVoidBit = 1 << 27;
-            private const int IsExtensionMethodBit = 1 << 28;
-            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
-            private const int IsMetadataVirtualBit = 1 << 30;
-            private const int IsMetadataVirtualLockedBit = 1 << 31;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
 
             private int _flags;
 
+            private const int ReturnsVoidBit = 1 << 0;
+            private const int IsExtensionMethodBit = 1 << 1;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 2;
+            private const int IsMetadataVirtualBit = 1 << 3;
+            private const int IsMetadataVirtualLockedBit = 1 << 4;
+
+            private int _flags2;
+
             public bool ReturnsVoid
             {
-                get { return (_flags & ReturnsVoidBit) != 0; }
-                set { _flags = value ? (_flags | ReturnsVoidBit) : (_flags & ~ReturnsVoidBit); }
+                get { return (_flags2 & ReturnsVoidBit) != 0; }
+                set { _flags2 = value ? (_flags2 | ReturnsVoidBit) : (_flags2 & ~ReturnsVoidBit); }
             }
 
             public MethodKind MethodKind
@@ -63,12 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool IsExtensionMethod
             {
-                get { return (_flags & IsExtensionMethodBit) != 0; }
+                get { return (_flags2 & IsExtensionMethodBit) != 0; }
             }
 
             public bool IsMetadataVirtualLocked
             {
-                get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
+                get { return (_flags2 & IsMetadataVirtualLockedBit) != 0; }
             }
 
             public DeclarationModifiers DeclarationModifiers
@@ -117,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
-                _flags = methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _flags = methodKindInt | declarationModifiersInt;
+                _flags2 = returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -125,15 +129,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This flag is immutable, so there's no reason to set a lock bit, as we do below.
                 if (ignoreInterfaceImplementationChanges)
                 {
-                    return (_flags & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
+                    return (_flags2 & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
                 }
 
                 if (!IsMetadataVirtualLocked)
                 {
-                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualLockedBit);
+                    ThreadSafeFlagOperations.Set(ref _flags2, IsMetadataVirtualLockedBit);
                 }
 
-                return (_flags & IsMetadataVirtualBit) != 0;
+                return (_flags2 & IsMetadataVirtualBit) != 0;
             }
 
             public void EnsureMetadataVirtual()
@@ -144,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // ignoreInterfaceImplementationChanges: true, but you must be conscious that seeing "false" may not
                 // reflect the final, emitted modifier.
                 Debug.Assert(!IsMetadataVirtualLocked);
-                if ((_flags & IsMetadataVirtualBit) == 0)
+                if ((_flags2 & IsMetadataVirtualBit) == 0)
                 {
-                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualBit);
+                    ThreadSafeFlagOperations.Set(ref _flags2, IsMetadataVirtualBit);
                 }
             }
         }
@@ -381,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE: Should this include IsInExtensionClass?
                 return this.flags.IsExtensionMethod;
             }
         }
@@ -533,6 +538,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     cc |= Cci.CallingConvention.Generic;
                 }
 
+                // If this is an expanded extension class method, ExpandedExtensionClassMethodSymbol.CallingConvention will remove the HasThis flag
+                // If this is a "normal" (instance) extension class method, we still want to return HasThis for things like
+                //  MemberSignatureComparer.GetCallingConvention which calls CallingConvention outside of emit.
                 if (!IsStatic)
                 {
                     cc |= Cci.CallingConvention.HasThis;

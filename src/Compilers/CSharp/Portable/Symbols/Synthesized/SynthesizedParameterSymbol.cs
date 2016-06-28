@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class SynthesizedParameterSymbol : ParameterSymbol
     {
-        private readonly MethodSymbol _container;
+        private readonly Symbol _container;
         private readonly TypeSymbol _type;
         private readonly int _ordinal;
         private readonly string _name;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbol(
-            MethodSymbol container,
+            Symbol container,
             TypeSymbol type,
             int ordinal,
             RefKind refKind,
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)type != null);
             Debug.Assert(name != null);
             Debug.Assert(ordinal >= 0);
+            Debug.Assert(container.Kind == SymbolKind.Method || container.Kind == SymbolKind.Property);
 
             _container = container;
             _type = type;

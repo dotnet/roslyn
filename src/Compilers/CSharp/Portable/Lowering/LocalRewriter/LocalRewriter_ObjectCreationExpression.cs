@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            rewrittenArguments = MakeArguments(node.Syntax, rewrittenArguments, node.Constructor, node.Constructor, node.Expanded, node.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps);
+            BoundExpression nullReceiver = null;
+            rewrittenArguments = MakeArguments(node.Syntax, rewrittenArguments, node.Constructor, node.Constructor, node.Expanded, node.ArgsToParamsOpt, ref nullReceiver, ref argumentRefKindsOpt, out temps);
+            Debug.Assert(nullReceiver == null);
 
             BoundExpression rewrittenObjectCreation;
 

@@ -68,5 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (this.Flags & BoundMethodGroupFlags.SearchExtensionMethods) != 0;
             }
         }
+
+        public bool ExtensionMethodsAlreadyIncluded
+        {
+            get
+            {
+                return (this.Flags & BoundMethodGroupFlags.ExtensionMethodsAlreadyIncluded) != 0;
+            }
+        }
     }
 }

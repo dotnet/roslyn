@@ -179,12 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensionMembers
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
         public override AssemblyMetadata GetMetadata() => null;

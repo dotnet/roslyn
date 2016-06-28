@@ -453,6 +453,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if this symbol is in an extension class
+        /// </summary>
+        public bool IsInExtensionClass
+        {
+            get
+            {
+                return this.ContainingType?.IsExtensionClass ?? false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true of this symbol is an expanded member from an extension class.
+        /// "Expanded" means that it is a static member that came from an instance extension member,
+        /// whether it was generated from source or loaded from symbols.
+        /// </summary>
+        public bool IsUnreducedExtensionMember
+        {
+            get
+            {
+                switch (this.Kind)
+                {
+                    case SymbolKind.Method:
+                        switch (((MethodSymbol)this).MethodKind)
+                        {
+                            case MethodKind.UnreducedExtension:
+                                return true;
+                            default:
+                                // PROTOTYPE: Do methods with `this` parameter count? (the unreduced form)
+                                return false;
+                        }
+                    case SymbolKind.Property:
+                        return this is UnreducedExtensionPropertySymbol;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
         /// that cannot be referenced by name are:
         ///    constructors, destructors, operators, explicit interface implementations,
@@ -501,6 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MethodKind.Ordinary:
                             case MethodKind.LocalFunction:
                             case MethodKind.ReducedExtension:
+                            case MethodKind.UnreducedExtension:
                                 break;
                             case MethodKind.Destructor:
                                 // You wouldn't think that destructors would be referenceable by name, but
@@ -561,6 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.LocalFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
+                        case MethodKind.ReducedExtension:
+                        case MethodKind.UnreducedExtension:
                             return true;
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:

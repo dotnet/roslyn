@@ -351,39 +351,101 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE: BaseType is wrong here. We should directly compute/store the extended type,
+        // since the semantics of what's valid there are very different than base types.
+        public TypeSymbol ExtensionClassType => IsExtensionClass ? BaseType : null;
+
+        // For example, for the following declaration:
+        //     extension class ListIntExt : List<int>
+        //     {
+        //         void Sum();
+        //     }
+        // when GetUnderlyingMember is called with Sum, this is the resulting symbol:
+        //     static void Sum(List<int> @this);
+        // This method works with all supported extension class member types.
         /// <summary>
-        /// Returns true if this type might contain extension methods. If this property
-        /// returns false, there are no extension methods in this type.
+        /// For extension classes, returns the form of the member when used for emitting IL. Otherwise, returns null.
+        /// </summary>
+        public virtual Symbol GetUnderlyingMember(Symbol symbol)
+        {
+            Debug.Assert(symbol.ContainingType == this);
+            return null;
+        }
+
+        /// <summary>
+        /// Equivalent to <see cref="NamespaceOrTypeSymbol.GetMembers()"/>, except for extension classes.
+        /// In extension classes, replaces all members with their unreduced forms.
+        /// </summary>
+        public ImmutableArray<Symbol> GetUnderlyingMembers()
+        {
+            var members = this.GetMembers();
+            if (!this.IsExtensionClass)
+            {
+                return members;
+            }
+            var builder = ArrayBuilder<Symbol>.GetInstance(members.Length);
+            foreach (var member in members)
+            {
+                var converted = this.GetUnderlyingMember(member) ?? member;
+                builder.Add(converted);
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        bool INamedTypeSymbol.MightContainExtensionMethods => MightContainExtensionMembers;
+
+        /// <summary>
+        /// Returns true if this type might contain extension members, whether in the form of `this`-marked parameters or being an `extension class`.
+        /// If this property returns false, there are no extension members in this type.
         /// </summary>
         /// <remarks>
         /// This property allows the search for extension methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensionMembers { get; }
 
-        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
-            if (this.MightContainExtensionMethods)
+            // PROTOTYPE: Find refs of these two props and make sure both are considered.
+            if (this.MightContainExtensionMembers)
             {
-                DoGetExtensionMethods(methods, nameOpt, arity, options);
+                DoGetExtensionMembers(members, nameOpt, arity, options);
             }
         }
 
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal void DoGetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
-            var members = nameOpt == null
+            var allMembers = nameOpt == null
                 ? this.GetMembersUnordered()
                 : this.GetSimpleNonTypeMembers(nameOpt);
 
-            foreach (var member in members)
+            var isExtensionClass = this.IsExtensionClass;
+            foreach (var member in allMembers)
             {
-                if (member.Kind == SymbolKind.Method)
+                if (member.Kind == SymbolKind.Method && (options & LookupOptions.AllMethodsOnArityZero) == 0 && arity != ((MethodSymbol)member).Arity)
+                {
+                    continue;
+                }
+                if (!isExtensionClass && member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
-                    if (method.IsExtensionMethod &&
-                        ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
+                    if (method.IsExtensionMethod)
                     {
                         Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                        methods.Add(method);
+                        members.Add(method.ReduceExtensionMethod());
+                    }
+                }
+                else if (isExtensionClass)
+                {
+                    // Return all members even if MustBeInvocableIfMember is set - they will be trimmed later.
+                    // PROTOTYPE: `if member.Kind == memberTypeSearchingFor` ?
+                    // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
+                    var underlying = this.GetUnderlyingMember(member);
+                    // PROTOTYPE: ExpandExtensionClassMethod should probably always return non-null,
+                    // but some method kinds aren't supported (yet?), e.g. constructors
+                    if ((object)underlying != null)
+                    {
+                        // PROTOTYPE: If `underlying` is never returned, we're constructing things never used (in topic of perf)
+                        members.Add(member);
                     }
                 }
             }
@@ -1304,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!IsUnboundGenericType &&
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
-                Name == TupleTypeSymbol.TupleTypeName && 
+                Name == TupleTypeSymbol.TupleTypeName &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;
@@ -1354,6 +1416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             tupleCardinality = 0;
             return false;
         }
+
+        public abstract bool IsExtensionClass { get; }
 
         #region INamedTypeSymbol Members
 

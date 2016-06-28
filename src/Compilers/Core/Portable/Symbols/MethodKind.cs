@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Method is declared inside of another method.
         /// </summary>
-        LocalFunction = 17
+        LocalFunction = 17,
+
+        /// <summary>
+        /// An instance method inside of an extension class transformed into a static method with "this" first parameter.
+        /// </summary>
+        UnreducedExtension = 18,
     }
 }

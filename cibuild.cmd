@@ -61,20 +61,24 @@ if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
-powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
+REM PROTOTYPE: Bootstrap disabled!
+REM msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+REM powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
-if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
-move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
-copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
+REM PROTOTYPE: Bootstrap disabled!
+REM if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
+REM move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
+REM copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
+REM PROTOTYPE: Bootstrap disabled!
+REM msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
 if defined TestDeterminism (
-    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
+    REM PROTOTYPE: Bootstrap (and determinism) tests disabled!
+    REM powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
     call :TerminateBuildProcesses
     exit /b 0
 )
@@ -85,7 +89,9 @@ if defined TestPerfCorrectness (
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+REM PROTOTYPE: Bootstrap disabled!
+REM msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses

@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsAbstract || this.IsStatic;
+                return this.IsAbstract || this.IsStatic || this.IsExtensionClass;
             }
         }
 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsSealed || this.IsStatic;
+                return this.IsSealed || this.IsStatic || this.IsExtensionClass;
             }
         }
 
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (var m in this.GetUnderlyingMembers())
             {
                 if (m.Kind == SymbolKind.Method)
                 {
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (var m in this.GetUnderlyingMembers())
             {
                 if (m.Kind == SymbolKind.Property)
                 {

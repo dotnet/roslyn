@@ -216,15 +216,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal override void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
-            var underlyingMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            _underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
-            foreach (var underlyingMethod in underlyingMethods)
+            var underlyingMembers = ArrayBuilder<Symbol>.GetInstance();
+            _underlyingNamespace.GetExtensionMembers(underlyingMembers, nameOpt, arity, options);
+            foreach (var underlyingMember in underlyingMembers)
             {
-                methods.Add(this.RetargetingTranslator.Retarget(underlyingMethod));
+                if (underlyingMember.Kind == SymbolKind.Method)
+                {
+                    var underlyingMethod = (MethodSymbol)underlyingMember;
+                    if (underlyingMethod.MethodKind == MethodKind.ReducedExtension)
+                    {
+                        var original = underlyingMethod.UnreduceExtensionMethod();
+                        var retargeted = this.RetargetingTranslator.Retarget(original);
+                        var reduced = retargeted.ReduceExtensionMethod();
+                        members.Add(reduced);
+                        continue;
+                    }
+                }
+                members.Add(this.RetargetingTranslator.Retarget(underlyingMember));
             }
-            underlyingMethods.Free();
+            underlyingMembers.Free();
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

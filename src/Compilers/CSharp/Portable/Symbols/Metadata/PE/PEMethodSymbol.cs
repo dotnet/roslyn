@@ -665,6 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+                // PROTOTYPE: Extension class members?
                 // This is also populated by loading attributes, but
                 // loading attributes is more expensive, so we should only do it if
                 // attributes are requested.
@@ -672,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     bool isExtensionMethod = false;
                     if (this.MethodKind == MethodKind.Ordinary && IsValidExtensionMethodSignature()
-                        && this.ContainingType.MightContainExtensionMethods)
+                        && this.ContainingType.MightContainExtensionMembers)
                     {
                         var moduleSymbol = _containingType.ContainingPEModule;
                         isExtensionMethod = moduleSymbol.Module.HasExtensionAttribute(_handle, ignoreCase: false);
@@ -695,13 +696,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var attributeData = default(ImmutableArray<CSharpAttributeData>);
                 var containingPEModuleSymbol = _containingType.ContainingPEModule;
 
+                // PROTOTYPE: Extension class members
                 // Could this possibly be an extension method?
                 bool alreadySet = _packedFlags.IsExtensionMethodIsPopulated;
                 bool checkForExtension = alreadySet
                     ? _packedFlags.IsExtensionMethod
                     : this.MethodKind == MethodKind.Ordinary
                         && IsValidExtensionMethodSignature()
-                        && _containingType.MightContainExtensionMethods;
+                        && _containingType.MightContainExtensionMembers;
 
                 bool isExtensionMethod = false;
                 if (checkForExtension)

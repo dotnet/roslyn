@@ -829,17 +829,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         if (resolution.MethodGroup.IsExtensionMethodGroup)
                         {
-                            Debug.Assert(method.IsExtensionMethod);
+                            Debug.Assert(method.IsExtensionMethod || method.IsInExtensionClass);
 
-                            var thisParameter = method.Parameters[0];
-                            if (!thisParameter.Type.IsReferenceType)
+                            var thisParameterType = method.ReceiverType;
+                            if (!thisParameterType.IsReferenceType)
                             {
                                 // Extension method '{0}' defined on value type '{1}' cannot be used to create delegates
                                 diagnostics.Add(
                                     ErrorCode.ERR_ValueTypeExtDelegate,
                                     expr.Syntax.Location,
                                     method,
-                                    thisParameter.Type);
+                                    thisParameterType);
                                 hasErrors = true;
                             }
                         }
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          "This method should only be called for valid delegate types");
             GetDelegateArguments(syntax, analyzedArguments, delegateType.DelegateInvokeMethod.Parameters, Compilation);
             _binder.OverloadResolution.MethodInvocationOverloadResolution(
-                methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
+                methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, methodGroup.Receiver, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
             var conversion = ToConversion(result, methodGroup, delegateType);
 
             analyzedArguments.Free();
@@ -945,9 +945,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType)
+            if (methodGroup.IsExtensionMethodGroup)
             {
-                return Conversion.NoConversion;
+                if (!method.ReceiverType.IsReferenceType)
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
             if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T &&
@@ -967,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
+            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount);
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }

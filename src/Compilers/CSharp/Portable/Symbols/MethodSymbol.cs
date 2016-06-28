@@ -480,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.ExplicitInterfaceImplementation:
                 case MethodKind.StaticConstructor:
                 case MethodKind.ReducedExtension:
+                case MethodKind.UnreducedExtension:
                     return false;
                 case MethodKind.Conversion:
                 case MethodKind.DelegateInvoke:
@@ -648,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType)
         {
+            // PROTOTYPE: Handle callers of this?
             if ((object)receiverType == null)
             {
                 throw new ArgumentNullException(nameof(receiverType));
@@ -667,10 +669,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this is an extension method, returns a reduced extension method
         /// symbol representing the method. Otherwise, returns null.
+        /// May also return the "original" method if this is a wrapper symbol for an unreduced method.
         /// </summary>
         public MethodSymbol ReduceExtensionMethod()
         {
+            var unreducedFrom = this.GetConstructedUnreducedFrom();
+            if (unreducedFrom != null)
+            {
+                return unreducedFrom;
+            }
+            // PROTOTYPE: Handle callers of this?
             return (this.IsExtensionMethod && this.MethodKind != MethodKind.ReducedExtension) ? ReducedExtensionMethodSymbol.Create(this) : null;
+        }
+
+        /// <summary>
+        /// If this is an extension class method, returns an unreduced extension
+        /// method symbol representing the method. Otherwise, returns null.
+        /// </summary>
+        public MethodSymbol UnreduceExtensionMethod()
+        {
+            var reducedFrom = (MethodSymbol)this.GetConstructedReducedFrom();
+            if ((object)reducedFrom != null)
+            {
+                return reducedFrom;
+            }
+
+            if (this.MethodKind == MethodKind.UnreducedExtension || !this.IsInExtensionClass)
+            {
+                return null;
+            }
+
+            var containingType = this.ContainingType;
+            Debug.Assert(containingType != null);
+            var underlying = containingType.GetUnderlyingMember(this);
+            if (underlying == null)
+            {
+                return null;
+            }
+            Debug.Assert(underlying != null && underlying.Kind == SymbolKind.Method);
+            var underlyingMethod = (MethodSymbol)underlying;
+            // Assert that if `this` was constructed, `underlyingMethod` is too.
+            Debug.Assert(((object)this.ConstructedFrom == (object)this) == ((object)underlyingMethod == (object)underlyingMethod.ConstructedFrom));
+            Debug.Assert(underlyingMethod.IsStatic || underlyingMethod.MethodKind == MethodKind.UnreducedExtension);
+            return underlyingMethod;
         }
 
         /// <summary>
@@ -704,6 +745,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this method is a reduced extension method, gets the extension method definition that
         /// this method was reduced from. Otherwise, returns null.
+        /// WARNING: This returns the unconstructed form of the underlying method of a ReducedExtensionMethod only.
+        /// See <see cref="UnreduceExtensionMethod"/>  for a more general method that returns the constructed unreduced
+        /// form of any extension method.
         /// </summary>
         public virtual MethodSymbol ReducedFrom
         {
@@ -711,15 +755,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this method is an expanded extension method from an extension class, gets the original instance method definition that
+        /// this method was expanded from. Otherwise, returns null.
+        /// </summary>
+        public virtual MethodSymbol UnreducedFrom => null;
+
+        /// <summary>
         /// If this method can be applied to an object, returns the type of object it is applied to.
         /// </summary>
-        public virtual TypeSymbol ReceiverType
-        {
-            get
-            {
-                return this.ContainingType;
-            }
-        }
+        public virtual TypeSymbol ReceiverType => this.ContainingType.ExtensionClassType ?? this.ContainingType;
 
         /// <summary>
         /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter. 
@@ -730,6 +774,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <exception cref="System.ArgumentNullException">If <paramref name="reducedFromTypeParameter"/> is null.</exception>
         /// <exception cref="System.ArgumentException">If <paramref name="reducedFromTypeParameter"/> doesn't belong to the corresponding <see cref="ReducedFrom"/> method.</exception>
         public virtual TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        {
+            throw new InvalidOperationException();
+        }
+
+        internal virtual TypeSymbol GetTypeInferredDuringUnreduction(TypeParameterSymbol unreducedFromTypeParameter)
         {
             throw new InvalidOperationException();
         }
@@ -1009,6 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return MethodKind.StaticConstructor;
                     case MethodKind.LocalFunction:
                         return MethodKind.LocalFunction;
+                    case MethodKind.UnreducedExtension:
+                        return MethodKind.UnreducedExtension;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
                 }

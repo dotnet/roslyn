@@ -151,7 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return this; }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool IsExtensionClass
+        {
+            get { return false; }
+        }
+
+        public override bool MightContainExtensionMembers
         {
             get { return false; }
         }

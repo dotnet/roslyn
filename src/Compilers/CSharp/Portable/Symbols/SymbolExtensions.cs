@@ -372,5 +372,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);
             return typesWithModifiers.SelectAsArray(a => a.Type);
         }
+
+        /// <summary>
+        /// Returns the constructed form of the UnreducedFrom property,
+        /// including the type arguments that were either inferred during unreduction or supplied at the call site.
+        /// </summary>
+        public static MethodSymbol GetConstructedUnreducedFrom(this MethodSymbol method)
+        {
+            // PROTOTYPE: Finish this method?
+            if (method.MethodKind != MethodKind.UnreducedExtension)
+            {
+                // not a unreduced extension method
+                return null;
+            }
+
+            var unreducedFrom = method.UnreducedFrom;
+            if (!unreducedFrom.IsGenericMethod)
+            {
+                // not generic, no inferences were made
+                return unreducedFrom;
+            }
+
+            var typeArgs = new TypeSymbol[unreducedFrom.TypeParameters.Length];
+
+            // first seed with any type arguments from unreduced method
+            for (int i = 0, n = method.TypeParameters.Length; i < n; i++)
+            {
+                var arg = method.TypeArguments[i];
+
+                // make sure we don't construct with type parameters originating from unreduced symbol.
+                if (arg.Equals(method.TypeParameters[i]))
+                {
+                    arg = method.TypeParameters[i].UnreducedFrom;
+                }
+
+                typeArgs[method.TypeParameters[i].UnreducedFrom.Ordinal] = arg;
+            }
+
+            // add any inferences
+            for (int i = 0, n = unreducedFrom.TypeParameters.Length; i < n; i++)
+            {
+                var inferredType = method.GetTypeInferredDuringUnreduction(unreducedFrom.TypeParameters[i]);
+                if (inferredType != null)
+                {
+                    typeArgs[i] = inferredType;
+                }
+            }
+
+            return unreducedFrom.Construct(typeArgs);
+        }
     }
 }

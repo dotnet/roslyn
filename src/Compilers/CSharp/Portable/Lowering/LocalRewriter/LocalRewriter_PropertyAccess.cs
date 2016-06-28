@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is a property set access. We return a BoundPropertyAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
+                // PROTOTYPE: Handle extension properties
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiverOpt, propertySymbol, resultKind, type) :
                     new BoundPropertyAccess(syntax, rewrittenReceiverOpt, propertySymbol, resultKind, type);
@@ -65,7 +66,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakePropertyGetAccess(CSharpSyntaxNode syntax, BoundExpression rewrittenReceiver, PropertySymbol property, BoundPropertyAccess oldNodeOpt)
         {
-            return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, null, oldNodeOpt);
+            var rewrittenArguments = ImmutableArray<BoundExpression>.Empty;
+
+            Debug.Assert(!(property is UnreducedExtensionPropertySymbol));
+            property = property.UnreduceExtensionProperty() ?? property;
+
+            var getMethod = property.GetOwnOrInheritedGetMethod();
+            // need to use MakeArguments in the case of an extension class property.
+            ImmutableArray<LocalSymbol> temps;
+            ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, getMethod, false, default(ImmutableArray<int>), ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
+            Debug.Assert(temps.IsDefaultOrEmpty); // shouldn't ever require temps (which are used to reorder arguments from source order to method order)
+
+            return MakePropertyGetAccess(syntax, rewrittenReceiver, property, rewrittenArguments, getMethod, oldNodeOpt);
         }
 
         private BoundExpression MakePropertyGetAccess(

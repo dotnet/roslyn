@@ -138,6 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = initializer.Syntax;
             MethodSymbol addMethod = initializer.AddMethod;
 
+            if (initializer.InvokedAsExtensionMethod)
+            {
+                Debug.Assert(addMethod.IsInExtensionClass || addMethod.MethodKind == MethodKind.ReducedExtension);
+                addMethod = addMethod.UnreduceExtensionMethod();
+            }
+
             if (_allowOmissionOfConditionalCalls)
             {
                 // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
@@ -155,17 +161,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
             Debug.Assert(argumentRefKindsOpt.IsDefault);
 
             if (initializer.InvokedAsExtensionMethod)
             {
-                // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
+                // PROTOTYPE: Extension class interaction?
+                // The add method was found as an extension method. The arguments were already rewritten into static form by MakeArguments.
                 Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
                 Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);
                 Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
-                rewrittenArguments = rewrittenArguments.SetItem(0, rewrittenReceiver);
-                rewrittenReceiver = null;
             }
 
             if (_inExpressionLambda)

@@ -518,6 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.ExtensionKeyword:
                     return true;
                 default:
                     return false;
@@ -789,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.IdentifierToken:
                     return IsPartialInNamespaceMemberDeclaration();
                 default:
-                    return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
+                    return IsPossibleStartOfTypeDeclaration(this.CurrentToken.ContextualKind);
             }
         }
 
@@ -1230,7 +1231,8 @@ tryAgain:
             Unsafe = 0x2000,
             Partial = 0x4000,
             Async = 0x8000,
-            Replace = 0x10000
+            Replace = 0x10000,
+            Extension = 0x20000
         }
 
         private const SyntaxModifier AccessModifiers = SyntaxModifier.Public | SyntaxModifier.Internal | SyntaxModifier.Protected | SyntaxModifier.Private;
@@ -1276,6 +1278,8 @@ tryAgain:
                             return SyntaxModifier.Async;
                         case SyntaxKind.ReplaceKeyword:
                             return SyntaxModifier.Replace;
+                        case SyntaxKind.ExtensionKeyword:
+                            return SyntaxModifier.Extension;
                     }
 
                     goto default;
@@ -1333,7 +1337,7 @@ tryAgain:
                                 modTok = ConvertToKeyword(this.EatToken());
                                 modTok = this.AddError(modTok, ErrorCode.ERR_PartialMisplaced);
                             }
-                            else if (!IsPossibleStartOfTypeDeclaration(nextToken.Kind) || GetModifier(nextToken) == SyntaxModifier.None)
+                            else if (!IsPossibleStartOfTypeDeclaration(nextToken.ContextualKind) || GetModifier(nextToken) == SyntaxModifier.None)
                             {
                                 return;
                             }
@@ -1365,6 +1369,16 @@ tryAgain:
                             }
                             return;
                         }
+                    case SyntaxModifier.Extension:
+                        {
+                            if (ShouldCurrentContextualKeywordBeTreatedAsModifier())
+                            {
+                                modTok = ConvertToKeyword(this.EatToken());
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureExtensionEverything);
+                                break;
+                            }
+                            return;
+                        }
                     default:
                         {
                             modTok = this.EatToken();
@@ -1382,7 +1396,8 @@ tryAgain:
         private bool ShouldCurrentContextualKeywordBeTreatedAsModifier()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword ||
-                this.CurrentToken.ContextualKind == SyntaxKind.ReplaceKeyword);
+                this.CurrentToken.ContextualKind == SyntaxKind.ReplaceKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword);
 
             // Adapted from CParser::IsAsyncMethod.
 
@@ -1403,7 +1418,8 @@ tryAgain:
 
             this.EatToken(); //move past contextual keyword
 
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
             {
                 this.EatToken(); // "partial" doesn't affect our decision, so look past it.
             }
@@ -1419,7 +1435,7 @@ tryAgain:
             // anything other than async methods are detected as erroneous later, during the define phase
 
             SyntaxToken currToken = this.CurrentToken;
-            if (IsPossibleStartOfTypeDeclaration(currToken.Kind) ||
+            if (IsPossibleStartOfTypeDeclaration(currToken.ContextualKind) ||
                 currToken.Kind == SyntaxKind.EventKeyword ||
                 ((currToken.Kind == SyntaxKind.ExplicitKeyword || currToken.Kind == SyntaxKind.ImplicitKeyword) && PeekToken(1).Kind == SyntaxKind.OperatorKeyword) ||
                 (ScanType() != ScanTypeFlags.NotType && (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword || IsPossibleMemberName())))
@@ -1461,6 +1477,18 @@ tryAgain:
                     }
                 }
             }
+        }
+
+        private bool IsExtensionType()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword);
+            switch (this.PeekToken(1).Kind)
+            {
+                case SyntaxKind.ClassKeyword:
+                    return true;
+            }
+
+            return false;
         }
 
         private bool IsPartialType()
@@ -2084,6 +2112,7 @@ tryAgain:
                 case SyntaxKind.DoubleKeyword:
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.EventKeyword:
+                case SyntaxKind.ExtensionKeyword:
                 case SyntaxKind.ExternKeyword:
                 case SyntaxKind.FixedKeyword:
                 case SyntaxKind.FloatKeyword:
@@ -5272,6 +5301,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 if (!IsCurrentTokenPartialKeywordOfPartialMethodOrType() &&
+                    !IsCurrentTokenExtensionKeywordOfExtensionType() &&
                     !IsCurrentTokenQueryKeywordInQuery())
                 {
                     return true;
@@ -5306,7 +5336,9 @@ tryAgain:
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
-                if (IsCurrentTokenPartialKeywordOfPartialMethodOrType() || IsCurrentTokenQueryKeywordInQuery())
+                if (IsCurrentTokenPartialKeywordOfPartialMethodOrType() ||
+                    IsCurrentTokenExtensionKeywordOfExtensionType() ||
+                    IsCurrentTokenQueryKeywordInQuery())
                 {
                     var result = CreateMissingIdentifierToken();
                     result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
@@ -5340,6 +5372,19 @@ tryAgain:
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
                 if (this.IsPartialType() || this.IsPartialMember())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsCurrentTokenExtensionKeywordOfExtensionType()
+        {
+            if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
+            {
+                if (this.IsExtensionType())
                 {
                     return true;
                 }
@@ -7065,7 +7110,7 @@ tryAgain:
 
                 // class, struct, enum, interface keywords, but also other modifiers that are not allowed after 
                 // partial keyword but start class declaration, so we can assume the user just swapped them.
-                if (IsPossibleStartOfTypeDeclaration(PeekToken(2).Kind))
+                if (IsPossibleStartOfTypeDeclaration(PeekToken(2).ContextualKind))
                 {
                     return false;
                 }
@@ -8355,7 +8400,7 @@ tryAgain:
                     {
                         var resetPoint = this.GetResetPoint();
 
-                        var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().Kind) &&
+                        var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().ContextualKind) &&
                             !IsDeclarationModifier(this.CurrentToken.Kind) && !IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) &&
                             (ScanType() == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken);
 

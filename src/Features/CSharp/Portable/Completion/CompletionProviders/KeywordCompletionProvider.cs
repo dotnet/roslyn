@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ErrorKeywordRecommender(),
                 new EventKeywordRecommender(),
                 new ExplicitKeywordRecommender(),
+                new ExtensionKeywordRecommender(),
                 new ExternKeywordRecommender(),
                 new FalseKeywordRecommender(),
                 new FieldKeywordRecommender(),

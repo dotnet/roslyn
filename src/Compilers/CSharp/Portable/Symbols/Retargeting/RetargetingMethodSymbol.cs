@@ -86,6 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override TypeSymbol ReceiverType
+        {
+            get
+            {
+                var receiver = _underlyingMethod.ReceiverType;
+                return this.RetargetingTranslator.Retarget(receiver, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
