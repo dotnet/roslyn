@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal delegate DecisionTree DecisionMaker(
+        private delegate DecisionTree DecisionMaker(
             BoundExpression expression,
             TypeSymbol type);
 
