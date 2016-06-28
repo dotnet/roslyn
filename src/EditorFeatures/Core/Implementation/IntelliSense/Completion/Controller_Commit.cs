@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -103,21 +102,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             textChange.Value.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
                         var currentSpan = trackingSpan.GetSpan(this.SubjectBuffer.CurrentSnapshot);
 
-                        //var currentSpan = new SnapshotSpan(
-                        //    this.SubjectBuffer.CurrentSnapshot, textChange.Value.Span.ToSpan());
-
                         // In order to play nicely with automatic brace completion, we need to 
                         // not touch the opening paren. We'll check our span and textchange 
                         // for ( and adjust them accordingly if we find them.
 
-                        // all this is needed since we don't use completion set mechanism provided by VS but we implement everything ourselves.
-                        // due to that, existing brace completion engine in editor that should take care of interaction between brace completion
-                        // and intellisense doesn't work for us. so we need this kind of workaround to support it nicely.
+                        // all this is needed since we don't use completion set mechanism provided 
+                        // by VS but we implement everything ourselves. due to that, existing brace 
+                        // completion engine in editor that should take care of interaction between 
+                        // brace completion and intellisense doesn't work for us. so we need this 
+                        // kind of workaround to support it nicely.
                         var newText = AdjustForVirtualSpace(textChange.Value);
-
-                        //bool textChanged;
-                        //newText = AdjustLastText(newText, commitChar.GetValueOrDefault(), out textChanged);
-                        //currentSpan = AdjustLastSpan(currentSpan, commitChar.GetValueOrDefault(), textChanged);
 
                         MoveCaretPoint(currentSpan);
 
@@ -222,38 +216,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        private TextSpan GetCurrentItemSpan(CompletionItem item, Model model)
-        {
-            var originalSpanInView = model.GetViewBufferSpan(item.Span);
-            var currentSpanInView = model.GetCurrentSpanInSnapshot(originalSpanInView, this.TextView.TextBuffer.CurrentSnapshot);
-            var newStart = item.Span.Start + (currentSpanInView.Span.Start - originalSpanInView.TextSpan.Start);
-            return new TextSpan(newStart, currentSpanInView.Length);
-        }
-
-        private SnapshotSpan AdjustLastSpan(SnapshotSpan currentSpan, char commitChar, bool textChanged)
-        {
-            var currentSpanText = currentSpan.GetText();
-            if (currentSpan.Length > 0 && this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion))
-            {
-                if (currentSpanText[currentSpanText.Length - 1] == commitChar)
-                {
-                    return new SnapshotSpan(currentSpan.Start, currentSpan.Length - 1);
-                }
-
-                // looks like auto insertion happened. find right span to replace
-                if (textChanged)
-                {
-                    var index = currentSpanText.LastIndexOf(commitChar);
-                    if (index >= 0)
-                    {
-                        return new SnapshotSpan(currentSpan.Start, index);
-                    }
-                }
-            }
-
-            return currentSpan;
-        }
-
         private string AdjustForVirtualSpace(TextChange textChange)
         {
             var newText = textChange.NewText;
@@ -274,18 +236,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             return newText;
-        }
-
-        private string AdjustLastText(string text, char commitChar, out bool textAdjusted)
-        {
-            var finaltText = this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion)
-                ? text.TrimEnd(commitChar)
-                : text;
-
-            // set whether text has changed or not
-            textAdjusted = finaltText != text;
-
-            return finaltText;
         }
     }
 }
