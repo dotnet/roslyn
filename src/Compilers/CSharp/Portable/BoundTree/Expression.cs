@@ -2885,21 +2885,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// Providing iplementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// This node represents an out var local.
+    /// It is only used temporarily during initial binding.
     /// </summary>
     internal partial class OutVarLocalPendingInference
     {
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNoneOperation(this);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNoneOperation(this, argument);
+            throw ExceptionUtilities.Unreachable;
         }
 
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        protected override OperationKind ExpressionKind
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
     }
 
     /// <summary>
