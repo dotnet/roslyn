@@ -238,6 +238,136 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TestTryAndSelect()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub TryAndSelect()
+        Dim y As Integer = 0
+        Try
+            Try
+                For x As Integer = 0 To 10
+                    Select Case x
+                        Case 0
+                            y += 1
+                        Case 1
+                            Throw New System.Exception()
+                        Case >= 2
+                            y += 1
+                        Case Else
+                            y += 1
+                    End Select
+                Next
+            Catch e As System.Exception
+                y += 1
+            End Try
+        Finally
+            y += 1
+        End Try
+    End Sub
+
+    Public Sub Main(args As String())
+        TryAndSelect()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            VerifySpans(reader, reader.Methods(0),                                      ' TryAndSelect
+                "(1,4)-(23,11)",
+                "(2,27)-(2,28)",
+                "(5,35)-(5,36)",
+                "(6,32)-(6,33)",
+                "(8,28)-(8,34)",
+                "(10,28)-(10,56)",
+                "(12,28)-(12,34)",
+                "(14,28)-(14,34)",
+                "(18,16)-(18,22)",
+                "(21,12)-(21,18)")
+        End Sub
+
+        <Fact>
+        Public Sub TestBranches()
+            Dim testSource As XElement = <file name="c.vb">
+                <![CDATA[
+Module Program
+    Sub Branches()
+        Dim y As Integer = 0
+MyLabel:
+        Do
+            Exit Do
+            y += 1
+        Loop
+        For x As Integer = 1 To 10
+            Exit For
+            y += 1
+        Next
+        Try
+            Exit Try
+            y += 1
+        Catch ex As System.Exception
+        End Try
+        Select Case y
+            Case 0
+                Exit Select
+                y += 0
+        End Select
+        If y = 0 Then
+            Exit Sub
+        End If
+        GoTo MyLabel
+    End Sub
+
+    Public Sub Main(args As String())
+        Branches()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+            </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            VerifySpans(reader, reader.Methods(0),                                      ' Branches
+                "(1,4)-(26,11)",
+                "(2,27)-(2,28)",
+                "(5,12)-(5,19)",
+                "(6,12)-(6,18)",
+                "(8,27)-(8,28)",
+                "(9,12)-(9,20)",
+                "(10,12)-(10,18)",
+                "(13,12)-(13,20)",
+                "(14,12)-(14,18)",
+                "(17,20)-(17,21)",
+                "(19,16)-(19,27)",
+                "(20,16)-(20,22)",
+                "(23,12)-(23,20)",
+                "(22,11)-(22,16)",
+                "(25,8)-(25,20)")
+        End Sub
+
+        <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(ExampleSource)

@@ -283,6 +283,162 @@ True
             CompileAndVerify(source, expectedOutput)
         End Sub
 
+        <Fact>
+        Public Sub TestTryAndSelect()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub TryAndSelect()                                                      ' Method 1
+        Dim y As Integer = 0
+        Try
+            Try
+                For x As Integer = 0 To 10
+                    Select Case x
+                        Case 0
+                            y += 1
+                        Case 1
+                            Throw New System.Exception()
+                        Case >= 2
+                            y += 1
+                        Case Else
+                            y += 1
+                    End Select
+                Next
+            Catch e As System.Exception
+                y += 1
+            End Try
+        Finally
+            y += 1
+        End Try
+    End Sub
+
+    Public Sub Main(args As String())
+        TryAndSelect()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+True
+True
+True
+False
+False
+True
+True
+2
+True
+True
+True
+5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub TestBranches()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub Branches()                                                          ' Method 1
+        Dim y As Integer = 0
+MyLabel:
+        Do
+            Exit Do
+            y += 1
+        Loop
+        For x As Integer = 1 To 10
+            Exit For
+            y += 1
+        Next
+        Try
+            Exit Try
+            y += 1
+        Catch ex As System.Exception
+        End Try
+        Select Case y
+            Case 0
+                Exit Select
+                y += 0
+        End Select
+        If y = 0 Then
+            Exit Sub
+        End If
+        GoTo MyLabel
+    End Sub
+
+    Public Sub Main(args As String())                                       ' Method 2
+        Branches()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                                     </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+False
+True
+True
+False
+True
+False
+True
+True
+False
+True
+True
+False
+2
+True
+True
+True
+5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
         Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
             Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument("Test.Flag"))
         End Function
