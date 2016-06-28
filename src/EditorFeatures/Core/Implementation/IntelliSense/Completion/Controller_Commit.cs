@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // brace completion and intellisense doesn't work for us. so we need this 
                         // kind of workaround to support it nicely.
                         var newText = AdjustForVirtualSpace(textChange.Value);
+                        AdjustForBraceCompletion(commitChar.GetValueOrDefault(), ref newText, ref currentSpan);
 
                         MoveCaretPoint(currentSpan);
 
@@ -236,6 +238,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             return newText;
+        }
+
+        private SnapshotSpan AdjustLastSpan(SnapshotSpan currentSpan, char commitChar, bool textChanged)
+        {
+            var currentSpanText = currentSpan.GetText();
+            if (currentSpan.Length > 0 && this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion))
+            {
+                if (currentSpanText[currentSpanText.Length - 1] == commitChar)
+                {
+                    return new SnapshotSpan(currentSpan.Start, currentSpan.Length - 1);
+                }
+
+                // looks like auto insertion happened. find right span to replace
+                if (textChanged)
+                {
+                    var index = currentSpanText.LastIndexOf(commitChar);
+                    if (index >= 0)
+                    {
+                        return new SnapshotSpan(currentSpan.Start, index);
+                    }
+                }
+            }
+
+            return currentSpan;
+        }
+
+        private void AdjustForBraceCompletion(
+            char commitChar, ref string currentText, ref SnapshotSpan currentSpan)
+        {
+            var hasPairCompletion = this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion);
+            if (hasPairCompletion && currentText.EndsWith(commitChar.ToString()))
+            {
+                currentText = currentText.Substring(0, currentText.Length - 1);
+                currentSpan = new SnapshotSpan(
+                    currentSpan.Snapshot,
+                    Span.FromBounds(currentSpan.Span.Start, currentSpan.Span.End - 1));
+            }
         }
     }
 }
