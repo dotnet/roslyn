@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.SelectAll();
             Window.Operations.Copy();
             VerifyClipboardData("1 + 2",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1 + 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 1 + 2}",
                 "[{\"content\":\"1 + 2\",\"kind\":2}]");
 
             // Shrink the selection.
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             Window.Operations.Copy();
             VerifyClipboardData(" + ",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2  + }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0  + }",
                 @"[{""content"":"" + "",""kind"":2}]");
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.SelectAll();
             Window.Operations.Copy();
             VerifyClipboardData("111\r\n> 222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par > 222}",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2}]");
         }
 
@@ -81,7 +81,7 @@ System.Console.WriteLine(o);",
             Window.Operations.SelectAll();
             Window.Operations.Copy();
             VerifyClipboardData("> foreach (var o in new[] { 1, 2, 3 })\r\n> System.Console.WriteLine(o);\r\n1\r\n2\r\n3\r\n> 1 + 2",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > foreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine(o);\\par 1\\par 2\\par 3\\par > 1 + 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > foreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine(o);\\par 1\\par 2\\par 3\\par > 1 + 2}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"foreach (var o in new[] { 1, 2, 3 })\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"System.Console.WriteLine(o);\\u000d\\u000a\",\"kind\":2},{\"content\":\"1\\u000d\\u000a2\\u000d\\u000a3\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"1 + 2\",\"kind\":2}]");
 
             // Shrink the selection.
@@ -91,7 +91,7 @@ System.Console.WriteLine(o);",
 
             Window.Operations.Copy();
             VerifyClipboardData("oreach (var o in new[] { 1, 2, 3 })\r\n> System.Console.WriteLine(o);\r\n1\r\n2\r\n3\r\n> 1 ",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 oreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine(o);\\par 1\\par 2\\par 3\\par > 1 }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 oreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine(o);\\par 1\\par 2\\par 3\\par > 1 }",
                 "[{\"content\":\"oreach (var o in new[] { 1, 2, 3 })\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"System.Console.WriteLine(o);\\u000d\\u000a\",\"kind\":2},{\"content\":\"1\\u000d\\u000a2\\u000d\\u000a3\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"1 \",\"kind\":2}]");
         }
 
@@ -117,7 +117,7 @@ System.Console.WriteLine(o);",
 
             Window.Operations.Copy();
             VerifyClipboardData("1\r\n2\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 1\\par 2}",
                 "[{\"content\":\"1\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"2\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                 expectedToBeBoxCopy: true);
         }
@@ -144,7 +144,7 @@ System.Console.WriteLine(o);",
 
             Window.Operations.Copy();
             VerifyClipboardData("> 111\r\n> 222\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par > 222}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                 expectedToBeBoxCopy: true);
         }
@@ -174,7 +174,7 @@ System.Console.WriteLine(o);",
 
             Window.Operations.Copy();
             VerifyClipboardData("1\r\n2\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 1\\par 2}",
                 "[{\"content\":\"1\",\"kind\":1},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"2\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                 expectedToBeBoxCopy: true);
         }
@@ -196,7 +196,7 @@ System.Console.WriteLine(o);",
             Assert.True(Window.TextView.Selection.IsEmpty);
 
             VerifyClipboardData("111",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111}",
                 "[{\"content\":\"111\",\"kind\":2}]");
 
             // undo 
@@ -223,7 +223,7 @@ System.Console.WriteLine(o);",
             Assert.True(Window.TextView.Selection.IsEmpty);
 
             VerifyClipboardData("111\r\n> 222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par > 222}",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2}]");
 
             // undo
@@ -263,7 +263,7 @@ System.Console.WriteLine();",
 
             // everything got copied to clipboard
             VerifyClipboardData("> foreach (var o in new[] { 1, 2, 3 })\r\n> System.Console.WriteLine();\r\n1\r\n2\r\n3\r\n> 1 + 2",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > foreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine();\\par 1\\par 2\\par 3\\par > 1 + 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > foreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine();\\par 1\\par 2\\par 3\\par > 1 + 2}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"foreach (var o in new[] { 1, 2, 3 })\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"System.Console.WriteLine();\\u000d\\u000a\",\"kind\":2},{\"content\":\"1\\u000d\\u000a2\\u000d\\u000a3\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"1 + 2\",\"kind\":2}]");
         }
 
@@ -296,7 +296,7 @@ System.Console.WriteLine();",
             Assert.True(IsEmptyBoxSelection());
 
             VerifyClipboardData("1\r\n2\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 1\\par 2}",
                 "[{\"content\":\"1\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"2\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                 expectedToBeBoxCopy: true);
 
@@ -334,7 +334,7 @@ System.Console.WriteLine();",
             Assert.True(IsEmptyBoxSelection());
 
             VerifyClipboardData("> 111\r\n> 222\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par > 222}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                 expectedToBeBoxCopy: true);
 
@@ -381,7 +381,7 @@ System.Console.WriteLine();",
             Assert.False(IsEmptyBoxSelection());
 
             VerifyClipboardData("1\r\n2\r\n3\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2\\par 3}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 1\\par 2\\par 3}",
                 "[{\"content\":\"1\",\"kind\":1},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"2\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"3\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                 expectedToBeBoxCopy: true);
         }
@@ -405,27 +405,27 @@ System.Console.WriteLine();",
 
             // readonly buffer
             CopyNoSelectionAndVerify(0, 7, "> s +\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > s +\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > s +\\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"s +\\u000d\\u000a\",\"kind\":2}]");
             CopyNoSelectionAndVerify(7, 11, "> \r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > \\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > \\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"\\u000d\\u000a\",\"kind\":2}]");
             CopyNoSelectionAndVerify(11, 17, ">  t\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 >  t\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 >  t\\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\" t\\u000d\\u000a\",\"kind\":2}]");
             CopyNoSelectionAndVerify(17, 21, " 1\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2  1\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0  1\\par }",
                 "[{\"content\":\" 1\\u000d\\u000a\",\"kind\":1}]");
             CopyNoSelectionAndVerify(21, 23, "\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 \\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 \\par }",
                 "[{\"content\":\"\\u000d\\u000a\",\"kind\":1}]");
             CopyNoSelectionAndVerify(23, 27, "22\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 22\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 22\\par }",
                 "[{\"content\":\"22\\u000d\\u000a\",\"kind\":1}]");
 
             // editable buffer and active prompt
             CopyNoSelectionAndVerify(27, 34, "> 1 + 2",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 1 + 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 1 + 2}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"1 + 2\",\"kind\":2}]");
         }
 
@@ -446,7 +446,7 @@ System.Console.WriteLine();",
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("> 111",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -472,7 +472,7 @@ System.Console.WriteLine();",
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("> 111",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -502,7 +502,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n111\r\n> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("111\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par }",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":1}]",
                 expectedToBeLineCopy: true);
 
@@ -516,7 +516,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n111\r\n> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("> 111\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\\u000d\\u000a\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
         }
@@ -565,7 +565,7 @@ System.Console.WriteLine();",
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("> 111",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -591,7 +591,7 @@ System.Console.WriteLine();",
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("> 111",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -621,7 +621,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n111\r\n> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("111\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par }",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":1}]",
                 expectedToBeLineCopy: true);
 
@@ -635,7 +635,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n111\r\n> ", GetTextFromCurrentSnapshot());
 
             VerifyClipboardData("> 111\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\\u000d\\u000a\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
         }
@@ -668,7 +668,7 @@ System.Console.WriteLine();",
             Assert.True(Window.TextView.Selection.IsEmpty);
 
             VerifyClipboardData("> 111\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\\u000d\\u000a\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -705,7 +705,7 @@ System.Console.WriteLine();",
             Assert.True(Window.TextView.Selection.IsEmpty);
 
             VerifyClipboardData("> 111\r\n> 222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par > 222}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -746,7 +746,7 @@ System.Console.WriteLine();",
 
             // everything got copied to clipboard
             VerifyClipboardData("> foreach (var o in new[] { 1, 2, 3 })\r\n> System.Console.WriteLine();\r\n1\r\n2\r\n3\r\n> 1 + 2",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > foreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine();\\par 1\\par 2\\par 3\\par > 1 + 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > foreach (var o in new[] \\{ 1, 2, 3 \\})\\par > System.Console.WriteLine();\\par 1\\par 2\\par 3\\par > 1 + 2}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"foreach (var o in new[] { 1, 2, 3 })\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"System.Console.WriteLine();\\u000d\\u000a\",\"kind\":2},{\"content\":\"1\\u000d\\u000a2\\u000d\\u000a3\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"1 + 2\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
         }
@@ -779,7 +779,7 @@ System.Console.WriteLine();",
             Assert.True(selection.IsEmpty);
 
             VerifyClipboardData("> 111\r\n> 222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par > 222}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -816,7 +816,7 @@ System.Console.WriteLine();",
             Assert.True(selection.IsEmpty);
 
             VerifyClipboardData("> 111\r\n> 222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > 111\\par > 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 > 111\\par > 222}",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -863,7 +863,7 @@ System.Console.WriteLine();",
             Assert.False(IsEmptyBoxSelection());
 
             VerifyClipboardData("11111\r\n> 222\r\n> 333",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 11111\\par > 222\\par > 333}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 11111\\par > 222\\par > 333}",
                 "[{\"content\":\"11111\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"333\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
         }
@@ -1466,7 +1466,7 @@ System.Console.WriteLine();",
 
             Window.Operations.CopyCode();
             VerifyClipboardData("222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 222}",
                 "[{\"content\":\"222\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -1477,7 +1477,7 @@ System.Console.WriteLine();",
             MoveCaretToPreviousPosition(7);
             Window.Operations.CopyCode();
             VerifyClipboardData("111\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par }",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par }",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2}]",
                 expectedToBeLineCopy: true);
 
@@ -1519,7 +1519,7 @@ System.Console.WriteLine();",
             Window.Operations.SelectAll();
             Window.Operations.CopyCode();
             VerifyClipboardData("111\r\n222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par 222}",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"222\",\"kind\":2}]");
 
 
@@ -1538,7 +1538,7 @@ System.Console.WriteLine();",
             Window.Operations.CopyCode();
 
             VerifyClipboardData("111\r\n222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par 222}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 111\\par 222}",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"222\",\"kind\":2}]");
 
             _testClipboard.Clear();
@@ -1559,7 +1559,7 @@ System.Console.WriteLine();",
             Window.Operations.CopyCode();
 
             VerifyClipboardData("1\r\n2\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 1\\par 2}",
                 "[{\"content\":\"1\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"2\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
                  expectedToBeBoxCopy: true);
 
@@ -1585,7 +1585,7 @@ System.Console.WriteLine();",
             Window.Operations.CopyCode();
 
             VerifyClipboardData("22",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 22}",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight0 22}",
                 "[{\"content\":\"22\",\"kind\":2}]");
 
             _testClipboard.Clear();
