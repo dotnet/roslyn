@@ -523,12 +523,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool isNestedNamedType = false;
 
-                // for tuple types, visit underlying type
-                if (current.IsTupleType)
-                {
-                    current = current.TupleUnderlyingType;
-                }
-
                 // Visit containing types from outer-most to inner-most.
                 switch (current.TypeKind)
                 {
@@ -574,9 +568,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        if (current.IsTupleType)
                         {
-                            var result = typeArg.VisitType(predicate, arg);
+                            // turn tuple type elements into parameters
+                            current = current.TupleUnderlyingType;
+                        }
+
+                        foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        {
+                            var result = nestedType.VisitType(predicate, arg);
                             if ((object)result != null)
                             {
                                 return result;
@@ -801,6 +801,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static readonly Func<TypeSymbol, object, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
+
+        /// <summary>
+        /// Return true if the type contains any tuples.
+        /// </summary>
+        internal static bool ContainsTuple(this TypeSymbol type) =>
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType, null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
