@@ -220,12 +220,14 @@ text;
 
                 foreach (var ch in validChars)
                 {
-                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character");
+                    Assert.True(completionRules.IsCommitCharacter(
+                        item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
-                    Assert.False(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' NOT to be a commit character");
+                    Assert.False(completionRules.IsCommitCharacter(
+                        item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }
