@@ -48,6 +48,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             /// <summary>
+            /// Return all <see cref="StateSet"/>.
+            /// This will never create new <see cref="StateSet"/> but will return ones already created.
+            /// </summary>
+            public IEnumerable<StateSet> GetStateSets()
+            {
+                return _hostStates.GetStateSets().Concat(_projectStates.GetStateSets());
+            }
+
+            /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
