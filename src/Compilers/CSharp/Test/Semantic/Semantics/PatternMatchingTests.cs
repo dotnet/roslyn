@@ -2339,6 +2339,661 @@ public class X
         }
 
         [Fact]
+        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        public void ScopeOfPatternVariables_Query_05()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        int y1 = 0, y2 = 0, y3 = 0, y4 = 0, y5 = 0, y6 = 0, y7 = 0, y8 = 0, y9 = 0, y10 = 0, y11 = 0, y12 = 0;
+
+        var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
+                  from x2 in new[] { 2 is var y2 ? y2 : 0}
+                  join x3 in new[] { 3 is var y3 ? y3 : 0}
+                       on 4 is var y4 ? y4 : 0
+                          equals 5 is var y5 ? y5 : 0
+                  where 6 is var y6 && y6 == 1
+                  orderby 7 is var y7 && y7 > 0, 
+                          8 is var y8 && y8 > 0 
+                  group 9 is var y9 && y9 > 0 
+                  by 10 is var y10 && y10 > 0
+                  into g
+                  let x11 = 11 is var y11 && y11 > 0
+                  select 12 is var y12 && y12 > 0
+                  into s
+                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12;
+
+        Dummy(y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12); 
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (16,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(16, 47),
+                // (17,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 47),
+                // (18,47): error CS0136: A local or parameter named 'y3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y3").WithArguments("y3").WithLocation(18, 47),
+                // (19,36): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                        on 4 is var y4 ? y4 : 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(19, 36),
+                // (20,43): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                           equals 5 is var y5 ? y5 : 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(20, 43),
+                // (21,34): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   where 6 is var y6 && y6 == 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(21, 34),
+                // (22,36): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   orderby 7 is var y7 && y7 > 0, 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(22, 36),
+                // (23,36): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                           8 is var y8 && y8 > 0 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(23, 36),
+                // (25,32): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   by 10 is var y10 && y10 > 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(25, 32),
+                // (24,34): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   group 9 is var y9 && y9 > 0 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(24, 34),
+                // (27,39): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   let x11 = 11 is var y11 && y11 > 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(27, 39),
+                // (28,36): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   select 12 is var y12 && y12 > 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 36)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i < 13; i++)
+            {
+                var id = "y" + i;
+                var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).Single();
+                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).ToArray();
+                Assert.Equal(3, yRef.Length);
+                VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
+                VerifyNotAPatternLocal(model, yRef[2]);
+
+                switch (i)
+                {
+                    case 1:
+                    case 3:
+                    case 12:
+                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+                        //VerifyNotAPatternLocal(model, yRef[1]);
+                        break;
+                    default:
+                        VerifyNotAPatternLocal(model, yRef[1]);
+                        break;
+                }
+
+            }
+        }
+
+        [Fact]
+        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        public void ScopeOfPatternVariables_Query_06()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        Dummy(1 is int y1, 
+              2 is int y2, 
+              3 is int y3, 
+              4 is int y4, 
+              5 is int y5, 
+              6 is int y6, 
+              7 is int y7, 
+              8 is int y8, 
+              9 is int y9, 
+              10 is int y10, 
+              11 is int y11, 
+              12 is int y12,
+                  from x1 in new[] { 1 is var y1 ? y1 : 0}
+                  from x2 in new[] { 2 is var y2 ? y2 : 0}
+                  join x3 in new[] { 3 is var y3 ? y3 : 0}
+                       on 4 is var y4 ? y4 : 0
+                          equals 5 is var y5 ? y5 : 0
+                  where 6 is var y6 && y6 == 1
+                  orderby 7 is var y7 && y7 > 0, 
+                          8 is var y8 && y8 > 0 
+                  group 9 is var y9 && y9 > 0 
+                  by 10 is var y10 && y10 > 0
+                  into g
+                  let x11 = 11 is var y11 && y11 > 0
+                  select 12 is var y12 && y12 > 0
+                  into s
+                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (26,47): error CS0128: A local variable named 'y1' is already defined in this scope
+                //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(26, 47),
+                // (27,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(27, 47),
+                // (28,47): error CS0128: A local variable named 'y3' is already defined in this scope
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(28, 47),
+                // (29,36): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                        on 4 is var y4 ? y4 : 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(29, 36),
+                // (30,43): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                           equals 5 is var y5 ? y5 : 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(30, 43),
+                // (31,34): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   where 6 is var y6 && y6 == 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(31, 34),
+                // (32,36): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   orderby 7 is var y7 && y7 > 0, 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(32, 36),
+                // (33,36): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                           8 is var y8 && y8 > 0 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(33, 36),
+                // (35,32): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   by 10 is var y10 && y10 > 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(35, 32),
+                // (34,34): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   group 9 is var y9 && y9 > 0 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(34, 34),
+                // (37,39): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   let x11 = 11 is var y11 && y11 > 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(37, 39),
+                // (38,36): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   select 12 is var y12 && y12 > 0
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 36)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i < 13; i++)
+            {
+                var id = "y" + i;
+                var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).ToArray();
+                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).ToArray();
+                Assert.Equal(2, yDecl.Length);
+                Assert.Equal(2, yRef.Length);
+
+                switch (i)
+                {
+                    case 1:
+                    case 3:
+                        VerifyModelForDeclarationPattern(model, yDecl[0], yRef);
+                        VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl[1]);
+                        break;
+                    case 12:
+                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+                        //VerifyModelForDeclarationPattern(model, yDecl[0], yRef[1]);
+                        VerifyModelForDeclarationPattern(model, yDecl[1], yRef[0]);
+                        break;
+
+                    default:
+                        VerifyModelForDeclarationPattern(model, yDecl[0], yRef[1]);
+                        VerifyModelForDeclarationPattern(model, yDecl[1], yRef[0]);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        public void ScopeOfPatternVariables_Query_07()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        Dummy(7 is int y3, 
+                  from x1 in new[] { 0 }
+                  select x1
+                  into x1
+                  join x3 in new[] { 3 is var y3 ? y3 : 0}
+                       on x1 equals x3
+                  select y3);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (18,47): error CS0128: A local variable named 'y3' is already defined in this scope
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 47)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            const string id = "y3";
+            var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).ToArray();
+            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).ToArray();
+            Assert.Equal(2, yDecl.Length);
+            Assert.Equal(2, yRef.Length);
+            VerifyModelForDeclarationPattern(model, yDecl[0], yRef[1]);
+            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+            //VerifyModelForDeclarationPattern(model, yDecl[1], yRef[0]);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Query_08()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        var res = from x1 in new[] { Dummy(1 is var y1, 
+                                           2 is var y2,
+                                           3 is var y3,
+                                           4 is var y4
+                                          ) ? 1 : 0}
+                  from y1 in new[] { 1 }
+                  join y2 in new[] { 0 }
+                       on y1 equals y2
+                  let y3 = 0
+                  group y3 
+                  by x1
+                  into y4
+                  select y4;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (19,24): error CS1931: The range variable 'y1' conflicts with a previous declaration of 'y1'
+                //                   from y1 in new[] { 1 }
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y1").WithArguments("y1").WithLocation(19, 24),
+                // (20,24): error CS1931: The range variable 'y2' conflicts with a previous declaration of 'y2'
+                //                   join y2 in new[] { 0 }
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y2").WithArguments("y2").WithLocation(20, 24),
+                // (22,23): error CS1931: The range variable 'y3' conflicts with a previous declaration of 'y3'
+                //                   let y3 = 0
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y3").WithArguments("y3").WithLocation(22, 23),
+                // (25,24): error CS1931: The range variable 'y4' conflicts with a previous declaration of 'y4'
+                //                   into y4
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y4").WithArguments("y4").WithLocation(25, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i < 5; i++)
+            {
+                var id = "y" + i;
+                var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).Single();
+                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
+                VerifyModelForDeclarationPattern(model, yDecl);
+                VerifyNotAPatternLocal(model, yRef);
+            }
+        }
+
+        [Fact]
+        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        public void ScopeOfPatternVariables_Query_09()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        var res = from y1 in new[] { 0 }
+                  join y2 in new[] { 0 }
+                       on y1 equals y2
+                  let y3 = 0
+                  group y3 
+                  by 1
+                  into y4
+                  select y4 == null ? 1 : 0
+                  into x2
+                  join y5 in new[] { Dummy(1 is var y1, 
+                                           2 is var y2,
+                                           3 is var y3,
+                                           4 is var y4,
+                                           5 is var y5
+                                          ) ? 1 : 0 }
+                       on x2 equals y5
+                  select x2;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (14,24): error CS1931: The range variable 'y1' conflicts with a previous declaration of 'y1'
+                //         var res = from y1 in new[] { 0 }
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y1").WithArguments("y1").WithLocation(14, 24),
+                // (15,24): error CS1931: The range variable 'y2' conflicts with a previous declaration of 'y2'
+                //                   join y2 in new[] { 0 }
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y2").WithArguments("y2").WithLocation(15, 24),
+                // (17,23): error CS1931: The range variable 'y3' conflicts with a previous declaration of 'y3'
+                //                   let y3 = 0
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y3").WithArguments("y3").WithLocation(17, 23),
+                // (20,24): error CS1931: The range variable 'y4' conflicts with a previous declaration of 'y4'
+                //                   into y4
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y4").WithArguments("y4").WithLocation(20, 24),
+                // (23,24): error CS1931: The range variable 'y5' conflicts with a previous declaration of 'y5'
+                //                   join y5 in new[] { Dummy(1 is var y1, 
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y5").WithArguments("y5").WithLocation(23, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i < 6; i++)
+            {
+                var id = "y" + i;
+                var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).Single();
+                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
+
+                switch (i)
+                {
+                    case 4:
+                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+                        //VerifyModelForDeclarationPattern(model, yDecl);
+                        VerifyNotAPatternLocal(model, yRef);
+                        break;
+                    case 5:
+                        VerifyModelForDeclarationPattern(model, yDecl);
+                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+                        //VerifyNotAPatternLocal(model, yRef);
+                        break;
+                    default:
+                        VerifyModelForDeclarationPattern(model, yDecl);
+                        VerifyNotAPatternLocal(model, yRef);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
+        [WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        public void ScopeOfPatternVariables_Query_10()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        var res = from y1 in new[] { 0 }
+                  from x2 in new[] { 1 is var y1 ? y1 : 1 }
+                  select y1;
+    }
+
+    void Test2()
+    {
+        var res = from y2 in new[] { 0 }
+                  join x3 in new[] { 1 }
+                       on 2 is var y2 ? y2 : 0 
+                       equals x3
+                  select y2;
+    }
+
+    void Test3()
+    {
+        var res = from x3 in new[] { 0 }
+                  join y3 in new[] { 1 }
+                       on x3 
+                       equals 3 is var y3 ? y3 : 0
+                  select y3;
+    }
+
+    void Test4()
+    {
+        var res = from y4 in new[] { 0 }
+                  where 4 is var y4 && y4 == 1
+                  select y4;
+    }
+
+    void Test5()
+    {
+        var res = from y5 in new[] { 0 }
+                  orderby 5 is var y5 && y5 > 1, 
+                          1 
+                  select y5;
+    }
+
+    void Test6()
+    {
+        var res = from y6 in new[] { 0 }
+                  orderby 1, 
+                          6 is var y6 && y6 > 1 
+                  select y6;
+    }
+
+    void Test7()
+    {
+        var res = from y7 in new[] { 0 }
+                  group 7 is var y7 && y7 == 3 
+                  by y7;
+    }
+
+    void Test8()
+    {
+        var res = from y8 in new[] { 0 }
+                  group y8 
+                  by 8 is var y8 && y8 == 3;
+    }
+
+    void Test9()
+    {
+        var res = from y9 in new[] { 0 }
+                  let x4 = 9 is var y9 && y9 > 0
+                  select y9;
+    }
+
+    void Test10()
+    {
+        var res = from y10 in new[] { 0 }
+                  select 10 is var y10 && y10 > 0;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
+            compilation.VerifyDiagnostics(
+                // (15,47): error CS0412: 'y1': a parameter or local variable cannot have the same name as a method type parameter
+                //                   from x2 in new[] { 1 is var y1 ? y1 : 1 }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y1").WithArguments("y1").WithLocation(15, 47),
+                // (23,36): error CS0412: 'y2': a parameter or local variable cannot have the same name as a method type parameter
+                //                        on 2 is var y2 ? y2 : 0 
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y2").WithArguments("y2").WithLocation(23, 36),
+                // (33,40): error CS0412: 'y3': a parameter or local variable cannot have the same name as a method type parameter
+                //                        equals 3 is var y3 ? y3 : 0
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y3").WithArguments("y3").WithLocation(33, 40),
+                // (40,34): error CS0412: 'y4': a parameter or local variable cannot have the same name as a method type parameter
+                //                   where 4 is var y4 && y4 == 1
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y4").WithArguments("y4").WithLocation(40, 34),
+                // (47,36): error CS0412: 'y5': a parameter or local variable cannot have the same name as a method type parameter
+                //                   orderby 5 is var y5 && y5 > 1, 
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y5").WithArguments("y5").WithLocation(47, 36),
+                // (56,36): error CS0412: 'y6': a parameter or local variable cannot have the same name as a method type parameter
+                //                           6 is var y6 && y6 > 1 
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y6").WithArguments("y6").WithLocation(56, 36),
+                // (63,34): error CS0412: 'y7': a parameter or local variable cannot have the same name as a method type parameter
+                //                   group 7 is var y7 && y7 == 3 
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y7").WithArguments("y7").WithLocation(63, 34),
+                // (71,31): error CS0412: 'y8': a parameter or local variable cannot have the same name as a method type parameter
+                //                   by 8 is var y8 && y8 == 3;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y8").WithArguments("y8").WithLocation(71, 31),
+                // (77,37): error CS0412: 'y9': a parameter or local variable cannot have the same name as a method type parameter
+                //                   let x4 = 9 is var y9 && y9 > 0
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y9").WithArguments("y9").WithLocation(77, 37),
+                // (84,36): error CS0412: 'y10': a parameter or local variable cannot have the same name as a method type parameter
+                //                   select 10 is var y10 && y10 > 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 36)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i < 11; i++)
+            {
+                var id = "y" + i;
+                var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).Single();
+                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).ToArray();
+                Assert.Equal(i == 10 ? 1 : 2, yRef.Length);
+
+                switch (i)
+                {
+                    case 4:
+                    case 6:
+                        VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
+                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+                        //VerifyNotAPatternLocal(model, yRef[1]);
+                        break;
+                    case 8:
+                        VerifyModelForDeclarationPattern(model, yDecl, yRef[1]);
+                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+                        //VerifyNotAPatternLocal(model, yRef[0]);
+                        break;
+                    case 10:
+                        VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
+                        break;
+                    default:
+                        VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
+                        VerifyNotAPatternLocal(model, yRef[1]);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void Query_01()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var res = from x1 in new[] { 1 is var y1 && Print(y1) ? 1 : 0}
+                  from x2 in new[] { 2 is var y2 && Print(y2) ? 1 : 0}
+                  join x3 in new[] { 3 is var y3 && Print(y3) ? 1 : 0}
+                       on 4 is var y4 && Print(y4) ? 1 : 0
+                          equals 5 is var y5 && Print(y5) ? 1 : 0
+                  where 6 is var y6 && Print(y6)
+                  orderby 7 is var y7 && Print(y7), 
+                          8 is var y8 && Print(y8) 
+                  group 9 is var y9 && Print(y9) 
+                  by 10 is var y10 && Print(y10)
+                  into g
+                  let x11 = 11 is var y11 && Print(y11)
+                  select 12 is var y12 && Print(y12);
+
+        res.ToArray(); 
+    }
+
+    static bool Print(object x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3
+5
+2
+4
+6
+7
+8
+10
+9
+11
+12
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i < 13; i++)
+            {
+                var id = "y" + i;
+                var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).Single();
+                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
+                VerifyModelForDeclarationPattern(model, yDecl, yRef);
+            }
+        }
+
+        [Fact]
         public void ScopeOfPatternVariables_ExpressionBodiedLocalFunctions_01()
         {
             var source =
@@ -9561,6 +10216,34 @@ public class X
 @"System.InvalidOperationException
 System.InvalidOperationException
 System.NullReferenceException");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9021")]
+        [WorkItem(9021, "https://github.com/dotnet/roslyn/issues/9021")]
+        public void WRN_UnreferencedVarAssg_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var x = 11;
+        Dummy(11 is var y);
+    }
+
+    static bool Dummy(params object[] x) {return true;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = 11;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13),
+                // (7,25): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         Dummy(11 is var y);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 25)
+                );
         }
 
         [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
