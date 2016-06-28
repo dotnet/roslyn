@@ -460,6 +460,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _analyzers.ContainsKey(fullPath);
         }
 
+        /// <summary>
+        /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.
+        /// </summary>
+        public ImmutableDictionary<string, VisualStudioAnalyzer> GetProjectAnalyzersMap() => _analyzers.ToImmutableDictionary();
+
         private static string GetAssemblyName(string outputPath)
         {
             Contract.Requires(outputPath != null);
