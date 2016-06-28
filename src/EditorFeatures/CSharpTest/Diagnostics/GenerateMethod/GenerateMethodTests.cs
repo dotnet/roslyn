@@ -3100,5 +3100,45 @@ withScriptOption: true);
 @"class Class { void Method() { [|Undefined|](a: out int c); } }",
 @"using System; class Class { void Method() { Undefined(a: out int c); } private void Undefined(out int a) { throw new NotImplementedException(); } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_CSharp6()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](out var c); } }",
+@"using System; class Class { void Method() { Undefined(out var c); } private void Undefined(out object c) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](out int c); } }",
+@"using System; class Class { void Method() { Undefined(out int c); } private void Undefined(out int c) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](a: out var c); } }",
+@"using System; class Class { void Method() { Undefined(a: out var c); } private void Undefined(out object a) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Undefined|](a: out int c); } }",
+@"using System; class Class { void Method() { Undefined(a: out int c); } private void Undefined(out int a) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
     }
 }

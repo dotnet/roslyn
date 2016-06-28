@@ -13088,5 +13088,36 @@ public class Cls
 
             Assert.False(true, "Expected exception is not thrown.");
         }
+
+        [Fact]
+        [WorkItem(12058, "https://github.com/dotnet/roslyn/issues/12058")]
+        public void MissingArgumentAndNamedOutVarArgument()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        if (M(s: out var s))
+        {
+            string s2 = s;
+        }
+    }
+    public static bool M(int i, out string s)
+    {
+        s = i.ToString();
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Program.M(int, out string)'
+                //         if (M(s: out var s))
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("i", "Program.M(int, out string)").WithLocation(5, 13)
+                );
+        }
     }
 }
