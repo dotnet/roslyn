@@ -108,16 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             this.SubjectBuffer.CurrentSnapshot,
                             textChangeInBuffer.Span.ToSpan());
 
-                        var mappedChanges = TextView.BufferGraph.MapUpToBuffer(
-                            currentSpanInBuffer, SpanTrackingMode.EdgeInclusive, TextView.TextBuffer);
+                        var viewSpan = model.GetViewBufferSpan(currentSpanInBuffer.Span.ToTextSpan());
 
-                        // NOTE(cyrusn): I have no idea what the right thing to do is if the current
-                        // span mapped up to more than one span in the text view.
-                        if (mappedChanges.Count == 1)
-                        {
-                            textChangesInView.Add(new TextChange(
-                                mappedChanges[0].Span.ToTextSpan(), textChangeInBuffer.NewText));
-                        }
+                        textChangesInView.Add(new TextChange(viewSpan.TextSpan, textChangeInBuffer.NewText));
                     }
 
                     // Note: we currently create the edit on the textview's buffer.  This is 
