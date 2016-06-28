@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             AssertIsForeground();
 
+            var initialTextSnapshot = this.SubjectBuffer.CurrentSnapshot;
+            var initialVirtualCaretPosition = this.TextView.Caret.Position.VirtualBufferPosition;
+
             var initialCaretPosition = GetCaretPointInViewBuffer();
 
             // When a character is typed it is *always* sent through to the editor.  This way the
@@ -85,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         Trace.WriteLine("typechar was on seam and a commit char, cannot have a completion session.");
 
-                        this.CommitOnTypeChar(args.TypedChar);
+                        this.CommitOnTypeChar(
+                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
                         return;
                     }
                     else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
@@ -96,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                         // we don't do multiple buffer change check
-                        this.CommitOnTypeChar(args.TypedChar);
+                        this.CommitOnTypeChar(
+                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
                         return;
                     }
                     else
@@ -216,7 +221,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // Known to be a commit character for the currently selected item.  So just
                         // commit the session.
-                        this.CommitOnTypeChar(args.TypedChar);
+                        this.CommitOnTypeChar(
+                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
                     }
                     else
                     {
@@ -311,23 +317,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var completionService = GetCompletionService();
-            var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
             return IsCommitCharacter(
-                completionService.GetRules(), model.SelectedItem.Item, ch, filterText);
+                completionService.GetRules(), model.SelectedItem.Item, ch, textTypedSoFar);
         }
 
         /// <summary>
         /// Internal for testing purposes only.
         /// </summary>
         internal static bool IsCommitCharacter(
-            CompletionRules completionRules, CompletionItem item, char ch, string filterText)
+            CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
         {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))
-            {
-                return false;
-            }
-
+            // First see if the item has any specifc commit rules it wants followed.
             foreach (var rule in item.Rules.CommitCharacterRules)
             {
                 switch (rule.Kind)
@@ -351,6 +352,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
+            {
+                return false;
+            }
+
             // Fall back to the default rules for this language's completion service.
             return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
         }
@@ -371,28 +378,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return char.IsLetterOrDigit(ch);
             }
 
-            var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
-            return IsFilterCharacter(model.SelectedItem.Item, ch, filterText);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
+            return IsFilterCharacter(model.SelectedItem.Item, ch, textTypedSoFar);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
         {
-            var textTypedWithChar = textTypedSoFar + ch;
-            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
-                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        /// <summary>
-        /// Internal for testing purposes only.
-        /// </summary>
-        internal static bool IsFilterCharacter(CompletionItem item, char ch, string filterText)
-        {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))
+            if (textTypedSoFar.Length > 0)
             {
-                return false;
+                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
             }
 
+            return false;
+        }
+
+        private static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
+        {
+            // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
             {
                 switch (rule.Kind)
@@ -416,10 +419,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
+            {
+                return true;
+            }
+
             return false;
         }
 
-        private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
+        private string GetTextTypedSoFar(Model model, CompletionItem selectedItem)
         {
             var textSnapshot = this.TextView.TextSnapshot;
             var viewSpan = model.GetViewBufferSpan(selectedItem.Span);
@@ -428,7 +437,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return filterText;
         }
 
-        private void CommitOnTypeChar(char ch)
+        private void CommitOnTypeChar(
+            char ch, ITextSnapshot initialTextSnapshot, 
+            VirtualSnapshotPoint initialCaretPointInView,
+            Action nextHandler)
         {
             AssertIsForeground();
 
@@ -440,7 +452,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // was commit character if we had a selected item.
             Contract.ThrowIfNull(model);
 
-            this.Commit(model.SelectedItem, model, ch);
+            this.Commit(model.SelectedItem, model, ch, 
+                initialTextSnapshot, initialCaretPointInView, nextHandler);
         }
     }
 }

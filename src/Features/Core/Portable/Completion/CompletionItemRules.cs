@@ -210,6 +210,16 @@ namespace Microsoft.CodeAnalysis.Completion
             return this.With(filterRules: filterCharacterRules);
         }
 
+        internal CompletionItemRules WithFilterCharacterRule(CharacterSetModificationRule rule)
+        {
+            return this.With(filterRules: ImmutableArray.Create(rule));
+        }
+
+        internal CompletionItemRules WithCommitCharacterRule(CharacterSetModificationRule rule)
+        {
+            return this.With(commitRules: ImmutableArray.Create(rule));
+        }
+
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="CommitCharacterRules"/> property changed.
         /// </summary>

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -105,21 +104,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return set;
         }
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
         {
-            var insertionText = item.DisplayText;
-            if (ch == ' ')
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textTypedSoFar = text.GetSubText(item.Span).ToString();
-
-                if (textTypedSoFar.Length > 0 && insertionText.StartsWith(textTypedSoFar, StringComparison.OrdinalIgnoreCase))
-                {
-                    insertionText = insertionText.Substring(0, textTypedSoFar.Length - 1);
-                }
-            }
-
-            return new TextChange(item.Span, insertionText);
+            return Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
         }
     }
 }

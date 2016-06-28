@@ -8,9 +8,11 @@ Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Kind.get -> Micro
 Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.IncludesCommitCharacter.get -> bool
 Microsoft.CodeAnalysis.Completion.CompletionChange.NewPosition.get -> int?
+Microsoft.CodeAnalysis.Completion.CompletionChange.TextChange.get -> Microsoft.CodeAnalysis.Text.TextChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.TextChanges.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>
 Microsoft.CodeAnalysis.Completion.CompletionChange.WithIncludesCommitCharacter(bool includesCommitCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.WithNewPosition(int? newPostion) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.Completion.CompletionChange.WithTextChange(Microsoft.CodeAnalysis.Text.TextChange textChange) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.WithTextChanges(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionContext
 Microsoft.CodeAnalysis.Completion.CompletionContext.AddItem(Microsoft.CodeAnalysis.Completion.CompletionItem item) -> void
@@ -197,7 +199,8 @@ override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.Should
 override Microsoft.CodeAnalysis.TaggedText.ToString() -> string
 static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, System.Collections.Immutable.ImmutableArray<char> characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
 static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, params char[] characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
-static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges, int? newPosition, bool includesCommitCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 static Microsoft.CodeAnalysis.Completion.CompletionDescription.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> taggedParts) -> Microsoft.CodeAnalysis.Completion.CompletionDescription
 static Microsoft.CodeAnalysis.Completion.CompletionDescription.FromText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionDescription
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, Microsoft.CodeAnalysis.Text.TextSpan span = default(Microsoft.CodeAnalysis.Text.TextSpan), System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
