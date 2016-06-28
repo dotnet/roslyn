@@ -170,6 +170,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
             }.ToImmutableArray()
         End Function
-
     End Class
 End Namespace

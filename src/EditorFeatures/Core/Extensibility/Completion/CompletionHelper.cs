@@ -330,12 +330,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// to see if it should commit that item.  If it does neither, then completion will be
         /// dismissed.
         /// </summary>
-        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar, string textTypedWithChar = null)
+        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar)
         {
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            textTypedWithChar = textTypedWithChar ?? textTypedSoFar + ch;
-            if (item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase)
-                || item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase))
+            if (item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase)
+                || item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase))
             {
                 return false;
             }
