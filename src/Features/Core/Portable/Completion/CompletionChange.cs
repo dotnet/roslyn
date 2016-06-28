@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionChange(TextChange textChange, int? newPosition, bool includesCommitCharacter)
         {
             TextChange = textChange;
+#pragma warning disable CS0618 // Type or member is obsolete
+            TextChanges = ImmutableArray.Create(textChange);
+#pragma warning restore CS0618 // Type or member is obsolete
             NewPosition = newPosition;
             IncludesCommitCharacter = includesCommitCharacter;
         }
