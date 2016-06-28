@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
             Debug.Assert(newText != null);
+            Debug.Assert(newText is CompositeText || newText is SubText || newText is StringText || newText is LargeText);
             Debug.Assert(oldText != null);
             Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
@@ -83,7 +84,8 @@ namespace Microsoft.CodeAnalysis.Text
         public override SourceText WithChanges(IEnumerable<TextChange> changes)
         {
             // compute changes against newText to avoid capturing strong references to this ChangedText instance.
-            // note: _newText is never a ChangedText, so if WithChanges is a no-op the result will not be a ChangedText
+            // _newText will only ever be one of CompositeText, SubText, StringText or LargeText, so calling WithChanges on it 
+            // will either produce a ChangeText instance or the original instance in case of a empty change.
             var changed = _newText.WithChanges(changes) as ChangedText;  
             if (changed != null)
             {
@@ -91,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else 
             {
+                // change was empty, so just return this same instance
                 return this;
             }
         }
