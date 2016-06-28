@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -99,9 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             textChange = new TextChange(textChange.Value.Span, textChange.Value.NewText + commitChar.Value);
                         }
 
-                        var trackingSpan = triggerSnapshot.CreateTrackingSpan(
-                            textChange.Value.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                        var currentSpan = trackingSpan.GetSpan(this.SubjectBuffer.CurrentSnapshot);
+                        var currentSpan = GetItemSpan(model, commitItem);
+                        //var trackingSpan = triggerSnapshot.CreateTrackingSpan(
+                        //    textChange.Value.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+                        //var currentSpan = trackingSpan.GetSpan(this.SubjectBuffer.CurrentSnapshot);
 
                         // In order to play nicely with automatic brace completion, we need to 
                         // not touch the opening paren. We'll check our span and textchange 
@@ -192,6 +194,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.MakeMostRecentItem(item.Item.DisplayText);
         }
 
+        private SnapshotSpan GetItemSpan(Model model, CompletionItem item)
+        {
+            var textSnapshot = this.SubjectBuffer.CurrentSnapshot;
+            var start = model.TriggerSnapshot.CreateTrackingPoint(item.Span.Start, PointTrackingMode.Negative)
+                                             .GetPosition(textSnapshot);
+            var end = Math.Max(start, model.CommitTrackingSpanEndPoint.GetPosition(textSnapshot));
+            return new SnapshotSpan(
+                textSnapshot, Span.FromBounds(start, end));
+        }
+
         private void MoveCaretPoint(SnapshotSpan currentSpan)
         {
             var caretPoint = this.TextView.GetCaretPoint(this.SubjectBuffer);
@@ -268,13 +280,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             char commitChar, ref string currentText, ref SnapshotSpan currentSpan)
         {
             var hasPairCompletion = this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion);
-            if (hasPairCompletion && currentText.EndsWith(commitChar.ToString()))
+            if (hasPairCompletion)
             {
-                currentText = currentText.Substring(0, currentText.Length - 1);
-                currentSpan = new SnapshotSpan(
-                    currentSpan.Snapshot,
-                    Span.FromBounds(currentSpan.Span.Start, currentSpan.Span.End - 1));
+                var trimmedText = false;
+                if (currentText.EndsWith(commitChar.ToString()))
+                {
+                    currentText = currentText.Substring(0, currentText.Length - 1);
+                    trimmedText = true;
+                }
+
+                var currentSpanText = currentSpan.GetText();
+                if (currentSpanText[currentSpanText.Length - 1] == commitChar)
+                {
+                    currentSpan = new SnapshotSpan(currentSpan.Start, currentSpan.Length - 1);
+                }
+                else if (trimmedText)
+                {
+                    var index = currentSpanText.LastIndexOf(commitChar);
+                    if (index >= 0)
+                    {
+                        currentSpan = new SnapshotSpan(currentSpan.Start, index);
+                    }
+                }
             }
+
+
+            //currentSpan = new SnapshotSpan(
+            //    currentSpan.Snapshot,
+            //    Span.FromBounds(currentSpan.Span.Start, currentSpan.Span.End - 1));
         }
     }
 }
