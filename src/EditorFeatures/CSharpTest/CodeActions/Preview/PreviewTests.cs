@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
@@ -106,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 var previewObjects = await previews.GetPreviewsAsync();
                 var preview = previewObjects[0];
                 Assert.NotNull(preview);
-                Assert.True(preview is IWpfDifferenceViewer);
-                var diffView = preview as IWpfDifferenceViewer;
-                var text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
+                Assert.True(preview is DifferenceViewerPreview);
+                var diffView = preview as DifferenceViewerPreview;
+                var text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
                 Assert.Equal(ChangedDocumentText, text);
-                diffView.Close();
+                diffView.Dispose();
 
                 // Then comes the removed metadata reference.
                 preview = previewObjects[1];

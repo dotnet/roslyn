@@ -219,9 +219,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public virtual void LogAnalyzerCountSummary()
+        public virtual void Shutdown()
         {
+            // virtual for v1 that got deleted in master
         }
+
+        public abstract void LogAnalyzerCountSummary();
 
         // internal for testing purposes.
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
