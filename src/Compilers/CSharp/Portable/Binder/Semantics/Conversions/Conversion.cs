@@ -53,18 +53,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Conversion[] _nestedConversionsOpt;
 
-        private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
-            : this()
+        private Conversion(
+            ConversionKind kind, 
+            bool isExtensionMethod, 
+            bool isArrayIndex, 
+            UserDefinedConversionResult conversionResult, 
+            MethodSymbol methodGroupConversionMethod,
+            Conversion[] nestedConversions)
         {
             _kind = kind;
             _conversionResult = conversionResult;
             _methodGroupConversionMethod = methodGroupConversionMethod;
+            _nestedConversionsOpt = nestedConversions;
 
             _flags = isExtensionMethod ? IsExtensionMethodMask : (byte)0;
             if (isArrayIndex)
             {
                 _flags |= IsArrayIndexMask;
             }
+        }
+
+
+        private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
+            : this(kind, isExtensionMethod, isArrayIndex, conversionResult, methodGroupConversionMethod, nestedConversions: null)
+        {
         }
 
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
@@ -87,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this._kind = kind;
             this._nestedConversionsOpt = nestedConversions;
+        }
+
+        internal Conversion WithMethodGroupConversionMethod(MethodSymbol methodGroupConversionMethod)
+        {
+            return new CSharp.Conversion(this.Kind, this.IsExtensionMethod, this.IsArrayIndex, this._conversionResult, methodGroupConversionMethod, this._nestedConversionsOpt);
         }
 
         internal ConversionKind Kind

@@ -668,16 +668,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 receiverOpt,
                 operand.ResultKind);
 
+            var conversionInfo = conversion.Conversion;
+            if (conversionInfo.Method != (object)method)
+            {
+                conversionInfo = conversionInfo.WithMethodGroupConversionMethod(method);
+            }
+
             return conversion.Update(
                 operand,
-                conversion.ConversionKind,
+                conversionInfo,
                 resultKind: conversion.ResultKind,
                 isBaseConversion: conversion.IsBaseConversion,
-                symbolOpt: method,
                 @checked: conversion.Checked,
                 explicitCastInCode: conversion.ExplicitCastInCode,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: conversion.ConstantValueOpt,
                 type: type);
         }

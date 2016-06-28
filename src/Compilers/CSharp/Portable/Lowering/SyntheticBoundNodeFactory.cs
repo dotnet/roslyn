@@ -1052,17 +1052,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)type != null);
             Debug.Assert((object)arg.Type != null);
+
+            //TODO: VSadov singletons
+            var conversion = new Conversion(conversionKind);
+
             return new BoundConversion(
                 Syntax,
                 arg,
-                conversionKind,
+                conversion,
                 LookupResultKind.Viable,
                 isBaseConversion: false,
-                symbolOpt: null,
                 @checked: isChecked,
                 explicitCastInCode: true,
-                isExtensionMethod: false,
-                isArrayIndex: false,
                 constantValueOpt: null,
                 type: type)
             { WasCompilerGenerated = true };

@@ -586,14 +586,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 e = conversion.Update(
                     conversion.Operand,
-                    conversion.ConversionKind,
+                    conversion.Conversion,
                     conversion.ResultKind,
                     isBaseConversion: conversion.IsBaseConversion,
-                    symbolOpt: conversion.SymbolOpt,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
-                    isExtensionMethod: conversion.IsExtensionMethod,
-                    isArrayIndex: conversion.IsArrayIndex,
                     constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);
             }

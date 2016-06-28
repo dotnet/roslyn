@@ -183,17 +183,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We need more information than just the conversion kind for creating a synthesized user defined conversion.
             Debug.Assert(!kind.IsUserDefinedConversion(), "Use the BoundConversion.Synthesized overload that takes a 'Conversion' parameter for generating synthesized user defined conversions.");
 
+            //TODO: vsadov singletons
+            var conversion = new Conversion(kind);
+
             return new BoundConversion(
                 syntax,
                 operand,
-                kind,
+                conversion,
                 resultKind: LookupResultKind.Viable, //not used
                 isBaseConversion: false,
-                symbolOpt: null,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: false,
-                isArrayIndex: false,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -240,14 +240,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operand,
-                conversion.Kind,
+                conversion,
                 resultKind: conversion.ResultKind,
                 isBaseConversion: false,
-                symbolOpt: conversion.Method,
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: constantValueOpt,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)

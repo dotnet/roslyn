@@ -113,14 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundConversion(
                 syntax,
                 rewrittenParameter,
-                conversion.Kind,
+                conversion,
                 conversion.ResultKind,
                 isBaseConversion: true,
-                symbolOpt: conversion.Method,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)
