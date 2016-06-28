@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each local is either a simple local (when its type is known) or a deconstruction local pending inference.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax varSyntax, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Deconstruction != null);
             SeparatedSyntaxList<VariableDeclarationSyntax> variables = node.Deconstruction.Variables;
@@ -511,16 +511,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(variables.Count);
             foreach (var variable in variables)
             {
-                TypeSyntax variableVarSyntax = varSyntax ?? variable.Type;
+                TypeSyntax typeSyntax = variable.Type ?? closestTypeSyntax;
 
                 DeconstructionVariable local;
                 if (variable.Deconstruction == null)
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, variableVarSyntax, diagnostics));
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, typeSyntax, diagnostics));
                 }
                 else
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, variableVarSyntax, diagnostics));
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, typeSyntax, diagnostics));
                 }
 
                 localsBuilder.Add(local);
@@ -532,36 +532,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a BoundLocal when the type was explicit, otherwise returns a DeconstructionLocalPendingInference.
         /// </summary>
-        private BoundExpression BindDeconstructionDeclarationVariable(VariableDeclarationSyntax node, TypeSyntax varSyntax,DiagnosticBag diagnostics)
+        private BoundExpression BindDeconstructionDeclarationVariable(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Deconstruction == null);
-            Debug.Assert(varSyntax != null || node.Type != null);
             Debug.Assert(node.Variables.Count == 1);
 
             var declarator = node.Variables[0];
-            var typeSyntax = varSyntax ?? node.Type;
 
-            bool isConst = false;
-
-            AliasSymbol alias;
-            bool isVar;
-            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-
-            var localSymbol = LocateDeclaredVariableSymbol(declarator, typeSyntax);
+            var localSymbol = LocateDeclaredVariableSymbol(declarator, closestTypeSyntax);
 
             // Check for variable declaration errors.
             // Use the binder that owns the scope for the local because this (the current) binder
             // might own nested scope.
             bool hasErrors = localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            if (isVar)
+            if (node.Type != null)
             {
-                return new DeconstructionLocalPendingInference(declarator, localSymbol);
+                bool isVar;
+                bool isConst = false;
+                AliasSymbol alias;
+                TypeSymbol declType = BindVariableType(node, diagnostics, node.Type, ref isConst, out isVar, out alias);
+
+                if (!isVar)
+                {
+                    // This variable has a type next to it and it is not implicitly-typed "var"
+                    return new BoundLocal(declarator, localSymbol, constantValueOpt: null, type: declType);
+                }
             }
-            else
-            {
-                return new BoundLocal(declarator, localSymbol, constantValueOpt: null, type: declType);
-            }
+
+            return new DeconstructionLocalPendingInference(declarator, localSymbol);
         }
     }
 }

@@ -3015,6 +3015,7 @@ Deconstructing (1, hello)
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
             Assert.Equal(variableDeclaratorSyntax.Identifier.ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
             Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
 
@@ -3022,7 +3023,7 @@ Deconstructing (1, hello)
 
             if (local.IsVar && local.Type.IsErrorType())
             {
-                Assert.True(decl.Type == null);
+                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
             }
             else
             {
@@ -3065,7 +3066,8 @@ class C
     static void Main()
     {
         (var x1, int x2) = (new var(), 2);
-        System.Console.WriteLine(x1 + "" "" + x2);
+        var (x3, x4) = (3, new var());
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4);
     }
 }
 class var
@@ -3088,9 +3090,27 @@ class var
                 var x2 = GetDeconstructionLocal(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+
+                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4Ref = GetReference(tree, "x4");
+                VerifyModelForDeconstructionLocal(model, x4, x4Ref);
+
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("var", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+
+                Assert.Null(x3.Type);
+
+                Assert.Null(x4.Type);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "var 2 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2 3 var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3103,7 +3123,8 @@ class C
     static void Main()
     {
         (var x1, var x2) = (1, 2);
-        System.Console.WriteLine(x1 + "" "" + x2);
+        var (x3, x4) = (3, 4);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4);
     }
 }
 ";
@@ -3122,9 +3143,17 @@ class C
                 var x2 = GetDeconstructionLocal(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+
+                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4Ref = GetReference(tree, "x4");
+                VerifyModelForDeconstructionLocal(model, x4, x4Ref);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3146,6 +3175,71 @@ class C
                 // (6,34): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(1, 2, 3)").WithArguments("3", "2").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        public void DeclarationWithTypeInsideVarForm()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (int x1, x2) = (1, 2);
+        var (var x3, x4) = (1, 2);
+        var (x5, var (x6, x7)) = (1, (2, 3));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,14): error CS1525: Invalid expression term 'int'
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 14),
+                // (6,18): error CS1003: Syntax error, ',' expected
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 18),
+                // (7,18): error CS1003: Syntax error, ',' expected
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 18),
+                // (6,18): error CS0103: The name 'x1' does not exist in the current context
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 18),
+                // (6,22): error CS0103: The name 'x2' does not exist in the current context
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(6, 22),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (7,14): error CS0103: The name 'var' does not exist in the current context
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 14),
+                // (7,18): error CS0103: The name 'x3' does not exist in the current context
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(7, 18),
+                // (7,22): error CS0103: The name 'x4' does not exist in the current context
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(7, 22),
+                // (7,9): error CS0103: The name 'var' does not exist in the current context
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 9),
+                // (8,14): error CS0103: The name 'x5' does not exist in the current context
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(8, 14),
+                // (8,23): error CS0103: The name 'x6' does not exist in the current context
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(8, 23),
+                // (8,27): error CS0103: The name 'x7' does not exist in the current context
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(8, 27),
+                // (8,18): error CS0103: The name 'var' does not exist in the current context
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 18),
+                // (8,9): error CS0103: The name 'var' does not exist in the current context
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 9)
                 );
         }
     }

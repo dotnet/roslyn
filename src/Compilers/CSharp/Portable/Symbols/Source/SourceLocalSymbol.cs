@@ -86,21 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceLocalSymbol MakeDeconstructionLocal(
             Symbol containingSymbol,
             Binder binder,
-            TypeSyntax typeSyntax,
-            SyntaxToken identifierToken,
-            TypeSyntax parentTypeSyntax)
+            TypeSyntax closestTypeSyntax,
+            SyntaxToken identifierToken)
         {
-            Debug.Assert(parentTypeSyntax == null || parentTypeSyntax.IsVar);
+            Debug.Assert(closestTypeSyntax != null);
 
-            if (parentTypeSyntax != null || typeSyntax.IsVar)
+            if (closestTypeSyntax.IsVar)
             {
-                return new PossiblyImplicitlyTypedDeconstructionLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
+                return new PossiblyImplicitlyTypedDeconstructionLocalSymbol(containingSymbol, binder, closestTypeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
             }
             else
             {
-                return new SourceLocalSymbol(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
+                return new SourceLocalSymbol(containingSymbol, binder, RefKind.None, closestTypeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
             }
-
         }
 
         public static SourceLocalSymbol MakeLocal(
@@ -616,53 +614,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
             {
 #if DEBUG
-                SyntaxNode parent = IdentifierToken.Parent;
-                Debug.Assert(parent != null);
-                Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclarator);
-                parent = parent.Parent;
-                Debug.Assert(parent != null);
-                Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclaration);
-
-                // The parents should be alternating VariableDeconstructionDeclarator and VariableDeclaration, until a different kind is found
-                while (true)
-                {
-                    parent = parent.Parent;
-                    Debug.Assert(parent != null);
-                    if (parent.Kind() != SyntaxKind.VariableDeconstructionDeclarator)
-                    {
-                        break;
-                    }
-
-                    parent = parent.Parent;
-                    Debug.Assert(parent != null);
-                    Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclaration);
-                }
-
-                Debug.Assert(parent.Kind() == SyntaxKind.LocalDeclarationStatement);
+                SyntaxNode parent;
+                Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent));
+                Debug.Assert(parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement);
 #endif
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                // Try binding immediately enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
+                // Try binding enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
+                SyntaxNode topLevelVariableDeclaration;
+                bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out topLevelVariableDeclaration);
 
-                var topLevelVariableDeclaration = IdentifierToken.
-                                                    Parent. // VariableDeclaratorSyntax
-                                                    Parent; // VariableDeclarationSyntax
-                while (true)
-                {
-                    var parent = topLevelVariableDeclaration.Parent;
-                    if (parent.Kind() != SyntaxKind.VariableDeconstructionDeclarator)
-                    {
-                        break;
-                    }
-
-                    var grandParent = parent.Parent;
-                    Debug.Assert(grandParent.Kind() == SyntaxKind.VariableDeclaration);
-
-                    topLevelVariableDeclaration = grandParent;
-                }
-
+                Debug.Assert(isDeconstruction);
                 Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction != null);
                 Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction.Value != null);
 

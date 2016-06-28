@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
                      ((VariableDeclarationSyntax)parent).Type == expression &&
-                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument && 
+                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument &&
                      ((ArgumentSyntax)parent).Type == expression)
             {
                 TypeSymbol outVarType = (GetDeclaredSymbol(((ArgumentSyntax)parent).Declaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
@@ -531,6 +531,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (outVarType?.IsErrorType() == false)
                 {
                     return new SymbolInfo(outVarType);
+                }
+
+                return SymbolInfo.None;
+            }
+            else if (SyntaxFacts.IsDeconstructionType(expression, out parent))
+            {
+                Debug.Assert(((VariableDeclarationSyntax)parent).Variables.Count == 1);
+                TypeSymbol deconstructionType = (GetDeclaredSymbol(((VariableDeclarationSyntax)parent).Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+
+                if (deconstructionType?.IsErrorType() == false)
+                {
+                    return new SymbolInfo(deconstructionType);
                 }
 
                 return SymbolInfo.None;
@@ -1747,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var s in symbols)
                     {
                         AddUnwrappingErrorTypes(builder, s);
-                        }
+                    }
 
                     symbols = builder.ToImmutableAndFree();
                 }
@@ -1852,7 +1864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
+                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral)
                 {
                     Debug.Assert(highestBoundExpr == boundExpr);
                     var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;

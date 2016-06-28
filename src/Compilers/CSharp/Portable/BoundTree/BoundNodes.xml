@@ -396,7 +396,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <!-- Various assignable expressions, including some BoundDeconstructionVariables for nested variables -->
+    <!-- Various assignable expressions, in a flat structure (no nesting) -->
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
 
     <Field Name="Right" Type="BoundExpression"/>
