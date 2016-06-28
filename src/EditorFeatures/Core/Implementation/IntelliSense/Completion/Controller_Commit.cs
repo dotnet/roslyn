@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 var currentSpanText = currentSpan.GetText();
-                if (currentSpanText[currentSpanText.Length - 1] == commitChar)
+                if (currentSpanText.Length > 0 && currentSpanText[currentSpanText.Length - 1] == commitChar)
                 {
                     currentSpan = new SnapshotSpan(currentSpan.Start, currentSpan.Length - 1);
                 }
@@ -300,11 +300,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
             }
-
-
-            //currentSpan = new SnapshotSpan(
-            //    currentSpan.Snapshot,
-            //    Span.FromBounds(currentSpan.Span.Start, currentSpan.Span.End - 1));
         }
     }
 }
