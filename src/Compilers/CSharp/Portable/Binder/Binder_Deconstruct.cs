@@ -16,20 +16,37 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
+        private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            SeparatedSyntaxList<ArgumentSyntax> arguments = ((TupleExpressionSyntax)node.Left).Arguments;
+            ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionAssignmentVariables(arguments, diagnostics);
+
+            var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics);
+            FreeDeconstructionVariables(checkedVariables);
+
+            return result;
+        }
+
+        private void FreeDeconstructionVariables(ArrayBuilder<DeconstructionVariable> variables)
+        {
+            foreach (var v in variables)
+            {
+                if (v.IsNested)
+                {
+                    FreeDeconstructionVariables(v.Nested);
+                }
+            }
+
+            variables.Free();
+        }
+
         /// <summary>
         /// There are two kinds of deconstruction-assignments which this binding handles: tuple and non-tuple.
         ///
         /// Returns a BoundDeconstructionAssignmentOperator with a list of deconstruction steps and assignment steps.
         /// Deconstruct steps for tuples have no invocation to Deconstruct, but steps for non-tuples do.
+        /// The caller is responsible for releasing all the ArrayBuilders in checkedVariables.
         /// </summary>
-        private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
-        {
-            SeparatedSyntaxList<ArgumentSyntax> arguments = ((TupleExpressionSyntax)node.Left).Arguments;
-            ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionVariables(arguments, diagnostics);
-
-            return BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics);
-        }
-
         private BoundExpression BindDeconstructionAssignment(ExpressionSyntax node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics)
         {
             TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
@@ -301,10 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns an array of variables, where some may be nested variables (BoundDeconstructionVariables).
+        /// Returns a list of variables, where some may be nested variables (BoundDeconstructionVariables).
         /// Checks that all the variables are assignable to.
+        /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionVariables(SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionAssignmentVariables(SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
         {
             int numElements = arguments.Count;
             Debug.Assert(numElements >= 2); // this should not have parsed as a tuple.
@@ -317,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument.Expression.Kind() == SyntaxKind.TupleExpression) // nested tuple case
                 {
                     var nestedArguments = ((TupleExpressionSyntax)argument.Expression).Arguments;
-                    checkedVariablesBuilder.Add(new DeconstructionVariable(BindDeconstructionVariables(nestedArguments, diagnostics)));
+                    checkedVariablesBuilder.Add(new DeconstructionVariable(BindDeconstructionAssignmentVariables(nestedArguments, diagnostics)));
                 }
                 else
                 {
@@ -480,20 +498,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BadExpression(syntax, childNode);
         }
 
-        private BoundStatement BindDeconstructionDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        public BoundStatement BindDeconstructionDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Declaration.Deconstruction != null);
 
             ArrayBuilder<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, null, diagnostics);
 
-            return new BoundExpressionStatement(node, BindDeconstructionAssignment(node.Declaration.Deconstruction.Value, node.Declaration.Deconstruction.Value, variables, diagnostics));
+            var result = new BoundExpressionStatement(node, BindDeconstructionAssignment(node.Declaration.Deconstruction.Value, node.Declaration.Deconstruction.Value, variables, diagnostics));
+            FreeDeconstructionVariables(variables);
+
+            return result;
         }
 
-        // There are four cases for VariableDeclaration:
-        // - type and declarators are set, but deconstruction is null. This could represent `int x`, which is a single variable.
-        // - type is null, declarators are set, but deconstruction is null. This could represent `x`, which is a single variable.
-        // - type is set to 'var', declarators are null, and deconstruction is set. This could represent `var (...)`
-        // - type and declarators are null, but deconstruction is set. Thi could represent `(int x, ...)`
+        /// <summary>
+        /// The caller is responsible for releasing the nested ArrayBuilders.
+        /// </summary>
         private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax varSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Deconstruction != null);
@@ -503,6 +522,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 varSyntax = node.Type;
             }
+
+            // There are four cases for VariableDeclaration:
+            // - type and declarators are set, but deconstruction is null. This could represent `int x`, which is a single variable.
+            // - type is null, declarators are set, but deconstruction is null. This could represent `x`, which is a single variable.
+            // - type is set to 'var', declarators are null, and deconstruction is set. This could represent `var (...)`
+            // - type and declarators are null, but deconstruction is set. Thi could represent `(int x, ...)`
 
             var localsBuilder = ArrayBuilder<BoundLocalDeclaration>.GetInstance(variables.Count);
             var variablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(variables.Count);

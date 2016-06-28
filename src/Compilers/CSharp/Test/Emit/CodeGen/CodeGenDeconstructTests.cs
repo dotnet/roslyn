@@ -5,6 +5,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -2632,7 +2635,7 @@ class C
         }
 
         [Fact]
-        public void NestedDeconstructionDeclaration()
+        public void NestedVarDeconstructionDeclaration()
         {
             string source = @"
 class C
@@ -2645,7 +2648,65 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedDeconstructionDeclaration()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int x1, (int x2, string x3)) = (1, (2, ""hello""));
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2930,7 +2991,96 @@ class C
 Deconstructing (1, hello)
 1 hello 2";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular);
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        private static void VerifyModelForDeconstructionLocal(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            var variableDeclaratorSyntax = decl.Variables.Single();
+            var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            Assert.Equal(variableDeclaratorSyntax.Identifier.ValueText, symbol.Name);
+            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
+            Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
+
+            var local = (SourceLocalSymbol)symbol;
+
+            if (local.IsVar && local.Type.IsErrorType())
+            {
+                Assert.True(decl.Type == null);
+            }
+            else
+            {
+                if (decl.Type != null)
+                {
+                    Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
+                }
+            }
+
+            foreach (var reference in references)
+            {
+                Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
+                Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
+                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+            }
+        }
+
+        private static VariableDeclarationSyntax GetDeconstructionLocal(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().Where(p => p.Variables.Count() == 1 && p.Variables.Single().Identifier.ValueText == name).Single();
+        }
+
+        private static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
+        {
+            return GetReferences(tree, name).Single();
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetReferences(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
+        }
+
+        [Fact]
+        public void VarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (var x1, int x2) = (new var(), 2);
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+class var
+{
+    public override string ToString() { return ""var""; }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "var 2 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics();
         }
 
