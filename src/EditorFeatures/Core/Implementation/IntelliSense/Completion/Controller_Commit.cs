@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     var viewBuffer = this.TextView.TextBuffer;
                     var triggerDocument = model.TriggerDocument;
+                    var triggerSnapshot = model.TriggerSnapshot;
 
                     // adjust commit item span foward to match current document that is passed to GetChangeAsync below
                     var commitItem = item.Item;
@@ -98,8 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             textChange = new TextChange(textChange.Value.Span, textChange.Value.NewText + commitChar.Value);
                         }
 
-                        var currentSpan = new SnapshotSpan(
-                            this.SubjectBuffer.CurrentSnapshot, textChange.Value.Span.ToSpan());
+                        var trackingSpan = triggerSnapshot.CreateTrackingSpan(
+                            textChange.Value.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+                        var currentSpan = trackingSpan.GetSpan(this.SubjectBuffer.CurrentSnapshot);
+
+                        //var currentSpan = new SnapshotSpan(
+                        //    this.SubjectBuffer.CurrentSnapshot, textChange.Value.Span.ToSpan());
 
                         // In order to play nicely with automatic brace completion, we need to 
                         // not touch the opening paren. We'll check our span and textchange 
