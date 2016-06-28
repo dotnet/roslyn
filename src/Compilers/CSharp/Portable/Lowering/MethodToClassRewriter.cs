@@ -497,6 +497,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            // All incoming extension methods should be reduced
+            Debug.Assert(!method.IsExtensionMethod || !method.IsStatic);
+            method = method.UnreduceExtensionMethod() ?? method;
+            // and the conversion must succeed
+            Debug.Assert(!method.IsExtensionMethod || method.IsStatic);
+
             if (method.IsTupleMethod)
             {
                 //  Method of a tuple type
@@ -564,6 +570,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)property == null)
             {
                 return null;
+            }
+
+            if (property.IsInExtensionClass)
+            {
+                // All incoming extension properties should be reduced
+                Debug.Assert(property.IsStatic);
+                property = property.UnreduceExtensionProperty();
+                // and the conversion must succeed
+                Debug.Assert((object)property != null);
             }
 
             if (!property.ContainingType.IsAnonymousType)

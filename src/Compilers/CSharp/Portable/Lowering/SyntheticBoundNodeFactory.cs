@@ -609,6 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
         {
+            // ensure that if it's an extension method, it is in unreduced form
+            Debug.Assert((!method.IsExtensionMethod && !method.IsInExtensionClass) || method.IsStatic);
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,

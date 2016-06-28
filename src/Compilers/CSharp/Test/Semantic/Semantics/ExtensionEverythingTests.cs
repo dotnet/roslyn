@@ -454,7 +454,7 @@ class Program
                 parseOptions: parseOptions);
         }
 
-        [Fact(Skip = "PROTOTYPE: Ambig resolution based on receiver type isn't implemented yet (for .Add)")]
+        [Fact]
         public void DuckDiscovery()
         {
             var text = @"
@@ -469,6 +469,7 @@ class BaseEnumerable : System.Collections.IEnumerable
 
 class BaseClass
 {
+    public override string ToString() => ""3"";
 }
 
 class BaseEnumerator
@@ -489,7 +490,8 @@ extension class ExtEnumerable : BaseEnumerable
 extension class ExtClass : BaseClass
 {
     public void Add(int x) => Console.Write(x);
-    public new string ToString() => ""3""; // need new to hide *ExtClass*'s ToString method. Probably wrong?
+    // need new to hide *ExtClass*'s ToString method. Probably wrong to require it?
+    public new string ToString() => ""wrong""; // should never get called, as object.ToString always wins (it's a real member)
     public BaseEnumerator GetEnumerator() => new BaseEnumerator();
     public BaseAwaiter GetAwaiter() => new BaseAwaiter();
 }
@@ -538,10 +540,8 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs.Concat(new[] { MscorlibRef_v46 }),
-                expectedOutput: "12345",
-                parseOptions: parseOptions)
-                .VerifyIL("Program.Main", @"{
-}");
+                expectedOutput: "1235",
+                parseOptions: parseOptions);
         }
 
         [Fact]
