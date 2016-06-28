@@ -19,7 +19,6 @@ Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
 Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocumentsIfNecessary(Microsoft.CodeAnalysis.ProjectId projectId) -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -47,4 +46,3 @@ static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.None -> Micr
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Suggestion -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Warning -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
-virtual Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocuments(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsRemoved, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsAdded) -> void

@@ -31,7 +31,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         IReadOnlyList<string> GetFolderNames(uint documentItemID);
         bool ContainsFile(string moniker);
-
-        void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded);
     }
 }
