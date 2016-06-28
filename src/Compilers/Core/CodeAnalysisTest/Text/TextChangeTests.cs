@@ -603,18 +603,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
         public void TestEmptyChangeAfterChange()
         {
-            SourceText.From("Hello World")
-                .WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)) // prepare a ChangedText instance
-                .WithChanges(); // this should not cause exception
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
+            var change2 = change1.WithChanges(); // this should not cause exception
+
+            Assert.Same(change1, change2); // this was a no-op and returned the same instance
         }
 
         [Fact]
         [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
         public void TestEmptyChangeAfterChange2()
         {
-            SourceText.From("Hello World")
-                .WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)) // prepare a ChangedText instance
-                .WithChanges(new TextChange(new TextSpan(2, 0), string.Empty)); // this should not cause exception
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 0), string.Empty)); // this should not cause exception
+
+            Assert.Same(change1, change2); // this was a no-op and returned the same instance
         }
     }
 }

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Text
         public override SourceText WithChanges(IEnumerable<TextChange> changes)
         {
             // compute changes against newText to avoid capturing strong references to this ChangedText instance.
-            // note: _newText is never a ChangeText, so if WithChanges is a no-op the result will not be a ChangedText
+            // note: _newText is never a ChangedText, so if WithChanges is a no-op the result will not be a ChangedText
             var changed = _newText.WithChanges(changes) as ChangedText;  
             if (changed != null)
             {
