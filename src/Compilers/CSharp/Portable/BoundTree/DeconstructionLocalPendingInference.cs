@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -9,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundLocal SetInferredType(TypeSymbol type, bool success)
         {
+            Debug.Assert(type != null);
+
             var syntaxNode = (VariableDeclaratorSyntax)this.Syntax;
 
             Binder.DeclareLocalVariable((SourceLocalSymbol)this.LocalSymbol, syntaxNode.Identifier, type);
@@ -16,13 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(syntaxNode, this.LocalSymbol, constantValueOpt: null, type: type, hasErrors: this.HasErrors || !success);
         }
 
-        public BoundLocal FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        public BoundLocal FailInference(Binder binder)
         {
-            if (diagnosticsOpt != null)
-            {
-                Binder.Error(diagnosticsOpt, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, ((VariableDeclaratorSyntax)this.Syntax).Identifier);
-            }
-
             return this.SetInferredType(binder.CreateErrorType("var"), success: false);
         }
     }

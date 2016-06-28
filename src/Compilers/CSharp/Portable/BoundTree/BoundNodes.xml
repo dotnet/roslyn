@@ -77,7 +77,7 @@
   </AbstractNode>
 
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true"/>
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </AbstractNode>
 
   <!--
@@ -386,6 +386,10 @@
     we are doing based on something other than the refness of the left hand side. 
     -->
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+  </Node>
+
+  <Node Name="BoundLocalDeconstructionDeclaration" Base="BoundStatement">
+    <Field Name="Assignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">

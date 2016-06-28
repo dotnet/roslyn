@@ -544,19 +544,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
             var binder = GetBinder(node);
             Debug.Assert(binder != null);
 
+            BoundStatement bound;
             if (node.Declaration.Deconstruction == null)
             {
-                return binder.WrapWithVariablesIfAny(node, binder.BindDeclarationStatementParts(node, diagnostics));
+                bound = binder.BindDeclarationStatementParts(node, diagnostics);
             }
             else
             {
-                return binder.WrapWithVariablesIfAny(node, binder.BindDeconstructionDeclarationStatementParts(node, diagnostics));
+                bound = binder.BindDeconstructionDeclarationStatementParts(node, diagnostics);
             }
+
+            return binder.WrapWithVariablesIfAny(node, bound);
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)

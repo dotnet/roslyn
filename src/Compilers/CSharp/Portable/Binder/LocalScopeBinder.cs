@@ -192,27 +192,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         // When a VariableDeclaration is used in a deconstruction, there are two cases:
         // - deconstruction is set, type may be set (for "var"), and no declarators. For instance, `var (x, ...)` or `(int x, ...)`.
         // - deconstruction is null, type may be set, and there is one declarator holding the identifier. For instance, `int x` or `x`.
-        private void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax varSyntax, ArrayBuilder<LocalSymbol> locals)
+        private void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax parentTypeSyntax, ArrayBuilder<LocalSymbol> locals)
         {
             if (declaration.Deconstruction != null)
             {
-                var nestedVarSyntax = varSyntax ?? declaration.Type;
+                TypeSyntax typeSyntax = declaration.Type ?? parentTypeSyntax;
                 foreach (var variable in declaration.Deconstruction.Variables)
                 {
-                    CollectLocalsFromDeconstruction(variable, nestedVarSyntax, locals);
+                    CollectLocalsFromDeconstruction(variable, typeSyntax, locals);
                 }
             }
             else
             {
                 Debug.Assert(declaration.Variables.Count == 1);
-                var declarator = declaration.Variables[0];
+                VariableDeclaratorSyntax declarator = declaration.Variables[0];
 
                 SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
                                                             this.ContainingMemberOrLambda,
                                                             this,
                                                             declaration.Type,
                                                             declarator.Identifier,
-                                                            isVar: varSyntax != null);
+                                                            parentTypeSyntax);
 
                 locals.Add(localSymbol);
             }

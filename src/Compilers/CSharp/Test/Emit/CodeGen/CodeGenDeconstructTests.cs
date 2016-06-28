@@ -2926,13 +2926,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 24),
-                // (6,14): error CS8215: Cannot infer the type of implicitly-typed deconstruction local.
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x1").WithLocation(6, 14),
-                // (6,18): error CS8215: Cannot infer the type of implicitly-typed deconstruction local.
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 24)
                 );
         }
 
@@ -3021,7 +3015,6 @@ Deconstructing (1, hello)
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
             Assert.Equal(variableDeclaratorSyntax.Identifier.ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
-            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
             Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
 
@@ -3064,7 +3057,7 @@ Deconstructing (1, hello)
         }
 
         [Fact]
-        public void VarType()
+        public void DeclarationWithActualVarType()
         {
             string source = @"
 class C
@@ -3080,12 +3073,63 @@ class var
     public override string ToString() { return ""var""; }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "var 2 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "var 2 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void Mismatch()
+        public void DeclarationWithImplicitType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (var x1, var x2) = (1, 2);
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationWithWrongCardinality()
         {
             string source = @"
 class C
@@ -3101,13 +3145,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,34): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(1, 2, 3)").WithArguments("3", "2").WithLocation(6, 34),
-                // (6,15): error CS8215: Cannot infer the type of implicitly-typed deconstruction local.
-                //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x1").WithLocation(6, 15),
-                // (6,19): error CS8215: Cannot infer the type of implicitly-typed deconstruction local.
-                //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal, "x2").WithLocation(6, 19)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(1, 2, 3)").WithArguments("3", "2").WithLocation(6, 34)
                 );
         }
     }

@@ -4917,7 +4917,4 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="TypeMustBeVar" xml:space="preserve">
     <value>The type must be 'var'.</value>
   </data>
-  <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal" xml:space="preserve">
-    <value>Cannot infer the type of implicitly-typed deconstruction local.</value>
-  </data>
 </root>

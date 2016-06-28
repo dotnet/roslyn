@@ -8765,15 +8765,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed deconstruction local..
-        /// </summary>
-        internal static string ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal {
-            get {
-                return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {

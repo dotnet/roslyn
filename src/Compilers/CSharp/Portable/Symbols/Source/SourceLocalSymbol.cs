@@ -88,9 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
-            bool isVar)
+            TypeSyntax parentTypeSyntax)
         {
-            if (isVar)
+            Debug.Assert(parentTypeSyntax == null || parentTypeSyntax.IsVar);
+
+            if (parentTypeSyntax != null || typeSyntax.IsVar)
             {
                 return new PossiblyImplicitlyTypedDeconstructionLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
             }
@@ -613,36 +615,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LocalDeclarationKind declarationKind)
             : base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
             {
+#if DEBUG
+                SyntaxNode parent = IdentifierToken.Parent;
+                Debug.Assert(parent != null);
+                Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclarator);
+                parent = parent.Parent;
+                Debug.Assert(parent != null);
+                Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclaration);
+
+                // The parents should be alternating VariableDeconstructionDeclarator and VariableDeclaration, until a different kind is found
+                while (true)
+                {
+                    parent = parent.Parent;
+                    Debug.Assert(parent != null);
+                    if (parent.Kind() != SyntaxKind.VariableDeconstructionDeclarator)
+                    {
+                        break;
+                    }
+
+                    parent = parent.Parent;
+                    Debug.Assert(parent != null);
+                    Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclaration);
+                }
+
+                Debug.Assert(parent.Kind() == SyntaxKind.LocalDeclarationStatement);
+#endif
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 // Try binding immediately enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
 
-                var topLevelVariableDeclaration = (VariableDeclarationSyntax)IdentifierToken.
-                                                                    Parent. // VariableDeclaratorSyntax
-                                                                    Parent; // VariableDeclarationSyntax
+                var topLevelVariableDeclaration = IdentifierToken.
+                                                    Parent. // VariableDeclaratorSyntax
+                                                    Parent; // VariableDeclarationSyntax
                 while (true)
                 {
                     var parent = topLevelVariableDeclaration.Parent;
-                    if (parent.Kind() != SyntaxKind.VariableDeconstructionDeclarator) { break; }
+                    if (parent.Kind() != SyntaxKind.VariableDeconstructionDeclarator)
+                    {
+                        break;
+                    }
 
                     var grandParent = parent.Parent;
-                    if (grandParent.Kind() != SyntaxKind.VariableDeclaration) { break; }
+                    Debug.Assert(grandParent.Kind() == SyntaxKind.VariableDeclaration);
 
-                    topLevelVariableDeclaration = (VariableDeclarationSyntax)grandParent;
+                    topLevelVariableDeclaration = grandParent;
                 }
 
-                Debug.Assert(topLevelVariableDeclaration.Deconstruction != null && topLevelVariableDeclaration.Deconstruction.Value != null);
+                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction != null);
+                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction.Value != null);
 
                 var statement = topLevelVariableDeclaration.Parent;
-                TypeSymbol result;
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
-                        this.binder.BindDeconstructionDeclarationStatementParts((LocalDeclarationStatementSyntax)statement, diagnostics);
+                        this.binder.BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)statement, diagnostics);
 
-                        result = this._type;
+                        TypeSymbol result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
 

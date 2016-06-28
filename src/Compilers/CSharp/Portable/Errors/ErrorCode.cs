@@ -1407,6 +1407,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructTooFewElements = 8213,
 
         ERR_ConversionNotTupleCompatible = 8214,
-        ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionLocal = 8215,
     }
 }
