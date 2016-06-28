@@ -102,13 +102,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     var textChangesInView = new List<TextChange>();
 
+                    var bufferGraph = new DisconnectedBufferGraph(this.SubjectBuffer, this.TextView.TextBuffer);
                     foreach (var textChangeInBuffer in textChangesInSubjectBuffer)
                     {
                         var currentSpanInBuffer = new SnapshotSpan(
                             this.SubjectBuffer.CurrentSnapshot,
                             textChangeInBuffer.Span.ToSpan());
 
-                        var viewSpan = model.GetViewBufferSpan(currentSpanInBuffer.Span.ToTextSpan());
+                        var viewSpan = bufferGraph.GetSubjectBufferTextSpanInViewBuffer(
+                            currentSpanInBuffer.Span.ToTextSpan());
 
                         textChangesInView.Add(new TextChange(viewSpan.TextSpan, textChangeInBuffer.NewText));
                     }
