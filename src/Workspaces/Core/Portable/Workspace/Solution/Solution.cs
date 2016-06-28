@@ -1202,11 +1202,14 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentInfo>.Empty;
             }
             var compilation = await this.CreateCompilationAsync(projectState, cancellationToken).ConfigureAwait(false);
+            ImmutableArray<Diagnostic> diagnostics;
             var trees = compilation.GenerateSource(
                 generators,
                 PathUtilities.GetDirectoryName(projectState.OutputFilePath),
                 writeToDisk: false,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken,
+                diagnostics: out diagnostics);
+            // Report any diagnostics. See https://github.com/dotnet/roslyn/issues/12226.
             var documents = ArrayBuilder<DocumentInfo>.GetInstance();
             foreach (var tree in trees)
             {
