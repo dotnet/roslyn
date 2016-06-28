@@ -332,11 +332,15 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar)
         {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase)
-                || item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase))
+            // general rule: if the filtering text exactly matches the start of the item then it
+            // must be a filter character
+            if (textTypedSoFar.Length > 0)
             {
-                return false;
+                if (item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return false;
+                }
             }
 
             foreach (var rule in item.Rules.CommitCharacterRules)
