@@ -357,14 +357,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = sourceTuple.Arguments;
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
 
-            ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesIfTupleOrCompatible();
+            ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
-                convertedArguments.Add(CreateConversion(argument, destType, diagnostics));
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Conversion elementConversion;
+                if (isCast)
+                {
+                    elementConversion = this.Conversions.ClassifyConversionForCast(argument, destType, ref useSiteDiagnostics);
+                }
+                else
+                {
+                    elementConversion = this.Conversions.ClassifyConversionFromExpression(argument, destType, ref useSiteDiagnostics);
+                }
+
+                diagnostics.Add(syntax, useSiteDiagnostics);
+                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
             }
 
             BoundExpression result = new BoundConvertedTupleLiteral(

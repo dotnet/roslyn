@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
-            if (!options.GetOption(CompletionOptions.IncludeKeywords, document.Project.Language))
-            {
-                return;
-            }
-
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
                 var keywords = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(

@@ -378,7 +378,7 @@
   <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
     <value>_Place 'System' directives first when sorting usings</value>
   </data>
-  <data name="Option_BringUpOnIdentifier" xml:space="preserve">
+  <data name="Option_Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
   </data>
   <data name="Option_ShowKeywords" xml:space="preserve">
@@ -468,10 +468,25 @@
   <data name="Option_Only_add_new_line_on_enter_with_whole_word" xml:space="preserve">
     <value>_Only add new line on enter after end of fully typed word</value>
   </data>
-    <data name="Option_Always_add_new_line_on_enter" xml:space="preserve">
+  <data name="Option_Always_add_new_line_on_enter" xml:space="preserve">
     <value>_Always add new line on enter</value>
   </data>
-    <data name="Option_Never_add_new_line_on_enter" xml:space="preserve">
+  <data name="Option_Never_add_new_line_on_enter" xml:space="preserve">
     <value>_Never add new line on enter</value>
+  </data>
+  <data name="Option_Always_include_snippets" xml:space="preserve">
+    <value>Always include snippets</value>
+  </data>
+  <data name="Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier" xml:space="preserve">
+    <value>Include snippets when ?-Tab is typed after an identifier</value>
+  </data>
+  <data name="Option_Never_include_snippets" xml:space="preserve">
+    <value>Never include snippets</value>
+  </data>
+  <data name="Snippets_behavior" xml:space="preserve">
+    <value>Snippets behavior</value>
+  </data>
+  <data name="Option_Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is _deleted</value>
   </data>
 </root>

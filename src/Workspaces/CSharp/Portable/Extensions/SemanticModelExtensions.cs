@@ -182,6 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return argument.NameColon.Name.Identifier.ValueText;
             }
 
+            if (argument.Declaration != null)
+            {
+                return argument.Declaration.Variables.First().Identifier.ValueText.ToCamelCase();
+            }
+
             return semanticModel.GenerateNameForExpression(argument.Expression);
         }
 

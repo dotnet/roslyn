@@ -403,11 +403,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Show completion list after a character is typed.
+        ///   Looks up a localized string similar to Always include snippets.
         /// </summary>
-        internal static string Option_BringUpOnIdentifier {
+        internal static string Option_Always_include_snippets {
             get {
-                return ResourceManager.GetString("Option_BringUpOnIdentifier", resourceCulture);
+                return ResourceManager.GetString("Option_Always_include_snippets", resourceCulture);
             }
         }
         
@@ -520,6 +520,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
+        /// </summary>
+        internal static string Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier {
+            get {
+                return ResourceManager.GetString("Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
         /// </summary>
         internal static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments {
@@ -534,6 +543,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_Never_add_new_line_on_enter {
             get {
                 return ResourceManager.GetString("Option_Never_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never include snippets.
+        /// </summary>
+        internal static string Option_Never_include_snippets {
+            get {
+                return ResourceManager.GetString("Option_Never_include_snippets", resourceCulture);
             }
         }
         
@@ -633,6 +651,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_Show_completion_item_filters {
             get {
                 return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion list after a character is _deleted.
+        /// </summary>
+        internal static string Option_Show_completion_list_after_a_character_is_deleted {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Show completion list after a character is typed.
+        /// </summary>
+        internal static string Option_Show_completion_list_after_a_character_is_typed {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_typed", resourceCulture);
             }
         }
         
@@ -849,6 +885,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string SetTypeInferencePreferences {
             get {
                 return ResourceManager.GetString("SetTypeInferencePreferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets behavior.
+        /// </summary>
+        internal static string Snippets_behavior {
+            get {
+                return ResourceManager.GetString("Snippets_behavior", resourceCulture);
             }
         }
         

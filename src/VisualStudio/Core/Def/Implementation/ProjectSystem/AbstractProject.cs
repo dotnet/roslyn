@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
@@ -381,6 +382,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _documents.Values.ToImmutableArrayOrEmpty();
         }
 
+        public IEnumerable<IVisualStudioHostDocument> GetCurrentAdditionalDocuments()
+        {
+            return _additionalDocuments.Values.ToImmutableArrayOrEmpty();
+        }
+
         public bool ContainsFile(string moniker)
         {
             return _documentMonikers.ContainsKey(moniker);
@@ -454,6 +460,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _analyzers.ContainsKey(fullPath);
         }
 
+        /// <summary>
+        /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.
+        /// </summary>
+        public ImmutableDictionary<string, VisualStudioAnalyzer> GetProjectAnalyzersMap() => _analyzers.ToImmutableDictionary();
+
         private static string GetAssemblyName(string outputPath)
         {
             Contract.Requires(outputPath != null);
@@ -483,11 +494,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected bool CanConvertToProjectReferences
+        {
+            get
+            {
+                if (this.Workspace != null)
+                {
+                    return this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.ProjectReferenceConversion);
+                }
+                else
+                {
+                    return InternalFeatureOnOffOptions.ProjectReferenceConversion.DefaultValue;
+                }
+            }
+        }
+
         protected int AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(string filePath, MetadataReferenceProperties properties)
         {
             // If this file is coming from a project, then we should convert it to a project reference instead
             AbstractProject project;
-            if (ProjectTracker.TryGetProjectByBinPath(filePath, out project))
+            if (this.CanConvertToProjectReferences && ProjectTracker.TryGetProjectByBinPath(filePath, out project))
             {
                 var projectReference = new ProjectReference(project.Id, properties.Aliases, properties.EmbedInteropTypes);
                 if (CanAddProjectReference(projectReference))
@@ -977,11 +1003,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Unsubscribe IVsHierarchyEvents
                 DisconnectHierarchyEvents();
 
+                var wasPushing = _pushingChangesToWorkspaceHosts;
+
+                // disable pushing down to workspaces, so we don't get redundant workspace document removed events
+                _pushingChangesToWorkspaceHosts = false;
+
                 // The project is going away, so let's remove ourselves from the host. First, we
                 // close and dispose of any remaining documents
                 foreach (var document in this.GetCurrentDocuments())
                 {
                     UninitializeDocument(document);
+                }
+
+                foreach (var document in this.GetCurrentAdditionalDocuments())
+                {
+                    UninitializeAdditionalDocument(document);
                 }
 
                 // Dispose metadata references.
@@ -1009,29 +1045,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 ClearAnalyzerRuleSet();
 
+                // reinstate pushing down to workspace, so the workspace project remove event fires
+                _pushingChangesToWorkspaceHosts = wasPushing;
+
                 this.ProjectTracker.RemoveProject(this);
+
+                _pushingChangesToWorkspaceHosts = false;
             }
         }
 
         internal void TryProjectConversionForIntroducedOutputPath(string binPath, AbstractProject projectToReference)
         {
-            // We should not already have references for this, since we're only introducing the path for the first time
-            Contract.ThrowIfTrue(_metadataFileNameToConvertedProjectReference.ContainsKey(binPath));
-
-            var metadataReference = TryGetCurrentMetadataReference(binPath);
-            if (metadataReference != null)
+            if (this.CanConvertToProjectReferences)
             {
-                var projectReference = new ProjectReference(
-                    projectToReference.Id,
-                    metadataReference.Properties.Aliases,
-                    metadataReference.Properties.EmbedInteropTypes);
+                // We should not already have references for this, since we're only introducing the path for the first time
+                Contract.ThrowIfTrue(_metadataFileNameToConvertedProjectReference.ContainsKey(binPath));
 
-                if (CanAddProjectReference(projectReference))
+                var metadataReference = TryGetCurrentMetadataReference(binPath);
+                if (metadataReference != null)
                 {
-                    RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
-                    AddProjectReference(projectReference);
+                    var projectReference = new ProjectReference(
+                        projectToReference.Id,
+                        metadataReference.Properties.Aliases,
+                        metadataReference.Properties.EmbedInteropTypes);
 
-                    _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                    if (CanAddProjectReference(projectReference))
+                    {
+                        RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
+                        AddProjectReference(projectReference);
+
+                        _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                    }
                 }
             }
         }

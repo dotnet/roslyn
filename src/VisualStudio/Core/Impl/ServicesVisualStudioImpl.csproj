@@ -244,7 +244,7 @@
     <Compile Include="Options\AbstractOptionPageControl.cs" />
     <Compile Include="Options\AbstractRadioButtonViewModel.cs" />
     <Compile Include="Options\AbstractSettingsManagerOptionSerializer.cs" />
-    <Compile Include="Options\AbstractSettingStoreOptionSerializer.cs" />
+    <Compile Include="Options\AbstractLocalUserRegistryOptionSerializer.cs" />
     <Compile Include="Options\CheckBoxViewModel.cs" />
     <Compile Include="Options\HeaderItemViewModel.cs" />
     <Compile Include="Options\OptionBinding.cs" />

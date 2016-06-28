@@ -5747,6 +5747,366 @@ End Module
             Await VerifyItemExistsAsync(text, "D")
         End Function
 
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_EmptyNameSpan_TopLevel() As Task
+            Dim source = <code><![CDATA[
+Namespace $$
+End Namespace
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "System")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_EmptyNameSpan_Nested() As Task
+            Dim source = <code><![CDATA[
+Namespace System
+    Namespace $$
+    End Namespace
+End Namespace
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_TopLevelNoPeers() As Task
+            Dim source = <code><![CDATA[
+Imports System;
+
+Namespace $$
+
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "String")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_TopLevelWithPeer() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+End Namespace
+
+Namespace $$
+
+]]></code>.Value
+
+
+            Await VerifyItemExistsAsync(source, "A")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_NestedWithNoPeers() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace $$
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyNoItemsExistAsync(source)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_NestedWithPeer() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B
+    End Namespace
+
+    Namespace $$
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_ExcludesCurrentDeclaration() As Task
+            Dim source = <code><![CDATA[Namespace N$$S]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "NS")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_WithNested() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace $$
+    
+        Namespace B
+        End Namespace
+    
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_WithNestedAndMatchingPeer() As Task
+            Dim source = <code><![CDATA[
+Namespace A.B
+End Namespace
+
+Namespace A
+
+    Namespace $$
+
+        Namespace B
+        End Namespace
+
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_InnerCompletionPosition() As Task
+            Dim source = <code><![CDATA[
+Namespace Sys$$tem
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_IncompleteDeclaration() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B
+
+        Namespace $$
+
+        Namespace C1
+        End Namespace
+
+    End Namespace
+
+    Namespace B.C2
+    End Namespace
+
+End Namespace
+
+Namespace A.B.C3
+End Namespace
+
+]]></code>.Value
+
+            ' Ideally, all the C* namespaces would be recommended but, because of how the parser
+            ' recovers from the missing end statement, they end up with the following qualified names...
+            '
+            '     C1 => A.B.?.C1
+            '     C2 => A.B.B.C2
+            '     C3 => A.A.B.C3
+            '
+            ' ...none of which are found by the current algorithm.
+            Await VerifyItemIsAbsentAsync(source, "C1")
+            Await VerifyItemIsAbsentAsync(source, "C2")
+            Await VerifyItemIsAbsentAsync(source, "C3")
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+
+            ' Because of the above, B does end up in the completion list
+            ' since A.B.B appears to be a peer of the New declaration
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_NoPeers() As Task
+
+            Dim source = <code><![CDATA[Namespace A.$$]]></code>.Value
+            Await VerifyNoItemsExistAsync(source)
+
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_TopLevelWithPeer() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A.B
+End Namespace
+
+Namespace A.$$
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_NestedWithPeer() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B.C
+    End Namespace
+
+    Namespace B.$$
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+            Await VerifyItemExistsAsync(source, "C")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_WithNested() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A.$$
+
+    Namespace B
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_WithNestedAndMatchingPeer() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A.B
+End Namespace
+
+Namespace A.$$
+
+    Namespace B
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_InnerCompletionPosition() As Task
+            Dim source = <code><![CDATA[
+Namespace Sys$$tem.Runtime
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_IncompleteDeclaration() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B
+
+        Namespace C.$$
+
+        Namespace C.D1
+        End Namespace
+
+    End Namespace
+
+    Namespace B.C.D2
+    End Namespace
+
+End Namespace
+
+Namespace A.B.C.D3
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+            Await VerifyItemIsAbsentAsync(source, "C")
+
+            ' Ideally, all the D* namespaces would be recommended but, because of how the parser
+            ' recovers from the end statement, they end up with the following qualified names...
+            '
+            '     D1 => A.B.C.C.?.D1
+            '     D2 => A.B.B.C.D2
+            '     D3 => A.A.B.C.D3
+            '
+            ' ...none of which are found by the current algorithm.
+            Await VerifyItemIsAbsentAsync(source, "D1")
+            Await VerifyItemIsAbsentAsync(source, "D2")
+            Await VerifyItemIsAbsentAsync(source, "D3")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_OnKeyword() As Task
+            Dim source = <code><![CDATA[
+Name$$space System
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "System")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_OnNestedKeyword() As Task
+            Dim source = <code><![CDATA[
+Namespace System
+    Name$$space Runtime
+    End Namespace
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
+        End Function
+
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitWithCloseBracketLeaveOpeningBracket1() As Task

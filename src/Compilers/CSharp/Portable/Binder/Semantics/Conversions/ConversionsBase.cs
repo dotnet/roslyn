@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteDiagnostics);
+            var conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteDiagnostics, forCast: false);
             if (conversion.Exists)
             {
                 return conversion;
@@ -186,19 +186,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return fastConversion;
             }
-            else
+
+            Conversion implicitBuiltInConversion = ClassifyImplicitBuiltInConversionSlow(source, destination, ref useSiteDiagnostics);
+            if (implicitBuiltInConversion.Exists && !ExplicitConversionMayDifferFromImplicit(implicitBuiltInConversion))
             {
-                Conversion conversion1 = ClassifyImplicitBuiltInConversionSlow(source, destination, ref useSiteDiagnostics);
-                if (conversion1.Exists)
-                {
-                    return conversion1;
-                }
+                return implicitBuiltInConversion;
             }
 
-            Conversion conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteDiagnostics);
-            if (conversion.Exists)
+            Conversion explicitBuiltInConversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteDiagnostics, forCast: true);
+            if (explicitBuiltInConversion.Exists)
             {
-                return conversion;
+                return explicitBuiltInConversion;
+            }
+
+            if (implicitBuiltInConversion.Exists)
+            {
+                return implicitBuiltInConversion;
             }
 
             // It is possible for a user-defined conversion to be unambiguous when considered as
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // fail.
 
-            conversion = GetExplicitUserDefinedConversion(null, source, destination, ref useSiteDiagnostics);
+            var conversion = GetExplicitUserDefinedConversion(null, source, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
             {
                 return conversion;
@@ -379,9 +382,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.PointerToVoid;
             }
 
-            if (HasImplicitTupleConversion(source, destination, ref useSiteDiagnostics))
+            var tupleConversion = ClassifyImplicitTupleConversion(source, destination, ref useSiteDiagnostics);
+            if (tupleConversion.Exists)
             {
-                return Conversion.ImplicitTuple;
+                return tupleConversion;
             }
 
             return Conversion.NoConversion;
@@ -453,19 +457,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetImplicitUserDefinedConversion(null, source, destination, ref useSiteDiagnostics);
         }
 
-        private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
-
-            // The call to HasExplicitNumericConversion isn't necessary, because it is always tested
-            // already by the "FastConversion" code.
-            Debug.Assert(!HasExplicitNumericConversion(source, destination));
 
             if (source.SpecialType == SpecialType.System_Void || destination.SpecialType == SpecialType.System_Void)
             {
                 return Conversion.NoConversion;
             }
+
+            // The call to HasExplicitNumericConversion isn't necessary, because it is always tested
+            // already by the "FastConversion" code.
+            Debug.Assert(!HasExplicitNumericConversion(source, destination));
 
             //if (HasExplicitNumericConversion(source, specialTypeSource, destination, specialTypeDest))
             //{
@@ -482,9 +486,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitEnumeration;
             }
 
-            if (HasExplicitNullableConversion(source, destination))
+            var nullableConversion = ClassifyExplicitNullableConversion(source, destination, ref useSiteDiagnostics, forCast);
+            if (nullableConversion.Exists)
             {
-                return Conversion.ExplicitNullable;
+                return nullableConversion;
             }
 
             if (HasExplicitReferenceConversion(source, destination, ref useSiteDiagnostics))
@@ -495,6 +500,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (HasUnboxingConversion(source, destination, ref useSiteDiagnostics))
             {
                 return Conversion.Unboxing;
+            }
+
+            var tupleConversion = ClassifyExplicitTupleConversion(source, destination, ref useSiteDiagnostics, forCast);
+            if (tupleConversion.Exists)
+            {
+                return tupleConversion;
             }
 
             if (HasPointerToPointerConversion(source, destination))
@@ -914,7 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (HasImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics))
+            var tupleConversion = ClassifyImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics);
+            if (tupleConversion.Exists)
             {
                 return true;
             }
@@ -922,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ImmutableArray<TypeSymbol> sourceTypes;
             ImmutableArray<TypeSymbol> destTypes;
@@ -931,22 +943,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !destination.TryGetElementTypesIfTupleOrCompatible(out destTypes) ||
                 sourceTypes.Length != destTypes.Length)
             {
-                return false;
+                return Conversion.NoConversion;
             }
 
+            var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
             for (int i = 0; i < sourceTypes.Length; i++)
             {
                 var conversion = ClassifyImplicitConversion(sourceTypes[i], destTypes[i], ref useSiteDiagnostics);
                 if (!conversion.Exists)
                 {
-                    return false;
+                    nestedConversions.Free();
+                    return Conversion.NoConversion;
                 }
+
+                nestedConversions.Add(conversion);
             }
 
-            return true;
+            return new Conversion(ConversionKind.ImplicitTuple, nestedConversions.ToArrayAndFree());
         }
 
-        private static bool HasExplicitNullableConversion(TypeSymbol source, TypeSymbol destination)
+        private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
+        {
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> destTypes;
+
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !destination.TryGetElementTypesIfTupleOrCompatible(out destTypes) ||
+                sourceTypes.Length != destTypes.Length)
+            {
+                return Conversion.NoConversion;
+            }
+
+            var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                var conversion = forCast ?
+                    ClassifyConversionForCast(sourceTypes[i], destTypes[i], ref useSiteDiagnostics) :
+                    ClassifyConversionFromType(sourceTypes[i], destTypes[i], ref useSiteDiagnostics);
+
+                if (!conversion.Exists)
+                {
+                    nestedConversions.Free();
+                    return Conversion.NoConversion;
+                }
+
+                nestedConversions.Add(conversion);
+            }
+
+            return new Conversion(ConversionKind.ExplicitTuple, nestedConversions.ToArrayAndFree());
+        }
+
+        private Conversion ClassifyExplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -961,38 +1008,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!source.IsNullableType() && !destination.IsNullableType())
             {
-                return false;
+                return Conversion.NoConversion;
             }
 
-            TypeSymbol sourceUnderlying = source.StrippedType();
-            TypeSymbol destinationUnderlying = destination.StrippedType();
+            TypeSymbol unwrappedSource = source.StrippedType();
+            TypeSymbol unwrappedDestination = destination.StrippedType();
 
-            if (HasIdentityConversion(sourceUnderlying, destinationUnderlying))
+            if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
             {
-                return true;
+                return Conversion.ExplicitNullable;
             }
 
-            if (HasImplicitNumericConversion(sourceUnderlying, destinationUnderlying))
+            if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return true;
+                return Conversion.ExplicitNullable;
             }
 
-            if (HasExplicitNumericConversion(sourceUnderlying, destinationUnderlying))
+            if (HasExplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return true;
+                return Conversion.ExplicitNullable;
             }
 
-            if (HasExplicitEnumerationConversion(sourceUnderlying, destinationUnderlying))
+            var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics, forCast);
+            if (tupleConversion.Exists)
             {
-                return true;
+                return new Conversion(ConversionKind.ExplicitNullable, new[] {tupleConversion});
             }
 
-            if (HasPointerToIntegerConversion(sourceUnderlying, destinationUnderlying))
+            if (HasExplicitEnumerationConversion(unwrappedSource, unwrappedDestination))
             {
-                return true;
+                return Conversion.ExplicitNullable;
             }
 
-            return false;
+            if (HasPointerToIntegerConversion(unwrappedSource, unwrappedDestination))
+            {
+                return Conversion.ExplicitNullable;
+            }
+
+            return Conversion.NoConversion;
         }
 
         private bool HasCovariantArrayConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

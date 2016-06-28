@@ -370,7 +370,7 @@ World");
         [Fact]
         public void RefReturningExpressionBodiedMethod()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;

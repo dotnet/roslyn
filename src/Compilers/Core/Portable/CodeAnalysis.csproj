@@ -29,7 +29,6 @@
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -37,7 +36,6 @@
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -54,34 +52,7 @@
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="InternalUtilities\IncrementalHash.cs" />
-    <Compile Include="System\Reflection\Blob.cs" />
-    <Compile Include="System\Reflection\BlobWriter.cs" />
-    <Compile Include="System\Reflection\BlobWriterImpl.cs" />
-    <Compile Include="System\Reflection\BlobBuilder.cs" />
-    <Compile Include="System\Reflection\BlobBuilder.Enumerators.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BranchBuilder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\ExceptionRegionEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\InstructionEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\LabelHandle.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\CodedIndex.cs" />
-    <Compile Include="System\Reflection\Metadata\ILOpCodeExtensions.cs" />
-    <Compile Include="System\Reflection\Metadata\ImageFormatLimitationException.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSerializer.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Tables.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BlobEncoders.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\MethodBodyEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSizes.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
-    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
-    <Compile Include="System\Reflection\Metadata\Internal\HeapSizeFlag.cs" />
-    <Compile Include="System\Reflection\Metadata\Internal\MetadataWriterUtilities.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\ContentId.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\ManagedPEBuilder.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\ManagedTextSection.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\PEBuilder.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\PEDirectoriesBuilder.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\PESectionLocation.cs" />
-    <Compile Include="System\Reflection\Internal\Utilities\BlobUtilities.cs" />
+    <Compile Include="PEWriter\ExportedType.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\CoreClrShim.cs">
@@ -97,6 +68,9 @@
     <Compile Include="CodeGen\DynamicAnalysisMethodBodyData.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" />
+    <Compile Include="FileSystem\CompilerPathUtilities.cs" />
+    <Compile Include="InternalUtilities\AssemblyIdentityUtils.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
@@ -216,7 +190,6 @@
     <Compile Include="Compilation\LoadDirective.cs" />
     <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
-    <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResultBuilder.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisScope.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.AnalyzerStateData.cs" />

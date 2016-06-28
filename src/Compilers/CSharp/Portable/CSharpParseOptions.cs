@@ -211,25 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureBinaryLiteral:
-                case MessageID.IDS_FeatureDigitSeparator:
-                case MessageID.IDS_FeatureLocalFunctions:
-                case MessageID.IDS_FeatureRefLocalsReturns:
-                case MessageID.IDS_FeaturePatternMatching:
-                case MessageID.IDS_FeatureTuples:
-                case MessageID.IDS_FeatureReplace:
-                    // in "demo" mode enable proposed new C# 7 language features.
-                    if (PreprocessorSymbols.Contains("__DEMO__"))
-                    {
-                        return true;
-                    }
-                    break;
-                default:
-                    break;
-            }
-
             string featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {

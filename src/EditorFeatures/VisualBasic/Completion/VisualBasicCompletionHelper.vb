@@ -1,6 +1,5 @@
 ﻿Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -35,31 +34,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             MyBase.New(isCaseSensitive:=False)
         End Sub
 
-        Public Overrides ReadOnly Property QuestionTabInvokesSnippetCompletion As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
-        Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
-            ' If this Is a session started on backspace, we use a much looser prefix match check
-            ' to see if an item matches
-
-            If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso trigger.Kind = CompletionTriggerKind.Deletion Then
-                Return GetPrefixLength(item.FilterText, filterText) > 0
-            End If
-
-            Return MyBase.MatchesFilterText(item, filterText, trigger, filterReason, recentItems)
-        End Function
-
-        Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
-
-            If filterReason = CompletionFilterReason.BackspaceOrDelete Then
-                Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
-                Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
-                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.MatchPriority > MatchPriority.Default AndAlso Not item2.Rules.MatchPriority > MatchPriority.Default) AndAlso Not IsEnumMemberItem(item1))
-            End If
-
+        Public Overrides Function IsBetterFilterMatch(
+                item1 As CompletionItem, item2 As CompletionItem,
+                filterText As String, trigger As CompletionTrigger,
+                recentItems As ImmutableArray(Of String)) As Boolean
             If IsEnumMemberItem(item2) Then
                 Dim match1 = GetMatch(item1, filterText)
                 Dim match2 = GetMatch(item2, filterText)
@@ -78,19 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
                 End If
             End If
 
-            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems)
-        End Function
-
-        Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, trigger As CompletionTrigger) As Boolean
-
-            ' VB has additional specialized logic for soft selecting an item in completion when the only filter text Is "_"
-            If filterText.Length = 0 OrElse filterText = "_" Then
-                ' Object Creation hard selects even with no selected item
-                Return Not IsObjectCreationItem(item)
-            End If
-
-            Return MyBase.ShouldSoftSelectItem(item, filterText, trigger)
+            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, recentItems)
         End Function
     End Class
-
 End Namespace

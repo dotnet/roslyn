@@ -4,10 +4,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal static class IntelliSenseOptionPageStrings
     {
-        public static string Option_BringUpOnIdentifier
-        {
-            get { return CSharpVSResources.Option_BringUpOnIdentifier; }
-        }
+        public static string Option_Show_completion_list_after_a_character_is_typed =>
+            CSharpVSResources.Option_Show_completion_list_after_a_character_is_typed;
+
+        public static string Option_Show_completion_list_after_a_character_is_deleted =>
+            CSharpVSResources.Option_Show_completion_list_after_a_character_is_deleted;
 
         public static string Option_CompletionLists
         {
@@ -46,5 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Always_add_new_line_on_enter =>
             CSharpVSResources.Option_Always_add_new_line_on_enter;
+
+        public static string Snippets_behavior =>
+            CSharpVSResources.Snippets_behavior;
+
+        public static string Option_Never_include_snippets =>
+            CSharpVSResources.Option_Never_include_snippets;
+
+        public static string Option_Always_include_snippets =>
+            CSharpVSResources.Option_Always_include_snippets;
+
+        public static string Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier =>
+            CSharpVSResources.Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier;
     }
 }

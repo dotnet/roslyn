@@ -103,19 +103,6 @@
     </When>
   </Choose>
 
-  <!-- Because https://github.com/dotnet/roslyn/issues/7812 is not yet fixed, the IDE doesn't know if we set the PublicSign
-       flag. As a result, all design-time builds will thing we're real-signing, which causes semantics to get all screwed up.
-       The workaround for now is, for design-time builds only, to pass the DelaySign flag since that's "good enough". This
-       must be done in a target versus conditioning on BuildingProject, since BuildingProject itself is correctly set in a
-       target. -->
-  <Target Name="FixPublicSignFlagForDesignTimeBuilds" BeforeTargets="CoreCompile" Condition="'$(PublicSign)' == 'true'">
-    <PropertyGroup Condition="'$(BuildingProject)' == 'false'">
-      <!-- Turn off PublicSign, because leaving both to true will make the Csc task unhappy -->
-      <PublicSign>false</PublicSign>
-      <DelaySign>true</DelaySign>
-    </PropertyGroup>
-  </Target>
-
   <!-- ====================================================================================
 
          Generation of binding redirects.
@@ -125,10 +112,16 @@
       <SuggestedBindingRedirects Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
       </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="Microsoft.Build.Engine, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
       <SuggestedBindingRedirects Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
       </SuggestedBindingRedirects>
       <SuggestedBindingRedirects Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="Microsoft.Build.Utilities.Core, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
       </SuggestedBindingRedirects>
   </ItemGroup>

@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using static Roslyn.Test.Performance.Runner.Tools;
-using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using System.IO;
 
@@ -10,13 +9,7 @@ namespace Roslyn.Test.Performance.Runner
 {
     public static class TraceBackup
     {
-        private const string TraceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
-        public static void UploadTraces()
-        {
-            UploadTraces(CPCDirectoryPath, TraceDestination);
-        }
-
-        private static void UploadTraces(string sourceFolderPath, string destinationFolderPath)
+        public static void UploadTraces(string sourceFolderPath, string destinationFolderPath)
         {
             if (Directory.Exists(sourceFolderPath))
             {

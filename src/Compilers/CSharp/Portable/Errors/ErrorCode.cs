@@ -1354,7 +1354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefReturnExpressionTree = 8900,
         ERR_RefReturningCallInExpressionTree = 8901,
 
-        // more diagnostics for ref locals and ref returns
         ERR_RefReturnLvalueExpected = 8910,
         ERR_RefReturnNonreturnableLocal = 8911,
         ERR_RefReturnNonreturnableLocal2 = 8912,
@@ -1371,8 +1370,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal = 8924,
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
+        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8927,
+        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8928,
 
-        // more diagnostics for ref locals and ref returns
+        // Available  = 8929,
+
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
         ERR_InitializeByValueVariableWithReference = 8932,
@@ -1380,14 +1382,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8934,
         ERR_ByReferenceVariableMustBeInitialized = 8935,
 
-        // more diagnostics for ref locals and ref returns
         ERR_AnonDelegateCantUseLocal = 8940,
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
+
+        // replace/original errors
         ERR_NoOriginalMember = 8944,
         ERR_DuplicateReplace = 8945,
         ERR_PartialReplace = 8946,
+
+        // tuple related errors
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleReservedMemberNameAnyPosition = 8202,
@@ -1395,5 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+
+        ERR_ConversionNotTupleCompatible = 8206,
     }
 }

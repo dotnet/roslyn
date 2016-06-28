@@ -80,8 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             result.AddRange(new[]
                 {
-                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.IncludeKeywords), CompletionOptions.IncludeKeywords),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnTypingLetters), CompletionOptions.TriggerOnTypingLetters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnDeletion), CompletionOptions.TriggerOnDeletion),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.ShowCompletionItemFilters), CompletionOptions.ShowCompletionItemFilters),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems), CompletionOptions.HighlightMatchingPortionsOfCompletionListItems),
                 });
@@ -132,7 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
                 option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
                 option == AddImportOptions.SuggestForTypesInNuGetPackages ||
-                option == CSharpCompletionOptions.IncludeSnippets ||
                 option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
                 option.Feature == CSharpFormattingOptions.WrappingFeatureName ||
@@ -144,11 +143,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
             else if (languageName == LanguageNames.CSharp)
             {
-                if (option == CompletionOptions.IncludeKeywords ||
-                    option == CompletionOptions.TriggerOnTypingLetters ||
+                if (option == CompletionOptions.TriggerOnTypingLetters ||
+                    option == CompletionOptions.TriggerOnDeletion ||
                     option == CompletionOptions.ShowCompletionItemFilters ||
                     option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
                     option == CompletionOptions.EnterKeyBehavior ||
+                    option == CompletionOptions.SnippetsBehavior ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
                     option.Feature == ServiceFeatureOnOffOptions.OptionName ||
@@ -272,7 +272,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return FetchEnterKeyBehavior(optionKey, out value);
             }
 
+            if (optionKey.Option == CompletionOptions.SnippetsBehavior)
+            {
+                return FetchSnippetsBehavior(optionKey, out value);
+            }
+
+            if (optionKey.Option == CompletionOptions.TriggerOnDeletion)
+            {
+                return FetchTriggerOnDeletion(optionKey, out value);
+            }
+
             return base.TryFetch(optionKey, out value);
+        }
+
+        private bool FetchTriggerOnDeletion(OptionKey optionKey, out object value)
+        {
+            if (!base.TryFetch(optionKey, out value))
+            {
+                return false;
+            }
+
+            if (value == null)
+            {
+                // The default behavior for c# is to not trigger completion on deletion.
+                value = (bool?)false;
+            }
+
+            return true;
         }
 
         private bool FetchStyleBool(string settingName, out object value)
@@ -280,6 +306,45 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             var typeStyleValue = Manager.GetValueOrDefault<string>(settingName);
             return FetchStyleOption<bool>(typeStyleValue, out value);
         }
+
+        /// <summary>
+        /// The EnterKeyBehavior option (formerly AddNewLineOnEnterAfterFullyTypedWord) used to only exist in C# and as a boolean.
+        /// We need to maintain the meaning of the serialized legacy setting.
+        /// </summary>
+        private bool FetchSnippetsBehavior(OptionKey optionKey, out object value)
+        {
+            if (!base.TryFetch(optionKey, out value))
+            {
+                return false;
+            }
+
+            if (!value.Equals(SnippetsRule.Default))
+            {
+                return true;
+            }
+
+            // if the SnippetsBehavior setting cannot be loaded, then attempt to load and upgrade the legacy setting
+
+#pragma warning disable CS0618 // IncludeSnippets is obsolete
+            if (base.TryFetch(CSharpCompletionOptions.IncludeSnippets, out value))
+#pragma warning restore CS0618
+            {
+                if ((bool)value)
+                {
+                    value = SnippetsRule.AlwaysInclude;
+                }
+                else
+                {
+                    value = SnippetsRule.NeverInclude;
+                }
+
+                return true;
+            }
+
+            value = SnippetsRule.AlwaysInclude;
+            return true;
+        }
+
 
         /// <summary>
         /// The EnterKeyBehavior option (formerly AddNewLineOnEnterAfterFullyTypedWord) used to only exist in C# and as a boolean.

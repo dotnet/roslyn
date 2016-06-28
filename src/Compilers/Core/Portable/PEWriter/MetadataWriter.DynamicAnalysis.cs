@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-
     internal class DynamicAnalysisDataWriter
     {
         private struct DocumentRow
@@ -90,7 +88,7 @@ namespace Microsoft.Cci
                 index = MetadataTokens.BlobHandle(_blobHeapSize);
                 _blobs.Add(blob, index);
 
-                _blobHeapSize += BlobWriterImpl.GetCompressedIntegerSize(blob.Length) + blob.Length;
+                _blobHeapSize += (blob.Length <= 0x7f) ? 1 : ((blob.Length <= 0x3fff) ? 2 : 4) + blob.Length;
             }
 
             return index;
@@ -335,9 +333,9 @@ namespace Microsoft.Cci
         {
             foreach (var row in _documentTable)
             {
-                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.Name), sizes.BlobIndexSize);
-                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.HashAlgorithm), sizes.GuidIndexSize);
-                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.Hash), sizes.BlobIndexSize);
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Name), isSmall: (sizes.BlobIndexSize == 2));
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.HashAlgorithm), isSmall: (sizes.GuidIndexSize == 2));
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Hash), isSmall: (sizes.BlobIndexSize == 2));
             }
         }
 
@@ -345,7 +343,7 @@ namespace Microsoft.Cci
         {
             foreach (var row in _methodTable)
             {
-                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.Spans), sizes.BlobIndexSize);
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Spans), isSmall: (sizes.BlobIndexSize == 2));
             }
         }
 

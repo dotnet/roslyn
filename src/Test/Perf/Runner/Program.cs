@@ -10,44 +10,52 @@ using static Roslyn.Test.Performance.Runner.Tools;
 using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Runner.TraceBackup;
 using Roslyn.Test.Performance.Runner;
+using Mono.Options;
 
 namespace Runner
 {
     public static class Program
     {
-        private static bool LaunchedWithArgument(string arg)
-        {
-            return Environment.GetCommandLineArgs().Contains($"/{arg}") ||
-                   Environment.GetCommandLineArgs().Contains($"--{arg}");
-        }
-        private static bool ShouldReportBenchview => LaunchedWithArgument("report-benchview");
-        private static bool ShouldUploadTrace => !LaunchedWithArgument("no-trace-upload");
-        private static bool IsRunningUnderCI => LaunchedWithArgument("ci-test");
         public static void Main(string[] args)
         {
-            AsyncMain(args).GetAwaiter().GetResult();
-            if (IsRunningUnderCI)
+
+            bool shouldReportBenchview = false;
+            bool shouldUploadTrace = true;
+            bool isCiTest = false;
+            string traceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
+
+            var parameterOptions = new OptionSet()
+            {
+                {"report-benchview", "report the performance retults to benview.", _ => shouldReportBenchview = true},
+                {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
+                {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
+                {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; }}
+            };
+            parameterOptions.Parse(args);
+
+            AsyncMain(isCiTest).GetAwaiter().GetResult();
+            if (isCiTest)
             {
                 Log("Running under continuous integration");
             }
 
-            if (ShouldReportBenchview)
+            if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
                 UploadBenchviewReport();
             }
 
-            if (ShouldUploadTrace)
+            if (shouldUploadTrace)
             {
                 Log("Uploading traces");
-                UploadTraces();
+                UploadTraces(GetCPCDirectoryPath(), traceDestination);
             }
         }
 
-        private static async Task AsyncMain(string[] args)
+        private static async Task AsyncMain(bool isRunningUnderCI)
         {
 
-            RuntimeSettings.isRunnerAttached = true;
+            RuntimeSettings.IsRunnerAttached = true;
 
             var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");
 
@@ -64,8 +72,12 @@ namespace Runner
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
                 var state = await RunFile(script).ConfigureAwait(false);
-                var tests = RuntimeSettings.resultTests;
-                RuntimeSettings.resultTests = null;
+                var tests = RuntimeSettings.ResultTests;
+                RuntimeSettings.ResultTests = null;
+                foreach (var test in tests)
+                {
+                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                }
                 testInstances.AddRange(tests);
             }
 
@@ -78,7 +90,7 @@ namespace Runner
                 traceManager.Setup();
 
                 int iterations;
-                if (IsRunningUnderCI)
+                if (isRunningUnderCI)
                 {
                     Log("Running one iteration per test");
                     iterations = 1;

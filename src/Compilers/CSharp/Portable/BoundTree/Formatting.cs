@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -64,7 +65,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return (object)this.Type ?? "<tuple>"; }
+            get
+            {
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                var arguments = this.Arguments;
+
+
+                builder.Append('(');
+                builder.Append(arguments[0].Display);
+
+                for(int i = 1; i < arguments.Length; i++)
+                {
+                    builder.Append(", ");
+                    builder.Append(arguments[i].Display);
+                }
+
+                builder.Append(')');
+
+                return pooledBuilder.ToStringAndFree();
+            }
         }
     }
 
@@ -73,6 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override object Display
         {
             get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    internal partial class OutVarLocalPendingInference
+    {
+        public override object Display
+        {
+            get { return string.Empty; }
         }
     }
 }

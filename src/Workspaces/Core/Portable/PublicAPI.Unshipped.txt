@@ -43,8 +43,8 @@ static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyFieldAc
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyMethodAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyPropertyAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Error -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Info -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.None -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Suggestion -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Warning -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocuments(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsRemoved, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsAdded) -> void

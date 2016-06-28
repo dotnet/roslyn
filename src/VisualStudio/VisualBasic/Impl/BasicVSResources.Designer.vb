@@ -128,6 +128,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Always include snippets.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Always_include_snippets() As String
+            Get
+                Return ResourceManager.GetString("Option_Always_include_snippets", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Automatic _insertion of Interface and MustOverride members.
         '''</summary>
         Friend Shared ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers() As String
@@ -281,6 +290,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier() As String
+            Get
+                Return ResourceManager.GetString("Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Navigate to Object Browser for symbols defined in metadata.
         '''</summary>
         Friend Shared ReadOnly Property Option_NavigateToObjectBrowser() As String
@@ -295,6 +313,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Option_Never_add_new_line_on_enter() As String
             Get
                 Return ResourceManager.GetString("Option_Never_add_new_line_on_enter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Never include snippets.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Never_include_snippets() As String
+            Get
+                Return ResourceManager.GetString("Option_Never_include_snippets", resourceCulture)
             End Get
         End Property
         
@@ -385,6 +412,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Option_Show_completion_item_filters() As String
             Get
                 Return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Show completion list after a character is _deleted.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_deleted", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to _Show completion list after a character is typed.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_list_after_a_character_is_typed() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_typed", resourceCulture)
             End Get
         End Property
         
@@ -484,6 +529,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property QualifyPropertyAccessWithMe() As String
             Get
                 Return ResourceManager.GetString("QualifyPropertyAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Snippets behavior.
+        '''</summary>
+        Friend Shared ReadOnly Property Snippets_behavior() As String
+            Get
+                Return ResourceManager.GetString("Snippets_behavior", resourceCulture)
             End Get
         End Property
     End Class
