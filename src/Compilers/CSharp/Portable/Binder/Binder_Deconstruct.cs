@@ -546,18 +546,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool hasErrors = localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            if (node.Type != null)
-            {
-                bool isVar;
-                bool isConst = false;
-                AliasSymbol alias;
-                TypeSymbol declType = BindVariableType(node, diagnostics, node.Type, ref isConst, out isVar, out alias);
+            bool isVar;
+            bool isConst = false;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(node, diagnostics, closestTypeSyntax, ref isConst, out isVar, out alias);
 
-                if (!isVar)
+            if (!isVar)
+            {
+                if (node.Type == null)
                 {
-                    // This variable has a type next to it and it is not implicitly-typed "var"
-                    return new BoundLocal(declarator, localSymbol, constantValueOpt: null, type: declType);
+                    // An explicit type can only be provided next to the variable
+                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, node);
                 }
+
+                return new BoundLocal(declarator, localSymbol, constantValueOpt: null, type: declType, hasErrors: node.Type == null);
             }
 
             return new DeconstructionLocalPendingInference(declarator, localSymbol);

@@ -3067,8 +3067,7 @@ class C
     static void Main()
     {
         (var x1, int x2) = (new var(), 2);
-        var (x3, x4) = (3, new var());
-        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4);
+        System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
 class var
@@ -3092,27 +3091,46 @@ class var
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
-                var x3Ref = GetReference(tree, "x3");
-                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
-
-                var x4 = GetDeconstructionLocal(tree, "x4");
-                var x4Ref = GetReference(tree, "x4");
-                VerifyModelForDeconstructionLocal(model, x4, x4Ref);
-
                 Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
                 Assert.Equal("var", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
 
                 Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
                 Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
-
-                Assert.Null(x3.Type);
-
-                Assert.Null(x4.Type);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "var 2 3 var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationVarFormWithActualVarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, x2) = (1, 2);
+    }
+}
+class var { }
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         var (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 14),
+                // (6,18): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         var (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
+                // (6,24): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                //         var (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("int", "var").WithLocation(6, 24),
+                // (6,24): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                //         var (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("int", "var").WithLocation(6, 24)
+                );
         }
 
         [Fact]
