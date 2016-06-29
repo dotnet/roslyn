@@ -5,17 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -66,11 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // surface buffer and not the subject buffer.
             // There have been some watsons where the ViewBuffer hadn't been registered,
             // so use TryGetHistory instead.
-            ITextUndoHistory undoHistory;
-            _undoHistoryRegistry.TryGetHistory(this.TextView.TextBuffer, out undoHistory);
+            //ITextUndoHistory undoHistory;
+            //_undoHistoryRegistry.TryGetHistory(this.TextView.TextBuffer, out undoHistory);
 
             CompletionChange completionChange;
-            using (var transaction = undoHistory?.CreateTransaction(EditorFeaturesResources.IntelliSense))
+            using (var transaction = new CaretPreservingEditTransaction(
+                EditorFeaturesResources.IntelliSense, TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 if (transaction != null)
@@ -123,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         // Move the caret back to where it was prior to committing the item.
-                        TextView.Caret.MoveTo(new VirtualSnapshotPoint(
-                            new SnapshotPoint(this.TextView.TextSnapshot, initialCaretPositionInView.Position.Position),
-                            initialCaretPositionInView.VirtualSpaces));
+                        //TextView.Caret.MoveTo(new VirtualSnapshotPoint(
+                        //    new SnapshotPoint(this.TextView.TextSnapshot, initialCaretPositionInView.Position.Position),
+                        //    initialCaretPositionInView.VirtualSpaces));
                     }
 
                     // Now, get the change the item wants to make.  Note that the change will be relative
@@ -166,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     // If the insertion is long enough, the caret will scroll out of the visible area.
                     // Re-center the view.
-                    this.TextView.Caret.EnsureVisible();
+                    // this.TextView.Caret.EnsureVisible();
                 }
 
                 transaction?.Complete();
