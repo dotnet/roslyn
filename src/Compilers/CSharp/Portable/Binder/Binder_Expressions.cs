@@ -2200,18 +2200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SourceLocalSymbol localSymbol = this.LookupLocal(argumentSyntax.Identifier);
 
-            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
-            // This occurs through the semantic model.  In that case concoct a plausible result.
             if ((object)localSymbol == null)
             {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                    ContainingMemberOrLambda,
-                    this,
-                    RefKind.None,
-                    typeSyntax,
-                    argumentSyntax.Identifier,
-                    LocalDeclarationKind.RegularVariable,
-                    initializer: null);
+                // We should have the right binder in the chain, cannot continue otherwise.
+                throw ExceptionUtilities.Unreachable;
             }
             else
             {
