@@ -6051,20 +6051,20 @@ checkNullable:
         ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
         ''' </summary>
         Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Return CheckFeatureAvailability(feature, node, _scanner.Options.LanguageVersion)
+            Return CheckFeatureAvailability(feature, node, _scanner.Options)
         End Function
 
-        Friend Shared Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode
-            If CheckFeatureAvailability(languageVersion, feature) Then
+        Friend Shared Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, opts As VisualBasicParseOptions) As TNode
+            If CheckFeatureAvailability(feature, opts) Then
                 Return node
             End If
 
             If feature = Feature.InterpolatedStrings Then
                 ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
                 ' an unlocalized string and fix this to be localized in the next release.
-                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, opts.LanguageVersion.GetErrorName(), "interpolated strings")
             Else
-                Return ReportFeatureUnavailable(feature, node, languageVersion)
+                Return ReportFeatureUnavailable(feature, node, opts.LanguageVersion)
             End If
         End Function
 
@@ -6078,18 +6078,26 @@ checkNullable:
         End Function
 
         Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
+            Return CheckFeatureAvailability(feature, _scanner.Options)
         End Function
 
-        Friend Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
+        Shared Function CheckFeatures(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag
+            Dim value As String = Nothing
+            Return opts.Features.TryGetValue(featureFlag, value)
+        End Function
+
+        Friend Shared Function CheckFeatureAvailability(feature As Feature, opts As VisualBasicParseOptions) As Boolean
             Dim required = feature.GetLanguageVersion()
-            Return CInt(required) <= CInt(languageVersion)
+            If CInt(required) <= CInt(opts.LanguageVersion) Then Return True
+            Return CheckFeatures(feature, opts)
         End Function
 
-        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
-            If Not CheckFeatureAvailability(languageVersion, feature) Then
+        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag,
+                                                   location As Location, opts As VisualBasicParseOptions, feature As Feature)
+            If Not CheckFeatureAvailability(feature, opts) Then
                 Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+                diagnostics.Add(ERRID.ERR_LanguageVersion, location, opts.LanguageVersion.GetErrorName(), featureName)
             End If
         End Sub
 

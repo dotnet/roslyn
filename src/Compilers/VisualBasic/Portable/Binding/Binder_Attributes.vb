@@ -787,7 +787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
                                             InternalSyntax.Parser.CheckFeatureAvailability(diagBag,
                                                                                            cast.Keyword.GetLocation(),
-                                                                                           DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                                                                                           DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
                                                                                            InternalSyntax.Feature.CObjInAttributeArguments)
                                         End If
                                     End If
