@@ -521,34 +521,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else if ((parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
-                     ((VariableDeclarationSyntax)parent).Type == expression &&
-                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument &&
-                     ((ArgumentSyntax)parent).Type == expression)
+            else if (IsOutVarType(expression, out parent))
             {
-                TypeSymbol outVarType = (GetDeclaredSymbol(((ArgumentSyntax)parent).Declaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
-
-                if (outVarType?.IsErrorType() == false)
-                {
-                    return new SymbolInfo(outVarType);
-                }
-
-                return SymbolInfo.None;
+                return TypeFromLocal(((ArgumentSyntax)parent).Declaration, cancellationToken);
             }
             else if (SyntaxFacts.IsDeconstructionType(expression, out parent))
             {
                 Debug.Assert(((VariableDeclarationSyntax)parent).Variables.Count == 1);
-                TypeSymbol deconstructionType = (GetDeclaredSymbol(((VariableDeclarationSyntax)parent).Variables.First(), cancellationToken) as LocalSymbol)?.Type;
 
-                if (deconstructionType?.IsErrorType() == false)
-                {
-                    return new SymbolInfo(deconstructionType);
-                }
-
-                return SymbolInfo.None;
+                return TypeFromLocal((VariableDeclarationSyntax)parent, cancellationToken);
             }
 
             return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a variable declaration, figure out its type by looking at the declared symbol of the corresponding local.
+        /// </summary>
+        private SymbolInfo TypeFromLocal(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
+        {
+            TypeSymbol deconstructionType = (GetDeclaredSymbol(variableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+
+            if (deconstructionType?.IsErrorType() == false)
+            {
+                return new SymbolInfo(deconstructionType);
+            }
+
+            return SymbolInfo.None;
+        }
+
+        /// <summary>
+        /// Figures out if this expression is a type in an out-var ArgumentSyntax .
+        /// Outputs the VariableDeclarationSyntax directly containing it, if that is the case.
+        /// </summary>
+        private static bool IsOutVarType(ExpressionSyntax expression, out SyntaxNode parent)
+        {
+            return (parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+                     ((VariableDeclarationSyntax)parent).Type == expression &&
+                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument &&
+                     ((ArgumentSyntax)parent).Type == expression;
         }
 
         /// <summary>

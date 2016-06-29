@@ -434,12 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (((VariableDeclarationSyntax)parent).Deconstruction != null)
-            {
-                return true;
-            }
-
-            return false;
+            return ((VariableDeclarationSyntax)parent).Deconstruction != null;
         }
     }
 }

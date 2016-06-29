@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -3175,6 +3176,76 @@ class C
                 // (6,34): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(1, 2, 3)").WithArguments("3", "2").WithLocation(6, 34)
+                );
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        public void RefReturningVarInvocation()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    static void Main()
+    {
+        int x = 0, y = 0;
+        var(x, y) = 42; // parsed as deconstruction
+        System.Console.WriteLine(i);
+    }
+    static ref int var(int a, int b) { return ref i; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS0128: A local variable named 'x' is already defined in this scope
+                //         var(x, y) = 42;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(9, 13),
+                // (9,16): error CS0128: A local variable named 'y' is already defined in this scope
+                //         var(x, y) = 42;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(9, 16),
+                // (9,21): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         var(x, y) = 42;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 21),
+                // (9,21): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
+                //         var(x, y) = 42;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 21),
+                // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 0, y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
+                // (8,20): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int x = 0, y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20),
+                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+                );
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        public void RefReturningInvocation()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    static void Main()
+    {
+        int x = 0, y = 0;
+        M(x, y) = 42;
+        System.Console.WriteLine(i);
+    }
+    static ref int M(int a, int b) { return ref i; }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "42");
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
                 );
         }
 
