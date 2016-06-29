@@ -56,22 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // into us.  However, for now, we just hope that no such craziness will occur.
             this.StopModelComputation();
 
-            // NOTE(cyrusn): It is intentional that we get the undo history for the
-            // surface buffer and not the subject buffer.
-            // There have been some watsons where the ViewBuffer hadn't been registered,
-            // so use TryGetHistory instead.
-            //ITextUndoHistory undoHistory;
-            //_undoHistoryRegistry.TryGetHistory(this.TextView.TextBuffer, out undoHistory);
-
             CompletionChange completionChange;
             using (var transaction = new CaretPreservingEditTransaction(
                 EditorFeaturesResources.IntelliSense, TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
-                if (transaction != null)
-                {
-                    transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
-                }
+                transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
                 var provider = GetCompletionProvider(item.Item) as ICustomCommitCompletionProvider;
                 if (provider != null)
@@ -164,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // this.TextView.Caret.EnsureVisible();
                 }
 
-                transaction?.Complete();
+                transaction.Complete();
             }
 
             // Let the completion rules know that this item was committed.
