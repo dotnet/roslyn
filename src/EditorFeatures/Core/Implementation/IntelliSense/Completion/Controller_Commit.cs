@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     // If the insertion is long enough, the caret will scroll out of the visible area.
                     // Re-center the view.
-                    // this.TextView.Caret.EnsureVisible();
+                    this.TextView.Caret.EnsureVisible();
                 }
 
                 transaction.Complete();
