@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis
 
             if (openDocs != null)
             {
-                foreach (var docId in openDocs)
+                // ClearOpenDocument will remove the document from the original set.
+                var copyOfOpenDocs = openDocs.ToList();
+                foreach (var docId in copyOfOpenDocs)
                 {
                     this.ClearOpenDocument(docId);
                 }
@@ -175,6 +177,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [Obsolete("This method will be removed in a future release.")]
         protected void CheckProjectDoesNotContainOpenDocuments(ProjectId projectId)
         {
             if (ProjectHasOpenDocuments(projectId))
