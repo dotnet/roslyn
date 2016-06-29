@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         textEdit.Apply();
                     }
 
+                    // adjust the caret position if requested by completion service
                     if (completionChange.NewPosition != null)
                     {
                         TextView.Caret.MoveTo(new SnapshotPoint(
