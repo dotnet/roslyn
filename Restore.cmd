@@ -3,7 +3,7 @@
 
 set RoslynRoot=%~dp0.
 set NuGetExeVersion=3.5.0-beta2
-set NuGetExeFolder="%RoslynRoot%\Binaries\Downloaded\%NuGetExeVersion%"
+set NuGetExeFolder="%RoslynRoot%\Binaries\Download\%NuGetExeVersion%"
 set NuGetExe="%NuGetExeFolder%\NuGet.exe"
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%\nuget.config" -Project2ProjectTimeOut 1200
 
