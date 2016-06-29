@@ -6055,7 +6055,7 @@ checkNullable:
         End Function
 
         Friend Shared Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, opts As VisualBasicParseOptions) As TNode
-            If CheckFeatureAvailability(feature, opts) Then
+            If CheckFeatureAvailability(opts, feature) Then
                 Return node
             End If
 
@@ -6078,7 +6078,7 @@ checkNullable:
         End Function
 
         Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(feature, _scanner.Options)
+            Return CheckFeatureAvailability(_scanner.Options, feature)
         End Function
 
         Shared Function CheckFeatures(feature As Feature, opts As VisualBasicParseOptions) As Boolean
@@ -6087,7 +6087,7 @@ checkNullable:
             Return opts.Features.TryGetValue(featureFlag, value)
         End Function
 
-        Friend Shared Function CheckFeatureAvailability(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+        Friend Shared Function CheckFeatureAvailability(opts As VisualBasicParseOptions, feature As Feature) As Boolean
             Dim required = feature.GetLanguageVersion()
             If CInt(required) <= CInt(opts.LanguageVersion) Then Return True
             Return CheckFeatures(feature, opts)
@@ -6095,7 +6095,7 @@ checkNullable:
 
         Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag,
                                                    location As Location, opts As VisualBasicParseOptions, feature As Feature)
-            If Not CheckFeatureAvailability(feature, opts) Then
+            If Not CheckFeatureAvailability(opts, feature) Then
                 Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
                 diagnostics.Add(ERRID.ERR_LanguageVersion, location, opts.LanguageVersion.GetErrorName(), featureName)
             End If
