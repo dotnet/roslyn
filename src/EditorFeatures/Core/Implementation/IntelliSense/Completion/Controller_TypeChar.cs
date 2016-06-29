@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             //      2) open a transaction.
             //          2a) roll back the text to before the text was sent through
             //          2b) commit the item.
-            //          2c) send the commit character through again.
+            //          2c) send the commit character through again.*
             //          2d) commit the transaction.
             //
             // 2c is very important.  it makes sure that post our commit all our normal features
@@ -50,6 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // runs within this transaction, then the user can always undo and get to what the code
             // would have been if completion was not involved.
             //
+            // 2c*: note sending the commit character through to the buffer again can be controlled
+            // by the completion item.  For example, completion items that want to totally handle
+            // what gets output into the buffer can ask for this not to happen.  An example of this
+            // is override completion.  If the user types "override Method(" then we'll want to 
+            // spit out the entire method and *not* also spit out "(" again.
+
             // In order to support 2a (rolling back), we capture hte state of the buffer before
             // we send the character through.  We then just apply the edits in reverse order to
             // roll us back.
