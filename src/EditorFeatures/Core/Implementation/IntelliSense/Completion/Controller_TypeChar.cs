@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // 2c is very important.  it makes sure that post our commit all our normal features
             // run depending on what got typed.  For example if the commit character was (
             // then brace completion may run.  If it was ; then formatting may run.  But, importantly
-            // this code doesn't need to know anything about that.  Furthermore, becaue that code
+            // this code doesn't need to know anything about that.  Furthermore, because that code
             // runs within this transaction, then the user can always undo and get to what the code
             // would have been if completion was not involved.
             //
