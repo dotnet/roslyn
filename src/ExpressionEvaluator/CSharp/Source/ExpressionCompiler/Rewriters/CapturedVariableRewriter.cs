@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 syntax,
                 rewrittenParameter,
                 conversion,
-                conversion.ResultKind,
                 isBaseConversion: true,
                 @checked: false,
                 explicitCastInCode: false,

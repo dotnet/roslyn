@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 operand,
                 conversion,
-                resultKind: LookupResultKind.Viable, //not used
                 isBaseConversion: false,
                 @checked: false,
                 explicitCastInCode: false,
@@ -241,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 operand,
                 conversion,
-                resultKind: conversion.ResultKind,
                 isBaseConversion: false,
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,

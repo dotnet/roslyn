@@ -587,7 +587,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 e = conversion.Update(
                     conversion.Operand,
                     conversion.Conversion,
-                    conversion.ResultKind,
                     isBaseConversion: conversion.IsBaseConversion,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,

@@ -487,7 +487,6 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="Conversion" Type="Conversion"/>
 
-    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="IsBaseConversion" Type="Boolean"/>
     <Field Name="Checked" Type="Boolean"/>
     <Field Name="ExplicitCastInCode" Type="Boolean"/>

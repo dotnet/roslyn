@@ -677,7 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return conversion.Update(
                 operand,
                 conversionInfo,
-                resultKind: conversion.ResultKind,
                 isBaseConversion: conversion.IsBaseConversion,
                 @checked: conversion.Checked,
                 explicitCastInCode: conversion.ExplicitCastInCode,

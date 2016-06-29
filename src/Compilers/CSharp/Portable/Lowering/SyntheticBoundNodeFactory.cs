@@ -1060,7 +1060,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax,
                 arg,
                 conversion,
-                LookupResultKind.Viable,
                 isBaseConversion: false,
                 @checked: isChecked,
                 explicitCastInCode: true,

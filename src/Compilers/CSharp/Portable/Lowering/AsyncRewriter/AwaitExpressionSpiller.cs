@@ -847,7 +847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Update(
                     operand,
                     node.Conversion,
-                    node.ResultKind,
                     isBaseConversion: node.IsBaseConversion,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,

@@ -298,7 +298,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax,
                             rewrittenNode,
                             outerConversion,
-                            LookupResultKind.Viable,
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
@@ -333,7 +332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 oldNode.Update(
                     rewrittenOperand,
                     conversion,
-                    oldNode.ResultKind,
                     isBaseConversion: oldNode.IsBaseConversion,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
@@ -343,7 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenOperand,
                     conversion,
-                    LookupResultKind.Viable,
                     isBaseConversion: false,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,

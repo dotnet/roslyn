@@ -1059,7 +1059,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: conversion.Syntax,
                         operand: result,
                         conversion: outerConversion,
-                        resultKind: conversion.ResultKind,
                         isBaseConversion: false,
                         @checked: false,
                         explicitCastInCode: true,
