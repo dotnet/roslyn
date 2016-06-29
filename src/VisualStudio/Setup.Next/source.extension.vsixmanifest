@@ -17,5 +17,9 @@
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="EditorFeatures.Next" Path="|EditorFeatures.Next|" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remotehostService.servicehub.service.json" />
+	<Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="assetService.servicehub.service.json" />
+	<Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="solutionSnapshotService.servicehub.service.json" />
+	<Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="diagnosticService.servicehub.service.json" />
   </Assets>
 </PackageManifest>

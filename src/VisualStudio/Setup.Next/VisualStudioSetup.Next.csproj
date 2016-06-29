@@ -35,6 +35,11 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\Core\Impl\ServicesVisualStudioImpl.csproj">
+      <Project>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</Project>
+      <Name>ServicesVisualStudioImpl</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -53,7 +58,11 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="solutionSnapshotService.serviceHub.service.json" />
     <None Include="project.json" />
+    <None Include="diagnosticService.serviceHub.service.json" />
+    <None Include="assetService.servicehub.service.json" />
+    <None Include="remotehostService.servicehub.service.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>

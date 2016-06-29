@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -11,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Execution
 {
     internal class SnapshotStorages
     {
-        private readonly Serializer _serializer;
         private readonly ConcurrentDictionary<SolutionSnapshot, Storage> _snapshots;
+        public readonly Serializer Serializer;
 
         public SnapshotStorages(Serializer serializer)
         {
-            _serializer = serializer;
+            Serializer = serializer;
             _snapshots = new ConcurrentDictionary<SolutionSnapshot, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // REVIEW: right now, there is no MRU implemented, so cache will be there as long as snapshot is there.
             foreach (var storage in _snapshots.Values)
             {
-                var snapshotBuilder = new SnapshotBuilder(_serializer, storage, rebuild: true);
+                var snapshotBuilder = new SnapshotBuilder(Serializer, storage, rebuild: true);
 
                 // rebuild whole snapshot for this solution
                 await snapshotBuilder.BuildAsync(storage.Solution, cancellationToken).ConfigureAwait(false);
@@ -183,16 +182,16 @@ namespace Microsoft.CodeAnalysis.Execution
                 {
                     // force to re-create all sub checksum objects
                     // save newly created one
-                    var snapshotBuilder = new SnapshotBuilder(_owner._serializer, GetStorage(key));
-                    var assetBuilder = new AssetBuilder(_owner._serializer, this);
+                    var snapshotBuilder = new SnapshotBuilder(_owner.Serializer, GetStorage(key));
+                    var assetBuilder = new AssetBuilder(_owner.Serializer, this);
 
                     SaveAndReturn(key, await valueGetterAsync(value, kind, snapshotBuilder, assetBuilder, cancellationToken).ConfigureAwait(false));
                 }
 
                 return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) =>
                 {
-                    var snapshotBuilder = new SnapshotBuilder(_owner._serializer, GetStorage(key));
-                    var assetBuilder = new AssetBuilder(_owner._serializer, this);
+                    var snapshotBuilder = new SnapshotBuilder(_owner.Serializer, GetStorage(key));
+                    var assetBuilder = new AssetBuilder(_owner.Serializer, this);
 
                     return valueGetterAsync(v, k, snapshotBuilder, assetBuilder, c);
                 }, cancellationToken).ConfigureAwait(false);

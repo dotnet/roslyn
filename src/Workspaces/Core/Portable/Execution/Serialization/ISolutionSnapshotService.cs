@@ -21,10 +21,12 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class SolutionSnapshot : IDisposable
     {
+        public readonly Workspace Workspace;
         public readonly SolutionSnapshotId Id;
 
-        public SolutionSnapshot(SolutionSnapshotId id)
+        protected SolutionSnapshot(Workspace workspace, SolutionSnapshotId id)
         {
+            Workspace = workspace;
             Id = id;
         }
 

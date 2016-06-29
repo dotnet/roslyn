@@ -394,8 +394,6 @@
     <Compile Include="Execution\Serialization\SolutionSnapshotService.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
-    <Compile Include="Remote\CompilationFactoryService.cs" />
-    <Compile Include="Remote\ICompilationFactoryService.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 using (var reader = new ObjectReader(stream))
                 {
                     // deserialize bits to object
-                    var serializer = snapshotService.Serializer;
+                    var serializer = snapshotService.Serializer_TestOnly;
                     return serializer.Deserialize<T>(kind, reader, CancellationToken.None);
                 }
             }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 using (var reader = new ObjectReader(stream))
                 {
                     // deserialize bits to object
-                    var serializer = snapshotService.Serializer;
+                    var serializer = snapshotService.Serializer_TestOnly;
                     var recoveredValue = serializer.Deserialize<T>(kind, reader, CancellationToken.None);
 
                     // re-create asset from object

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -19,24 +22,23 @@ namespace Microsoft.CodeAnalysis.Execution
         internal class Service : ISolutionSnapshotService
         {
             private readonly HostWorkspaceServices _workspaceServices;
-            private readonly Serializer _serializer;
             private readonly SnapshotStorages _storages;
 
             public Service(HostWorkspaceServices workspaceServices)
             {
                 _workspaceServices = workspaceServices;
 
-                _serializer = new Serializer(workspaceServices);
-                _storages = new SnapshotStorages(_serializer);
+                // TODO: storage should be shared between multiple workpsace
+                _storages = new SnapshotStorages(new Serializer(workspaceServices));
             }
 
-            public Serializer Serializer => _serializer;
+            public Serializer Serializer_TestOnly => _storages.Serializer;
 
             public async Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
                 var snapshotStorage = _storages.CreateSnapshotStorage(solution);
 
-                var builder = new SnapshotBuilder(_serializer, snapshotStorage);
+                var builder = new SnapshotBuilder(_storages.Serializer, snapshotStorage);
                 return new Snapshot(_storages, snapshotStorage, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
             }
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 private readonly SnapshotStorages _storages;
                 private readonly SnapshotStorage _storage;
 
-                public Snapshot(SnapshotStorages storages, SnapshotStorage storage, SolutionSnapshotId id) : base(id)
+                public Snapshot(SnapshotStorages storages, SnapshotStorage storage, SolutionSnapshotId id) : base(storage.Solution.Workspace, id)
                 {
                     _storages = storages;
                     _storage = storage;

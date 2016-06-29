@@ -3,16 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Threading;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -25,6 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private SymbolSearchService _symbolSearchService;
+
+        private System.Threading.Tasks.Task _remoteHost;
 
         public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
@@ -75,6 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // this also should be started before any of workspace events start firing
                 this.Workspace.StartSolutionCrawler();
             }
+
+            // start remote host
+            _remoteHost = RemoteHost.StartAsync(CancellationToken.None);
 
             // Ensure services that must be created on the UI thread have been.
             HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);

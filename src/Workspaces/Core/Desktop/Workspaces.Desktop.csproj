@@ -69,6 +69,15 @@
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
+    <Compile Include="Remote\AssertSource.cs" />
+    <Compile Include="Remote\AssetService.cs" />
+    <Compile Include="Remote\DiagnosticService.cs" />
+    <Compile Include="Remote\RemoteHostService.cs" />
+    <Compile Include="Remote\RoslynServiceHubServices.cs" />
+    <Compile Include="Remote\ServiceHubJsonRpcServiceBase.cs" />
+    <Compile Include="Remote\ServiceHubRawStreamServiceBase.cs" />
+    <Compile Include="Remote\ServiceHubServiceBase.cs" />
+    <Compile Include="Remote\SolutionSnapshotService.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">

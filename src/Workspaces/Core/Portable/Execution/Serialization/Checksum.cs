@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -21,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             _lazyHash = null;
             _checkSum = checksum;
+        }
+
+        public byte[] ToArray()
+        {
+            // TODO: think a way to make this better
+            return _checkSum.ToArray();
         }
 
         public bool Equals(Checksum other)

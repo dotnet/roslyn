@@ -5,6 +5,8 @@
     "RoslynDependencies.Microsoft.VisualStudio.Progression": "14.2.25123",
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": "14.2.25123",
     "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "14.0.23107",
+    "Microsoft.ServiceHub.Client": "0.13.54-alpha-g315dc9a206",
+    "StreamJsonRpc": "0.14.3-alpha",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"
