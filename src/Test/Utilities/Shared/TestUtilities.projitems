@@ -28,7 +28,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\DiagnosticBagErrorLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\IRuntimeEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\OperationTreeVerifier.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Compilation\SimpleSourceGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\TestOperationWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\VersionTestHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DescriptorFactory.cs" />
