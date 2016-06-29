@@ -189,7 +189,9 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
                 );
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"expression 1 is not String
 expression foo is not Int32
 expression 1 is Int32 1
@@ -198,7 +200,8 @@ expression 1.2 is Double 1.2
 expression 1 is Nullable`1 1
 expression  is not Nullable`1
 expression  is not String";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact]
@@ -297,11 +300,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"No for 1
 Yes for 10
 No for 1.2";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact]
@@ -329,11 +335,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"False for 1
 True for 10
 False for 1.2";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact]
@@ -362,11 +371,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"False for 1
 True for 10
 False for 1.2";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact, WorkItem(8778, "https://github.com/dotnet/roslyn/issues/8778")]
@@ -395,11 +407,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"False for 1
 True for 10
 False for 1.2";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact, WorkItem(8778, "https://github.com/dotnet/roslyn/issues/8778")]
@@ -430,11 +445,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"False for 1
 True for 10
 False for 1.2";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact]
@@ -501,11 +519,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"False for 1
 True for 10
 False for 1.2";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact]
@@ -551,7 +572,9 @@ public struct X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var expectedOutput =
+            using (new EnsureEnglishCulture())
+            {
+                var expectedOutput =
 @"one
 int 10
 long 20
@@ -562,7 +585,8 @@ null
 struct X X
 class Exception System.Exception: boo
 ";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
         }
 
         [Fact]

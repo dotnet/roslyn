@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
         public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
-            if (diagnostics != null && diagnostics.Any())
+            if (diagnostics != null)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(diagnostic.ToString(Culture));
         }
 
-        public ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public StreamErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
+            return new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
 
             try
             {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        internal int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
 
@@ -388,7 +388,14 @@ namespace Microsoft.CodeAnalysis
 
                 if (!sourceGenerators.IsEmpty)
                 {
-                    var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
+                    ImmutableArray<Diagnostic> generatorDiagnostics;
+                    var trees = compilation.GenerateSource(
+                        sourceGenerators,
+                        this.Arguments.OutputDirectory,
+                        writeToDisk: true,
+                        cancellationToken: cancellationToken,
+                        diagnostics: out generatorDiagnostics);
+                    bool generatorReportedErrors = ReportErrors(generatorDiagnostics, consoleOutput, errorLogger);
                     if (!trees.IsEmpty)
                     {
                         compilation = compilation.AddSyntaxTrees(trees);
@@ -396,6 +403,10 @@ namespace Microsoft.CodeAnalysis
                         {
                             return Failed;
                         }
+                    }
+                    if (generatorReportedErrors)
+                    {
+                        return Failed;
                     }
                 }
 
