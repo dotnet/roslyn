@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -31,20 +29,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             AssertIsForeground();
 
-            var initialTextSnapshot = this.SubjectBuffer.CurrentSnapshot;
-            var initialVirtualCaretPosition = this.TextView.Caret.Position.VirtualBufferPosition;
-
-            var initialCaretPosition = GetCaretPointInViewBuffer();
-
             // When a character is typed it is *always* sent through to the editor.  This way the
             // editor always represents what would have been typed had completion not been involved
-            // at this point.  After we send the character into the buffer we then decide what to do
-            // with the completion set.  If we decide to commit it then we will replace the
-            // appropriate span (which will include the character just sent to the buffer) with the
-            // appropriate insertion text *and* the character typed.  This way, after we commit, the
-            // editor has the insertion text of the selected item, and the character typed.  It
-            // also means that if we then undo that we'll see the text that would have been typed
-            // had no completion been active.
+            // at this point.  That means that if we decide to commit, then undo'ing the commit will
+            // return you to the code that you would have typed if completion was not up.
+            //
+            // The steps we follow for commit are as follows:
+            //
+            //      1) send the commit character through to the buffer.
+            //      2) open a transaction.
+            //          2a) roll back the text to before the text was sent through
+            //          2b) commit the item.
+            //          2c) send the commit character through again.
+            //          2d) commit the transaction.
+            //
+            // 2c is very important.  it makes sure that post our commit all our normal features
+            // run depending on what got typed.  For example if the commit character was (
+            // then brace completion may run.  If it was ; then formatting may run.  But, importantly
+            // this code doesn't need to know anything about that.  Furthermore, becaue that code
+            // runs within this transaction, then the user can always undo and get to what the code
+            // would have been if completion was not involved.
+            //
+            // In order to support 2a (rolling back), we capture hte state of the buffer before
+            // we send the character through.  We then just apply the edits in reverse order to
+            // roll us back.
+            var initialTextSnapshot = this.SubjectBuffer.CurrentSnapshot;
+
+            var initialCaretPosition = GetCaretPointInViewBuffer();
 
             // Note: while we're doing this, we don't want to hear about buffer changes (since we
             // know they're going to happen).  So we disconnect and reconnect to the event
@@ -88,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         Trace.WriteLine("typechar was on seam and a commit char, cannot have a completion session.");
 
-                        this.CommitOnTypeChar(
-                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
+                        this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                         return;
                     }
                     else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
@@ -100,8 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                         // we don't do multiple buffer change check
-                        this.CommitOnTypeChar(
-                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
+                        this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                         return;
                     }
                     else
@@ -221,8 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // Known to be a commit character for the currently selected item.  So just
                         // commit the session.
-                        this.CommitOnTypeChar(
-                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
+                        this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                     }
                     else
                     {
@@ -438,9 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private void CommitOnTypeChar(
-            char ch, ITextSnapshot initialTextSnapshot, 
-            VirtualSnapshotPoint initialCaretPointInView,
-            Action nextHandler)
+            char ch, ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
             AssertIsForeground();
 
@@ -452,8 +458,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // was commit character if we had a selected item.
             Contract.ThrowIfNull(model);
 
-            this.Commit(model.SelectedItem, model, ch, 
-                initialTextSnapshot, initialCaretPointInView, nextHandler);
+            this.Commit(
+                model.SelectedItem, model, ch,
+                initialTextSnapshot, nextHandler);
         }
     }
 }

@@ -235,12 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            this.Commit(
-                item, this.sessionOpt.Computation.InitialUnfilteredModel,
-                initialTextSnapshot: this.SubjectBuffer.CurrentSnapshot,
-                initialCaretPositionInView: this.TextView.Caret.Position.VirtualBufferPosition,
-                commitChar: null,
-                nextHandler: null);
+            this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
         }
 
         private const int MaxMRUSize = 10;

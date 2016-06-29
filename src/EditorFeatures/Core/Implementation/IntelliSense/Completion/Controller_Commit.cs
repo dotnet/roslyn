@@ -29,17 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private void CommitOnNonTypeChar(
             PresentationItem item, Model model)
         {
-            Commit(item, model, 
-                commitChar: null,
-                initialTextSnapshot: null, 
-                initialCaretPositionInView: default(VirtualSnapshotPoint),
-                nextHandler: null);
+            Commit(item, model, commitChar: null, initialTextSnapshot: null, nextHandler: null);
         }
 
         private void Commit(
             PresentationItem item, Model model, char? commitChar,
-            ITextSnapshot initialTextSnapshot, VirtualSnapshotPoint initialCaretPositionInView,
-            Action nextHandler)
+            ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
             AssertIsForeground();
 
@@ -83,34 +78,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     //      buffer (unless the items asks us not to).  By doing this, we can make sure
                     //      that things like brace-completion or formatting trigger as we expect them
                     //      to.
-                    var currentSnapshot = this.SubjectBuffer.CurrentSnapshot;
                     var characterWasSentIntoBuffer = commitChar != null &&
-                                                     initialTextSnapshot.Version.VersionNumber != currentSnapshot.Version.VersionNumber;
+                                                     initialTextSnapshot.Version.VersionNumber != this.SubjectBuffer.CurrentSnapshot.Version.VersionNumber;
                     if (characterWasSentIntoBuffer)
                     {
-                        // Get all the versions from the initial text snapshot (before we passed the
-                        // commit character down) to the current snapshot we're at.
-                        var versions = GetVersions(initialTextSnapshot, currentSnapshot).ToList();
-
-                        // Un-apply the edits. 
-                        for (var i = versions.Count - 1; i >= 0; i--)
-                        {
-                            var version = versions[i];
-                            using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
-                            {
-                                foreach (var change in version.Changes)
-                                {
-                                    textEdit.Replace(change.NewSpan, change.OldText);
-                                }
-
-                                textEdit.Apply();
-                            }
-                        }
-
-                        // Move the caret back to where it was prior to committing the item.
-                        //TextView.Caret.MoveTo(new VirtualSnapshotPoint(
-                        //    new SnapshotPoint(this.TextView.TextSnapshot, initialCaretPositionInView.Position.Position),
-                        //    initialCaretPositionInView.VirtualSpaces));
+                        RollbackToBeforeTypeChar(initialTextSnapshot);
                     }
 
                     // Now, get the change the item wants to make.  Note that the change will be relative
@@ -159,6 +131,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Let the completion rules know that this item was committed.
             this.MakeMostRecentItem(item.Item.DisplayText);
+        }
+
+        private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)
+        {
+            // Get all the versions from the initial text snapshot (before we passed the
+            // commit character down) to the current snapshot we're at.
+            var versions = GetVersions(initialTextSnapshot, this.SubjectBuffer.CurrentSnapshot).ToList();
+
+            // Un-apply the edits. 
+            for (var i = versions.Count - 1; i >= 0; i--)
+            {
+                var version = versions[i];
+                using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
+                {
+                    foreach (var change in version.Changes)
+                    {
+                        textEdit.Replace(change.NewSpan, change.OldText);
+                    }
+
+                    textEdit.Apply();
+                }
+            }
         }
 
         private IEnumerable<ITextVersion> GetVersions(
