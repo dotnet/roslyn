@@ -19,7 +19,7 @@ PR: https://github.com/dotnet/roslyn/pull/5144
 
 ### Treat a method marked with both public and private flags as private
 
-The scenario is loading an assembly where some methods, fields or nested types had their accessibility flags set to 7 (all three bits set), which mean public AND private.
+The scenario is loading an assembly where some methods, fields or nested types have accessibility flags set to 7 (all three bits set), which mean public AND private.
 After the fix, such flags are loaded to mean private.
 The compat change is we’re trading a compile-time success and runtime failure (native compiler) against a compile-time error (restoring the behavior of v1.2).
 
