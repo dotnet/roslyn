@@ -88,10 +88,15 @@ namespace Microsoft.Cci
                 index = MetadataTokens.BlobHandle(_blobHeapSize);
                 _blobs.Add(blob, index);
 
-                _blobHeapSize += (blob.Length <= 0x7f) ? 1 : ((blob.Length <= 0x3fff) ? 2 : 4) + blob.Length;
+                _blobHeapSize += GetCompressedIntegerLength(blob.Length) + blob.Length;
             }
 
             return index;
+        }
+
+        private static int GetCompressedIntegerLength(int length)
+        {
+            return (length <= 0x7f) ? 1 : ((length <= 0x3fff) ? 2 : 4);
         }
 
         private GuidHandle GetOrAddGuid(Guid guid)
