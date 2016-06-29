@@ -1,24 +1,28 @@
 @echo off
 @setlocal
 
-set RoslynRoot=%~dp0
-set NuGetExe="%RoslynRoot%\NuGet.exe"
+set RoslynRoot=%~dp0.
+set NuGetExeFolder="%RoslynRoot%\Binaries\Downloaded"
+set NuGetExe="%NuGetExeFolder%\NuGet.exe"
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%\nuget.config" -Project2ProjectTimeOut 1200
+set NuGetExeVersion=3.5.0-beta2
 
 :ParseArguments
 if /I "%1" == "/?" goto :Usage
 if /I "%1" == "/clean" set RestoreClean=true&&shift&& goto :ParseArguments
 goto :DoneParsing
 
-call :Usage && exit /b 1
 :DoneParsing
 
-
-REM If someone passed in a different Roslyn solution, use that.
-REM We make use of this when Roslyn is an sub-module for some 
-REM internal repositories.
+REM Allow for alternate solutions to be passed as restore targets.
 set RoslynSolution=%1
 if "%RoslynSolution%" == "" set RoslynSolution=%RoslynRoot%\Roslyn.sln
+
+REM Download NuGet.exe if we haven't already
+if not exist "%NuGetExe%" (
+    echo Downloading NuGet %NuGetExeVersion%
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\download-nuget.ps1" "%NuGetExeVersion%" "%NuGetExeFolder%" || goto :DownloadNuGetFailed
+)
 
 if "%RestoreClean%" == "true" (
     echo Clearing the NuGet caches
@@ -54,6 +58,10 @@ exit /b 1
 
 :RestoreFailed
 echo Restore failed with ERRORLEVEL %ERRORLEVEL%
+exit /b 1
+
+:DownloadNuGetFailed
+echo Error downloading NuGet.exe %ERRORLEVEL%
 exit /b 1
 
 :Usage
