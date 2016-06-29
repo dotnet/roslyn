@@ -345,6 +345,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
+            internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+            {
+                get { return null; }
+            }
+
             internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             {
                 get { return this.Manager.System_Object; }

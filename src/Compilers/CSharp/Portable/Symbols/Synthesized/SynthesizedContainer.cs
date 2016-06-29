@@ -243,6 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CalculateInterfacesToEmit();
         }
 
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get { return null; }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get { return ContainingAssembly.GetSpecialType(this.TypeKind == TypeKind.Struct ? SpecialType.System_ValueType : SpecialType.System_Object); }

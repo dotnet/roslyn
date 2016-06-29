@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> _lazyDeclaredBases;
 
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
+        private TypeSymbol _lazyExtensionClassType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
 
         /// <summary>
@@ -50,6 +51,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return _lazyBaseType;
+            }
+        }
+
+        internal sealed override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                if (ReferenceEquals(_lazyExtensionClassType, ErrorTypeSymbol.UnknownResultType))
+                {
+                    // force resolution of extended types in containing type
+                    // to make resolution errors more deterministic
+                    if ((object)ContainingType != null)
+                    {
+                        var tmp = ContainingType.ExtensionClassTypeNoUseSiteDiagnostics;
+                    }
+
+                    if (!this.IsExtensionClass)
+                    {
+                        Interlocked.CompareExchange(ref _lazyExtensionClassType, null, ErrorTypeSymbol.UnknownResultType);
+                    }
+                    else
+                    {
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        var acyclicExtended = this.MakeAcyclicExtensionClassType(diagnostics);
+                        // the only time this is null is when this.IsExtensionClass is false, which was already checked above
+                        Debug.Assert((object)acyclicExtended != null);
+                        if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyExtensionClassType, acyclicExtended, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
+                        {
+                            AddDeclarationDiagnostics(diagnostics);
+                        }
+                        diagnostics.Free();
+                    }
+                }
+
+                return _lazyExtensionClassType;
+
             }
         }
 
@@ -214,6 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeDeclaredBases(ConsList<Symbol> basesBeingResolved, DiagnosticBag diagnostics)
         {
+            if (this.IsExtensionClass)
+            {
+                // Diagnostics of error symbols will be reported when the extension class type is calculated
+                return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(null, ImmutableArray<NamedTypeSymbol>.Empty);
+            }
             if (this.TypeKind == TypeKind.Enum)
             {
                 // Handled by GetEnumUnderlyingType().
@@ -513,6 +555,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(ConsList<Symbol> basesBeingResolved, DiagnosticBag diagnostics)
         {
+            if (this.IsExtensionClass)
+            {
+                // Diagnostics of error symbols will be reported when the extension class type is calculated
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
             var typeKind = this.TypeKind;
 
             if (typeKind == TypeKind.Enum)
@@ -570,7 +618,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;
             NamedTypeSymbol declaredBase;
-            if (typeKind == TypeKind.Enum)
+            if (this.IsExtensionClass)
+            {
+                declaredBase = compilation.GetSpecialType(SpecialType.System_Object);
+            }
+            else if (typeKind == TypeKind.Enum)
             {
                 Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
@@ -639,6 +691,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return declaredBase;
+        }
+
+        private TypeSymbol MakeAcyclicExtensionClassType(DiagnosticBag diagnostics)
+        {
+            if (!this.IsExtensionClass)
+            {
+                return null;
+            }
+
+            var typeKind = this.TypeKind;
+            if (typeKind != TypeKind.Class)
+            {
+                // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_NameNotInContext, this);
+                return new ExtendedErrorTypeSymbol(this, ImmutableArray<Symbol>.Empty, LookupResultKind.Empty, info, 0);
+            }
+
+            TypeSymbol extendedType = null;
+            ArrayBuilder<TypeSymbol> multipleTypesSpecified = null;
+            foreach (var decl in this.declaration.Declarations)
+            {
+                BaseListSyntax extendedTypeList = GetBaseListOpt(decl);
+                if (extendedTypeList == null)
+                {
+                    continue;
+                }
+                var extendedTypeBinder = this.DeclaringCompilation.GetBinder(extendedTypeList);
+                foreach (var extendedTypeSyntax in extendedTypeList.Types)
+                {
+                    var typeSyntax = extendedTypeSyntax.Type;
+                    var newExtendedType = extendedTypeBinder.BindType(typeSyntax, diagnostics, null);
+                    if ((object)extendedType != null)
+                    {
+                        Debug.Assert((object)multipleTypesSpecified == null);
+                        multipleTypesSpecified = ArrayBuilder<TypeSymbol>.GetInstance();
+                        multipleTypesSpecified.Add(extendedType);
+                        extendedType = null;
+                    }
+                    if ((object)multipleTypesSpecified != null)
+                    {
+                        multipleTypesSpecified.Add(newExtendedType);
+                    }
+                    else if ((object)extendedType == null)
+                    {
+                        extendedType = newExtendedType;
+                    }
+                }
+            }
+
+            if ((object)multipleTypesSpecified != null)
+            {
+                // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
+                multipleTypesSpecified.Free();
+                var symbols = multipleTypesSpecified.ToImmutableAndFree();
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, symbols,
+                    new object[] { symbols[0], symbols[1] });
+                return new ExtendedErrorTypeSymbol(this, symbols.CastArray<Symbol>(), LookupResultKind.Ambiguous, info, 0);
+            }
+
+            if ((object)extendedType == null)
+            {
+                // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_NameNotInContext, this);
+                return new ExtendedErrorTypeSymbol(this, LookupResultKind.Empty, info);
+            }
+
+            var extendedNamedType = extendedType as NamedTypeSymbol;
+            if ((object)extendedNamedType != null && extendedNamedType.IsExtensionClass)
+            {
+                // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_NameNotInContext, this);
+                return new ExtendedErrorTypeSymbol(extendedType, LookupResultKind.Empty, info);
+            }
+
+            // note no cycles can occur, we are static (is this true? The other class might be an error but it still resolves)
+            this.SetKnownToHaveNoDeclaredBaseCycles();
+
+            return extendedType;
         }
     }
 }

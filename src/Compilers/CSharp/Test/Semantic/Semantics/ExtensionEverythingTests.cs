@@ -169,11 +169,9 @@ class Program
         }
 
         // PROTOTYPE: Once the VariousExtendedKinds() test is unskipped and implementation fixed, this test is redundant
-        [Fact(Skip = "PROTOTYPE: Extension class resolution isn't implemented (uses base class now)")]
+        [Fact]
         public void VariousExtendedKindsRestricted()
         {
-            // error CS0709: 'ExtStaticClass': cannot derive from static class 'BaseStaticClass'
-            // error CS0509: 'ExtEnum': cannot derive from sealed type 'BaseEnum'
             var text = @"
 using System;
 
@@ -263,6 +261,36 @@ class Program
                 expectedOutput: "123456789abcde",
                 parseOptions: parseOptions)
                 .VerifyIL("Program.Main", @"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (BaseStruct V_0, //obj2
+                IBaseInterface V_1, //obj3
+                BaseEnum V_2) //obj4
+  IL_0000:  ldnull
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldnull
+  IL_0004:  stloc.1
+  IL_0005:  ldc.i4.0
+  IL_0006:  stloc.2
+  IL_0007:  call       ""void ExtClass.MemberClass(BaseClass)""
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""void ExtStruct.MemberStruct(BaseStruct)""
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void ExtInterface.MemberInterface(IBaseInterface)""
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""void ExtEnum.MemberEnum(BaseEnum)""
+  IL_001e:  call       ""void ExtClass.StaticMemberClass()""
+  IL_0023:  call       ""void ExtStaticClass.StaticMemberStaticClass()""
+  IL_0028:  call       ""void ExtStruct.StaticMemberStruct()""
+  IL_002d:  call       ""void ExtInterface.StaticMemberInterface()""
+  IL_0032:  call       ""void ExtEnum.StaticMemberEnum()""
+  IL_0037:  call       ""void ExtClass.DirectCallClass()""
+  IL_003c:  call       ""void ExtStaticClass.DirectCallStaticClass()""
+  IL_0041:  call       ""void ExtStruct.DirectCallStruct()""
+  IL_0046:  call       ""void ExtInterface.DirectCallInterface()""
+  IL_004b:  call       ""void ExtEnum.DirectCallEnum()""
+  IL_0050:  ret
 }");
         }
 

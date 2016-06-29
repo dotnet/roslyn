@@ -351,10 +351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE: BaseType is wrong here. We should directly compute/store the extended type,
-        // since the semantics of what's valid there are very different than base types.
-        public TypeSymbol ExtensionClassType => IsExtensionClass ? BaseType : null;
-
         // For example, for the following declaration:
         //     extension class ListIntExt : List<int>
         //     {

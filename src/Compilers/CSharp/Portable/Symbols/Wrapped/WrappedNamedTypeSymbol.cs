@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override abstract IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState);
 
+        internal override abstract TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get;
+        }
+
         internal override abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get;

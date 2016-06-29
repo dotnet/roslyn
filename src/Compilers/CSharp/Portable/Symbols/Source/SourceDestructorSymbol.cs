@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(syntax.ParameterList.Parameters.Count == 0);
 
-            if (containingType.IsStatic)
+            // PROTOTYPE: Add new message for extension class?
+            if (containingType.IsStatic || containingType.IsExtensionClass)
             {
                 diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location, this);
             }
