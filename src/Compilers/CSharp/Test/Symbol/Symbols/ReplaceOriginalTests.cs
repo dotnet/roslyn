@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     {
         private static CSharpCompilation CreateCompilationWithMscorlib(string text, CSharpCompilationOptions options = null)
         {
-            return CreateCompilationWithMscorlib(text, options: options, parseOptions: TestOptions.Regular.WithReplaceFeature());
+            return CreateCompilationWithMscorlib(text, options: options, parseOptions: TestOptions.Regular);
         }
         
         [WorkItem(11123, "https://github.com/dotnet/roslyn/issues/11123")]

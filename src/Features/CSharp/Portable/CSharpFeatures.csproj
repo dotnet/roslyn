@@ -130,7 +130,6 @@
     <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
     <Compile Include="Completion\CSharpCompletionOptions.cs" />
-    <Compile Include="Completion\CSharpCompletionOptionsProvider.cs" />
     <Compile Include="Completion\CSharpCompletionService.cs" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.cs" />
     <Compile Include="Completion\KeywordRecommenders\AbstractSyntacticSingleKeywordRecommender.cs" />

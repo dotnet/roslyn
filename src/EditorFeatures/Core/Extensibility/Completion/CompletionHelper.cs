@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         /// <summary>
-        /// If true then a [TAB] after a question mark brings up completion.
-        /// </summary>
-        public virtual bool QuestionTabInvokesSnippetCompletion => false;
-
-        /// <summary>
         /// Returns true if the completion item matches the filter text typed so far.  Returns 'true'
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
@@ -268,14 +263,17 @@ namespace Microsoft.CodeAnalysis.Editor
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
             // language, then we prefer the former.
-            var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+            if (item1.DisplayText.Length != item2.DisplayText.Length)
             {
-                return -1;
-            }
-            else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
-            {
-                return 1;
+                var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+                {
+                    return -1;
+                }
+                else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
+                {
+                    return 1;
+                }
             }
 
             // Now compare the matches again in a case sensitive manner.  If everything was

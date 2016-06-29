@@ -26,11 +26,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var directory = new DisposableDirectory(Temp))
             {
                 var path = directory.Path;
+                ImmutableArray<Diagnostic> diagnostics;
                 // Default generators array.
                 Assert.Throws<ArgumentException>(() =>
-                    compilation.GenerateSource(default(ImmutableArray<SourceGenerator>), path, writeToDisk: false, cancellationToken: default(CancellationToken)));
+                    compilation.GenerateSource(
+                        default(ImmutableArray<SourceGenerator>),
+                        path,
+                        writeToDisk: false,
+                        cancellationToken: default(CancellationToken),
+                        diagnostics: out diagnostics));
                 // Empty generators array.
-                var trees = compilation.GenerateSource(ImmutableArray<SourceGenerator>.Empty, path, writeToDisk: false, cancellationToken: default(CancellationToken));
+                var trees = compilation.GenerateSource(
+                    ImmutableArray<SourceGenerator>.Empty,
+                    path,
+                    writeToDisk: false,
+                    cancellationToken: default(CancellationToken),
+                    diagnostics: out diagnostics);
                 Assert.True(trees.IsEmpty);
             }
         }
@@ -46,15 +57,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
 }";
             var compilation = CSharpCompilation.Create(GetUniqueName(), new[] { CSharpSyntaxTree.ParseText(text) }, new[] { MscorlibRef });
-            var generator = new MyGenerator(context => context.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(@"class __C { }")));
+            var generator = new SimpleSourceGenerator(context => context.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(@"class __C { }")));
             using (var directory = new DisposableDirectory(Temp))
             {
                 var path = directory.Path;
+                ImmutableArray<Diagnostic> diagnostics;
                 var trees = compilation.GenerateSource(
                     ImmutableArray.Create<SourceGenerator>(generator),
                     path,
                     writeToDisk: false,
-                    cancellationToken: default(CancellationToken));
+                    cancellationToken: default(CancellationToken),
+                    diagnostics: out diagnostics);
                 Assert.Equal(1, trees.Length);
                 var filePath = Path.Combine(path, "__c.cs");
                 Assert.Equal(filePath, trees[0].FilePath);
@@ -70,15 +83,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
 }";
             var compilation = CSharpCompilation.Create(GetUniqueName(), new[] { CSharpSyntaxTree.ParseText(text) }, new[] { MscorlibRef });
-            var generator = new MyGenerator(context => context.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(@"class __C { }")));
+            var generator = new SimpleSourceGenerator(context => context.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(@"class __C { }")));
             using (var directory = new DisposableDirectory(Temp))
             {
+                ImmutableArray<Diagnostic> diagnostics;
                 // Null path.
                 Assert.Throws<ArgumentNullException>(() =>
-                    compilation.GenerateSource(ImmutableArray.Create<SourceGenerator>(generator), path: null, writeToDisk: false, cancellationToken: default(CancellationToken)));
+                    compilation.GenerateSource(
+                        ImmutableArray.Create<SourceGenerator>(generator),
+                        path: null,
+                        writeToDisk: false,
+                        cancellationToken: default(CancellationToken),
+                        diagnostics: out diagnostics));
                 // Relative path.
                 var path = Path.GetFileName(directory.Path);
-                var trees = compilation.GenerateSource(ImmutableArray.Create<SourceGenerator>(generator), path, writeToDisk: false, cancellationToken: default(CancellationToken));
+                var trees = compilation.GenerateSource(
+                    ImmutableArray.Create<SourceGenerator>(generator),
+                    path,
+                    writeToDisk: false,
+                    cancellationToken: default(CancellationToken),
+                    diagnostics: out diagnostics);
                 Assert.Equal(1, trees.Length);
                 var filePath = Path.Combine(path, "__c.cs");
                 Assert.Equal(filePath, trees[0].FilePath);
@@ -107,15 +131,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var compilation = CSharpCompilation.Create(GetUniqueName(), new[] { CSharpSyntaxTree.ParseText(@"class C { }") }, new[] { MscorlibRef });
             var generatedText = @"class __C { }";
-            var generator = new MyGenerator(context => context.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(generatedText, encoding: generatedEncoding)));
+            var generator = new SimpleSourceGenerator(context => context.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText(generatedText, encoding: generatedEncoding)));
             using (var directory = new DisposableDirectory(Temp))
             {
                 var path = directory.Path;
+                ImmutableArray<Diagnostic> diagnostics;
                 var trees = compilation.GenerateSource(
                     ImmutableArray.Create<SourceGenerator>(generator),
                     path,
                     writeToDisk: true,
-                    cancellationToken: default(CancellationToken));
+                    cancellationToken: default(CancellationToken),
+                    diagnostics: out diagnostics);
                 Assert.Equal(1, trees.Length);
                 var filePath = Path.Combine(path, "__c.cs");
                 Assert.Equal(filePath, trees[0].FilePath);
@@ -127,21 +153,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.Equal(persistedEncoding, reader.CurrentEncoding);
                     Assert.Equal(persistedText, generatedText);
                 }
-            }
-        }
-
-        private sealed class MyGenerator : SourceGenerator
-        {
-            private readonly Action<SourceGeneratorContext> _execute;
-
-            internal MyGenerator(Action<SourceGeneratorContext> execute)
-            {
-                _execute = execute;
-            }
-
-            public override void Execute(SourceGeneratorContext context)
-            {
-                _execute(context);
             }
         }
     }

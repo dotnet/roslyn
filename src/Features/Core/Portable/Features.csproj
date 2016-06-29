@@ -200,6 +200,7 @@
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Completion\Providers\XmlDocCommentCompletionItem.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
+    <Compile Include="Completion\SnippetsRule.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
@@ -322,8 +323,8 @@
     <Compile Include="Completion\CompletionRules.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\IProjectDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\DocumentDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\ProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryImportsDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />

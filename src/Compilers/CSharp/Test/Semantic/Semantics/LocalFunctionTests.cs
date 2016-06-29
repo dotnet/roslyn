@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class LocalFunctionsTestBase : CSharpTestBase
     {
-        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular;
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
@@ -79,6 +79,49 @@ class Program
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void ForgotSemicolonLocalFunctionsMistake()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+    // forget closing brace
+
+    public void BadLocal1()
+    {
+        this.BadLocal2();
+    }
+
+    public void BadLocal2()
+    {
+    }
+
+    public int P => 0;
+}";
+            VerifyDiagnostics(src,
+                // (8,5): error CS0106: The modifier 'public' is not valid for this item
+                //     public void BadLocal1()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(8, 5),
+                // (13,5): error CS0106: The modifier 'public' is not valid for this item
+                //     public void BadLocal2()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(13, 5),
+                // (15,6): error CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 6),
+                // (10,14): error CS1061: 'C' does not contain a definition for 'BadLocal2' and no extension method 'BadLocal2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         this.BadLocal2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BadLocal2").WithArguments("C", "BadLocal2").WithLocation(10, 14),
+                // (8,17): warning CS0168: The variable 'BadLocal1' is declared but never used
+                //     public void BadLocal1()
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "BadLocal1").WithArguments("BadLocal1").WithLocation(8, 17),
+                // (13,17): warning CS0168: The variable 'BadLocal2' is declared but never used
+                //     public void BadLocal2()
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
+
+        }
+
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameterLocalFunction()
@@ -3717,9 +3760,9 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-                //         void Local()
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local() { }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
+                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //         void Local() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "void Local() { }").WithArguments("local functions", "7").WithLocation(6, 9)
                 );
         }
 

@@ -29,7 +29,8 @@
     <SignFiles Files="@(FilesToSign)"
                BinariesDirectory="$(OutDir)"
                IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)" />
+               Type="$(SignType)"
+               Condition="'@(FilesToSign)' != ''"/>
   </Target>
 
   <Target Name="SignVsix"  Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="CreateVsixContainer">

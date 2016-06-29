@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class OperationAnalyzerTests : CompilingTestBase
     {
-        private readonly static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6).WithPatternsFeature();
+        private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
 
         [Fact]
         public void EmptyArrayCSharp()

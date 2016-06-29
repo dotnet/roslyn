@@ -47,4 +47,4 @@ TestThisPlease(
     new CSharpCompilerTest("CSharpCompiler.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp")
-    );
+);

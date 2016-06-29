@@ -5,17 +5,17 @@
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynSemanticVersion)</MicrosoftVisualStudioInteractiveWindowVersion>
     <!-- These are the versions of dependencies we insert into VS -->
-    <SystemReflectionMetadataVersion>1.3.0-rc3-24102-00</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>1.2.0-rc3-24102-00</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderVersion>1.0.8-rc3-60429-03</MicrosoftDiaSymReaderVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24227-04</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
+    <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
     <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
-    <CoreFXVersionSuffix>-rc3-24128-00</CoreFXVersionSuffix>
+    <CoreFXVersionSuffix></CoreFXVersionSuffix>
     <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
-    <CoreClrVersionSuffix>-rc3-24128-00</CoreClrVersionSuffix>
+    <CoreClrVersionSuffix></CoreClrVersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>

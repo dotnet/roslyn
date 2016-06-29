@@ -56,23 +56,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         End Property
 
         Private _latestRules As CompletionRules = CompletionRules.Create(
-                                                      dismissIfEmpty:=True,
-                                                      dismissIfLastCharacterDeleted:=True,
-                                                      defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-                                                      defaultEnterKeyRule:=EnterKeyRule.Always)
+            dismissIfEmpty:=True,
+            dismissIfLastCharacterDeleted:=True,
+            defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+            defaultEnterKeyRule:=EnterKeyRule.Always)
 
         Public Overrides Function GetRules() As CompletionRules
             Dim options = _workspace.Options
 
             ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
             ' In VB the default means Always to maintain previous behavior
-            Dim rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
+            Dim enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
+            Dim snippetsRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic)
 
-            If rule = EnterKeyRule.Default Then
-                rule = EnterKeyRule.Always
+            If enterRule = EnterKeyRule.Default Then
+                enterRule = EnterKeyRule.Always
             End If
 
-            Dim newRules = _latestRules.WithDefaultEnterKeyRule(rule)
+            If snippetsRule = SnippetsRule.Default Then
+                snippetsRule = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
+            End If
+
+            Dim newRules = _latestRules.WithDefaultEnterKeyRule(enterRule).
+                                        WithSnippetsRule(snippetsRule)
 
             Interlocked.Exchange(_latestRules, newRules)
 
@@ -82,18 +88,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
             Return _completionProviders
-        End Function
-
-        Protected Overrides Function GetProviders(roles As ImmutableHashSet(Of String), trigger As CompletionTrigger) As ImmutableArray(Of CompletionProvider)
-            Dim _providers = MyBase.GetProviders(roles)
-
-            If trigger.Kind = CompletionTriggerKind.Snippets Then
-                _providers = _providers.Where(Function(p) p.IsSnippetProvider).ToImmutableArray()
-            Else
-                _providers = _providers.Where(Function(p) Not p.IsSnippetProvider).ToImmutableArray()
-            End If
-
-            Return _providers
         End Function
 
         Protected Overrides Function GetBetterItem(item As CompletionItem, existingItem As CompletionItem) As CompletionItem

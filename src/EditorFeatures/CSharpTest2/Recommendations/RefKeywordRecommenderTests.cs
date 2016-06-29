@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             switch (kind)
             {
                 case SourceCodeKind.Regular:
-                    await VerifyWorkerAsync(text, absent: false, options: Options.Regular.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: false, options: Options.Regular);
                     break;
 
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: false, options: Options.Script.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: false, options: Options.Script);
                     break;
             }
         }
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             switch (kind)
             {
                 case SourceCodeKind.Regular:
-                    await VerifyWorkerAsync(text, absent: true, options: Options.Regular.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: true, options: Options.Regular);
                     break;
 
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: true, options: Options.Script.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: true, options: Options.Script);
                     break;
             }
         }
@@ -52,14 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive1()
+        public async Task TestAtRoot_Interactive()
         {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Script,
 @"$$");
@@ -68,29 +61,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive1()
-        {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalStatement_Interactive1()
+        public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -98,15 +75,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive1()
+        public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Script,
 @"int i = 0;
@@ -716,12 +685,6 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStaticPublic_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script, @"static public $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStaticPublic_Interactive1()
         {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"static public $$");
         }
