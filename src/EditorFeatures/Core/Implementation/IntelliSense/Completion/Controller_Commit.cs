@@ -85,16 +85,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         RollbackToBeforeTypeChar(initialTextSnapshot);
                     }
 
-                    // Now, get the change the item wants to make.  Note that the change will be relative
-                    // to the initial snapshot/document the item was triggered from.  We'll map that change
-                    // forward, then apply it to our current snapshot.
+                    // Now, get the change the item wants to make.  Note that the change will be 
+                    // relative to the initial snapshot/document the item was triggered from.  
+                    // We'll map that change forward, then apply it to our current snapshot.
+                    //
+                    // Also, while the completion service can request multiple changes be made to
+                    // the document, we'll collapse those to a single change and do a single 
+                    // replacement.  This makes our application process much simpler than it 
+                    // would otherwise have to be if we applied the changes one at a time.
                     var triggerDocument = model.TriggerDocument;
                     var triggerSnapshot = model.TriggerSnapshot;
 
                     var completionService = CompletionService.GetService(triggerDocument);
                     completionChange = completionService.GetChangeAsync(
                         triggerDocument, item.Item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                    var textChange = completionChange.TextChange;
+                    var textChange = CollapseTextChanges(triggerDocument, completionChange);
 
                     var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
@@ -132,6 +137,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Let the completion rules know that this item was committed.
             this.MakeMostRecentItem(item.Item.DisplayText);
+        }
+
+        private TextChange CollapseTextChanges(Document triggerDocument, CompletionChange completionChange)
+        {
+            var changes = completionChange.TextChanges;
+            if (changes.Length == 0)
+            {
+                return new TextChange(new TextSpan(0, 0), "");
+            }
+            else if (changes.Length == 1)
+            {
+                return changes[0];
+            }
+
+            var triggerText = triggerDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var changedText = triggerText.WithChanges(changes);
+
+            // The span we want to replace goes from the start of the first span to the end of
+            // the  last span.
+            var totalOldSpan = TextSpan.FromBounds(changes.First().Span.Start, changes.Last().Span.End);
+
+            // We figure out the text we're replacing with by actually just figuring out the
+            // new span in the newText and grabbing the text out of that.  The newSpan will
+            // start from the same position as the oldSpan, but it's length will be the old
+            // span's length + all the deltas we accumulate through each text change.  i.e.
+            // if the first change adds 2 characters and the second change adds 4, then 
+            // the newSpan will be 2+4=6 characters longer than the old span.
+            var sumOfDeltas = changes.Sum(c => c.NewText.Length - c.Span.Length);
+            var totalNewSpan = new TextSpan(totalOldSpan.Start, totalOldSpan.Length + sumOfDeltas);
+
+            return new TextChange(totalOldSpan, changedText.ToString(totalNewSpan));
         }
 
         private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)

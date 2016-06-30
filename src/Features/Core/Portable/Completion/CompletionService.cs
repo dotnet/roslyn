@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the change to be applied when the item is committed.
         /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="document">The document when completion was initially requested.</param>
         /// <param name="item">The item to get the change for.</param>
         /// <param name="commitCharacter">The typed character that caused the item to be committed. 
         /// This character may be used as part of the change. 

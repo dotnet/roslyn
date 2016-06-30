@@ -95,9 +95,12 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+            var change = await service.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return change.TextChange.NewText;
+            // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
+            return change.TextChanges.Length == 1
+                ? change.TextChanges[0].NewText
+                : item.DisplayText;
         }
 
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
