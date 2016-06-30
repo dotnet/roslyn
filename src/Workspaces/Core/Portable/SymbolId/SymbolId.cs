@@ -483,7 +483,16 @@ namespace Microsoft.CodeAnalysis
                                 _builder.Append(",");
                             }
 
-                            this.Visit(symbol.TypeArguments[i]);
+                            // If we already have a type parameter context (say because we're encoding parameters of a generic method), then use it.
+                            // Otherwise, use the current type as the context, so that it's type parameters resolve
+                            if (_typeParameterContext == null)
+                            {
+                                new Generator(_builder, symbol).Visit(symbol.TypeArguments[i]);
+                            }
+                            else
+                            {
+                                this.Visit(symbol.TypeArguments[i]);
+                            }
                         }
 
                         _builder.Append("}");

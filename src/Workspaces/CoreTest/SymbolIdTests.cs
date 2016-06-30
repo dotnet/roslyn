@@ -307,11 +307,11 @@ public class C
             Assert.True(symbols.Count > 0);
             TestRoundTrip(symbols, compilation);
         }
-
         [Fact]
         public void TestExtensionMethodReferences()
         {
             var source = @"
+using System;
 using System.Collections.Generic;
 
 public static class E 
@@ -321,6 +321,7 @@ public static class E
     public static void Z<T>(this T t, string y) { }
     public static void Z<T>(this T t, T t2) { }
     public static void Y<T, S>(this T t, S other) { }
+    public static TResult Select<TSource, TResult>(this IEnumerable<TSource> collection, Func<TSource, TResult> selector) { return null;}
 }
 
 public class C
@@ -331,13 +332,14 @@ public class C
         this.Z(""test"");
         this.Z(this);
         this.Y(1.0);
+        new[] { 1, 2, 3 }.Select(
     }
 }
 ";
             var compilation = GetCompilation(source);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
-            var symbols = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).Symbol).ToList();
+            var symbols = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).GetAnySymbol()).ToList();
             Assert.True(symbols.Count > 0);
             Assert.True(symbols.All(s => s.IsReducedExtension()));
             TestRoundTrip(symbols, compilation);
@@ -425,6 +427,27 @@ public class C<S, T>
             var constructed = type.Construct(compilation.GetSpecialType(SpecialType.System_Int32), type.TypeParameters[1]);
 
             TestRoundTrip(constructed, compilation);
+        }
+
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestNestedGenericType()
+        {
+            var source = @"
+public class A<TOuter>
+{
+    public class B<TInner>
+    {
+    }
+}";
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var outer = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().First(s => s.Name == "A");
+            var constructed = outer.Construct(compilation.GetSpecialType(SpecialType.System_String));
+            var inner = constructed.GetTypeMembers().Single();
+            var id = SymbolId.CreateId(inner);
+            Assert.Equal("T:A{N:System.T:String}.T:B{`1}", id);
         }
 
         [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
