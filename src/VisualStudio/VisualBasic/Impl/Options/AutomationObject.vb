@@ -4,6 +4,7 @@ Imports System.Runtime.InteropServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
@@ -197,10 +198,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_PlaceSystemNamespaceFirst As Boolean
             Get
-                Return GetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst)
+                Return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value)
+                SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value)
             End Set
         End Property
 
