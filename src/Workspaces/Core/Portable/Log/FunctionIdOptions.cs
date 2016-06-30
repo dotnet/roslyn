@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal static class FunctionIdOptions
     {
-        private const string FeatureName = "Performance/FunctionId";
-
         private static readonly ConcurrentDictionary<FunctionId, Option<bool>> s_options =
             new ConcurrentDictionary<FunctionId, Option<bool>>();
 

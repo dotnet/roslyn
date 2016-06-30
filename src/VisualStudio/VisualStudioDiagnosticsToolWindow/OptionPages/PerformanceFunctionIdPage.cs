@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new InternalOptionsControl(PerformanceFunctionIdOptionsProvider.Name, serviceProvider);
+            return new InternalOptionsControl(nameof(PerformanceFunctionIdOptionsProvider), serviceProvider);
         }
     }
 }

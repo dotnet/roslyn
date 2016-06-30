@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _optionService = workspace.Services.GetService<IOptionService>();
             }
 
-            return new InternalOptionsControl(LoggerOptions.FeatureName, serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
         }
 
         protected override void OnApply(PageApplyEventArgs e)

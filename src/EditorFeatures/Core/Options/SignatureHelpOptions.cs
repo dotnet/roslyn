@@ -6,10 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal static class SignatureHelpOptions
     {
-        public const string FeatureName = "Signature Help";
-
-        // This is serialized by the Visual Studio-specific LanguageSettingsSerializer
         [ExportOption]
-        public static readonly PerLanguageOption<bool> ShowSignatureHelp = new PerLanguageOption<bool>(FeatureName, "Show Signature Help", defaultValue: true);
+        public static readonly PerLanguageOption<bool> ShowSignatureHelp = new PerLanguageOption<bool>(nameof(SignatureHelpOptions), nameof(ShowSignatureHelp), defaultValue: true);
     }
 }
