@@ -479,13 +479,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BadExpression(syntax, childNode);
         }
 
-        private BoundLocalDeconstructionDeclaration BindDeconstructionDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundLocalDeconstructionDeclaration BindDeconstructionDeclaration(StatementSyntax statement, VariableDeclarationSyntax declaration, DiagnosticBag diagnostics)
         {
-            Debug.Assert(node.Declaration.Deconstruction != null);
+            Debug.Assert(statement.Kind() == SyntaxKind.LocalDeclarationStatement || statement.Kind() == SyntaxKind.ForStatement);
+            Debug.Assert(declaration.Deconstruction != null);
 
-            ArrayBuilder<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, node.Declaration.Type, diagnostics);
+            ArrayBuilder<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(declaration, declaration.Type, diagnostics);
 
-            var result = new BoundLocalDeconstructionDeclaration(node, BindDeconstructionAssignment(node.Declaration.Deconstruction.Value, node.Declaration.Deconstruction.Value, variables, diagnostics));
+            var result = new BoundLocalDeconstructionDeclaration(statement, BindDeconstructionAssignment(declaration.Deconstruction.Value, declaration.Deconstruction.Value, variables, diagnostics));
             FreeDeconstructionVariables(variables);
 
             return result;

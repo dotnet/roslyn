@@ -4357,11 +4357,16 @@ class C
             var tuple3 = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(intType, intType, intType, intType, intType, intType, intType, stringType, stringType),
                                                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b"));
 
+            var tuple4 = (TypeSymbol)comp.CreateTupleTypeSymbol((INamedTypeSymbol)tuple1.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b"));
+
             Assert.True(tuple1.Equals(tuple2));
             Assert.True(tuple1.Equals(tuple2, ignoreDynamic: true));
 
             Assert.False(tuple1.Equals(tuple3));
             Assert.True(tuple1.Equals(tuple3, ignoreDynamic: true));
+
+            Assert.False(tuple1.Equals(tuple4));
+            Assert.True(tuple1.Equals(tuple4, ignoreDynamic: true));
         }
 
         [Fact]
