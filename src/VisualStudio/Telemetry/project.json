@@ -1,5 +1,8 @@
 ﻿{
   "dependencies": {
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.0.23107",
+    "RoslynDependencies.Microsoft.Internal.Performance.CodeMarkers.DesignTime": "14.0.23107",
+    "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": "14.0.23107"
   },
   "frameworks": {
     "net46": {}

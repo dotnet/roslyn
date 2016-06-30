@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Open\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -26,7 +26,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Open\src\Compilers\Core\Portable\CodeAnalysis.csproj">
+    <ProjectReference Include="..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>
@@ -35,7 +35,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>
@@ -44,7 +44,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\EditorFeatures\Core\EditorFeatures.csproj">
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
       <Name>EditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>
@@ -53,7 +53,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
       <IncludeOutputGroupsInVSIX>
@@ -62,7 +62,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\Workspaces\Core\Portable\Workspaces.csproj">
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>
@@ -71,7 +71,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\Features\Core\Portable\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>
@@ -80,7 +80,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
+    <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
       <Project>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</Project>
       <Name>ServicesVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>
@@ -89,7 +89,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\VisualStudio\CSharp\Impl\CSharpVisualStudio.csproj">
+    <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\CSharpVisualStudio.csproj">
       <Project>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</Project>
       <Name>CSharpVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>
@@ -98,7 +98,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj">
+    <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj">
       <Project>{D49439D7-56D2-450F-A4F0-74CB95D620E6}</Project>
       <Name>BasicVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>
@@ -107,7 +107,7 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\VisualStudio\Setup\VisualStudioSetup.csproj">
+    <ProjectReference Include="..\..\VisualStudio\Setup\VisualStudioSetup.csproj">
       <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
       <Name>VisualStudioSetup</Name>
       <Private>False</Private>
@@ -125,7 +125,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Open\src\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
+    <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
     <Compile Include="AssemblyRedirects.cs" />
@@ -141,23 +141,13 @@
     <Compile Include="CompilationErrorDetails.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <Private>false</Private>
-      <HintPath>$(DevenvDir)PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="..\..\References\Test\Dev14\Microsoft.Internal.Performance.CodeMarkers.DesignTime\Microsoft.Internal.Performance.CodeMarkers.DesignTime.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\References\VisualStudio\Dev14\Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime\Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime.dll">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Open\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
