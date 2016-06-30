@@ -80,7 +80,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -120,7 +120,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,18): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         (x, y) = new C();
@@ -157,7 +157,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -178,7 +178,7 @@ class C
         a = 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,18): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         (x, y) = new C();
@@ -205,7 +205,7 @@ class C
         a = b = c = 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (7,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
                 //         (x, y) = new C();
@@ -231,7 +231,7 @@ class C
     public void Deconstruct() { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,12): error CS1061: 'long' does not contain a definition for 'f' and no extension method 'f' accepting a first argument of type 'long' could be found (are you missing a using directive or an assembly reference?)
                 //         (x.f, y.g) = new C();
@@ -263,7 +263,7 @@ class C
     public void Deconstruct(out int x, int y) { x = 1; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS1615: Argument 2 may not be passed with the 'out' keyword
                 //         (x, y) = new C();
@@ -289,7 +289,7 @@ class C
     public void Deconstruct(ref int x, out int y) { x = 1; y = 2; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         (x, y) = new C();
@@ -324,7 +324,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -348,7 +348,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
         }
 
@@ -393,7 +393,7 @@ setX
 Conversion2
 setY
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -426,7 +426,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -454,7 +454,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -493,7 +493,7 @@ struct C : IDeconstructable
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -521,7 +521,7 @@ struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (10,27): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         c.Deconstruct(out x, out y); // error
@@ -552,7 +552,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
@@ -587,7 +587,7 @@ class C : D
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (13,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
@@ -618,7 +618,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
@@ -655,7 +655,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -681,7 +681,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (9,18): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
                 //         (x, y) = new C();
@@ -721,7 +721,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -745,7 +745,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (11,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C() { Deconstruct = DeconstructMethod };
@@ -775,7 +775,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (16,17): error CS0102: The type 'C' already contains a definition for 'Deconstruct'
                 //     public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
@@ -816,7 +816,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (14,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = c;
@@ -855,7 +855,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -886,7 +886,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -909,7 +909,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = new C();
@@ -939,7 +939,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (7,38): error CS0023: Operator '.' cannot be applied to operand of type 'void'
                 //         var type = ((x, y) = new C()).GetType();
@@ -960,7 +960,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (a) => a;
@@ -981,7 +981,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (a, b) => { };
@@ -1003,7 +1003,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,24): error CS1525: Invalid expression term '.'
                 //         ((int, string)).ToString();
@@ -1052,8 +1052,7 @@ Final i is 43
                 );
         }
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefReturningProperty()
         {
             string source = @"
@@ -1095,8 +1094,8 @@ Final i is 43
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
-        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningMethod2()
         {
             string source = @"
@@ -1107,11 +1106,12 @@ class C
     static void Main()
     {
         (M(), M()) = new C();
+        System.Console.Write(i);
     }
 
     static ref int M()
     {
-        System.Console.WriteLine(""M"");
+        System.Console.Write(""M "");
         return ref i;
     }
 
@@ -1123,13 +1123,12 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics();
-
-            // This error is wrong
-            // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-            //     static int i;
-            //Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+            var comp = CompileAndVerify(source, expectedOutput: "M M 43", parseOptions: TestOptions.Regular.WithRefsFeature());
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+                );
         }
 
         [Fact]
@@ -1198,7 +1197,7 @@ static class D
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS0165: Use of unassigned local variable 'x'
                 //         (x, x) = x;
@@ -1328,7 +1327,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1353,7 +1352,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1374,7 +1373,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1464,7 +1463,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "9 10", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "9 10", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1485,7 +1484,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1506,7 +1505,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1549,7 +1548,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (9,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = (1, 2);
@@ -1585,7 +1584,7 @@ class C
             string expected =
 @"setX 1
 hello";
-            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1608,7 +1607,7 @@ class C
             string expected =
 @"setX 1
 hello";
-            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1634,7 +1633,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Swap", @"
 {
@@ -1683,7 +1682,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (22,9): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1709,7 +1708,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1784,7 +1783,7 @@ class C : Base
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (12,18): error CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
                 //         (x, y) = new C();
@@ -1855,7 +1854,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
@@ -1879,7 +1878,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
                 //         (x, y) = new C();
@@ -1965,7 +1964,7 @@ class C
 
             var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple);
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
@@ -2001,7 +2000,7 @@ static class D
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2033,7 +2032,7 @@ static class Extension
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2054,7 +2053,7 @@ class C
     public void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (10,18): error CS8212: Cannot deconstruct dynamic objects.
                 //         (x, y) = c;
@@ -2081,7 +2080,7 @@ class C1
     protected void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (9,18): error CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
                 //         (x, y) = new C1();
@@ -2120,7 +2119,7 @@ class C1
             var libComp = CreateCompilationWithMscorlib(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
             var libRef = libComp.EmitToImageReference();
 
-            var comp = CreateCompilationWithMscorlib(new string[] { source }, references: new[] { libRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(new string[] { source }, references: new[] { libRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
@@ -2147,7 +2146,7 @@ class C
     public static void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (9,18): error CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         (x, y) = new C();
@@ -2180,7 +2179,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (8,27): error CS0023: Operator '.' cannot be applied to operand of type 'void'
                 //         ((x, y) = new C()).ToString();
@@ -2207,7 +2206,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2226,7 +2225,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "nothing", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "nothing", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2245,7 +2244,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,24): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         (x, (y, z)) = (null, (null, null));
@@ -2291,7 +2290,7 @@ class D2
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2318,7 +2317,7 @@ class D1
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2346,7 +2345,7 @@ class D1
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2405,7 +2404,7 @@ setY
 Conversion3
 setZ
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -2453,7 +2452,7 @@ Converting 6
 setX6 6
 Converting 7
 setX7 7";
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -2482,7 +2481,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2516,7 +2515,7 @@ class C
 }
 ";
             // PROTOTYPE(tuples) we expect "2 hello" instead, which means the evaluation order is wrong
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2539,7 +2538,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (x, y, z) = MakePair();
@@ -2562,7 +2561,7 @@ class C
 }
 " + commonSource;
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (x, (y, z, w)) = Pair.Create(42, (43, 44));
@@ -2570,7 +2569,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void DeconstructionTooFewElements()
         {
             string source = @"
@@ -2578,14 +2577,22 @@ class C
 {
     static void Main()
     {
-        for ((var (x, y)) = new C(); ;) { }
+        for ((var (x, y)) = Pair.Create(1, 2); ;) { }
     }
 }
 " + commonSource;
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // expect ERR_DeconstructTooFewElements
+                // (6,14): error CS8213: Deconstruction must contain at least two variables.
+                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
+                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var (x, y)) = Pair.Create(1, 2)").WithLocation(6, 14),
+                // (6,29): error CS7036: There is no argument given that corresponds to the required formal parameter 'item2' of 'Pair<int, int>.Deconstruct(out int, out int)'
+                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Pair.Create(1, 2)").WithArguments("item2", "Pair<int, int>.Deconstruct(out int, out int)").WithLocation(6, 29),
+                // (6,29): error CS8206: No Deconstruct instance or extension method was found for type 'Pair<int, int>', with 1 out parameters.
+                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Pair.Create(1, 2)").WithArguments("Pair<int, int>", "1").WithLocation(6, 29)
                 );
         }
 
@@ -2631,7 +2638,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2724,7 +2731,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,18): error CS0128: A local variable named 'x1' is already defined in this scope
                 //         var (x1, x1) = (1, 2);
@@ -2747,7 +2754,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,14): error CS0128: A local variable named 'x1' is already defined in this scope
                 //         var (x1, x2) = (1, 2);
@@ -2770,7 +2777,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,9): error CS0103: The name 'var' does not exist in the current context
                 //         var (x1, x2);
@@ -2794,7 +2801,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -2811,7 +2818,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,28): error CS1001: Identifier expected
                 //         (int x1, string x2);
@@ -2833,7 +2840,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,30): error CS0165: Use of unassigned local variable 'x1'
                 //         (int x1, int x2) = M(x1);
@@ -2855,7 +2862,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,28): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         (int x1, int x2) = M(x1);
@@ -2883,7 +2890,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,34): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         System.Console.WriteLine(x1);
@@ -2903,7 +2910,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,28): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (int x1, int x2) = null;
@@ -2923,7 +2930,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         var (x1, x2) = null;
@@ -2944,7 +2951,7 @@ class C
 }
 ";
             // crash
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 );
         }
@@ -2963,7 +2970,7 @@ class C
 }
 ";
             // crash
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 ", parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 ");
             comp.VerifyDiagnostics();
         }
 
@@ -3012,10 +3019,20 @@ Deconstructing (1, hello)
 
         private static void VerifyModelForDeconstructionLocal(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
         {
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
+        }
+
+        private static void VerifyModelForDeconstructionFor(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForInitializerVariable, references);
+        }
+
+        private static void VerifyModelForDeconstruction(SemanticModel model, VariableDeclarationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
+        {
             var variableDeclaratorSyntax = decl.Variables.Single();
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
             Assert.Equal(variableDeclaratorSyntax.Identifier.ValueText, symbol.Name);
-            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(kind, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
             Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
@@ -3051,6 +3068,13 @@ Deconstructing (1, hello)
         private static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
         {
             return GetReferences(tree, name).Single();
+        }
+
+        private static IdentifierNameSyntax[] GetReferences(SyntaxTree tree, string name, int count)
+        {
+            var nameRef = GetReferences(tree, name).ToArray();
+            Assert.Equal(count, nameRef.Length);
+            return nameRef;
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetReferences(SyntaxTree tree, string name)
@@ -3091,9 +3115,11 @@ class var
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
+                // extra checks on x1
                 Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
                 Assert.Equal("var", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
 
+                // extra checks on x2
                 Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
                 Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
             };
@@ -3134,7 +3160,7 @@ class var { }
         }
 
         [Fact]
-        public void DeclarationWithImplicitType()
+        public void DeclarationWithImplicitVarType()
         {
             string source = @"
 class C
@@ -3170,10 +3196,109 @@ class C
                 var x4 = GetDeconstructionLocal(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionLocal(model, x4, x4Ref);
+
+                // extra checks on x1
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x1.Type));
+
+                // extra checks on x3 and x4
+                Assert.Null(x3.Type);
+                Assert.Null(x4.Type);
+
+                var x34Var = (VariableDeclarationSyntax) x3.Parent.Parent;
+                Assert.Equal("var", x34Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationWithAliasedVarType()
+        {
+            string source = @"
+using var = D;
+class C
+{
+    static void Main()
+    {
+        (var x1, int x2) = (new var(), 2);
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+class D
+{
+    public override string ToString() { return ""var""; }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                // extra checks on x1
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("D", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+                var x1Alias = model.GetAliasInfo(x1.Type);
+                Assert.Equal(SymbolKind.NamedType, x1Alias.Target.Kind);
+                Assert.Equal("D", x1Alias.Target.ToDisplayString());
+
+                // extra checks on x2
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x2.Type));
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationVarFormWithAliasedVarType()
+        {
+            string source = @"
+using var = D;
+class C
+{
+    static void Main()
+    {
+        var (x3, x4) = (3, 4);
+    }
+}
+class D
+{
+    public override string ToString() { return ""var""; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         var (x3, x4) = (3, 4);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(7, 14),
+                // (7,18): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         var (x3, x4) = (3, 4);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
+                // (7,24): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                //         var (x3, x4) = (3, 4);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(3, 4)").WithArguments("int", "D").WithLocation(7, 24),
+                // (7,24): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                //         var (x3, x4) = (3, 4);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(3, 4)").WithArguments("int", "D").WithLocation(7, 24)
+                );
         }
 
         [Fact]
@@ -3189,12 +3314,96 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,34): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(1, 2, 3)").WithArguments("3", "2").WithLocation(6, 34)
                 );
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void DeclarationWithCircularity1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, x2) = (1, x1);
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReferences(tree, "x1", 2);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                // extra checks on x1
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+
+                // extra checks on x2
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 1", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics( );
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void DeclarationWithCircularity2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, x2) = (x2, 2);
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReferences(tree, "x2", 2);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                // extra checks on x1
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+
+                // extra checks on x2
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "2 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -3331,5 +3540,161 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 9)
                 );
         }
+
+        [Fact]
+        public void ForDeclarationWithImplicitVarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for (var (x1, x2) = (1, 2); x1 < 2; (x1, x2) = (x1 + 1, x2 + 1))
+        {
+            System.Console.WriteLine(x1 + "" "" + x2);
+        }
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReferences(tree, "x1", 4);
+                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReferences(tree, "x2", 3);
+                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+
+                // extra check on var
+                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics( );
+        }
+
+        [Fact]
+        public void ForDeclarationWithActualVarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for ((int x1, var x2) = (1, new var()); x1 < 2; x1++)
+        {
+            System.Console.WriteLine(x1 + "" "" + x2);
+        }
+    }
+}
+class var
+{
+    public override string ToString() { return ""var""; }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReferences(tree, "x1", 3);
+                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+
+                // extra checks on x1
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+
+                // extra checks on x2
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
+                Assert.Equal("var", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForDeconstructionWithTypes()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for ((int x1, var x2) = (1, 2); x1 < 2; x1++)
+        {
+            System.Console.WriteLine(x1 + "" "" + x2);
+        }
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReferences(tree, "x1", 3);
+                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+
+                // extra checks on x1
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+
+                // extra checks on x2
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForDeconstructionWithExistingVariableName()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        string x = ""hello"";
+        for (var (x, y) = (1, 2); x < 2; x++) { }
+        System.Console.Write(x);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         for (var (x, y) = (1, 2); x < 2; x++)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 19)
+                );
+        }
+
     }
 }

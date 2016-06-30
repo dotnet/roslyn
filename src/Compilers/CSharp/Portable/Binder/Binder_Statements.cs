@@ -550,13 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             BoundStatement bound;
-            if (node.Declaration.Deconstruction == null)
+            if (node.Declaration.IsDeconstructionDeclaration)
             {
-                bound = binder.BindDeclarationStatementParts(node, diagnostics);
+                bound = binder.BindDeconstructionDeclaration(node, node.Declaration, diagnostics);
             }
             else
             {
-                bound = binder.BindDeconstructionDeclarationStatementParts(node, diagnostics);
+                bound = binder.BindDeclarationStatementParts(node, diagnostics);
             }
 
             return binder.WrapWithVariablesIfAny(node, bound);
@@ -2993,7 +2993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindDoParts(diagnostics, originalBinder);
         }
 
-        private BoundForStatement BindFor(ForStatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundForStatement BindFor(ForStatementSyntax node, DiagnosticBag diagnostics)
         {
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);

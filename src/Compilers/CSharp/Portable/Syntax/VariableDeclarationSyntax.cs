@@ -8,5 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(type, variables, null);
         }
+
+        public bool IsDeconstructionDeclaration => Deconstruction != null;
     }
 }

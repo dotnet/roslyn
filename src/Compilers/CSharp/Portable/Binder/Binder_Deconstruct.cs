@@ -479,13 +479,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BadExpression(syntax, childNode);
         }
 
-        private BoundLocalDeconstructionDeclaration BindDeconstructionDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundLocalDeconstructionDeclaration BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableDeclarationSyntax declaration, DiagnosticBag diagnostics)
         {
-            Debug.Assert(node.Declaration.Deconstruction != null);
+            Debug.Assert(node.Kind() == SyntaxKind.LocalDeclarationStatement || node.Kind() == SyntaxKind.VariableDeclaration);
+            Debug.Assert(declaration.IsDeconstructionDeclaration);
 
-            ArrayBuilder<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(node.Declaration, node.Declaration.Type, diagnostics);
+            ArrayBuilder<DeconstructionVariable> variables = BindDeconstructionDeclarationVariables(declaration, declaration.Type, diagnostics);
 
-            var result = new BoundLocalDeconstructionDeclaration(node, BindDeconstructionAssignment(node.Declaration.Deconstruction.Value, node.Declaration.Deconstruction.Value, variables, diagnostics));
+            var result = new BoundLocalDeconstructionDeclaration(node, BindDeconstructionAssignment(declaration.Deconstruction.Value, declaration.Deconstruction.Value, variables, diagnostics));
             FreeDeconstructionVariables(variables);
 
             return result;
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
-            Debug.Assert(node.Deconstruction != null);
+            Debug.Assert(node.IsDeconstructionDeclaration);
             SeparatedSyntaxList<VariableDeclarationSyntax> variables = node.Deconstruction.Variables;
 
             // There are four cases for VariableDeclaration:
@@ -514,13 +515,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSyntax typeSyntax = variable.Type ?? closestTypeSyntax;
 
                 DeconstructionVariable local;
-                if (variable.Deconstruction == null)
+                if (variable.IsDeconstructionDeclaration)
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, typeSyntax, diagnostics));
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, typeSyntax, diagnostics));
                 }
                 else
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, typeSyntax, diagnostics));
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, typeSyntax, diagnostics));
                 }
 
                 localsBuilder.Add(local);
@@ -534,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindDeconstructionDeclarationVariable(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
-            Debug.Assert(node.Deconstruction == null);
+            Debug.Assert(!node.IsDeconstructionDeclaration);
             Debug.Assert(node.Variables.Count == 1);
 
             var declarator = node.Variables[0];

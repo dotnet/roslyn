@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 locals = ArrayBuilder<LocalSymbol>.GetInstance();
                             }
 
-                            if (decl.Declaration.Deconstruction == null)
+                            if (!decl.Declaration.IsDeconstructionDeclaration)
                             {
                                 RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
                                 LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                CollectLocalsFromDeconstruction(decl.Declaration, decl.Declaration.Type, locals);
+                                CollectLocalsFromDeconstruction(decl.Declaration, decl.Declaration.Type, LocalDeclarationKind.RegularVariable, locals);
                             }
                         }
                         break;
@@ -192,13 +192,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // When a VariableDeclaration is used in a deconstruction, there are two cases:
         // - deconstruction is set, type may be set (for "var"), and no declarators. For instance, `var (x, ...)` or `(int x, ...)`.
         // - deconstruction is null, type may be set, and there is one declarator holding the identifier. For instance, `int x` or `x`.
-        private void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax closestTypeSyntax, ArrayBuilder<LocalSymbol> locals)
+        internal void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
         {
-            if (declaration.Deconstruction != null)
+            if (declaration.IsDeconstructionDeclaration)
             {
                 foreach (var variable in declaration.Deconstruction.Variables)
                 {
-                    CollectLocalsFromDeconstruction(variable, variable.Type ?? closestTypeSyntax, locals);
+                    CollectLocalsFromDeconstruction(variable, variable.Type ?? closestTypeSyntax, kind, locals);
                 }
             }
             else
@@ -210,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             this.ContainingMemberOrLambda,
                                                             this,
                                                             closestTypeSyntax,
-                                                            declarator.Identifier);
+                                                            declarator.Identifier,
+                                                            kind);
 
                 locals.Add(localSymbol);
             }

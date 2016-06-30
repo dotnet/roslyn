@@ -527,9 +527,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (SyntaxFacts.IsDeconstructionType(expression, out parent))
             {
-                Debug.Assert(((VariableDeclarationSyntax)parent).Variables.Count == 1);
+                var declaration = (VariableDeclarationSyntax)parent;
+                if (declaration.Variables.Count != 1)
+                {
+                    return SymbolInfo.None;
+                }
 
-                return TypeFromLocal((VariableDeclarationSyntax)parent, cancellationToken);
+                return TypeFromLocal(declaration, cancellationToken);
             }
 
             return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);

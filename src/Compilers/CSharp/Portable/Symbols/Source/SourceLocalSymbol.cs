@@ -87,17 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             Binder binder,
             TypeSyntax closestTypeSyntax,
-            SyntaxToken identifierToken)
+            SyntaxToken identifierToken,
+            LocalDeclarationKind kind)
         {
             Debug.Assert(closestTypeSyntax != null);
 
             if (closestTypeSyntax.IsVar)
             {
-                return new PossiblyImplicitlyTypedDeconstructionLocalSymbol(containingSymbol, binder, closestTypeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
+                return new PossiblyImplicitlyTypedDeconstructionLocalSymbol(containingSymbol, binder, closestTypeSyntax, identifierToken, kind);
             }
             else
             {
-                return new SourceLocalSymbol(containingSymbol, binder, RefKind.None, closestTypeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
+                return new SourceLocalSymbol(containingSymbol, binder, RefKind.None, closestTypeSyntax, identifierToken, kind);
             }
         }
 
@@ -616,7 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
                 SyntaxNode parent;
                 Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent));
-                Debug.Assert(parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement);
+                Debug.Assert(parent.Parent != null);
+                Debug.Assert(parent.Parent.Kind() == SyntaxKind.LocalDeclarationStatement || parent.Parent.Kind() == SyntaxKind.ForStatement);
 #endif
             }
 
@@ -627,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out topLevelVariableDeclaration);
 
                 Debug.Assert(isDeconstruction);
-                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction != null);
+                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).IsDeconstructionDeclaration);
                 Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction.Value != null);
 
                 var statement = topLevelVariableDeclaration.Parent;
@@ -635,14 +637,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.LocalDeclarationStatement:
                         this.binder.BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)statement, diagnostics);
+                        break;
 
-                        TypeSymbol result = this._type;
-                        Debug.Assert((object)result != null);
-                        return result;
+                    case SyntaxKind.ForStatement:
+                        var forStatement = (ForStatementSyntax)statement;
+                        var loopBinder = this.binder.GetBinder(forStatement);
+                        loopBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
+                        break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(statement.Kind());
                 }
+
+                TypeSymbol result = this._type;
+                Debug.Assert((object)result != null);
+                return result;
             }
         }
     }
