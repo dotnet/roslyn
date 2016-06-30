@@ -835,7 +835,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
-                Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
+                If diagnosticsThisMethod.HasAnyErrors Then
+                    _diagnostics.AddRange(diagnosticsThisMethod)
+                    diagnosticsThisMethod.Free()
+                Else
+                    Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
                                                      methodOrdinal:=DebugId.UndefinedOrdinal,
                                                      block:=boundBody,
@@ -848,15 +852,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      emittingPdb:=False,
                                                      dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
-                _diagnostics.AddRange(diagnosticsThisMethod)
-                diagnosticsThisMethod.Free()
+                    _diagnostics.AddRange(diagnosticsThisMethod)
+                    diagnosticsThisMethod.Free()
 
-                ' error while generating IL
-                If emittedBody Is Nothing Then
-                    Exit For
+                    ' error while generating IL
+                    If emittedBody Is Nothing Then
+                        Exit For
+                    End If
+
+                    _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
                 End If
-
-                _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
             Next
 
             Debug.Assert(Not compilationState.HasSynthesizedMethods)

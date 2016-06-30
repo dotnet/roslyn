@@ -7,6 +7,7 @@ Imports System.Reflection.PortableExecutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -133,6 +134,301 @@ True
 }
                 ]]>.Value)
 
+        End Sub
+
+        <Fact>
+        Public Sub MethodsOfGenericTypesCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[                                             
+Class MyBox(Of T As Class)
+    ReadOnly _value As T
+
+    Public Sub New(value As T)
+        _value = value
+    End Sub
+
+    Public Function GetValue() As T
+        If _value Is Nothing Then
+            Return Nothing
+        End If
+
+        Return _value
+    End Function
+End Class
+
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+        Dim x As MyBox(Of Object) = New MyBox(Of Object)(Nothing)
+        System.Console.WriteLine(If(x.GetValue() Is Nothing, "null", x.GetValue().ToString()))
+        Dim s As MyBox(Of String) = New MyBox(Of String)("Hello")
+        System.Console.WriteLine(If(s.GetValue() Is Nothing, "null", s.GetValue()))
+    End Sub
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[null
+Hello
+Flushing
+1
+True
+True
+2
+True
+True
+True
+True
+3
+True
+True
+True
+4
+True
+True
+True
+True
+True
+7
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+
+            verifier.VerifyIL(
+                "MyBox(Of T).GetValue",
+            <![CDATA[
+{
+  // Code size       95 (0x5f)
+  .maxstack  4
+  .locals init (T V_0, //GetValue
+                Boolean() V_1)
+  IL_0000:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0005:  ldtoken    "Function MyBox(Of T).GetValue() As T"
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  brtrue.s   IL_002f
+  IL_000f:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_0014:  ldtoken    "Function MyBox(Of T).GetValue() As T"
+  IL_0019:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_001e:  ldtoken    "Function MyBox(Of T).GetValue() As T"
+  IL_0023:  ldelema    "Boolean()"
+  IL_0028:  ldc.i4.4
+  IL_0029:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, ByRef Boolean(), Integer) As Boolean()"
+  IL_002e:  stloc.1
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stelem.i1
+  IL_0033:  ldloc.1
+  IL_0034:  ldc.i4.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  stelem.i1
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      "MyBox(Of T)._value As T"
+  IL_003d:  box        "T"
+  IL_0042:  brtrue.s   IL_0052
+  IL_0044:  ldloc.1
+  IL_0045:  ldc.i4.1
+  IL_0046:  ldc.i4.1
+  IL_0047:  stelem.i1
+  IL_0048:  ldloca.s   V_0
+  IL_004a:  initobj    "T"
+  IL_0050:  br.s       IL_005d
+  IL_0052:  ldloc.1
+  IL_0053:  ldc.i4.3
+  IL_0054:  ldc.i4.1
+  IL_0055:  stelem.i1
+  IL_0056:  ldarg.0
+  IL_0057:  ldfld      "MyBox(Of T)._value As T"
+  IL_005c:  stloc.0
+  IL_005d:  ldloc.0
+  IL_005e:  ret
+}
+                ]]>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub LambdaCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()
+        Dim y As Integer = 5
+        Dim tester As System.Func(Of Integer, Integer) = Function(x)
+                                                             While x > 10
+                                                                 Return y
+                                                             End While
+
+                                                             Return x
+                                                         End Function
+
+        y = 75
+        If tester(20) > 50 Then
+            System.Console.WriteLine("OK")
+        Else
+            System.Console.WriteLine("Bad")
+        End If
+    End sub
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[OK
+Flushing
+1
+True
+True
+True
+2
+True
+True
+True
+True
+False
+True
+True
+True
+False
+True
+5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub AsyncCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+    
+    Sub TestMain()
+        Console.WriteLine(Outer("Goo").Result)
+    End Sub
+
+    Async Function Outer(s As String) As Task(Of String)
+        Dim s1 As String = Await First(s)
+        Dim s2 As String = Await Second(s)
+
+        Return s1 + s2
+    End Function
+
+    Async Function First(s As String) As Task(Of String)
+        Dim result As String = Await Second(s) + "Glue"
+        If result.Length > 2 Then
+            Return result
+        Else
+            Return "Too Short"
+        End If
+    End Function
+
+    Async Function Second(s As String) As Task(Of String)
+        Dim doubled As String = ""
+        If s.Length > 2 Then
+            doubled = s + s
+        Else
+            doubled = "HuhHuh"
+        End If
+        Return Await Task.Factory.StartNew(Function() doubled)
+    End Function
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[GooGooGlueGooGoo
+Flushing
+1
+True
+True
+True
+2
+True
+True
+3
+True
+True
+True
+True
+4
+True
+True
+True
+False
+True
+5
+True
+True
+True
+False
+True
+True
+8
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
         End Sub
 
         <Fact>
@@ -286,7 +582,7 @@ True
         <Fact>
         Public Sub TestTryAndSelect()
             Dim testSource As XElement = <file name="c.vb">
-                                             <![CDATA[
+                                                 <![CDATA[
 Module Program
     Sub TryAndSelect()                                                      ' Method 1
         Dim y As Integer = 0
@@ -318,7 +614,7 @@ Module Program
     End Sub
 End Module
 ]]>
-                                         </file>
+                                             </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
@@ -395,7 +691,7 @@ MyLabel:
     End Sub
 End Module
 ]]>
-                                                     </file>
+                                         </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
@@ -439,8 +735,66 @@ True
             CompileAndVerify(source, expectedOutput)
         End Sub
 
-        Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
-            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument("Test.Flag"))
+        <Fact>
+        Public Sub MissingMethodNeededForAnaysis()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Namespace System
+    Public Class [Object] : End Class
+    Public Structure Int32 : End Structure
+    Public Structure [Boolean] : End Structure
+    Public Class [String] : End Class
+    Public Class Exception : End Class
+    Public Class ValueType : End Class
+    Public Class [Enum] : End Class
+    Public Structure Void : End Structure
+    Public Class Guid : End Class
+End Namespace
+
+Namespace System
+    Public Class Console
+        Public Shared Sub WriteLine(s As String)
+        End Sub
+        Public Shared Sub WriteLine(i As Integer)
+        End Sub
+        Public Shared Sub WriteLine(b As Boolean)
+        End Sub
+    End Class
+End Namespace
+
+Class Program
+    Public Shared Sub Main(args As String())
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+    
+    Shared Sub TestMain()
+    End Sub
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"))
+            For Each Diagnostic As Diagnostic In diagnostics
+                If Diagnostic.Code = ERRID.ERR_MissingRuntimeHelper AndAlso Diagnostic.Arguments(0).Equals("System.Guid.Parse") Then
+                    Return
+                End If
+            Next
+
+            Assert.True(False)
+        End Sub
+
+        Private Function CreateCompilation(source As XElement) As Compilation
+            Return CompilationUtils.CreateCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
         End Function
+
+        Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
+            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, additionalRefs:=s_refs, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument("Test.Flag"))
+        End Function
+
+        Private Shared ReadOnly s_refs As MetadataReference() = New MetadataReference() {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}
     End Class
 End Namespace
