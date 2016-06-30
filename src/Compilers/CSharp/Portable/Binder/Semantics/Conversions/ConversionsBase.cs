@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
-        protected abstract Conversion GetImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+        protected abstract Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
+        protected abstract Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast);
 
         /// <summary>
         /// Attempt a quick classification of builtin conversions.  As result of "no conversion"
@@ -46,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.GetTrivialConversion(convKind);
             }
 
-            // TODO: vsadov singleton trivial conv arrays
-            return new Conversion(convKind, new Conversion[] { FastClassifyConversion(source.StrippedType(), target.StrippedType())});
+            return Conversion.MakeNullableConversion(convKind, FastClassifyConversion(source.StrippedType(), target.StrippedType()));
         }
 
         /// <summary>
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the opposite underlying conversion may not exist 
                     // for example if underlying conversion is implicit tuple
                     impliedExplicitConversion = underlyingConversion.Exists ?
-                        new Conversion(ConversionKind.ExplicitNullable, new Conversion[] { underlyingConversion }) :
+                        Conversion.MakeNullableConversion(ConversionKind.ExplicitNullable, underlyingConversion) :
                         Conversion.NoConversion;
 
                     break;
@@ -953,14 +954,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov array singletons
-                return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] {Conversion.Identity});
+                return new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov array singletons
-                return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { Conversion.ImplicitNumeric });
+                return new Conversion(ConversionKind.ImplicitNullable, Conversion.ImplicitNumericUnderlying);
             }
 
             var tupleConversion = ClassifyImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics);
@@ -1054,20 +1053,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov singleton arrays
-                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.Identity });
+                return new Conversion(ConversionKind.ExplicitNullable, Conversion.IdentityUnderlying);
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov singleton arrays
-                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.ImplicitNumeric });
+                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ImplicitNumericUnderlying);
             }
 
             if (HasExplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov singleton arrays
-                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.ExplicitNumeric });
+                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ExplicitNumericUnderlying);
             }
 
             var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics, forCast);
@@ -1078,14 +1074,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasExplicitEnumerationConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov singleton arrays
-                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.ExplicitEnumeration });
+                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ExplicitEnumerationUnderlying);
             }
 
             if (HasPointerToIntegerConversion(unwrappedSource, unwrappedDestination))
             {
-                //TODO: vsadov singleton arrays
-                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.PointerToInteger });
+                return new Conversion(ConversionKind.ExplicitNullable, Conversion.PointerToIntegerUnderlying);
             }
 
             return Conversion.NoConversion;

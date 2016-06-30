@@ -14,15 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public struct Conversion : IEquatable<Conversion>
     {
-        private readonly MethodSymbol _conversionMethod;
-        private readonly UserDefinedConversionResult _conversionResult; //no effect on Equals/GetHashCode
         private readonly ConversionKind _kind;
-        private readonly byte _flags;
 
+        private readonly MethodSymbol _conversionMethod;
+        private readonly Conversion[] _nestedConversionsOpt;
+
+        //no effect on Equals/GetHashCode
+        private readonly UserDefinedConversionResult _conversionResult; 
+
+        private readonly byte _flags;
         private const byte IsExtensionMethodMask = 1 << 0;
         private const byte IsArrayIndexMask = 1 << 1;
 
-        private readonly Conversion[] _nestedConversionsOpt;
 
         private Conversion(
             ConversionKind kind, 
@@ -44,12 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
-        private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
-            : this(kind, isExtensionMethod, isArrayIndex, conversionResult, methodGroupConversionMethod, nestedConversions: null)
-        {
-        }
-
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
             : this()
         {
@@ -59,6 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             _conversionResult = conversionResult;
         }
 
+        // For the method group, lambda and anonymous method conversions
+        internal Conversion(ConversionKind kind, MethodSymbol methodGroupConversionMethod, bool isExtensionMethod)
+            : this()
+        {
+            this._kind = kind;
+            _conversionMethod = methodGroupConversionMethod;
+            if (isExtensionMethod)
+            {
+                _flags = IsExtensionMethodMask;
+            }
+        }
+
         internal Conversion(ConversionKind kind, Conversion[] nestedConversions)
             : this()
         {
@@ -66,15 +75,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._nestedConversionsOpt = nestedConversions;
         }
 
+        private Conversion(ConversionKind kind)
+            : this()
+        {
+            Debug.Assert(kind != ConversionKind.ImplicitNullable, "nullable conversion must have an underlying one");
+            Debug.Assert(kind != ConversionKind.ExplicitNullable, "nullable conversion must have an underlying one");
+            Debug.Assert(kind != ConversionKind.ImplicitTuple, "tuple conversion must have underlying conversions");
+            Debug.Assert(kind != ConversionKind.ImplicitTupleLiteral, "tuple conversion must have underlying conversions");
+            Debug.Assert(kind != ConversionKind.ExplicitTuple, "tuple conversion must have underlying conversions");
+            Debug.Assert(kind != ConversionKind.ExplicitTupleLiteral, "tuple conversion must have underlying conversions");
+
+            this._kind = kind;
+        }
+        
         internal Conversion WithConversionMethod(MethodSymbol methodGroupConversionMethod)
         {
             return new CSharp.Conversion(this.Kind, this.IsExtensionMethod, this.IsArrayIndex, this._conversionResult, methodGroupConversionMethod, this._nestedConversionsOpt);
         }
 
-        private Conversion(ConversionKind kind)
-            : this()
+        internal Conversion WithArrayIndexConversion(bool isArrayIndex)
         {
-            this._kind = kind;
+            return new Conversion(this.Kind, this.IsExtensionMethod, isArrayIndex, _conversionResult, _conversionMethod, _nestedConversionsOpt);
         }
 
         internal static Conversion GetTrivialConversion(ConversionKind kind)
@@ -87,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitNumeric: return Conversion.ImplicitNumeric;
                 case ConversionKind.ImplicitReference: return Conversion.ImplicitReference;
                 case ConversionKind.ImplicitEnumeration: return Conversion.ImplicitEnumeration;
-                case ConversionKind.ImplicitTupleLiteral: return Conversion.ImplicitTupleLiteral;
                 case ConversionKind.AnonymousFunction: return Conversion.AnonymousFunction;
                 case ConversionKind.Boxing: return Conversion.Boxing;
                 case ConversionKind.NullLiteral: return Conversion.NullLiteral;
@@ -115,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitNumeric => new Conversion(ConversionKind.ImplicitNumeric);
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
-        internal static Conversion ImplicitTupleLiteral => new Conversion(ConversionKind.ImplicitTupleLiteral);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
@@ -132,6 +151,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitDynamic => new Conversion(ConversionKind.ImplicitDynamic);
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
+
+        // trivial conversions that could be underlying in nullable conversion
+        // NOTE: tuple conversions can be underlying as well, but they are not trivial 
+        internal static Conversion[] IdentityUnderlying = new Conversion[] { Identity };
+        internal static Conversion[] ImplicitConstantUnderlying = new Conversion[] { ImplicitConstant };
+        internal static Conversion[] ImplicitNumericUnderlying = new Conversion[] { ImplicitNumeric };
+        internal static Conversion[] ExplicitNumericUnderlying = new Conversion[] { ExplicitNumeric };
+        internal static Conversion[] ExplicitEnumerationUnderlying = new Conversion[] { ExplicitEnumeration };
+        internal static Conversion[] PointerToIntegerUnderlying = new Conversion[] { PointerToInteger };
+
+        internal static Conversion MakeNullableConversion(ConversionKind kind, Conversion nestedConversion)
+        {
+            Debug.Assert(kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable);
+
+            Conversion[] nested;
+            switch (nestedConversion.Kind)
+            {
+                case ConversionKind.Identity:
+                    nested = IdentityUnderlying;
+                    break;
+                case ConversionKind.ImplicitConstant:
+                    nested = ImplicitConstantUnderlying;
+                    break;
+                case ConversionKind.ImplicitNumeric:
+                    nested = ImplicitNumericUnderlying;
+                    break;
+                case ConversionKind.ExplicitNumeric:
+                    nested = ExplicitNumericUnderlying;
+                    break;
+                case ConversionKind.ExplicitEnumeration:
+                    nested = ExplicitEnumerationUnderlying;
+                    break;
+                case ConversionKind.PointerToInteger:
+                    nested = PointerToIntegerUnderlying;
+                    break;
+                default:
+                    Debug.Assert(false, "missing singleton for a nullable underlying conversion kind:" + nestedConversion.Kind);
+                    nested = new Conversion[] { nestedConversion };
+                    break;
+            }
+
+            return new Conversion(kind, nested);
+        }
 
         internal ConversionKind Kind
         {
@@ -157,22 +219,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal Conversion[] UnderlyingConversions => _nestedConversionsOpt;
-
-        internal Conversion ToArrayIndexConversion()
+        internal Conversion[] UnderlyingConversions
         {
-            return new Conversion(this.Kind, this.IsExtensionMethod, true, _conversionResult, _conversionMethod);
+            get
+            {
+                return _nestedConversionsOpt;
+            }
         }
 
-        // For the method group, lambda and anonymous method conversions
-        internal Conversion(ConversionKind kind, MethodSymbol methodGroupConversionMethod, bool isExtensionMethod)
-            : this()
+        internal MethodSymbol Method
         {
-            this._kind = kind;
-            _conversionMethod = methodGroupConversionMethod;
-            if (isExtensionMethod)
+            get
             {
-                _flags = IsExtensionMethodMask;
+                return _conversionMethod ?? UserDefinedConversion;
             }
         }
 
@@ -322,6 +381,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is an implicit tuple literal conversion or explicit tuple literal conversion.
+        /// </summary>
+        public bool IsTupleLiteralConversion
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitTupleLiteral || Kind == ConversionKind.ExplicitTupleLiteral;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit tuple conversion or explicit tuple conversion.
+        /// </summary>
+        public bool IsTupleConversion
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitTuple || Kind == ConversionKind.ExplicitTuple;
+            }
+        }
+
+        /// <summary>
         /// Returns true if the conversion is an implicit reference conversion or explicit reference conversion.
         /// </summary>
         /// <remarks>
@@ -448,17 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit tuple conversion.
-        /// </summary>
-        public bool IsTupleLiteral
-        {
-            get
-            {
-                return Kind == ConversionKind.ImplicitTupleLiteral;
-            }
-        }
-
-        /// <summary>
         /// Returns true if the conversion is a pointer conversion 
         /// </summary>
         /// <remarks>
@@ -500,14 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.IntPtr;
-            }
-        }
-
-        internal MethodSymbol Method
-        {
-            get
-            {
-                return _conversionMethod ?? UserDefinedConversion;
             }
         }
 

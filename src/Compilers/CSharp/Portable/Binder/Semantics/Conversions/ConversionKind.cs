@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitEnumeration,
         ImplicitTupleLiteral,
         ImplicitTuple,
+        ExplicitTupleLiteral,
         ExplicitTuple,
         ImplicitNullable,
         NullLiteral,

@@ -1852,18 +1852,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
+                else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
                 {
-                    Debug.Assert(highestBoundExpr == boundExpr);
-                    var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;
-                    // The bound tree always fully binds tuple literals. From the language point of
-                    // view, however, converted tuple literals represent tuple conversions
-                    // from tuple literal expressions which may or may not have types
-                    type = convertedLiteral.NaturalTypeOpt;
-                    convertedType = convertedLiteral.Type;
-                    conversion = convertedType.Equals(type, ignoreDynamic: true) ?
-                                        Conversion.Identity :
-                                        Conversion.ImplicitTupleLiteral;
+                    var tupleLiteralConversion = (BoundConversion)highestBoundExpr;
+                    var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
+                    type = convertedTuple.NaturalTypeOpt;
+                    convertedType = tupleLiteralConversion.Type;
+                    conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {

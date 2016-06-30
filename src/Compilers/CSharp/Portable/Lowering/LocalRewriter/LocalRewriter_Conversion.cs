@@ -227,14 +227,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ExplicitTupleLiteral:
                     {
-                        // we keep ImplicitTuple conversions in the tree
-                        // for the purpose of semantic model (for example when they are casts in the source)
+                        // we keep tuple literal conversions in the tree for the purpose of semantic model (for example when they are casts in the source)
                         // for the purpose of lowering/codegeneration thay are identity conversions.
-
                         Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, ignoreDynamic: true));
-                        conversion = Conversion.Identity;
-                        break;
+                        return rewrittenOperand;
                     }
 
                 case ConversionKind.ImplicitEnumeration:
@@ -253,8 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             constantValueOpt,
                             rewrittenType.GetNullableUnderlyingType());
 
-                        //TODO: vsadov singletons
-                        var outerConversion = new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { Conversion.Identity });
+                        var outerConversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
                         return MakeConversionNode(
                             oldNode,
                             syntax,
