@@ -1723,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindAssignment(node, op1, op2, diagnostics);
         }
 
-        private BoundAssignmentOperator BindAssignment(ExpressionSyntax node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundAssignmentOperator BindAssignment(CSharpSyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
@@ -3084,6 +3084,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             return this.Next.BindForEachParts(diagnostics, originalBinder);
+        }
+
+        /// <summary>
+        /// Like BindForEachParts, but only bind the deconstruction part of the foreach, for purpose of inferring the types of the declared locals.
+        /// </summary>
+        internal virtual void BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        {
+            this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
         private BoundStatement BindBreak(BreakStatementSyntax node, DiagnosticBag diagnostics)

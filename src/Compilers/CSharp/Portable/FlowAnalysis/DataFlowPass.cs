@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ForEachStatement:
                     {
-                        var iterationVariable = ((BoundForEachStatement)node).IterationVariable;
+                        var iterationVariable = ((BoundForEachStatement)node).IterationVariableOpt;
                         Debug.Assert((object)iterationVariable != null);
                         int slot = GetOrCreateSlot(iterationVariable);
                         if (slot > 0) SetSlotState(slot, written);
@@ -1728,7 +1728,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (BoundExpression variable in node.LeftVariables)
             {
-                // PROTOTYPE(tuples) value should not be set to null
                 Assign(variable, value: null, refKind: RefKind.None);
             }
 
@@ -2055,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachIterationVariable(BoundForEachStatement node)
         {
-            var local = node.IterationVariable;
+            var local = node.IterationVariableOpt;
             if ((object)local != null)
             {
                 GetOrCreateSlot(local);

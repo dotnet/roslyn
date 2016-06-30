@@ -8,5 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
         }
+
+        internal bool IsDeconstructionDeclaration => DeconstructionVariables != null;
     }
 }
