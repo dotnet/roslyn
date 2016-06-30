@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -29,7 +30,15 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public Type Type => typeof(T);
 
-        public Option(string feature, string name, T defaultValue = default(T))
+        public ImmutableArray<OptionPersistence> Persistences { get; }
+
+        public Option(string feature, string name)
+            : this(feature, name, default(T))
+        {
+            // This constructor forwards to the next one; it exists to maintain source-level compatibility with older callers.
+        }
+
+        public Option(string feature, string name, T defaultValue)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -44,6 +53,12 @@ namespace Microsoft.CodeAnalysis.Options
             this.Feature = feature;
             this.Name = name;
             this.DefaultValue = defaultValue;
+        }
+
+        public Option(string feature, string name, T defaultValue, params OptionPersistence[] persistences)
+            : this(feature, name, defaultValue)
+        {
+            Persistences = persistences.ToImmutableArray();
         }
 
         object IOption.DefaultValue => this.DefaultValue;
