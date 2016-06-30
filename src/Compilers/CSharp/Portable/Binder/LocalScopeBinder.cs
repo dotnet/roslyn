@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 locals = ArrayBuilder<LocalSymbol>.GetInstance();
                             }
 
-                            if (decl.Declaration.Deconstruction == null)
+                            if (!decl.Declaration.IsDeconstructionDeclaration)
                             {
                                 RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
                                 LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // - deconstruction is null, type may be set, and there is one declarator holding the identifier. For instance, `int x` or `x`.
         internal void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
         {
-            if (declaration.Deconstruction != null)
+            if (declaration.IsDeconstructionDeclaration)
             {
                 foreach (var variable in declaration.Deconstruction.Variables)
                 {

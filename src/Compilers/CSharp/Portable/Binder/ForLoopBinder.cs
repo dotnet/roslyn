@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = _syntax.Declaration;
             if (declaration != null)
             {
-                if (declaration.Deconstruction == null)
+                if (!declaration.IsDeconstructionDeclaration)
                 {
                     var refKind = _syntax.RefKeyword.Kind().GetRefKind();
 
@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Declaration != null)
             {
                 Debug.Assert(node.Initializers.Count == 0);
-                if (node.Declaration.Deconstruction == null)
+                if (node.Declaration.IsDeconstructionDeclaration)
                 {
-                    ImmutableArray<BoundLocalDeclaration> unused;
-                    initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
+                    initializer = originalBinder.BindDeconstructionDeclaration(node.Declaration, node.Declaration, diagnostics);
                 }
                 else
                 {
-                    initializer = originalBinder.BindDeconstructionDeclaration(node, node.Declaration, diagnostics);
+                    ImmutableArray<BoundLocalDeclaration> unused;
+                    initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
                 }
             }
             else

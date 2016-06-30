@@ -550,13 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             BoundStatement bound;
-            if (node.Declaration.Deconstruction == null)
+            if (node.Declaration.IsDeconstructionDeclaration)
             {
-                bound = binder.BindDeclarationStatementParts(node, diagnostics);
+                bound = binder.BindDeconstructionDeclaration(node, node.Declaration, diagnostics);
             }
             else
             {
-                bound = binder.BindDeconstructionDeclaration(node, node.Declaration, diagnostics);
+                bound = binder.BindDeclarationStatementParts(node, diagnostics);
             }
 
             return binder.WrapWithVariablesIfAny(node, bound);

@@ -617,7 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
                 SyntaxNode parent;
                 Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent));
-                Debug.Assert(parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement || parent.Parent?.Kind() == SyntaxKind.ForStatement);
+                Debug.Assert(parent.Parent != null);
+                Debug.Assert(parent.Parent.Kind() == SyntaxKind.LocalDeclarationStatement || parent.Parent.Kind() == SyntaxKind.ForStatement);
 #endif
             }
 
@@ -628,11 +629,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out topLevelVariableDeclaration);
 
                 Debug.Assert(isDeconstruction);
-                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction != null);
+                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).IsDeconstructionDeclaration);
                 Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction.Value != null);
 
                 var statement = topLevelVariableDeclaration.Parent;
-                TypeSymbol result;
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
@@ -640,14 +640,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ForStatement:
-                        this.binder.BindFor((ForStatementSyntax)statement, diagnostics);
+                        var forStatement = (ForStatementSyntax)statement;
+                        var loopBinder = this.binder.GetBinder(forStatement);
+                        loopBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(statement.Kind());
                 }
 
-                result = this._type;
+                TypeSymbol result = this._type;
                 Debug.Assert((object)result != null);
                 return result;
             }

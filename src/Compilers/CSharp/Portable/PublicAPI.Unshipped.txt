@@ -125,6 +125,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.WithCloseParenToken(Microso
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.WithElements(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax> elements) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax.Deconstruction.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax.IsDeconstructionDeclaration.get -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax.WithDeconstruction(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax deconstruction) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax.AddVariables(params Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax
