@@ -1,3 +1,4 @@
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConditionalAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode whenNotNull) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.CodeStyleOption(T value, Microsoft.CodeAnalysis.CodeStyle.NotificationOption notification) -> void
@@ -21,6 +22,7 @@ Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberBindingExpression(Microsoft.CodeAnalysis.SyntaxNode simpleName) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CodeStyle.NotificationOption.ToString() -> string
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object

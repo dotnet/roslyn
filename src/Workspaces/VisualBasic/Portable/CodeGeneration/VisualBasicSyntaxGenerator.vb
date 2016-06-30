@@ -199,6 +199,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.OrElseExpression(Parenthesize(left), Parenthesize(right))
         End Function
 
+        Public Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.ConditionalAccessExpression(Parenthesize(expression), DirectCast(whenNotNull, ExpressionSyntax))
+        End Function
+
+        Public Overrides Function MemberBindingExpression(simpleName As SyntaxNode) As SyntaxNode
+            Return simpleName
+        End Function
+
         Friend Overrides Function MemberAccessExpressionWorker(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(
                 ParenthesizeLeft(expression),

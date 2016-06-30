@@ -300,6 +300,12 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<BinaryExpressionSyntax>(_g.CoalesceExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) ?? (y)");
             VerifySyntax<ConditionalExpressionSyntax>(_g.ConditionalExpression(_g.IdentifierName("x"), _g.IdentifierName("y"), _g.IdentifierName("z")), "(x) ? (y) : (z)");
+
+            // TODO: Get these tests to work. And maybe add others?
+            VerifySyntax<ConditionalAccessExpressionSyntax>(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.MemberBindingExpression(_g.IdentifierName("y"))), "(x)?.y");
+            VerifySyntax<ConditionalAccessExpressionSyntax>(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.MemberAccessExpression(_g.MemberBindingExpression(_g.IdentifierName("y")), _g.IdentifierName("z"))), "(x)?.y.z");
+            VerifySyntax<ConditionalAccessExpressionSyntax>(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.ConditionalAccessExpression(_g.MemberBindingExpression(_g.IdentifierName("y")), _g.MemberBindingExpression(_g.IdentifierName("z")))), "(x)?.y?.z");
+            VerifySyntax<BinaryExpressionSyntax>(_g.CoalesceExpression(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.MemberBindingExpression(_g.IdentifierName("y"))), _g.IdentifierName("z")), "((x)?.y) ?? (z)");
         }
 
         [Fact]
