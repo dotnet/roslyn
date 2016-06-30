@@ -27,21 +27,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxx|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  22 bits.
+            // x = modifiers.  21 bits.
             // y = IsManagedType.  2 bits.
             // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
             private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 27;
+            private const int IsManagedTypeOffset = 26;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x1FFFFF;
             private const int IsManagedTypeMask = 0x3;
 
-            private const int FieldDefinitionsNotedBit = 1 << 29;
+            private const int FieldDefinitionsNotedBit = 1 << 28;
 
             private int _flags;
 
@@ -1287,7 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var memberNames = ArrayBuilder<string>.GetInstance(membersDictionary.Count);
                     memberNames.AddRange(membersDictionary.Keys);
-                    MergeReplacedMembers(memberNames, membersDictionary, diagnostics);
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
                     memberNames.Free();
                     AddDeclarationDiagnostics(diagnostics);
@@ -2323,101 +2322,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal Binder GetBinder(CSharpSyntaxNode syntaxNode)
         {
             return this.DeclaringCompilation.GetBinder(syntaxNode);
-        }
-
-        private static void MergeReplacedMembers(
-            ArrayBuilder<string> memberNames,
-            Dictionary<string, ImmutableArray<Symbol>> membersByName,
-            DiagnosticBag diagnostics)
-        {
-            var membersGroupedBySignature = new Dictionary<Symbol, OneOrMany<Symbol>>(MemberSignatureComparer.DuplicateSourceComparer);
-
-            foreach (var name in memberNames)
-            {
-                var members = membersByName[name];
-                if (members.Length < 2)
-                {
-                    continue;
-                }
-
-                membersGroupedBySignature.Clear();
-
-                foreach (var member in members)
-                {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Method:
-                            if (((MethodSymbol)member).IsAsync)
-                            {
-                                continue;
-                            }
-                            goto case SymbolKind.Property;
-
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            OneOrMany<Symbol> group;
-                            if (membersGroupedBySignature.TryGetValue(member, out group))
-                            {
-                                membersGroupedBySignature[member] = group.Add(member);
-                            }
-                            else
-                            {
-                                membersGroupedBySignature.Add(member, OneOrMany.Create(member));
-                            }
-                            break;
-                    }
-                }
-
-                foreach (var group in membersGroupedBySignature.Values)
-                {
-                    if (group.Count < 2)
-                    {
-                        continue;
-                    }
-
-                    Symbol last = null;
-                    foreach (var member in group)
-                    {
-                        var method = member as SourceMethodSymbol;
-                        if ((object)method != null && method.IsPartial)
-                        {
-                            continue; 
-                        }
-                        if ((object)last == null)
-                        {
-                            last = member;
-                        }
-                        else
-                        {
-                            var next = member;
-                            if (!last.IsReplace)
-                            {
-                                if (!next.IsReplace)
-                                {
-                                    continue;
-                                }
-                                var temp = last;
-                                last = next;
-                                next = temp;
-                            }
-                            Debug.Assert(last.IsReplace);
-                            if (next.IsReplace)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateReplace, member.Locations[0], member);
-                                next.SetReplaced(last.Replaced);
-                            }
-                            else if ((object)last.Replaced == null)
-                            {
-                                // No need to handle two originals (last.Replaced != null).
-                                // That duplicate member will be reported elsewhere.
-                                last.SetReplaced(next);
-                                next.SetReplacedBy(last);
-                                membersByName[name] = Remove(membersByName[name], next);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private static void MergePartialMembers(
