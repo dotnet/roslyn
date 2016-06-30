@@ -2463,6 +2463,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestContextualKeywordAsLocalVariableType(SyntaxKind.PartialKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AsyncKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AwaitKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.ReplaceKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.OriginalKeyword);
         }
 
         private void TestContextualKeywordAsLocalVariableType(SyntaxKind kind)

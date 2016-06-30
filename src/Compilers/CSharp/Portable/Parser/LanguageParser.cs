@@ -1274,6 +1274,8 @@ tryAgain:
                             return SyntaxModifier.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return SyntaxModifier.Async;
+                        case SyntaxKind.ReplaceKeyword:
+                            return SyntaxModifier.Replace;
                     }
 
                     goto default;
@@ -1379,7 +1381,8 @@ tryAgain:
 
         private bool ShouldCurrentContextualKeywordBeTreatedAsModifier()
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.ReplaceKeyword);
 
             // Adapted from CParser::IsAsyncMethod.
 
@@ -2416,6 +2419,7 @@ tryAgain:
                 if (GetModifier(this.CurrentToken) != SyntaxModifier.None &&
                     this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                     this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                    this.CurrentToken.ContextualKind != SyntaxKind.ReplaceKeyword &&
                     IsComplete(type))
                 {
                     var misplacedModifier = this.CurrentToken;
@@ -2552,7 +2556,7 @@ parse_member_name:;
 
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
-            if (contextualKind != SyntaxKind.AsyncKeyword ||
+            if ((contextualKind != SyntaxKind.AsyncKeyword && contextualKind != SyntaxKind.ReplaceKeyword) ||
                 modifiers.Any(contextualKind))
             {
                 return false;
@@ -2966,9 +2970,11 @@ parse_member_name:;
                 Debug.Assert(!IsInAsync);
 
                 IsInAsync = modifiers.Any(SyntaxKind.AsyncKeyword);
+                IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
+                IsInReplace = false;
                 IsInAsync = false;
 
                 var decl = _syntaxFactory.MethodDeclaration(
@@ -3217,6 +3223,8 @@ parse_member_name:;
                 parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
             }
 
+            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
+
             AccessorListSyntax accessorList = null;
             ArrowExpressionClauseSyntax expressionBody = null;
             SyntaxToken semicolon = null;
@@ -3247,6 +3255,8 @@ parse_member_name:;
                 expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedIndexer);
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
+
+            IsInReplace = false;
 
             var decl = _syntaxFactory.IndexerDeclaration(
                 attributes,
@@ -3284,6 +3294,8 @@ parse_member_name:;
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
                          this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
+            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
+
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
@@ -3307,6 +3319,8 @@ parse_member_name:;
                 initializer = _syntaxFactory.EqualsValueClause(equals, refKeyword: null, value: value);
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureAutoPropertyInitializer);
             }
+
+            IsInReplace = false;
 
             SyntaxToken semicolon = null;
             if (expressionBody != null || initializer != null)
@@ -4410,7 +4424,11 @@ tryAgain:
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
+            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
+
             var accessorList = this.ParseAccessorList(isEvent: true);
+
+            IsInReplace = false;
 
             var decl = _syntaxFactory.EventDeclaration(
                 attributes,
@@ -9111,7 +9129,12 @@ tryAgain:
                     if (this.IsTrueIdentifier())
                     {
                         var contextualKind = this.CurrentToken.ContextualKind;
-                        if (contextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
+                        if (contextualKind == SyntaxKind.OriginalKeyword && this.IsInReplace)
+                        {
+                            var token = ConvertToKeyword(this.EatToken());
+                            expr = _syntaxFactory.OriginalExpression(token);
+                        }
+                        else if (contextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
                         {
                             expr = this.ParseAnonymousMethodExpression();
                         }
@@ -11264,6 +11287,18 @@ tryAgain:
             _syntaxFactoryContext.QueryDepth--;
         }
 
+        private bool IsInReplace
+        {
+            get
+            {
+                return _syntaxFactoryContext.IsInReplace;
+            }
+            set
+            {
+                _syntaxFactoryContext.IsInReplace = value;
+            }
+        }
+
         private new ResetPoint GetResetPoint()
         {
             return new ResetPoint(
@@ -11271,6 +11306,7 @@ tryAgain:
                 _termState,
                 _isInTry,
                 _syntaxFactoryContext.IsInAsync,
+                _syntaxFactoryContext.IsInReplace,
                 _syntaxFactoryContext.QueryDepth);
         }
 
@@ -11279,6 +11315,7 @@ tryAgain:
             _termState = state.TerminatorState;
             _isInTry = state.IsInTry;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
+            _syntaxFactoryContext.IsInReplace = state.IsInReplace;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
         }
@@ -11294,6 +11331,7 @@ tryAgain:
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInTry;
             internal readonly bool IsInAsync;
+            internal readonly bool IsInReplace;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
@@ -11301,12 +11339,14 @@ tryAgain:
                 TerminatorState terminatorState,
                 bool isInTry,
                 bool isInAsync,
+                bool isInReplace,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInTry = isInTry;
                 this.IsInAsync = isInAsync;
+                this.IsInReplace = isInReplace;
                 this.QueryDepth = queryDepth;
             }
         }

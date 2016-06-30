@@ -271,11 +271,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
         }
 
-        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+        protected override void ResolveAnalyzersAndGeneratorsFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<SourceGenerator> generators)
         {
-            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader);
+            Arguments.ResolveAnalyzersAndGeneratorsFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, out analyzers, out generators);
         }
     }
 }

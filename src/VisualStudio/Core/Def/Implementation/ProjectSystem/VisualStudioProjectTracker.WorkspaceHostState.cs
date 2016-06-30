@@ -133,6 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 foreach (var project in inOrderToPush)
                 {
                     project.StartPushingToWorkspaceHosts();
+                    project.UpdateGeneratedFiles();
                     _pushedProjects.Add(project);
 
                     foreach (var document in project.GetCurrentDocuments())

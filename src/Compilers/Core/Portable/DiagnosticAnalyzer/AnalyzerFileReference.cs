@@ -26,12 +26,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace;
+        private static readonly string s_sourceGeneratorAttributeNamespace = typeof(SourceGeneratorAttribute).Namespace;
 
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
 
         private readonly string _fullPath;
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
+        private readonly Extensions<SourceGenerator> _sourceGenerators;
 
         private string _lazyDisplay;
         private object _lazyIdentity;
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _fullPath = fullPath;
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute);
+            _sourceGenerators = new Extensions<SourceGenerator>(this, IsSourceGeneratorAttribute);
             _assemblyLoader = assemblyLoader;
         }
 
@@ -69,6 +72,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return _diagnosticAnalyzers.GetExtensions(language);
+        }
+
+        public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
+        {
+            return _sourceGenerators.GetExtensions(language);
         }
 
         public override string FullPath
@@ -220,6 +228,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
         }
 
+        internal void AddGenerators(ImmutableArray<SourceGenerator>.Builder builder, string language)
+        {
+            _sourceGenerators.AddExtensions(builder, language);
+        }
+
         internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
         {
             return _diagnosticAnalyzers.GetExtensionTypeNameMap();
@@ -294,6 +307,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             EntityHandle ctor;
             return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), out ctor);
+        }
+
+        private static bool IsSourceGeneratorAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            EntityHandle ctor;
+            return peModule.IsTargetAttribute(customAttrHandle, s_sourceGeneratorAttributeNamespace, nameof(SourceGeneratorAttribute), out ctor);
         }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)

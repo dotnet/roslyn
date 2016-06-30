@@ -542,7 +542,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Perform final validation of the method to be invoked.
 
             Debug.Assert(memberSymbol.Kind != SymbolKind.Method ||
-                memberSymbol.CanBeReferencedByName);
+                memberSymbol.CanBeReferencedByName || //should be true since the caller has LookupOptions.MustBeReferenceableByName set
+                (object)memberSymbol.ReplacedBy != null);
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
 
