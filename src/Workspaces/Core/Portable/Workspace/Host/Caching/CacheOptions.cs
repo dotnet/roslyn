@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Host
     {
         internal const string FeatureName = "Cache Options";
 
-        internal static readonly Option<int> RecoverableTreeLengthThreshold = new Option<int>(FeatureName, "RecoverableTreeLengthThreshold", defaultValue: 4096);
+        internal static readonly Option<int> RecoverableTreeLengthThreshold = new Option<int>(FeatureName, "RecoverableTreeLengthThreshold", defaultValue: 4096,
+            persistences: new LocalUserProfilePersistence(@"Roslyn\Internal\Performance\Cache\RecoverableTreeLengthThreshold"));
     }
 }

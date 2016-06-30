@@ -9,13 +9,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal const string TabFeatureName = "Tab";
         internal const string InternalTabFeatureName = "InternalTab";
         internal const string FormattingFeatureName = "Formatting";
-
+        //
+        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
         public static PerLanguageOption<bool> UseTabs { get; } = new PerLanguageOption<bool>(TabFeatureName, "UseTab", defaultValue: false);
 
+        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
         public static PerLanguageOption<int> TabSize { get; } = new PerLanguageOption<int>(TabFeatureName, "TabSize", defaultValue: 4);
 
+        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
         public static PerLanguageOption<int> IndentationSize { get; } = new PerLanguageOption<int>(TabFeatureName, "IndentationSize", defaultValue: 4);
 
+        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = new PerLanguageOption<IndentStyle>(TabFeatureName, "SmartIndent", defaultValue: IndentStyle.Smart);
 
         public static PerLanguageOption<string> NewLine { get; } = new PerLanguageOption<string>(FormattingFeatureName, "NewLine", defaultValue: "\r\n");

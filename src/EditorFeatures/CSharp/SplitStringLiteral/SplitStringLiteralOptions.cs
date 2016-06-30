@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         public const string FeatureName = "SplitStringLiteral";
 
         public static PerLanguageOption<bool> Enabled =
-            new PerLanguageOption<bool>(FeatureName, nameof(Enabled), defaultValue: true);
+            new PerLanguageOption<bool>(FeatureName, nameof(Enabled), defaultValue: true,
+                persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
     [ExportOptionProvider, Shared]

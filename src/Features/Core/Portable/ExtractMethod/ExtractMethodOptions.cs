@@ -8,8 +8,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         public const string FeatureName = "ExtractMethod";
 
-        public static readonly PerLanguageOption<bool> AllowBestEffort = new PerLanguageOption<bool>(FeatureName, "Allow Best Effort", defaultValue: false);
-        public static readonly PerLanguageOption<bool> DontPutOutOrRefOnStruct = new PerLanguageOption<bool>(FeatureName, "Don't Put Out Or Ref On Strcut", defaultValue: true);
-        public static readonly PerLanguageOption<bool> AllowMovingDeclaration = new PerLanguageOption<bool>(FeatureName, "Allow Moving Declaration", defaultValue: false);
+        public static readonly PerLanguageOption<bool> AllowBestEffort = new PerLanguageOption<bool>(FeatureName, "Allow Best Effort", defaultValue: false,
+            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
+
+        public static readonly PerLanguageOption<bool> DontPutOutOrRefOnStruct = new PerLanguageOption<bool>(FeatureName, "Don't Put Out Or Ref On Strcut", defaultValue: true,
+            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")); // NOTE: the spelling error is what we've shipped and thus should not change
+
+        public static readonly PerLanguageOption<bool> AllowMovingDeclaration = new PerLanguageOption<bool>(FeatureName, "Allow Moving Declaration", defaultValue: false,
+            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.Allow Moving Declaration"));
     }
 }

@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public const string FeatureName = "VisualStudioNavigation";
 
-        public static readonly PerLanguageOption<bool> NavigateToObjectBrowser = new PerLanguageOption<bool>(FeatureName, "NavigateToObjectBrowser", defaultValue: false);
+        public static readonly PerLanguageOption<bool> NavigateToObjectBrowser = new PerLanguageOption<bool>(FeatureName, "NavigateToObjectBrowser", defaultValue: false,
+            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser"));
     }
 }

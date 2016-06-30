@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public const string FeatureName = "Organizer";
 
-        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(FeatureName, "PlaceSystemNamespaceFirst", defaultValue: true);
+        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(FeatureName, "PlaceSystemNamespaceFirst", defaultValue: true,
+            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
     }
 }

@@ -10,14 +10,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     internal static class EditorComponentOnOffOptions
     {
         public const string OptionName = "FeatureManager/Components";
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Components\";
 
         [ExportOption]
-        public static readonly Option<bool> Adornment = new Option<bool>(OptionName, "Adornment", defaultValue: true);
+        public static readonly Option<bool> Adornment = new Option<bool>(OptionName, "Adornment", defaultValue: true,
+            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Adornment"));
 
         [ExportOption]
-        public static readonly Option<bool> Tagger = new Option<bool>(OptionName, "Tagger", defaultValue: true);
+        public static readonly Option<bool> Tagger = new Option<bool>(OptionName, "Tagger", defaultValue: true,
+            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Tagger"));
 
         [ExportOption]
-        public static readonly Option<bool> CodeRefactorings = new Option<bool>(OptionName, "Code Refactorings", defaultValue: true);
+        public static readonly Option<bool> CodeRefactorings = new Option<bool>(OptionName, "Code Refactorings", defaultValue: true,
+            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Code Refactorings"));
     }
 }
