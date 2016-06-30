@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -43,11 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return ch = ")"c
         End Function
 
-        Protected Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
-            Throw New NotSupportedException()
-        End Function
-
-        Protected Overrides Function ProvideSignaturesWorkerAsync(context As SignatureContext) As Task
+        Public Overrides Function ProvideSignaturesAsync(context As SignatureContext) As Task
             Trace.WriteLine("MockSignatureHelpProvider.ProvideSignaturesWorkerAsync")
 
             GetItemsCount += 1
@@ -55,5 +49,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Return SpecializedTasks.EmptyTask
         End Function
+
     End Class
 End Namespace

@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal abstract partial class SignatureHelpProvider
+    internal abstract partial class SymbolSignatureHelpProvider
     {
         private class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
         {

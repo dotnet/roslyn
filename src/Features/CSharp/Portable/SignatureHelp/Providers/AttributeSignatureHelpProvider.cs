@@ -84,10 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-            var accessibleConstructors = attributeType.InstanceConstructors
-                                                      .Where(c => c.IsAccessibleWithin(within))
-                                                      .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                                                      .Sort(symbolDisplayService, semanticModel, attribute.SpanStart);
+            var accessibleConstructors = attributeType
+                .InstanceConstructors
+                .Where(c => c.IsAccessibleWithin(within))
+                .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                .Sort(symbolDisplayService, semanticModel, attribute.SpanStart);
 
             if (!accessibleConstructors.Any())
             {

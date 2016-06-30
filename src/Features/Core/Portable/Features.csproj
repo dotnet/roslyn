@@ -599,7 +599,7 @@
     <Compile Include="SignatureHelp\CommonSignatureHelpService.cs" />
     <Compile Include="SignatureHelp\SignatureContext.cs" />
     <Compile Include="SignatureHelp\SignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\SignatureHelpProvider.SymbolKeySignatureHelpItem.cs" />
+    <Compile Include="SignatureHelp\SymbolSignatureHelpProvider.SymbolKeySignatureHelpItem.cs" />
     <Compile Include="SignatureHelp\CommonSignatureHelpUtilities.cs" />
     <Compile Include="SignatureHelp\SignatureHelpItem.cs" />
     <Compile Include="SignatureHelp\SignatureList.cs" />
@@ -609,6 +609,7 @@
     <Compile Include="SignatureHelp\SignatureHelpState.cs" />
     <Compile Include="SignatureHelp\SignatureHelpTrigger.cs" />
     <Compile Include="SignatureHelp\SignatureHelpTriggerKind.cs" />
+    <Compile Include="SignatureHelp\SymbolSignatureHelpProvider.cs" />
     <Compile Include="Snippets\ISnippetInfoService.cs" />
     <Compile Include="Snippets\SnippetInfo.cs" />
     <Compile Include="SolutionCrawler\AbstractDocumentDifferenceService.cs" />

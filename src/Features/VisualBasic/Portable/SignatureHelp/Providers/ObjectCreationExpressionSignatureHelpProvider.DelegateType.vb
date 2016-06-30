@@ -9,14 +9,17 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
-                                                     semanticModel As SemanticModel,
-                                                     symbolDisplayService As ISymbolDisplayService,
-                                                     anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                                     documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                                     delegateType As INamedTypeSymbol,
-                                                     within As ISymbol,
-                                                     cancellationToken As CancellationToken) As IList(Of SignatureHelpItem)
+        Private Function GetDelegateTypeConstructors(
+            objectCreationExpression As ObjectCreationExpressionSyntax,
+            semanticModel As SemanticModel,
+            symbolDisplayService As ISymbolDisplayService,
+            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+            documentationCommentFormattingService As IDocumentationCommentFormattingService,
+            delegateType As INamedTypeSymbol,
+            within As ISymbol,
+            cancellationToken As CancellationToken
+        ) As IList(Of SignatureHelpItem)
+
             Dim invokeMethod = delegateType.DelegateInvokeMethod
             If invokeMethod Is Nothing Then
                 Return Nothing
@@ -32,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=GetDelegateTypePostambleParts(invokeMethod),
                 parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken))
+                
             Return SpecializedCollections.SingletonList(item)
         End Function
 

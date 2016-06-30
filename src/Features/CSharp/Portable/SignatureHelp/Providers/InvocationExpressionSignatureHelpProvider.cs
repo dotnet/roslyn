@@ -76,9 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             // get the regular signature help items
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-            var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
-                                           .OfType<IMethodSymbol>()
-                                           .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
+            var methodGroup = semanticModel
+                .GetMemberGroup(invocationExpression.Expression, cancellationToken)
+                .OfType<IMethodSymbol>()
+                .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
 
             // try to bind to the actual method
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);

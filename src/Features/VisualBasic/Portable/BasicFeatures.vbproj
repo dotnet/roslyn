@@ -399,7 +399,7 @@
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />
     <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.vb" />
     <Compile Include="SignatureHelp\Providers\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
-    <Compile Include="SignatureHelp\Providers\AbstractSignatureHelpProvider.vb" />
+    <Compile Include="SignatureHelp\Providers\AbstractVisualBasicSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\Providers\AddRemoveHandlerSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\Providers\AttributeSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\Providers\CastExpressionSignatureHelpProvider.vb" />

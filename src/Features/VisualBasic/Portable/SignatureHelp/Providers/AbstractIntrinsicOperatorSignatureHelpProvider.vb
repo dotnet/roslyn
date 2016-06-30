@@ -35,15 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim node As TSyntaxNode = Nothing
-            If Not TryGetSyntaxNode(root, position, Document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, CancellationToken, node) Then
+            If Not TryGetSyntaxNode(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, node) Then
                 Return
             End If
 
-            Dim items As New List(Of SignatureHelpItem)
-
-            Dim semanticModel = Await Document.GetSemanticModelForNodeAsync(node, CancellationToken).ConfigureAwait(False)
-            For Each documentation In GetIntrinsicOperatorDocumentation(node, Document, CancellationToken)
-                Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(Document, semanticModel, node.SpanStart, documentation, CancellationToken)
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(False)
+            For Each documentation In GetIntrinsicOperatorDocumentation(node, document, cancellationToken)
+                Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(document, semanticModel, node.SpanStart, documentation, cancellationToken)
                 context.AddItem(signatureHelpItem)
             Next
 

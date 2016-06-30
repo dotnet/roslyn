@@ -67,9 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim accessibleMethods = methods.Where(Function(m) m.IsAccessibleWithin(within)).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                            Sort(symbolDisplayService, semanticModel, functionAggregation.SpanStart)
+            Dim accessibleMethods = methods _
+                .Where(Function(m) m.IsAccessibleWithin(within)) _
+                .FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation) _
+                .Sort(symbolDisplayService, semanticModel, functionAggregation.SpanStart)
 
             If Not accessibleMethods.Any() Then
                 Return

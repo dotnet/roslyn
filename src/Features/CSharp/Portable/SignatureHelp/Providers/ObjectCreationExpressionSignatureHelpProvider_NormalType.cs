@@ -26,10 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             ISymbol within,
             CancellationToken cancellationToken)
         {
-            var accessibleConstructors = normalType.InstanceConstructors
-                                                   .Where(c => c.IsAccessibleWithin(within))
-                                                   .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
-                                                   .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
+            var accessibleConstructors = normalType
+                .InstanceConstructors
+                .Where(c => c.IsAccessibleWithin(within))
+                .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
             return accessibleConstructors.Select(c =>
                 ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();

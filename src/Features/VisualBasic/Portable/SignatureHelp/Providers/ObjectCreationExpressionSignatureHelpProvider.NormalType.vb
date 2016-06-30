@@ -10,23 +10,28 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Function GetNormalTypeConstructors(document As Document,
-                                                   objectCreationExpression As ObjectCreationExpressionSyntax,
-                                                   semanticModel As SemanticModel,
-                                                   symbolDisplayService As ISymbolDisplayService,
-                                                   anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                                   normalType As INamedTypeSymbol,
-                                                   within As ISymbol,
-                                                   cancellationToken As CancellationToken) As IList(Of SignatureHelpItem)
-            Dim accessibleConstructors = normalType.InstanceConstructors.Where(Function(c) c.IsAccessibleWithin(within)).
-                                                    FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                                    Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart)
+        Private Function GetNormalTypeConstructors(
+            document As Document,
+            objectCreationExpression As ObjectCreationExpressionSyntax,
+            semanticModel As SemanticModel,
+            symbolDisplayService As ISymbolDisplayService,
+            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+            normalType As INamedTypeSymbol,
+            within As ISymbol,
+            cancellationToken As CancellationToken
+        ) As IList(Of SignatureHelpItem)
+
+            Dim accessibleConstructors = normalType _
+                .InstanceConstructors.Where(Function(c) c.IsAccessibleWithin(within)) _
+                .FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation) _
+                .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart)
 
             If Not accessibleConstructors.Any() Then
                 Return Nothing
             End If
 
             Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
+
             Return accessibleConstructors.Select(
                 Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
         End Function

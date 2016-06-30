@@ -80,10 +80,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Dim symbols = If(
                 isBaseAccess,
                 semanticModel.LookupBaseMembers(position, name),
-                If(
-                    namespacesOrTypesOnly,
-                    semanticModel.LookupNamespacesAndTypes(position, leftContainer, name),
-                    semanticModel.LookupSymbols(position, leftContainer, name, includeExtensions)))
+                If(namespacesOrTypesOnly,
+                   semanticModel.LookupNamespacesAndTypes(position, leftContainer, name),
+                   semanticModel.LookupSymbols(position, leftContainer, name, includeExtensions)))
 
             Dim within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken)
             If within Is Nothing Then
@@ -91,10 +90,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim accessibleSymbols = symbols.Where(Function(s) s.GetArity() > 0).
-                                            Where(Function(s) TypeOf s Is INamedTypeSymbol OrElse TypeOf s Is IMethodSymbol).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                            Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
+            Dim accessibleSymbols = symbols _
+                .Where(Function(s) s.GetArity() > 0) _
+                .Where(Function(s) TypeOf s Is INamedTypeSymbol OrElse TypeOf s Is IMethodSymbol) _
+                .FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation) _
+                .Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
 
             If accessibleSymbols.Count = 0 Then
                 Return
