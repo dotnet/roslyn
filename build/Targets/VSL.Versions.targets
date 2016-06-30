@@ -17,6 +17,7 @@
     <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60706-02</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
@@ -87,10 +88,6 @@
   <PropertyGroup>
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
-
-    <!-- TODO: change to a fixed version once we move this component to a separate repo -->
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.1.0-beta1</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion Condition="'$(BuildNumber)' != ''">$(MicrosoftDiaSymReaderPortablePdbVersion)-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</MicrosoftDiaSymReaderPortablePdbVersion>
   </PropertyGroup>
 
 </Project>

@@ -96,9 +96,9 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
-      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
-      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    <ProjectReference Include="..\..\Dependencies\DiaSymReader.PortablePdb\DiaSymReader.PortablePdb.csproj">
+      <Project>{d06f8190-ac11-48e6-b0bf-5f17b7eb7b62}</Project>
+      <Name>DiaSymReader.PortablePdb</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
       <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
