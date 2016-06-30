@@ -1,11 +1,8 @@
 @echo off
 @setlocal
 
-set RoslynRoot=%~dp0.
-set NuGetExeVersion=3.5.0-beta2
-set NuGetExeFolder="%RoslynRoot%\Binaries\Download\%NuGetExeVersion%"
-set NuGetExe="%NuGetExeFolder%\NuGet.exe"
-set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%\nuget.config" -Project2ProjectTimeOut 1200
+set RoslynRoot=%~dp0
+set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
 
 :ParseArguments
 if /I "%1" == "/?" goto :Usage
@@ -18,11 +15,8 @@ REM Allow for alternate solutions to be passed as restore targets.
 set RoslynSolution=%1
 if "%RoslynSolution%" == "" set RoslynSolution=%RoslynRoot%\Roslyn.sln
 
-REM Download NuGet.exe if we haven't already
-if not exist "%NuGetExe%" (
-    echo Downloading NuGet %NuGetExeVersion%
-    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\download-nuget.ps1" "%NuGetExeVersion%" "%NuGetExeFolder%" || goto :DownloadNuGetFailed
-)
+REM Load in the inforation for NuGet
+call "%RoslynRoot%build\scripts\LoadNuGetInfo.cmd" || goto :LoadNuGetInfoFailed
 
 if "%RestoreClean%" == "true" (
     echo Clearing the NuGet caches
@@ -30,22 +24,22 @@ if "%RestoreClean%" == "true" (
 )
 
 echo Deleting project.lock.json files
-pushd "%RoslynRoot%\src"
+pushd "%RoslynRoot%src"
 echo "Dummy lock file to avoid error when there is no project.lock.json file" > project.lock.json
 del /s /q project.lock.json
 popd
 
 echo Restoring packages: Toolsets
-call %NugetExe% restore "%RoslynRoot%\build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: Toolsets (Dev14 VS SDK build tools)
-call %NugetExe% restore "%RoslynRoot%\build\ToolsetPackages\dev14.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\dev14.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: Toolsets (Dev15 VS SDK build tools)
-call %NugetExe% restore "%RoslynRoot%\build\ToolsetPackages\dev15.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\dev15.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: Samples
-call %NugetExe% restore "%RoslynRoot%\src\Samples\Samples.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call %NugetExe% restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: Roslyn (this may take some time)
 call %NugetExe% restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
@@ -60,8 +54,8 @@ exit /b 1
 echo Restore failed with ERRORLEVEL %ERRORLEVEL%
 exit /b 1
 
-:DownloadNuGetFailed
-echo Error downloading NuGet.exe %ERRORLEVEL%
+:LoadNuGetInfoFailed
+echo Error loading NuGet.exe information %ERRORLEVEL%
 exit /b 1
 
 :Usage
