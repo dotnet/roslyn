@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol iterationVar = node.IterationVariable;
 
             //(V)(T)e.Current
-            BoundExpression iterationVarAssignValue = MakeConversion(
+            BoundExpression iterationVarAssignValue = MakeConversionNode(
                 syntax: forEachSyntax,
-                rewrittenOperand: MakeConversion(
+                rewrittenOperand: MakeConversionNode(
                     syntax: forEachSyntax,
                     rewrittenOperand: BoundCall.Synthesized(
                         syntax: forEachSyntax,
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: forEachSyntax,
                             rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
                                 operatorKind: BinaryOperatorKind.NotEqual,
-                                left: MakeConversion(
+                                left: MakeConversionNode(
                                     syntax: forEachSyntax,
                                     rewrittenOperand: boundEnumeratorVar,
                                     conversion: enumeratorInfo.EnumeratorConversion,
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return BoundCall.Synthesized(
                     syntax: syntax,
-                    receiverOpt: MakeConversion(
+                    receiverOpt: MakeConversionNode(
                         syntax: syntax,
                         rewrittenOperand: receiver,
                         conversion: receiverConversion,
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (V)s.Chars[p]
             MethodSymbol chars = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
-            BoundExpression iterationVarInitValue = MakeConversion(
+            BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
                 rewrittenOperand: BoundCall.Synthesized(
                     syntax: forEachSyntax,
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol iterationVarType = iterationVar.Type;
 
             // (V)a[p]
-            BoundExpression iterationVarInitValue = MakeConversion(
+            BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
                 rewrittenOperand: new BoundArrayAccess(
                     syntax: forEachSyntax,
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol iterationVarType = iterationVar.Type;
 
             // (V)a[p_0, p_1, ...]
-            BoundExpression iterationVarInitValue = MakeConversion(
+            BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,

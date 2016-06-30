@@ -178,14 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Use MakeConversion helper method in the LocalRewriter instead,
         /// it generates a synthesized conversion in its lowered form.
         /// </remarks>
-        public static BoundConversion SynthesizedNonUserDefined(CSharpSyntaxNode syntax, BoundExpression operand, ConversionKind kind, TypeSymbol type, ConstantValue constantValueOpt = null)
+        public static BoundConversion SynthesizedNonUserDefined(CSharpSyntaxNode syntax, BoundExpression operand, Conversion conversion, TypeSymbol type, ConstantValue constantValueOpt = null)
         {
-            // We need more information than just the conversion kind for creating a synthesized user defined conversion.
-            Debug.Assert(!kind.IsUserDefinedConversion(), "Use the BoundConversion.Synthesized overload that takes a 'Conversion' parameter for generating synthesized user defined conversions.");
-
-            //TODO: vsadov singletons
-            var conversion = new Conversion(kind);
-
             return new BoundConversion(
                 syntax,
                 operand,

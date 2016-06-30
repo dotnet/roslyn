@@ -3322,7 +3322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // CreateConversion here to generate diagnostics.
                         if (isLeftNullable)
                         {
-                            var strippedLeftOperand = CreateConversion(leftOperand, Conversion.ExplicitNullable, optLeftType0, diagnostics);
+                            var conversion = new Conversion(ConversionKind.ExplicitNullable, new Conversion[] { leftConversion });
+                            var strippedLeftOperand = CreateConversion(leftOperand, conversion, optLeftType0, diagnostics);
                             leftOperand = CreateConversion(strippedLeftOperand, leftConversion, optRightType, diagnostics);
                         }
                         else

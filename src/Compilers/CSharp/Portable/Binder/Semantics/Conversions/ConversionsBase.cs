@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
-        protected abstract bool HasImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+        protected abstract Conversion GetImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         /// <summary>
         /// Attempt a quick classification of builtin conversions.  As result of "no conversion"
@@ -41,7 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static Conversion FastClassifyConversion(TypeSymbol source, TypeSymbol target)
         {
             ConversionKind convKind = ConversionEasyOut.ClassifyConversion(source, target);
-            return new Conversion(convKind);
+            if (convKind != ConversionKind.ImplicitNullable && convKind != ConversionKind.ExplicitNullable)
+            {
+                return Conversion.GetTrivialConversion(convKind);
+            }
+
+            // TODO: vsadov singleton trivial conv arrays
+            return new Conversion(convKind, new Conversion[] { FastClassifyConversion(source.StrippedType(), target.StrippedType())});
         }
 
         /// <summary>
@@ -271,33 +277,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)source != null)
             {
-                conversion = ClassifyStandardImplicitConversion(destination, source, ref useSiteDiagnostics);
-                switch (conversion.Kind)
-                {
-                    case ConversionKind.ImplicitNumeric:
-                        return Conversion.ExplicitNumeric;
-                    case ConversionKind.ImplicitNullable:
-                        return Conversion.ExplicitNullable;
-                    case ConversionKind.ImplicitReference:
-                        return Conversion.ExplicitReference;
-                    case ConversionKind.Boxing:
-                        return Conversion.Unboxing;
-                    case ConversionKind.NoConversion:
-                        return Conversion.NoConversion;
-                    case ConversionKind.PointerToVoid:
-                        return Conversion.PointerToPointer;
-
-                    case ConversionKind.ImplicitTuple:
-                        // only implicit tuple conversions are standard conversions, 
-                        // having implicit conversion in the other direction does not help here.
-                        return Conversion.NoConversion;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
-                }
+                return DeriveStandardExplicitFromOppositeStandardImplicitConversion(source, destination, ref useSiteDiagnostics);
             }
 
             return Conversion.NoConversion;
+        }
+
+        private Conversion DeriveStandardExplicitFromOppositeStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            var oppositeConversion = ClassifyStandardImplicitConversion(destination, source, ref useSiteDiagnostics);
+            Conversion impliedExplicitConversion;
+
+            switch (oppositeConversion.Kind)
+            {
+                case ConversionKind.Identity:
+                    impliedExplicitConversion = Conversion.Identity;
+                    break;
+                case ConversionKind.ImplicitNumeric:
+                    impliedExplicitConversion = Conversion.ExplicitNumeric;
+                    break;
+                case ConversionKind.ImplicitReference:
+                    impliedExplicitConversion = Conversion.ExplicitReference;
+                    break;
+                case ConversionKind.Boxing:
+                    impliedExplicitConversion = Conversion.Unboxing;
+                    break;
+                case ConversionKind.NoConversion:
+                    impliedExplicitConversion = Conversion.NoConversion;
+                    break;
+                case ConversionKind.PointerToVoid:
+                    impliedExplicitConversion = Conversion.PointerToPointer;
+                    break;
+
+                case ConversionKind.ImplicitTuple:
+                    // only implicit tuple conversions are standard conversions, 
+                    // having implicit conversion in the other direction does not help here.
+                    impliedExplicitConversion = Conversion.NoConversion;
+                    break;
+
+                case ConversionKind.ImplicitNullable:
+                    var strippedSource = source.StrippedType();
+                    var strippedDestination = destination.StrippedType();
+                    var underlyingConversion = DeriveStandardExplicitFromOppositeStandardImplicitConversion(strippedSource, strippedDestination, ref useSiteDiagnostics);
+
+                    // the opposite underlying conversion may not exist 
+                    // for example if underlying conversion is implicit tuple
+                    impliedExplicitConversion = underlyingConversion.Exists ?
+                        new Conversion(ConversionKind.ExplicitNullable, new Conversion[] { underlyingConversion }) :
+                        Conversion.NoConversion;
+
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(oppositeConversion.Kind);
+            }
+
+            return impliedExplicitConversion;
         }
 
         internal Conversion ClassifyStandardImplicitConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -362,9 +397,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitNumeric;
             }
 
-            if (HasImplicitNullableConversion(source, destination, ref useSiteDiagnostics))
+            var nullableConversion = ClassifyImplicitNullableConversion(source, destination, ref useSiteDiagnostics);
+            if (nullableConversion.Exists)
             {
-                return Conversion.ImplicitNullable;
+                return nullableConversion;
             }
 
             if (HasImplicitReferenceConversion(source, destination, ref useSiteDiagnostics))
@@ -891,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasImplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyImplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -904,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * An implicit conversion from S to T?.
             if (!destination.IsNullableType())
             {
-                return false;
+                return Conversion.NoConversion;
             }
 
             TypeSymbol unwrappedDestination = destination.GetNullableUnderlyingType();
@@ -912,26 +948,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!unwrappedSource.IsValueType)
             {
-                return false;
+                return Conversion.NoConversion;
             }
 
             if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
             {
-                return true;
+                //TODO: vsadov array singletons
+                return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] {Conversion.Identity});
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return true;
+                //TODO: vsadov array singletons
+                return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { Conversion.ImplicitNumeric });
             }
 
             var tupleConversion = ClassifyImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics);
             if (tupleConversion.Exists)
             {
-                return true;
+                return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { tupleConversion });
             }
 
-            return false;
+            return Conversion.NoConversion;
         }
 
         private Conversion ClassifyImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1016,17 +1054,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
             {
-                return Conversion.ExplicitNullable;
+                //TODO: vsadov singleton arrays
+                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.Identity });
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return Conversion.ExplicitNullable;
+                //TODO: vsadov singleton arrays
+                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.ImplicitNumeric });
             }
 
             if (HasExplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return Conversion.ExplicitNullable;
+                //TODO: vsadov singleton arrays
+                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.ExplicitNumeric });
             }
 
             var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics, forCast);
@@ -1037,12 +1078,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasExplicitEnumerationConversion(unwrappedSource, unwrappedDestination))
             {
-                return Conversion.ExplicitNullable;
+                //TODO: vsadov singleton arrays
+                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.ExplicitEnumeration });
             }
 
             if (HasPointerToIntegerConversion(unwrappedSource, unwrappedDestination))
             {
-                return Conversion.ExplicitNullable;
+                //TODO: vsadov singleton arrays
+                return new Conversion(ConversionKind.ExplicitNullable, new[] { Conversion.PointerToInteger });
             }
 
             return Conversion.NoConversion;

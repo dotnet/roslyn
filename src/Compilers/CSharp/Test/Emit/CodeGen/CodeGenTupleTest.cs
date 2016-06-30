@@ -5212,7 +5212,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5287,7 +5287,7 @@ class C
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("(System.Int32, System.String)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             CompileAndVerify(comp);
         }
@@ -5315,7 +5315,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5350,7 +5350,7 @@ class C
             // ((short c, string d))(e: 1, f: ""hello"")
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node.Parent).Kind);
 
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -5381,7 +5381,7 @@ class C
             Assert.Equal(@"((long c, string d))(x)", node.ToString());
             Assert.Equal("(System.Int64 c, System.String d)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Object a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(node).Kind);
 
             node = nodes.OfType<ParenthesizedExpressionSyntax>().Single();
 
@@ -5415,7 +5415,7 @@ class C
             Assert.Equal(@"((long c, string d))(x)", node.ToString());
             Assert.Equal("(System.Int64 c, System.String d)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Object a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             node = nodes.OfType<ParenthesizedExpressionSyntax>().Single();
 
@@ -5448,7 +5448,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5518,7 +5518,7 @@ class C
             // ((int c, string d))(e: 1, f: ""hello"")
             Assert.Equal("(System.Int32 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node.Parent).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -13055,7 +13055,7 @@ class B
         ytyt = (((D<int>, D<int>),(D<int>, D<int>)))xtxt;   // explicit builtin downcast is preferred
         Console.WriteLine(ytyt);
 
-        (D<int>, D<int>)? ytn = ((D<int>, D<int>)?)xt;           // BUG https://github.com/dotnet/roslyn/issues/12064 explicit builtin downcast is NOT preferred (nullable)
+        (D<int>, D<int>)? ytn = ((D<int>, D<int>)?)xt;           // explicit builtin downcast is preferred (nullable)
         Console.WriteLine(ytn);
         Console.WriteLine();
 
@@ -13109,7 +13109,7 @@ explicit
 {original1, original2}
 {{original1, original2}, {original1, original2}}
 {{original1, original2}, {original1, original2}}
-{converted, converted}
+{original1, original2}
 
 implicit
 {converted, converted}

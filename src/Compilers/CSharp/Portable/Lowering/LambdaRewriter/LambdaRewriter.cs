@@ -1053,12 +1053,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_inExpressionLambda && conversion.ExplicitCastInCode)
                 {
-                    var outerConversion = new Conversion(conversion.ConversionKind);
-
                     result = new BoundConversion(
                         syntax: conversion.Syntax,
                         operand: result,
-                        conversion: outerConversion,
+                        conversion: conversion.Conversion,
                         isBaseConversion: false,
                         @checked: false,
                         explicitCastInCode: true,

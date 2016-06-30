@@ -150,27 +150,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitEnumeration;
             }
 
-            var kind = ClassifyImplicitConstantExpressionConversion(sourceExpression, destination);
-            if (kind != ConversionKind.NoConversion)
+            var constantConversion = ClassifyImplicitConstantExpressionConversion(sourceExpression, destination);
+            if (constantConversion.Exists)
             {
-                return new Conversion(kind);
+                return constantConversion;
             }
 
             switch (sourceExpression.Kind)
             {
                 case BoundKind.Literal:
-                    kind = ClassifyNullLiteralConversion(sourceExpression, destination);
-                    if (kind != ConversionKind.NoConversion)
+                    var nullLiteralConversion = ClassifyNullLiteralConversion(sourceExpression, destination);
+                    if (nullLiteralConversion.Exists)
                     {
-                        return new Conversion(kind);
+                        return nullLiteralConversion;
                     }
                     break;
 
                 case BoundKind.TupleLiteral:
-                    kind = ClassifyImplicitTupleLiteralConversion(sourceExpression, destination, ref useSiteDiagnostics);
-                    if (kind != ConversionKind.NoConversion)
+                    var tupleConversion = ClassifyImplicitTupleLiteralConversion(sourceExpression, destination, ref useSiteDiagnostics);
+                    if (tupleConversion.Exists)
                     {
-                        return new Conversion(kind);
+                        return tupleConversion;
                     }
                     break;
 
@@ -252,14 +252,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetImplicitUserDefinedConversion(sourceExpression, source, destination, ref useSiteDiagnostics);
         }
 
-        private static ConversionKind ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
+        private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
             if (!source.IsLiteralNull())
             {
-                return ConversionKind.NoConversion;
+                return Conversion.NoConversion;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any nullable type. 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return ConversionKind.NullLiteral;
+                return Conversion.NullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (destination.IsReferenceType)
             {
-                return ConversionKind.ImplicitReference;
+                return Conversion.ImplicitReference;
             }
 
             // SPEC: The set of implicit conversions is extended to include...
@@ -285,17 +285,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (destination is PointerTypeSymbol)
             {
-                return ConversionKind.NullToPointer;
+                return Conversion.NullToPointer;
             }
 
-            return ConversionKind.NoConversion;
+            return Conversion.NoConversion;
         }
 
-        private static ConversionKind ClassifyImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
+        private static Conversion ClassifyImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
         {
             if (HasImplicitConstantExpressionConversion(source, destination))
             {
-                return ConversionKind.ImplicitConstant;
+                return Conversion.ImplicitConstant;
             }
 
             // strip nullable from the destination
@@ -308,18 +308,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
                     HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0]))
                 {
-                    return ConversionKind.ImplicitNullable;
+                    //TODO: vsadov singleton arrays.
+                    return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { Conversion.ImplicitConstant });
                 }
             }
 
-            return ConversionKind.NoConversion;
+            return Conversion.NoConversion;
         }
 
-        private ConversionKind ClassifyImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (HasImplicitTupleLiteralConversion(source, destination, ref useSiteDiagnostics))
+            var tupleConversion = GetImplicitTupleLiteralConversion(source, destination, ref useSiteDiagnostics);
+            if (tupleConversion.Exists)
             {
-                return ConversionKind.ImplicitTupleLiteral;
+                return tupleConversion;
             }
 
             // strip nullable from the destination
@@ -329,14 +331,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (destination.Kind == SymbolKind.NamedType)
             {
                 var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
-                    HasImplicitTupleLiteralConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
+                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
                 {
-                    return ConversionKind.ImplicitNullable;
+                    var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics);
+
+                    if (underlyingTupleConversion.Exists)
+                    {
+                        return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { underlyingTupleConversion });
+                    }
                 }
             }
 
-            return ConversionKind.NoConversion;
+            return Conversion.NoConversion;
         }
 
         internal static bool HasImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
@@ -713,12 +719,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override bool HasImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected override Conversion GetImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (source.Kind != BoundKind.TupleLiteral)
             {
                 // source must be a tuple literal with no conversions
-                return false;
+                return Conversion.NoConversion;
             }
 
             var tupleExpression = (BoundTupleLiteral)source;
@@ -727,24 +733,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check if the type is actually compatible type for a tuple of given cardinality
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
             {
-                return false;
+                return Conversion.NoConversion;
             }
 
             ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 
+            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
                 var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
                 if (!result.Exists)
                 {
-                    return false;
+                    argumentConversions.Free();
+                    return Conversion.NoConversion;
                 }
+
+                argumentConversions.Add(result);
             }
 
-            return true;
+            return new Conversion(ConversionKind.ImplicitTupleLiteral, argumentConversions.ToArrayAndFree());
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

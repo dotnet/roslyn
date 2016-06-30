@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var conversionInfo = conversion.Conversion;
             if (conversionInfo.Method != (object)method)
             {
-                conversionInfo = conversionInfo.WithMethodGroupConversionMethod(method);
+                conversionInfo = conversionInfo.WithConversionMethod(method);
             }
 
             return conversion.Update(
