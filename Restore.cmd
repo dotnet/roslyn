@@ -7,6 +7,7 @@ set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nug
 :ParseArguments
 if /I "%1" == "/?" goto :Usage
 if /I "%1" == "/clean" set RestoreClean=true&&shift&& goto :ParseArguments
+if /I "%1" == "/fast" set RestoreFast=true&&shift&& goto :ParseArguments
 goto :DoneParsing
 
 :DoneParsing
@@ -23,11 +24,13 @@ if "%RestoreClean%" == "true" (
     call %NugetExe% locals all -clear || goto :CleanFailed
 )
 
-echo Deleting project.lock.json files
-pushd "%RoslynRoot%src"
-echo "Dummy lock file to avoid error when there is no project.lock.json file" > project.lock.json
-del /s /q project.lock.json
-popd
+if "%RestoreFast%" == "" (
+    echo Deleting project.lock.json files
+    pushd "%RoslynRoot%src"
+    echo "Dummy lock file to avoid error when there is no project.lock.json file" > project.lock.json
+    del /s /q project.lock.json
+    popd
+)
 
 echo Restoring packages: Toolsets
 call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
