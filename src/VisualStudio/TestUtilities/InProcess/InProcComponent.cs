@@ -11,8 +11,14 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
     /// <summary>
-    /// Base class for all components that run inside of the Visual Studio process. Every in-proc component
-    /// must provide a public, static, parameterless "Create" method.
+    /// Base class for all components that run inside of the Visual Studio process.
+    /// <list type="bullet">
+    /// <item>Every in-proc component should provide a public, static, parameterless "Create" method.
+    /// This will be called to construct the component in the VS process.</item>
+    /// <item>Public methods on in-proc components should be instance methods to ensure that they are
+    /// marshalled properly and execute in the VS process. Static methods will execute in the process
+    /// in which they are called.</item>
+    /// </list>
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {

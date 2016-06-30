@@ -215,36 +215,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public static void RetryRpcCall(Action action)
-        {
-            do
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
-                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
-                {
-                    // We'll just try again in this case
-                }
-            }
-            while (true);
-        }
-
-        public static T RetryRpcCall<T>(Func<T> action)
-        {
-            T returnValue = default(T);
-
-            RetryRpcCall(() =>
-            {
-                returnValue = action();
-            });
-
-            return returnValue;
-        }
-
         public static void SetForegroundWindow(IntPtr window)
         {
             var foregroundWindow = GetForegroundWindow();

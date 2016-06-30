@@ -28,19 +28,16 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             return new VisualStudioWorkspace_InProc();
         }
 
-        public bool UseSuggestionMode
+        public bool IsUseSuggestionModeOn()
         {
-            get
-            {
-                return _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
-            }
+            return _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
+        }
 
-            set
+        public void SetUseSuggestionMode(bool value)
+        {
+            if (IsUseSuggestionModeOn() != value)
             {
-                if (UseSuggestionMode != value)
-                {
-                    ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
-                }
+                ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
             }
         }
 

@@ -14,17 +14,14 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
             this._inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
-        public bool UseSuggestionMode
+        public bool IsUseSuggestionModeOn()
         {
-            get
-            {
-                return _inProc.UseSuggestionMode;
-            }
+            return _inProc.IsUseSuggestionModeOn();
+        }
 
-            set
-            {
-                _inProc.UseSuggestionMode = value;
-            }
+        public void SetUseSuggestionMode(bool value)
+        {
+            _inProc.SetUseSuggestionMode(value);
         }
 
         public bool IsPrettyListingOn(string languageName)

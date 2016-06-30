@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
 
             _visualStudioWorkspace = _visualStudio.Instance.VisualStudioWorkspace;
-            _visualStudioWorkspace.UseSuggestionMode = false;
+            _visualStudioWorkspace.SetUseSuggestionMode(false);
 
             _editor = _visualStudio.Instance.Editor;
         }
@@ -79,12 +79,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void DisableSuggestionMode()
         {
-            _visualStudioWorkspace.UseSuggestionMode = false;
+            _visualStudioWorkspace.SetUseSuggestionMode(false);
         }
 
         protected void EnableSuggestionMode()
         {
-            _visualStudioWorkspace.UseSuggestionMode = true;
+            _visualStudioWorkspace.SetUseSuggestionMode(true);
         }
 
         protected void InvokeCompletionList()

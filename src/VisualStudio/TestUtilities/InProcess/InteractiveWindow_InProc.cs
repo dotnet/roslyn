@@ -146,27 +146,27 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 
         public void WaitForReplPrompt()
         {
-            WaitForReplPromptAsync().ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+            WaitForReplPromptAsync().Wait();
         }
 
         private async Task WaitForReplPromptAsync()
         {
             while (!GetReplText().EndsWith(ReplPromptText))
             {
-                await Task.Yield();
+                await Task.Delay(50);
             }
         }
 
         public void WaitForReplOutput(string outputText)
         {
-            WaitForReplOutputAsync(outputText).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+            WaitForReplOutputAsync(outputText).Wait();
         }
 
         private async Task WaitForReplOutputAsync(string outputText)
         {
             while (!GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText))
             {
-                await Task.Yield();
+                await Task.Delay(50);
             }
         }
     }

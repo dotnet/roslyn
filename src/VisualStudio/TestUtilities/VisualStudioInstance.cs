@@ -2,10 +2,12 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
+using Microsoft.VisualStudio;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
@@ -185,9 +187,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 
-            if (IntegrationHelper.RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.VsStartServiceCommand).IsAvailable))
+            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.VsStartServiceCommand).IsAvailable))
             {
-                IntegrationHelper.RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.VsStartServiceCommand));
+                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.VsStartServiceCommand));
             }
         }
 
@@ -197,6 +199,36 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.VsStopServiceCommand);
             }
+        }
+
+        private static void RetryRpcCall(Action action)
+        {
+            do
+            {
+                try
+                {
+                    action();
+                    return;
+                }
+                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
+                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
+                {
+                    // We'll just try again in this case
+                }
+            }
+            while (true);
+        }
+
+        private static T RetryRpcCall<T>(Func<T> action)
+        {
+            T result = default(T);
+
+            RetryRpcCall(() =>
+            {
+                result = action();
+            });
+
+            return result;
         }
     }
 }

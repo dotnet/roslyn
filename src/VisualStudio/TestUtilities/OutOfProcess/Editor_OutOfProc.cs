@@ -41,6 +41,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
 
         public bool IsCaretOnScreen() => _inProc.IsCaretOnScreen();
 
+        /// <summary>
+        /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
+        /// <see cref="string"/> (each character will be sent separately, <see cref="char"/>, <see cref="VirtualKey"/>
+        /// and <see cref="KeyPress"/>.
+        /// </summary>
         public void SendKeys(params object[] keys)
         {
             Activate();
