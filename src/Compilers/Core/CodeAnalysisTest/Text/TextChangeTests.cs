@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestMergeChanges_Overlapping()
+        public void TestMergeChanges_Overlapping_NewInsideOld()
         {
             var original = SourceText.From("Hello World");
             var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
@@ -633,6 +633,48 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(6, 0), changes[0].Span);
             Assert.Equal("Cool ", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_OldInsideNew()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 14), "ar"));
+            Assert.Equal("Heard", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(2, 8), changes[0].Span);
+            Assert.Equal("ar", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_NewBeforeOld()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 6), " Bel"));
+            Assert.Equal("Hell Bell World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 2), changes[0].Span);
+            Assert.Equal(" Bell ", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_OldBeforeNew()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(7, 6), "wazy V"));
+            Assert.Equal("Hello Cwazy Vorld", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(6, 1), changes[0].Span);
+            Assert.Equal("Cwazy V", changes[0].NewText);
         }
 
         [Fact]
@@ -679,6 +721,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("o", changes[0].NewText);
             Assert.Equal(new TextSpan(8, 0), changes[1].Span);
             Assert.Equal("l", changes[1].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_BeforeAdjacent()
+        {
+            var original = SourceText.From("Hell");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), " World"));
+            Assert.Equal("Hell World", change1.ToString());
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o World", changes[0].NewText);
         }
     }
 }
