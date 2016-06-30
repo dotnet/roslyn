@@ -1534,6 +1534,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration node)
+        {
+            VisitDeconstructionAssignmentOperator(node.Assignment);
+            return null;
+        }
+
         public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
@@ -2530,6 +2536,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override sealed BoundNode VisitOutVarLocalPendingInference(OutVarLocalPendingInference node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override BoundNode VisitDeconstructionLocalPendingInference(DeconstructionLocalPendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
         }

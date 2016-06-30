@@ -3104,6 +3104,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deconstruction `var (...)` form disallows a specific type for &apos;var&apos;..
+        /// </summary>
+        internal static string ERR_DeconstructionVarFormDisallowsSpecificType {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructionVarFormDisallowsSpecificType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deconstruct assignment requires an expression with a type on the right-hand-side..
         /// </summary>
         internal static string ERR_DeconstructRequiresExpression {

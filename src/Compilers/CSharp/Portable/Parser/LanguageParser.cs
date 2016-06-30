@@ -8397,7 +8397,11 @@ tryAgain:
                 return null;
             }
 
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
+            if (topLevel)
+            {
+                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
+            }
+            return result;
         }
 
         /// <summary>

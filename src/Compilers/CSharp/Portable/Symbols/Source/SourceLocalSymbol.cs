@@ -83,6 +83,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new ForEachLocal(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
         }
 
+        public static SourceLocalSymbol MakeDeconstructionLocal(
+            Symbol containingSymbol,
+            Binder binder,
+            TypeSyntax closestTypeSyntax,
+            SyntaxToken identifierToken)
+        {
+            Debug.Assert(closestTypeSyntax != null);
+
+            if (closestTypeSyntax.IsVar)
+            {
+                return new PossiblyImplicitlyTypedDeconstructionLocalSymbol(containingSymbol, binder, closestTypeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
+            }
+            else
+            {
+                return new SourceLocalSymbol(containingSymbol, binder, RefKind.None, closestTypeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
+            }
+        }
+
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
             Binder binder,
@@ -100,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (argument.Type.IsVar)
                     {
-                        return new PossibleOutVarLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
+                        return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
                     }
                 }
 
@@ -526,15 +544,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Symbol for an out variable local that might require type inference during overload resolution.
         /// </summary>
-        private class PossibleOutVarLocalSymbol : SourceLocalSymbol
+        private class PossiblyImplicitlyTypedOutVarLocalSymbol : SourceLocalSymbol
         {
-            public PossibleOutVarLocalSymbol(
+            public PossiblyImplicitlyTypedOutVarLocalSymbol(
                 Symbol containingSymbol,
                 Binder binder,
                 RefKind refKind,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
-                LocalDeclarationKind declarationKind) 
+                LocalDeclarationKind declarationKind)
             : base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
             {
 #if DEBUG
@@ -577,6 +595,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(invocation.Kind());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Symbol for a deconstruction local that might require type inference.
+        /// For instance, local `x` in `var(x, y) = ...` or `(var x, int y) = ...`.
+        /// </summary>
+        private class PossiblyImplicitlyTypedDeconstructionLocalSymbol : SourceLocalSymbol
+        {
+            public PossiblyImplicitlyTypedDeconstructionLocalSymbol(
+                Symbol containingSymbol,
+                Binder binder,
+                TypeSyntax typeSyntax,
+                SyntaxToken identifierToken,
+                LocalDeclarationKind declarationKind)
+            : base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
+            {
+#if DEBUG
+                SyntaxNode parent;
+                Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent));
+                Debug.Assert(parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement);
+#endif
+            }
+
+            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
+            {
+                // Try binding enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
+                SyntaxNode topLevelVariableDeclaration;
+                bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out topLevelVariableDeclaration);
+
+                Debug.Assert(isDeconstruction);
+                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction != null);
+                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction.Value != null);
+
+                var statement = topLevelVariableDeclaration.Parent;
+                switch (statement.Kind())
+                {
+                    case SyntaxKind.LocalDeclarationStatement:
+                        this.binder.BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)statement, diagnostics);
+
+                        TypeSymbol result = this._type;
+                        Debug.Assert((object)result != null);
+                        return result;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(statement.Kind());
                 }
             }
         }

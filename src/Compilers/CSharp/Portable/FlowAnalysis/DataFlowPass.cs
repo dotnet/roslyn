@@ -1578,8 +1578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
-            // an assignment (if a simple variable or this-qualified) or an out parameter.  That's
-            // because this code assumes the variable is being read, not written.
+            // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
+            // That's because this code assumes the variable is being read, not written.
             LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
             if (localSymbol.IsFixed &&

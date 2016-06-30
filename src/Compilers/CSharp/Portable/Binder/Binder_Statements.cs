@@ -544,12 +544,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
             var binder = GetBinder(node);
             Debug.Assert(binder != null);
 
-            return binder.WrapWithVariablesIfAny(node, binder.BindDeclarationStatementParts(node, diagnostics));
+            BoundStatement bound;
+            if (node.Declaration.Deconstruction == null)
+            {
+                bound = binder.BindDeclarationStatementParts(node, diagnostics);
+            }
+            else
+            {
+                bound = binder.BindDeconstructionDeclarationStatementParts(node, diagnostics);
+            }
+
+            return binder.WrapWithVariablesIfAny(node, bound);
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
@@ -592,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
-            Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement || declarationNode.Kind() == SyntaxKind.Argument);
+            Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement || declarationNode.Kind() == SyntaxKind.Argument || declarationNode.Kind() == SyntaxKind.VariableDeclaration);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -1713,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindAssignment(node, op1, op2, diagnostics);
         }
 
-        private BoundAssignmentOperator BindAssignment(AssignmentExpressionSyntax node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundAssignmentOperator BindAssignment(ExpressionSyntax node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
