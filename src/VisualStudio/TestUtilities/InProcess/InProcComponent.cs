@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
     /// Base class for all components that run inside of the Visual Studio process. Every in-proc component
     /// must provide a public, static, parameterless "Create" method.
     /// </summary>
-    public abstract class InProcComponent : MarshalByRefObject
+    internal abstract class InProcComponent : MarshalByRefObject
     {
         protected InProcComponent() { }
 

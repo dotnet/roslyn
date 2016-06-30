@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
     /// <remarks>
     /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
     /// </remarks>
-    public abstract class InteractiveWindow_InProc : InProcComponent
+    internal abstract class InteractiveWindow_InProc : InProcComponent
     {
         private const string ResetCommand = "InteractiveConsole.Reset";
         private const string ReplSubmissionText = ". ";

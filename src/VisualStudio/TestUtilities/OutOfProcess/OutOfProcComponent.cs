@@ -7,23 +7,20 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
     /// <summary>
     /// Base class for all components that run outside of the Visual Studio process.
     /// </summary>
-    public abstract class OutOfProcComponent<TInProcComponent>
-        where TInProcComponent : InProcComponent
+    public abstract class OutOfProcComponent
     {
         protected readonly VisualStudioInstance VisualStudioInstance;
-        protected readonly TInProcComponent InProc;
 
         protected OutOfProcComponent(VisualStudioInstance visualStudioInstance)
         {
             VisualStudioInstance = visualStudioInstance;
-
-            InProc = CreateInProcComponent();
         }
 
-        private TInProcComponent CreateInProcComponent()
+        internal static TInProcComponent CreateInProcComponent<TInProcComponent>(VisualStudioInstance visualStudioInstance)
+            where TInProcComponent : InProcComponent
         {
             // Create MarshalByRefObject that can be used to execute code in the VS process.
-            return VisualStudioInstance.ExecuteInHostProcess<TInProcComponent>(
+            return visualStudioInstance.ExecuteInHostProcess<TInProcComponent>(
                 type: typeof(TInProcComponent),
                 methodName: "Create");
         }

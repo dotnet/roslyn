@@ -4,54 +4,57 @@ using Roslyn.VisualStudio.Test.Utilities.InProcess;
 
 namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
 {
-    public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent<VisualStudioWorkspace_InProc>
+    public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
+        private readonly VisualStudioWorkspace_InProc _inProc;
+
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            this._inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
         public bool UseSuggestionMode
         {
             get
             {
-                return InProc.UseSuggestionMode;
+                return _inProc.UseSuggestionMode;
             }
 
             set
             {
-                InProc.UseSuggestionMode = value;
+                _inProc.UseSuggestionMode = value;
             }
         }
 
         public bool IsPrettyListingOn(string languageName)
         {
-            return InProc.IsPrettyListingOn(languageName);
+            return _inProc.IsPrettyListingOn(languageName);
         }
 
         public void SetPrettyListing(string languageName, bool value)
         {
-            InProc.SetPrettyListing(languageName, value);
+            _inProc.SetPrettyListing(languageName, value);
         }
 
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
-            InProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+            _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
         }
 
         public void WaitForAllAsyncOperations()
         {
-            InProc.WaitForAllAsyncOperations();
+            _inProc.WaitForAllAsyncOperations();
         }
 
         public void CleanUpWorkspace()
         {
-            InProc.CleanUpWorkspace();
+            _inProc.CleanUpWorkspace();
         }
 
         public void CleanUpWaitingService()
         {
-            InProc.CleanUpWaitingService();
+            _inProc.CleanUpWaitingService();
         }
     }
 }

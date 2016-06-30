@@ -12,7 +12,7 @@ using Roslyn.VisualStudio.Test.Utilities.Common;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
-    public class Editor_InProc : InProcComponent
+    internal class Editor_InProc : InProcComponent
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 

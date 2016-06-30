@@ -10,33 +10,36 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the Visual Studio editor by remoting calls into Visual Studio.
     /// </summary>
-    public partial class Editor_OutOfProc : OutOfProcComponent<Editor_InProc>
+    public partial class Editor_OutOfProc : OutOfProcComponent
     {
+        private readonly Editor_InProc _inProc;
+
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            this._inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
         }
 
-        public void Activate() => InProc.Activate();
+        public void Activate() => _inProc.Activate();
 
-        public string GetText() => InProc.GetText();
-        public void SetText(string value) => InProc.SetText(value);
+        public string GetText() => _inProc.GetText();
+        public void SetText(string value) => _inProc.SetText(value);
 
-        public string GetCurrentLineText() => InProc.GetCurrentLineText();
-        public int GetCaretPosition() => InProc.GetCaretPosition();
-        public string GetLineTextBeforeCaret() => InProc.GetLineTextBeforeCaret();
-        public string GetLineTextAfterCaret() => InProc.GetLineTextAfterCaret();
+        public string GetCurrentLineText() => _inProc.GetCurrentLineText();
+        public int GetCaretPosition() => _inProc.GetCaretPosition();
+        public string GetLineTextBeforeCaret() => _inProc.GetLineTextBeforeCaret();
+        public string GetLineTextAfterCaret() => _inProc.GetLineTextAfterCaret();
 
-        public void MoveCaret(int position) => InProc.MoveCaret(position);
+        public void MoveCaret(int position) => _inProc.MoveCaret(position);
 
-        public string[] GetCompletionItems() => InProc.GetCompletionItems();
-        public string GetCurrentCompletionItem() => InProc.GetCurrentCompletionItem();
-        public bool IsCompletionActive() => InProc.IsCompletionActive();
+        public string[] GetCompletionItems() => _inProc.GetCompletionItems();
+        public string GetCurrentCompletionItem() => _inProc.GetCurrentCompletionItem();
+        public bool IsCompletionActive() => _inProc.IsCompletionActive();
 
-        public Signature[] GetSignatures() => InProc.GetSignatures();
-        public Signature GetCurrentSignature() => InProc.GetCurrentSignature();
+        public Signature[] GetSignatures() => _inProc.GetSignatures();
+        public Signature GetCurrentSignature() => _inProc.GetCurrentSignature();
 
-        public bool IsCaretOnScreen() => InProc.IsCaretOnScreen();
+        public bool IsCaretOnScreen() => _inProc.IsCaretOnScreen();
 
         public void SendKeys(params object[] keys)
         {

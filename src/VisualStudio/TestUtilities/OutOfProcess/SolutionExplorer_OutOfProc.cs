@@ -4,36 +4,42 @@ using Roslyn.VisualStudio.Test.Utilities.InProcess;
 
 namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
 {
-    public class SolutionExplorer_OutOfProc : OutOfProcComponent<SolutionExplorer_InProc>
+    public class SolutionExplorer_OutOfProc : OutOfProcComponent
     {
+        private readonly SolutionExplorer_InProc _inProc;
+
         public SolutionExplorer_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            this._inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
-        public void CloseSolution(bool saveFirst = false) => InProc.CloseSolution(saveFirst);
+        public void CloseSolution(bool saveFirst = false)
+        {
+            _inProc.CloseSolution(saveFirst);
+        }
 
         /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
         /// </summary>
         public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
         {
-            InProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
+            _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
         }
 
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
         {
-            InProc.OpenSolution(path, saveExistingSolutionIfExists);
+            _inProc.OpenSolution(path, saveExistingSolutionIfExists);
         }
 
         public void AddProject(string projectName, string projectTemplate, string languageName)
         {
-            InProc.AddProject(projectName, projectTemplate, languageName);
+            _inProc.AddProject(projectName, projectTemplate, languageName);
         }
 
         public void CleanUpOpenSolution()
         {
-            InProc.CleanUpOpenSolution();
+            _inProc.CleanUpOpenSolution();
         }
     }
 }

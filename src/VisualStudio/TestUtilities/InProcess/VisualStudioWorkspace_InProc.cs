@@ -13,7 +13,7 @@ using Roslyn.Hosting.Diagnostics.Waiters;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
-    public class VisualStudioWorkspace_InProc : InProcComponent
+    internal class VisualStudioWorkspace_InProc : InProcComponent
     {
         private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
         private readonly VisualStudioWorkspace _visualStudioWorkspace;

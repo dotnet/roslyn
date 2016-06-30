@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
-    public class CSharpInteractiveWindow_InProc : InteractiveWindow_InProc
+    internal class CSharpInteractiveWindow_InProc : InteractiveWindow_InProc
     {
         private const string ViewCommand = "View.C#Interactive";
         private const string WindowTitle = "C# Interactive";

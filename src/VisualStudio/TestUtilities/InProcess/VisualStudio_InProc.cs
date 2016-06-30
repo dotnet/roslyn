@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
-    public class VisualStudio_InProc : InProcComponent
+    internal class VisualStudio_InProc : InProcComponent
     {
         private VisualStudio_InProc() { }
 

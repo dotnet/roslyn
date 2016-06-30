@@ -7,17 +7,21 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the interactive window in the Visual Studio host.
     /// </summary>
-    public abstract class InteractiveWindow_OutOfProc<TInProcComponent> : OutOfProcComponent<TInProcComponent>
-        where TInProcComponent : InteractiveWindow_InProc
+    public abstract class InteractiveWindow_OutOfProc : OutOfProcComponent
     {
+        private readonly InteractiveWindow_InProc _inProc;
+
         internal InteractiveWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base (visualStudioInstance)
         {
+            _inProc = CreateInProcComponent(visualStudioInstance);
         }
+
+        internal abstract InteractiveWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance);
 
         public void Initialize()
         {
-            InProc.Initialize();
+            _inProc.Initialize();
         }
 
         /// <summary>
@@ -25,12 +29,12 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         /// </summary>
         public string GetLastReplOutput()
         {
-            return InProc.GetLastReplOutput();
+            return _inProc.GetLastReplOutput();
         }
 
         public string GetReplText()
         {
-            return InProc.GetReplText();
+            return _inProc.GetReplText();
         }
 
         /// <summary>
@@ -38,32 +42,32 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         /// </summary>
         public string GetReplTextWithoutPrompt()
         {
-            return InProc.GetReplTextWithoutPrompt();
+            return _inProc.GetReplTextWithoutPrompt();
         }
 
         public void ShowWindow(bool waitForPrompt = true)
         {
-            InProc.ShowWindow(waitForPrompt);
+            _inProc.ShowWindow(waitForPrompt);
         }
 
         public void Reset(bool waitForPrompt = true)
         {
-            InProc.Reset(waitForPrompt);
+            _inProc.Reset(waitForPrompt);
         }
 
         public void SubmitText(string text, bool waitForPrompt = true)
         {
-            InProc.SubmitText(text, waitForPrompt);
+            _inProc.SubmitText(text, waitForPrompt);
         }
 
         public void WaitForReplOutput(string outputText)
         {
-            InProc.WaitForReplOutput(outputText);
+            _inProc.WaitForReplOutput(outputText);
         }
 
         public void CleanUpInteractiveWindow()
         {
-            InProc.CloseWindow();
+            _inProc.CloseWindow();
         }
     }
 }

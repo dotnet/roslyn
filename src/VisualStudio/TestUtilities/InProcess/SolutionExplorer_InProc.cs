@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
-    public class SolutionExplorer_InProc : InProcComponent
+    internal class SolutionExplorer_InProc : InProcComponent
     {
         private EnvDTE80.Solution2 _solution;
         private string _fileName;
