@@ -41,11 +41,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
-        protected abstract void ResolveAnalyzersAndGeneratorsFromArguments(
+        protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators);
+            CommonMessageProvider messageProvider);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -364,9 +362,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-            ImmutableArray<DiagnosticAnalyzer> analyzers;
-            ImmutableArray<SourceGenerator> sourceGenerators;
-            ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, MessageProvider, out analyzers, out sourceGenerators);
+            ImmutableArray<DiagnosticAnalyzer> analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
@@ -384,30 +380,6 @@ namespace Microsoft.CodeAnalysis
                 if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
                 {
                     return Failed;
-                }
-
-                if (!sourceGenerators.IsEmpty)
-                {
-                    ImmutableArray<Diagnostic> generatorDiagnostics;
-                    var trees = compilation.GenerateSource(
-                        sourceGenerators,
-                        this.Arguments.OutputDirectory,
-                        writeToDisk: true,
-                        cancellationToken: cancellationToken,
-                        diagnostics: out generatorDiagnostics);
-                    bool generatorReportedErrors = ReportErrors(generatorDiagnostics, consoleOutput, errorLogger);
-                    if (!trees.IsEmpty)
-                    {
-                        compilation = compilation.AddSyntaxTrees(trees);
-                        if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
-                        {
-                            return Failed;
-                        }
-                    }
-                    if (generatorReportedErrors)
-                    {
-                        return Failed;
-                    }
                 }
 
                 ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;

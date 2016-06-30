@@ -1412,11 +1412,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     tempOpt = EmitReceiverRef(receiver, isAccessConstrained: callKind == CallKind.ConstrainedCallVirt);
                 }
-
-                if (method.ReplacedBy != null)
-                {
-                    callKind = CallKind.Call;
-                }
             }
 
             // When emitting a callvirt to a virtual method we always emit the method info of the

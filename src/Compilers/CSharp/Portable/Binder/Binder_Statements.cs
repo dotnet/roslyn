@@ -1809,7 +1809,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This case is reachable only through SemanticModel
                     return ((QualifiedNameSyntax)syntax).Right;
                 case SyntaxKind.IdentifierName:
-                case SyntaxKind.OriginalExpression:
                     return syntax;
                 case SyntaxKind.MemberBindingExpression:
                     return ((MemberBindingExpressionSyntax)syntax).Name;
