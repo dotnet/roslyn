@@ -112,6 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
                 // REVIEW: service hub control flow is a bit wierd. stream is the important one.
                 // TODO: figure out how to deal with cancellation
                 using (var stream = await _owner._primary.RequestServiceAsync("assetService").ConfigureAwait(false))
+                using (var buffer = new BufferedStream(stream, 256 * 1024))
                 using (var writer = new ObjectWriter(stream))
                 {
                     writer.WriteInt32(serviceId);

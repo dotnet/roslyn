@@ -28,7 +28,15 @@ namespace Microsoft.CodeAnalysis.Remote
             var compilation = await compilationService.GetCompilationAsync(solutionSnapshotId, projectId, Token).ConfigureAwait(false);
 
             var diagnostics = compilation.GetDiagnostics(Token);
+            Logger.TraceInformation(projectId.ToString());
             Logger.TraceInformation(string.Join("|", diagnostics.Select(d => d.GetMessage())));
+
+            for (var i = 0; i < 5; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
         }
     }
 }

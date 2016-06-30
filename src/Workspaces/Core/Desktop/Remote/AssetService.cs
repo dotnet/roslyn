@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // TODO: refactor this code. for now, make it at least work.
             var manager = RoslynServiceHubServices.Asset;
 
+            using (Stream)
+            using (var buffer = new BufferedStream(Stream, 1024 * 1024))
             using (var reader = new ObjectReader(Stream))
             {
                 _serviceId = reader.ReadInt32();

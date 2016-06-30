@@ -139,12 +139,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return false;
             }
 
+            private SolutionSnapshot _lastSnapshot;
+
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
                 var solution = project.Solution;
                 var snapshotService = solution.Workspace.Services.GetService<ISolutionSnapshotService>();
 
-                using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+                var lastSnapshot = _lastSnapshot;
+                _lastSnapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false);
+                lastSnapshot?.Dispose();
+
+                var snapshot = _lastSnapshot;
                 using (var sync = await RemoteHost.Instance.SynchronizeAsync(snapshot, CancellationToken.None).ConfigureAwait(false))
                 {
                     using (var hubClient = new HubClient("diagnostic test"))
