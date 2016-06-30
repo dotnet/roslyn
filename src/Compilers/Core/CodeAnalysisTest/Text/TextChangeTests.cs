@@ -620,5 +620,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Same(change1, change2); // this was a no-op and returned the same instance
         }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(7, 3), "oo"));
+            Assert.Equal("Hello Cool World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(6, 0), changes[0].Span);
+            Assert.Equal("Cool ", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_AfterAdjacent()
+        {
+            var original = SourceText.From("Hell");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o World", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_AfterSeparated()
+        {
+            var original = SourceText.From("Hell ");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o", changes[0].NewText);
+            Assert.Equal(new TextSpan(5, 0), changes[1].Span);
+            Assert.Equal("World", changes[1].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_BeforeSeparated()
+        {
+            var original = SourceText.From("Hell Word");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(8, 0), "l"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o", changes[0].NewText);
+            Assert.Equal(new TextSpan(8, 0), changes[1].Span);
+            Assert.Equal("l", changes[1].NewText);
+        }
     }
 }
