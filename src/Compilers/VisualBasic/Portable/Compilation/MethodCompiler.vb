@@ -840,17 +840,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnosticsThisMethod.Free()
                 Else
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
-                                                     method,
-                                                     methodOrdinal:=DebugId.UndefinedOrdinal,
-                                                     block:=boundBody,
-                                                     lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                                     closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                                     stateMachineTypeOpt:=Nothing,
-                                                     variableSlotAllocatorOpt:=Nothing,
-                                                     debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData, _debugDocumentProvider, Nothing),
-                                                     diagnostics:=diagnosticsThisMethod,
-                                                     emittingPdb:=False,
-                                                     dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
+                                                         method,
+                                                         methodOrdinal:=DebugId.UndefinedOrdinal,
+                                                         block:=boundBody,
+                                                         lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                         closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                                         stateMachineTypeOpt:=Nothing,
+                                                         variableSlotAllocatorOpt:=Nothing,
+                                                         debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData, _debugDocumentProvider, Nothing),
+                                                         diagnostics:=diagnosticsThisMethod,
+                                                         emittingPdb:=False,
+                                                         dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
                     diagnosticsThisMethod.Free()
