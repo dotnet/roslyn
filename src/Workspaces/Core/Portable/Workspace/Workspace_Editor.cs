@@ -177,7 +177,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [Obsolete("This method will be removed in a future release.")]
         protected void CheckProjectDoesNotContainOpenDocuments(ProjectId projectId)
         {
             if (ProjectHasOpenDocuments(projectId))

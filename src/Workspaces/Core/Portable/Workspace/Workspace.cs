@@ -424,7 +424,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [Obsolete("Projects can always be removed.  This method will be removed in a future release.")]
         protected virtual void CheckProjectCanBeRemoved(ProjectId projectId)
         {
         }
