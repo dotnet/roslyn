@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
     {
         public const string OptionName = "TaskList/Tokens";
 
+        // This is serialized by the CommentTaskTokenSerializer in the Visual Studio layer, since it's backed by another component
         [ExportOption]
         public static readonly Option<string> TokenList = new Option<string>(OptionName, "Token List", defaultValue: "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0");
     }

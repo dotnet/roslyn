@@ -83,6 +83,8 @@
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
+    <Compile Include="Implementation\Options\LocalUserRegistryOptionPersister.cs" />
+    <Compile Include="Implementation\Options\RoamingVisualStudioProfileOptionPersister.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -104,9 +106,7 @@
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
-    <Compile Include="Implementation\Options\AbstractLanguageSettingsSerializer.cs" />
-    <Compile Include="Implementation\Options\ExportLanguageSpecificOptionSerializerAttribute.cs" />
-    <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
+    <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
     <Compile Include="Implementation\Remote\IRemoteHostClientFactory.cs" />
     <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
