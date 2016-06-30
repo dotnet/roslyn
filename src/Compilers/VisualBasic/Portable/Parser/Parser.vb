@@ -6089,8 +6089,7 @@ checkNullable:
 
         Friend Shared Function CheckFeatureAvailability(opts As VisualBasicParseOptions, feature As Feature) As Boolean
             Dim required = feature.GetLanguageVersion()
-            If CInt(required) <= CInt(opts.LanguageVersion) Then Return True
-            Return CheckFeatures(feature, opts)
+            Return (CInt(required) <= CInt(opts.LanguageVersion)) OrElse CheckFeatures(feature, opts)
         End Function
 
         Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag,
