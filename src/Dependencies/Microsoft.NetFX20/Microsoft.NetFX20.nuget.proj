@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="Version.targets" />
-    <Import Project="..\..\..\Open\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <ItemGroup Label="Redist">
     <NuSpec Include="Microsoft.NetFX20.nuspec" />
@@ -17,7 +17,7 @@
     <!-- copy any extra content files (like EULAs) that we need to include -->
     <Copy SourceFiles="@(Content)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- package! -->
-    <Exec Command="..\..\..\Open\NuGet Pack %(NuSpec.Identity) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)" />
+    <Exec Command="..\..\..\NuGet Pack %(NuSpec.Identity) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)" />
   </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)NuGet" />

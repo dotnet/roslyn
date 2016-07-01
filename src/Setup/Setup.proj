@@ -40,7 +40,7 @@
     <MSBuild Projects="..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
 
     <!-- Microsoft.NetFX20 -->
-    <MSBuild Projects="..\References\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
+    <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
 
     <!-- NuGetPerBuildPreReleaseVersion -->
     <Exec Command="$(OutDir)csi.exe ..\..\build\BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
