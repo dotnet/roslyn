@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 {
@@ -29,9 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
-            var ancestorDeclarationKinds = restrictToDeclarations ? _invokableAncestorKinds.Add(SyntaxKind.Block).Add(SyntaxKind.ArrowExpressionClause) : _invokableAncestorKinds;
-            SyntaxNode matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
-            if (matchingNode == null || matchingNode.IsKind(SyntaxKind.Block) || matchingNode.IsKind(SyntaxKind.ArrowExpressionClause))
+            var ancestorDeclarationKinds = restrictToDeclarations
+                ? _invokableAncestorKinds.AddRange(new[] { SyntaxKind.Block, SyntaxKind.ArrowExpressionClause })
+                : _invokableAncestorKinds;
+
+            SyntaxNode matchingNode = token.Parent.AncestorsAndSelf()
+                    .FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
+
+            if (matchingNode == null || matchingNode.IsKind(SyntaxKind.Block, SyntaxKind.ArrowExpressionClause))
             {
                 return null;
             }
