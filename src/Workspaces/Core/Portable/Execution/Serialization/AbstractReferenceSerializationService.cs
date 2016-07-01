@@ -162,11 +162,46 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                WritePortableExecutableReferenceTo(reference, writer, cancellationToken);
+                WriteMvidsTo(reference, writer, cancellationToken);
 
                 stream.Position = 0;
                 return Checksum.Create(stream);
             }
+        }
+
+        private void WriteMvidsTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            var metadata = GetMetadata(reference);
+
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            if (assemblyMetadata != null)
+            {
+                writer.WriteInt32((int)assemblyMetadata.Kind);
+
+                var modules = assemblyMetadata.GetModules();
+                writer.WriteInt32(modules.Length);
+
+                foreach (var module in modules)
+                {
+                    WriteMvidTo(module, writer, cancellationToken);
+                }
+
+                return;
+            }
+
+            WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
+        }
+
+        private void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            writer.WriteInt32((int)metadata.Kind);
+
+            var metadataReader = GetMetadataReader(metadata);
+
+            var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+            var guid = metadataReader.GetGuid(mvidHandle);
+
+            writer.WriteArray(guid.ToByteArray());
         }
 
         private void WritePortableExecutableReferenceTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
@@ -395,15 +430,9 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var length = reader.ReadInt32();
-
-            // TODO: array type. Assert that it is byte array!
-            var unused = reader.ReadInt32();
-
-            for (var i = 0; i < length; i++)
-            {
-                stream.WriteByte((byte)reader.ReadValue());
-            }
+            // TODO: make reader be able to read byte[] chunk
+            var content = reader.ReadArray<byte>();
+            stream.Write(content, 0, content.Length);
         }
 
         private void WriteTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)

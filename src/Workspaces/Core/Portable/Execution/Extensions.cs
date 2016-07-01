@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -49,15 +50,21 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public static void WriteArray<T>(this ObjectWriter writer, T[] array)
         {
-            // this could be moved into ObjectWriter itself.
-            writer.WriteInt32(array.Length);
-
             ArrayType arrayType;
             if (!s_arrayTypeMap.TryGetValue(typeof(T), out arrayType))
             {
                 throw ExceptionUtilities.UnexpectedValue(typeof(T));
             }
 
+            // object writer supports these type of array natively
+            if (arrayType == ArrayType.Byte || arrayType == ArrayType.Char)
+            {
+                writer.WriteValue(array);
+                return;
+            }
+
+            // this could be moved into ObjectWriter itself.
+            writer.WriteInt32(array.Length);
             writer.WriteInt32((int)arrayType);
 
             for (var i = 0; i < array.Length; i++)
@@ -68,17 +75,24 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public static T[] ReadArray<T>(this ObjectReader reader)
         {
-            // this could be moved into ObjectReader itself
-            var length = reader.ReadInt32();
-            var arrayType = (ArrayType)reader.ReadInt32();
-
-            Type type;
-            if (!s_arrayTypeMap.TryGetKey(arrayType, out type))
+            ArrayType arrayType;
+            if (!s_arrayTypeMap.TryGetValue(typeof(T), out arrayType))
             {
                 throw ExceptionUtilities.UnexpectedValue(arrayType);
             }
 
-            var array = (T[])Array.CreateInstance(type, length);
+            // object reader supports these type of array natively
+            if (arrayType == ArrayType.Byte || arrayType == ArrayType.Char)
+            {
+                return (T[])reader.ReadValue();
+            }
+
+            // this could be moved into ObjectReader itself
+            var length = reader.ReadInt32();
+            var savedType = (ArrayType)reader.ReadInt32();
+            Contract.ThrowIfFalse(arrayType == savedType);
+
+            var array = (T[])Array.CreateInstance(typeof(T), length);
 
             for (var i = 0; i < length; i++)
             {
@@ -88,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return array;
         }
 
-        private static readonly BidirectionalMap<Type, ArrayType> s_arrayTypeMap = new BidirectionalMap<Type, ArrayType>(
+        private static readonly ImmutableDictionary<Type, ArrayType> s_arrayTypeMap = ImmutableDictionary.CreateRange<Type, ArrayType>(
             new KeyValuePair<Type, ArrayType>[]
             {
                 KeyValuePair.Create(typeof(bool), ArrayType.Bool),

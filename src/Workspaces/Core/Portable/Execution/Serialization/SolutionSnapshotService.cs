@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,10 +37,15 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public async Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
+                var stopWatch = Stopwatch.StartNew();
                 var snapshotStorage = _storages.CreateSnapshotStorage(solution);
 
                 var builder = new SnapshotBuilder(_storages.Serializer, snapshotStorage);
-                return new Snapshot(_storages, snapshotStorage, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
+                var snapshot = new Snapshot(_storages, snapshotStorage, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
+
+                Debug.WriteLine(stopWatch.Elapsed);
+
+                return snapshot;
             }
 
             public Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken)

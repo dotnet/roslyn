@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // in service hub, cancellation means simply closed stream
                 var @object = RoslynServiceHubServices.Serializer.Deserialize<object>(kind, reader, CancellationToken.None);
+
+                Logger.TraceInformation($"{kind} - {@object.ToString()}");
+
                 manager.Set(checksum, @object);
                 manager.CloseAssetRequest(_requestId.Value, result: true);
             }
