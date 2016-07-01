@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Open\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
 
   <ItemGroup>
-    <Project Include="..\Deployment\Current\Roslyn.Deployment.Full.csproj">
+    <Project Include="..\..\..\Closed\Deployment\Current\Roslyn.Deployment.Full.csproj">
       <!-- No reason to rebuild the VSIXes again that were built previously -->
       <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
     </Project>
-    <Project Include="..\Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
+    <Project Include="..\..\..\Closed\Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
       <!-- No reason to rebuild the VSIXes again that were built previously -->
       <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
     </Project>
@@ -36,20 +36,20 @@
     <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
 
     <!-- Dependencies -->
-    <MSBuild Projects="..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" />
-    <MSBuild Projects="..\..\Open\src\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
+    <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" />
+    <MSBuild Projects="..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
 
     <!-- Microsoft.NetFX20 -->
-    <MSBuild Projects="..\References\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
+    <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
 
     <!-- NuGetPerBuildPreReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe ..\..\Open\build\BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
+    <Exec Command="$(OutDir)csi.exe ..\..\build\BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
 
     <!-- NuGetPreReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe ..\..\Open\build\BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
+    <Exec Command="$(OutDir)csi.exe ..\..\build\BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
 
     <!-- NuGetReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe ..\..\Open\build\BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
+    <Exec Command="$(OutDir)csi.exe ..\..\build\BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
     
     <!-- Roslyn SDK -->
     <!-- Because the SDK references 1.0 versions of roslyn, we want it to build into its own folder to avoid overwriting other components -->

@@ -101,31 +101,11 @@ Public Module BuildDevDivInsertionFiles
             "Roslyn.VisualStudio.Setup.Next.vsix"
         }
 
-        ' Files copied to Maddog machines running integration tests
+        ' Files copied to Maddog machines running integration tests that are produced from our builds.
         Private ReadOnly IntegrationTestFiles As String() = {
-            "IntegrationTests\*.xml",
             "xunit.*.dll",
-            "CodeMarkerListener.dll",
-            "CorApi.dll",
-            "CorApiRaw.dll",
-            "DbgHooksIdl.tlb",
-            "DbgHooksJitIdl.tlb",
-            "Default.vssettings",
-            "DiagnosticMargin.dll",
-            "EditorTestApp.exe",
-            "EditorTestApp.exe.config",
             "Esent.Interop.dll",
-            "Extensions.txt",
-            "GetNewestPid.exe",
-            "Handle.exe",
             "InteractiveHost.exe",
-            "Interop.DbgHooksIdl.dll",
-            "Interop.DbgHooksJitIdl.dll",
-            "KernelTraceControl.dll",
-            "MDbgCore.dll",
-            "MDbgEng.dll",
-            "MDbgExt.dll",
-            "MDbgUtility.dll",
             "Microsoft.CodeAnalysis.CSharp.dll",
             "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
             "Microsoft.CodeAnalysis.CSharp.Features.dll",
@@ -147,6 +127,43 @@ Public Module BuildDevDivInsertionFiles
             "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
             "Microsoft.CodeAnalysis.Workspaces.dll",
             "Microsoft.Diagnostics.Runtime.dll",
+            "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
+            "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+            "Microsoft.VisualStudio.LanguageServices.dll",
+            "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
+            "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+            "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
+            "Roslyn.Compilers.Test.Resources.dll",
+            "Roslyn.Hosting.Diagnostics.dll",
+            "Roslyn.Services.Test.Utilities.dll",
+            "Roslyn.Test.PdbUtilities.dll",
+            "Roslyn.Test.Utilities.dll",
+            "Roslyn.Test.Utilities.dll.config",
+            "Roslyn.VisualStudio.Test.Setup.vsix"
+        }
+
+        ' Files needed by Mad dog tests that are produced by our internal builds.
+        Private ReadOnly IntegrationTestFilesExtra As String() = {
+            "IntegrationTests\*.xml",
+            "CodeMarkerListener.dll",
+            "CorApi.dll",
+            "CorApiRaw.dll",
+            "DbgHooksIdl.tlb",
+            "DbgHooksJitIdl.tlb",
+            "Default.vssettings",
+            "DiagnosticMargin.dll",
+            "EditorTestApp.exe",
+            "EditorTestApp.exe.config",
+            "Extensions.txt",
+            "GetNewestPid.exe",
+            "Handle.exe",
+            "Interop.DbgHooksIdl.dll",
+            "Interop.DbgHooksJitIdl.dll",
+            "KernelTraceControl.dll",
+            "MDbgCore.dll",
+            "MDbgEng.dll",
+            "MDbgExt.dll",
+            "MDbgUtility.dll",
             "Microsoft.Diagnostics.Tracing.TraceEvent.dll",
             "Microsoft.Internal.Performance.CodeMarkers.dll",
             "Microsoft.Internal.VisualStudio.DelayTracker.Library.dll",
@@ -161,12 +178,6 @@ Public Module BuildDevDivInsertionFiles
             "Microsoft.Test.Apex.VisualStudio.dll",
             "Microsoft.Test.Apex.VisualStudio.Debugger.dll",
             "Microsoft.Test.Apex.VisualStudio.Hosting.dll",
-            "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
-            "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-            "Microsoft.VisualStudio.LanguageServices.dll",
-            "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-            "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-            "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
             "Microsoft.VisualStudio.Web.Common.TestServices.dll",
             "Microsoft.VisualStudio.Web.Project.TestServices.dll",
             "NativeDebugWrappers.dll",
@@ -201,14 +212,7 @@ Public Module BuildDevDivInsertionFiles
             "dbghelp.dll",
             "regtlb.exe",
             "ResourceManagerBasic.dll",
-            "Roslyn.Compilers.Test.Resources.dll",
-            "Roslyn.Hosting.Diagnostics.dll",
-            "Roslyn.Services.Test.Utilities.dll",
-            "Roslyn.Test.PdbUtilities.dll",
             "Roslyn.Test.Performance.dll",
-            "Roslyn.Test.Utilities.dll",
-            "Roslyn.Test.Utilities.dll.config",
-            "Roslyn.VisualStudio.Test.Setup.vsix",
             "RoslynETAHost.dll",
             "RoslynTaoActions.dll",
             "RPFPlayback.dll",
@@ -228,21 +232,15 @@ Public Module BuildDevDivInsertionFiles
             "UITechnologyInterfaces.dll"
         }
 
-        ' Files copied to Maddog machines running unit tests
+        ' Files copied to Maddog machines running unit tests that are produced from our open build.
         Private ReadOnly UnitTestFiles As String() = {
             "Microsoft.*.UnitTests*.dll",
             "Roslyn.*.UnitTests*.dll",
             "xunit.*.dll",
             "PerfTests",
             "BasicUndo.dll",
-            "CorApi.dll",
-            "CorApiRaw.dll",
             "Esent.Interop.dll",
             "InteractiveHost.exe",
-            "MDbgCore.dll",
-            "MDbgEng.dll",
-            "MDbgExt.dll",
-            "MDbgUtility.dll",
             "Microsoft.CodeAnalysis.CSharp.dll",
             "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
             "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
@@ -282,7 +280,6 @@ Public Module BuildDevDivInsertionFiles
             "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
             "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
             "Moq.dll",
-            "NativeDebugWrappers.dll",
             "csc.exe",
             "csc.exe.config",
             "csc.rsp",
@@ -303,11 +300,22 @@ Public Module BuildDevDivInsertionFiles
             "vbc.exe.config",
             "vbc.rsp",
             "vbi.exe",
-            "Tao.Engine.dll",
-            "Tao.Environment.dll",
-            "Tao.Utilities.dll",
             "VBCSCompiler.exe",
             "VBCSCompiler.exe.config"
+        }
+
+        ' Files copied to Maddog machines running unit tests that are produced from our closed build.
+        Private ReadOnly UnitTestFilesExtra As String() = {
+            "CorApi.dll",
+            "CorApiRaw.dll",
+            "MDbgCore.dll",
+            "MDbgEng.dll",
+            "MDbgExt.dll",
+            "MDbgUtility.dll",
+            "NativeDebugWrappers.dll",
+            "Tao.Engine.dll",
+            "Tao.Environment.dll",
+            "Tao.Utilities.dll"
         }
 
         Private ReadOnly inputDirectory As String
@@ -373,8 +381,10 @@ Public Module BuildDevDivInsertionFiles
 
             ' Generate lists of files that are needed to run unit and integration tests in Maddog:
             Dim insertedFiles = New HashSet(Of String)(filesToInsert.Select(Function(f) f.Path), StringComparer.OrdinalIgnoreCase)
-            GenerateTestFileList(UnitTestFiles, NameOf(UnitTestFiles), insertedFiles)
-            GenerateTestFileList(IntegrationTestFiles, NameOf(IntegrationTestFiles), insertedFiles)
+            GenerateTestFileDependencyList(NameOf(UnitTestFiles), ExpandTestDependencies(UnitTestFiles), insertedFiles)
+            GenerateTestFileDependencyList(NameOf(UnitTestFilesExtra), UnitTestFilesExtra, insertedFiles)
+            GenerateTestFileDependencyList(NameOf(IntegrationTestFiles), ExpandTestDependencies(IntegrationTestFiles), insertedFiles)
+            GenerateTestFileDependencyList(NameOf(IntegrationTestFilesExtra), IntegrationTestFilesExtra, insertedFiles)
         End Sub
 
         Private Class NugetFileInfo
@@ -484,9 +494,13 @@ Public Module BuildDevDivInsertionFiles
             Return result
         End Function
 
-        Private Sub GenerateTestFileList(fileSpecs As String(), name As String, insertedFiles As HashSet(Of String))
-            File.WriteAllLines(Path.Combine(outputDirectory, name & ".txt"),
-                               EnumerateFiles(fileSpecs, name).Where(Function(f) Not insertedFiles.Contains(f)))
+        ''' <summary>
+        ''' Generate a list of files which were not inserted and place them in the named file.
+        ''' </summary>
+        Private Sub GenerateTestFileDependencyList(outputFileName As String, fileSpecs As IEnumerable(Of String), insertedFiles As HashSet(Of String))
+            File.WriteAllLines(
+                Path.Combine(outputDirectory, Path.ChangeExtension(outputFileName, ".txt")),
+                fileSpecs.Where(Function(f) Not insertedFiles.Contains(f)))
         End Sub
 
         ''' <summary>
@@ -495,8 +509,10 @@ Public Module BuildDevDivInsertionFiles
         ''' <param name="fileSpecs">
         ''' If the item contains '*', then it will be treated as a search pattern for the top directory.
         ''' Otherwise, if the item represents a directory, then all files and subdirectories of the item will be copied over.
+        ''' 
+        ''' This funtion will fail and throw and exception if any of the specified files do not exist on disk.
         ''' </param>
-        Private Iterator Function EnumerateFiles(fileSpecs As String(), name As String) As IEnumerable(Of String)
+        Private Iterator Function ExpandTestDependencies(fileSpecs As String()) As IEnumerable(Of String)
             For Each spec In fileSpecs
                 If spec.Contains("*") Then
                     For Each path In Directory.EnumerateFiles(inputDirectory, spec, SearchOption.TopDirectoryOnly)
@@ -512,7 +528,7 @@ Public Module BuildDevDivInsertionFiles
                     ElseIf File.Exists(inputItem) Then
                         Yield spec
                     Else
-                        Throw New FileNotFoundException($"File or directory '{spec}' listed in test dependencies '{name}' doesn't exist.", spec)
+                        Throw New FileNotFoundException($"File or directory '{spec}' listed in test dependencies doesn't exist.", spec)
                     End If
                 End If
             Next

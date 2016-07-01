@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Open\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -283,11 +283,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Open\src\Tools\Source\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj">
+    <ProjectReference Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj">
       <Project>{afe45e23-e7ee-48c5-8143-ebe2ff67070f}</Project>
       <Name>SyntaxVisualizerControl</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Open\src\Tools\Source\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
+    <ProjectReference Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
       <Project>{da4f74af-2694-4ac9-a8cc-18382de8215e}</Project>
       <Name>SyntaxVisualizerDgmlHelper</Name>
     </ProjectReference>
@@ -297,6 +297,11 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\BuildTasks\BuildTasks.vbproj">
+      <Project>{85e262d1-6e8b-46a6-9912-92b19ffcf7aa}</Project>
+      <Name>BuildTasks</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <Target BeforeTargets="CreateVsixContainer" Name="MakeVsixOutputDirectory">
@@ -310,50 +315,48 @@
       <VSIXSourceItem Include="@(IntermediateZipProject)">
         <VSIXSubPath>%(IntermediateZipProject.Filename)\%(IntermediateZipProject.Language)\%(IntermediateZipProject.OutputSubPath)\%(IntermediateZipProject.Culture)</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.Common.1.0.0\Microsoft.CodeAnalysis.Common.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Common\1.0.0\Microsoft.CodeAnalysis.Common.1.0.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.CSharp.1.0.0\Microsoft.CodeAnalysis.CSharp.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp\1.0.0\Microsoft.CodeAnalysis.CSharp.1.0.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp.Workspaces\1.0.0\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Workspaces.Common\1.0.0\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.VisualBasic.1.0.0\Microsoft.CodeAnalysis.VisualBasic.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic\1.0.0\Microsoft.CodeAnalysis.VisualBasic.1.0.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic.Workspaces\1.0.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.Composition.1.0.27\Microsoft.Composition.1.0.27.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.Composition\1.0.27\Microsoft.Composition.1.0.27.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\System.Collections.Immutable.1.1.36\System.Collections.Immutable.1.1.36.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\System.Collections.Immutable\1.1.36\System.Collections.Immutable.1.1.36.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\System.Reflection.Metadata.1.0.21\System.Reflection.Metadata.1.0.21.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\System.Reflection.Metadata\1.0.21\System.Reflection.Metadata.1.0.21.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\NuGet.CommandLine.2.8.5\NuGet.CommandLine.2.8.5.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\NuGet.CommandLine\2.8.5\NuGet.CommandLine.2.8.5.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\Microsoft.CodeAnalysis.Analyzers.1.1.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Analyzers\1.1.0\Microsoft.CodeAnalysis.Analyzers.1.1.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
     </ItemGroup>
   </Target>
   <!-- rewriting of .vstemplate files to reference the correct NuGet version number -->
-  <UsingTask AssemblyFile="$(OutDir)..\Roslyn.Setup.BuildTasks.dll" TaskName="Roslyn.Setup.BuildTasks.UpdateNuGetTemplateVersions" />
+  <UsingTask AssemblyFile="$(OutDir)Roslyn.Setup.BuildTasks.dll" TaskName="Roslyn.Setup.BuildTasks.UpdateNuGetTemplateVersions" />
   <Target Name="UpdateNuGetReferencesInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
     <ItemGroup>
       <_OriginalVSTemplate Include="@(VSTemplate)" />
     </ItemGroup>
-    <UpdateNuGetTemplateVersions ItemsToRewrite="@(VSTemplate)" 
-                                 AssemblyVersion="$(AssemblyVersion)"
-                                 IntermediatePath="ModifiedTemplates">
+    <UpdateNuGetTemplateVersions ItemsToRewrite="@(VSTemplate)" AssemblyVersion="$(AssemblyVersion)" IntermediatePath="ModifiedTemplates">
       <Output TaskParameter="NewItems" ItemName="VSTemplate" />
       <Output TaskParameter="ReferencedNuGetPackages" ItemName="ReferencedNuGetPackage" />
     </UpdateNuGetTemplateVersions>
@@ -365,6 +368,6 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GetVsixTemplateItems</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Open\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>
