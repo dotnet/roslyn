@@ -439,9 +439,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbolWithoutSuffix;
             bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix);
 
-            // Generic types are not allowed.
-            Debug.Assert(arity == 0 || !result.IsMultiViable);
-
             // Result with 'Attribute' suffix added.
             LookupResult resultWithSuffix = null;
             Symbol symbolWithSuffix = null;
@@ -451,9 +448,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultWithSuffix = LookupResult.GetInstance();
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix);
-
-                // Generic types are not allowed.
-                Debug.Assert(arity == 0 || !result.IsMultiViable);
             }
 
             if (resultWithoutSuffixIsViable && resultWithSuffixIsViable)
@@ -593,13 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.NamedType)
             {
                 var namedType = (NamedTypeSymbol)symbol;
-                if (namedType.IsGenericType)
-                {
-                    // Attribute classes cannot be generic.
-                    diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, symbol) : null;
-                    return false;
-                }
-                else if (namedType.IsAbstract)
+                if (namedType.IsAbstract)
                 {
                     // Attribute class cannot be abstract.
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AbstractAttributeClass, symbol) : null;
@@ -1420,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol namedType = (NamedTypeSymbol)symbol;
                         // non-declared types only appear as using aliases (aliases are arity 0)
                         Debug.Assert(object.ReferenceEquals(namedType.ConstructedFrom, namedType));
-                        if (namedType.Arity != arity || options.IsAttributeTypeLookup() && arity != 0)
+                        if (namedType.Arity != arity)
                         {
                             if (namedType.Arity == 0)
                             {
