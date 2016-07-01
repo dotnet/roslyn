@@ -655,6 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(receiverType));
             }
 
+            Debug.Assert(!this.IsUnreducedExtensionMember);
+
             if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension)
             {
                 return null;
@@ -663,6 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // To give optimal diagnostics, we should really pass the "current" compilation.
             // However, this is never used in batch scenarios, so it doesn't matter
             // (modulo future changes to the API).
+            // PROTOTYPE: Above comment is now incorrect (it's used everywhere in batch scenarios). Evaluate the concequences.
             return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation: null);
         }
 

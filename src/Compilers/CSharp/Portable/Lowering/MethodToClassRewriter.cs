@@ -497,8 +497,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // All incoming extension methods should be reduced
-            Debug.Assert(!method.IsExtensionMethod || !method.IsStatic);
+            // All incoming extension methods on the rewriting type should be reduced
+            // PROTOTYPE: not sure how to check for that specific case
+            //Debug.Assert(!method.IsExtensionMethod || !method.IsStatic);
             method = method.UnreduceExtensionMethod() ?? method;
             // and the conversion must succeed
             Debug.Assert(!method.IsExtensionMethod || method.IsStatic);

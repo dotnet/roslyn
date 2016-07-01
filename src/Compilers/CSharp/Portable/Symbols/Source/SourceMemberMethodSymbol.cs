@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                // PROTOTYPE: Why isn't this throwing for extension class methods with zero parameters?
+                // IsExtensionMethod == true means that we're in an unreduced old-style extension method, so Parameters[0] is the "receiver type"
                 var parameter0Type = this.Parameters[0].Type;
                 if (this.IsInExtensionClass)
                 {
@@ -221,6 +221,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(),
                             memberDescriptor.DeclaringTypeMetadataName);
                     }
+                }
+            }
+            else if (this.IsInExtensionClass)
+            {
+                if (this.IsReplace)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ReplaceMethodInExtensionClass, location);
                 }
             }
 

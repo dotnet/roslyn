@@ -286,6 +286,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                if (this.IsExtensionClass)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+                return null;
+            }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get { return _baseType; }

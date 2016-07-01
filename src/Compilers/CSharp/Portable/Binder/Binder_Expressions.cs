@@ -1193,7 +1193,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> unused = null;
             if (currentType.IsEqualToOrDerivedFrom(declaringType, ignoreDynamic: false, useSiteDiagnostics: ref unused))
             {
-                return ThisReference(syntax, currentType, wasCompilerGenerated: true);
+                // PROTOTYPE: Get the type of `this` in a better way. Probably want to modify the above if statement?
+                var typeOfThis = currentType.ExtensionClassType ?? currentType;
+                return ThisReference(syntax, typeOfThis, wasCompilerGenerated: true);
             }
             else
             {
@@ -1494,7 +1496,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnostics);
                 }
 
-                return ThisReference(node, currentType, hasErrors, wasCompilerGenerated: true);
+                // PROTOTYPE: Get the type of `this` in a better way. Probably want to modify the above if statement?
+                var typeOfThis = currentType.ExtensionClassType ?? currentType;
+                return ThisReference(node, typeOfThis, hasErrors, wasCompilerGenerated: true);
             }
             else
             {
@@ -1641,11 +1645,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = IsRefOrOutThisParameterCaptured(node, diagnostics);
             }
 
-            return ThisReference(node, this.ContainingType, hasErrors);
+            var currentType = this.ContainingType;
+            // PROTOTYPE: Get the type of `this` in a better way. Probably want to modify the above if statement?
+            var typeOfThis = currentType?.ExtensionClassType ?? currentType;
+            return ThisReference(node, typeOfThis, hasErrors);
         }
 
-        private BoundThisReference ThisReference(CSharpSyntaxNode node, NamedTypeSymbol thisTypeOpt, bool hasErrors = false, bool wasCompilerGenerated = false)
+        private BoundThisReference ThisReference(CSharpSyntaxNode node, TypeSymbol thisTypeOpt, bool hasErrors = false, bool wasCompilerGenerated = false)
         {
+            // If we have an extension class here, it means we used ContainingType instead of ReceiverType to get the type.
+            // That was previously okay, since they were always equivalent in the past, but extension classes break that.
+            Debug.Assert(!((thisTypeOpt as NamedTypeSymbol)?.IsExtensionClass ?? false));
             return new BoundThisReference(node, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
@@ -1860,7 +1870,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var containingMethod = (MethodSymbol)this.ContainingMember();
             var symbol = containingMethod.AssociatedSymbol ?? containingMethod; // property, event, or non-accessor method
-            var receiver = symbol.IsStatic ? null : ThisReference(syntax, symbol.ContainingType, wasCompilerGenerated: true);
+            // We should never have an extension class here in a non-error scenario, but still use it for error recovery.
+            var receiver = symbol.IsStatic ? null : ThisReference(syntax, symbol.ContainingType.ExtensionClassType ?? symbol.ContainingType, wasCompilerGenerated: true);
             var replaced = symbol.Replaced;
 
             if ((object)replaced == null)

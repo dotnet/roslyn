@@ -76,6 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected override void CheckExtensionClass(DiagnosticBag diagnostics)
+        {
+            var extensionClass = this.ExtensionClassTypeNoUseSiteDiagnostics;
+            Debug.Assert((object)extensionClass == null);
+        }
+
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
             return BaseTypeNoUseSiteDiagnostics;

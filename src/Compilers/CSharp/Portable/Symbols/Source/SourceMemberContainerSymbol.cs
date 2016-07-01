@@ -402,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CheckBase(DiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(DiagnosticBag diagnostics);
+        protected abstract void CheckExtensionClass(DiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
@@ -422,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             CheckBase(diagnostics);
+                            CheckExtensionClass(diagnostics); // PROTOTYPE: either bases or extension class does a short-circuit, so is this okay to call both here?
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
                             diagnostics.Free();

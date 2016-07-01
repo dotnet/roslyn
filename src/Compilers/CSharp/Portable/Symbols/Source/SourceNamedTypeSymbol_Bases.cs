@@ -176,6 +176,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected override void CheckExtensionClass(DiagnosticBag diagnostics)
+        {
+            var extensionClass = this.ExtensionClassTypeNoUseSiteDiagnostics;
+
+            if ((object)extensionClass == null)
+            {
+                // nothing to verify
+                return;
+            }
+
+            if (extensionClass != null && !extensionClass.IsErrorType())
+            {
+                var corLibrary = this.ContainingAssembly.CorLibrary;
+                var conversions = new TypeConversions(corLibrary);
+                var location = this.Locations[0]; // PROTOTYPE: Change this to the extension type declaration location
+
+                extensionClass.CheckAllConstraints(conversions, location, diagnostics);
+            }
+        }
+
         // finds syntax location where given type was inherited
         // should be used for error reporting on unexpected inherited types.
         private SourceLocation FindBaseRefSyntax(NamedTypeSymbol baseSym)
@@ -708,10 +728,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new ExtendedErrorTypeSymbol(this, ImmutableArray<Symbol>.Empty, LookupResultKind.Empty, info, 0);
             }
 
+            Location extensionClassTypeLocation = null;
             TypeSymbol extendedType = null;
             ArrayBuilder<TypeSymbol> multipleTypesSpecified = null;
             foreach (var decl in this.declaration.Declarations)
             {
+                extensionClassTypeLocation = decl.Location;
                 BaseListSyntax extendedTypeList = GetBaseListOpt(decl);
                 if (extendedTypeList == null)
                 {
@@ -743,9 +765,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)multipleTypesSpecified != null)
             {
                 // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
-                multipleTypesSpecified.Free();
                 var symbols = multipleTypesSpecified.ToImmutableAndFree();
-                var info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, symbols,
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, symbols.CastArray<Symbol>(),
                     new object[] { symbols[0], symbols[1] });
                 return new ExtendedErrorTypeSymbol(this, symbols.CastArray<Symbol>(), LookupResultKind.Ambiguous, info, 0);
             }
@@ -767,6 +788,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // note no cycles can occur, we are static (is this true? The other class might be an error but it still resolves)
             this.SetKnownToHaveNoDeclaredBaseCycles();
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            if (!this.IsNoMoreVisibleThan(extendedNamedType, ref useSiteDiagnostics))
+            {
+                // PROTOTYPE: Temporary error message ("base" is not right)
+                // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, extensionClassTypeLocation, this, extendedNamedType);
+            }
+            diagnostics.Add(Locations[0], useSiteDiagnostics);
 
             return extendedType;
         }

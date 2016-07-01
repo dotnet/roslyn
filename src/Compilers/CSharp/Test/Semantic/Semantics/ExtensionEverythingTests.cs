@@ -30,39 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: using static on ext class
 
         [Fact]
-        public void TempTest()
-        {
-            var text = @"
-class BaseClass
-{
-}
-
-static class Thing
-{
-    public static void Ext(this BaseClass asdf)
-    {
-        System.Console.WriteLine(""Hello, world!"");
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        System.Action x = new BaseClass().Ext;
-        x();
-    }
-}
-";
-
-            CompileAndVerify(
-                source: text,
-                additionalRefs: additionalRefs,
-                expectedOutput: "Hello, world!",
-                parseOptions: parseOptions);
-        }
-
-        [Fact]
         public void BasicFunctionality()
         {
             var text = @"
@@ -294,7 +261,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE: VariousExtendedKindsRestricted needs to pass first, this adds same member name ambiguity")]
+        [Fact(Skip = "PROTOTYPE: Need to implement ambiguity resolution between static extension members that are extending different types")]
         public void VariousExtendedKinds()
         {
             var text = @"
@@ -407,7 +374,7 @@ class BaseClass
 
 extension class ExtClass : BaseClass
 {
-    public int MethodInstanceExt() => MethodInstance() + 1;
+    public int MethodInstanceExt() => this.MethodInstance() + 1;
 }
 
 class Program
@@ -508,6 +475,7 @@ class BaseEnumerator
 class BaseAwaiter : System.Runtime.CompilerServices.INotifyCompletion
 {
     void System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(Action action) => action();
+    public int GetResult() => 5; // PROTOTYPE: this method is not allowed to be an extension method, for some reason.
 }
 
 extension class ExtEnumerable : BaseEnumerable
@@ -529,8 +497,9 @@ extension class ExtEnumerator : BaseEnumerator
     public int Current => 4;
     public bool MoveNext()
     {
-        var temp = accessed;
-        accessed = true;
+        // PROTOTYPE: test without 'this'?
+        var temp = this.accessed;
+        this.accessed = true;
         return !temp;
     }
     public void Dispose() { }
@@ -540,7 +509,6 @@ extension class ExtEnumerator : BaseEnumerator
 extension class ExtAwaiter : BaseAwaiter
 {
     public bool IsCompleted => true;
-    public int GetResult() => 5;
     public void OnCompleted(Action action) => action();
 }
 
@@ -1182,6 +1150,35 @@ extension class Ext : Base {
             );
         }
 
+        [Fact]
+        public void ReplaceMethodInExtensionClass()
+        {
+            var text = @"
+class Base
+{
+    public void Foo()
+    {
+    }
+}
+
+extension class Ext : Base {
+    replace public void Foo()
+    {
+        original();
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
+                // (10,25): error CS8209: A replacement method cannot be defined in an extension class.
+                //     replace public void Foo()
+                Diagnostic(ErrorCode.ERR_ReplaceMethodInExtensionClass, "Foo").WithLocation(10, 25),
+                // (12,9): error CS8944: No original member for 'Ext.Foo()'
+                //         original();
+                Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("Ext.Foo()").WithLocation(12, 9)
+            );
+        }
+
         [Fact(Skip = "PROTOTYPE: Static class extensions are not implemented yet")]
         public void InstanceInStaticExtension()
         {
@@ -1433,21 +1430,27 @@ extension class ExtCycle : ExtCycle { }
             // VolatileField
             // VariantInterface
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithMainTypeName("EntryPoint"), parseOptions: parseOptions).VerifyDiagnostics(
-                // (58,17): error CS0424: 'ExtComImport': a class with the ComImport attribute cannot specify a base class
-                // extension class ExtComImport : BaseClass { }
-                Diagnostic(ErrorCode.ERR_ComImportWithBase, "ExtComImport").WithArguments("ExtComImport").WithLocation(58, 17),
+                // (33,27): error CS1729: 'ExtClass' does not contain a constructor that takes 0 arguments
+                // [ObjectParamAttribute(new ExtClass())]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ExtClass").WithArguments("ExtClass", "0").WithLocation(33, 27),
+                // (47,17): error CS0540: 'ExtExplicitInterfaceImpl.IEnumerable.GetEnumerator()': containing type does not implement interface 'IEnumerable'
+                //     IEnumerator IEnumerable.GetEnumerator() => null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "IEnumerable").WithArguments("ExtExplicitInterfaceImpl.System.Collections.IEnumerable.GetEnumerator()", "System.Collections.IEnumerable").WithLocation(47, 17),
                 // (51,10): error CS0542: 'MemberNameSame': member names cannot be the same as their enclosing type
                 //     void MemberNameSame() { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "MemberNameSame").WithArguments("MemberNameSame").WithLocation(51, 10),
-                // (62,28): error CS0060: Inconsistent accessibility: base class 'Visibility.BaseClass' is less accessible than class 'Visibility.ExtClass'
+                // (58,17): error CS0424: 'ExtComImport': a class with the ComImport attribute cannot specify a base class
+                // extension class ExtComImport : BaseClass { }
+                Diagnostic(ErrorCode.ERR_ComImportWithBase, "ExtComImport").WithArguments("ExtComImport").WithLocation(58, 17),
+                // (62,5): error CS0060: Inconsistent accessibility: base class 'Visibility.BaseClass' is less accessible than class 'Visibility.ExtClass'
                 //     public extension class ExtClass : BaseClass { }
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "ExtClass").WithArguments("Visibility.ExtClass", "Visibility.BaseClass").WithLocation(62, 28),
-                // (72,17): error CS0146: Circular base class dependency involving 'ExtCycle' and 'ExtCycle'
-                // extension class ExtCycle : ExtCycle { }
-                Diagnostic(ErrorCode.ERR_CircularBase, "ExtCycle").WithArguments("ExtCycle", "ExtCycle").WithLocation(72, 17),
-                // (33,23): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [ObjectParamAttribute(new ExtClass())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new ExtClass()").WithLocation(33, 23)
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "public extension class ExtClass : BaseClass { }").WithArguments("Visibility.ExtClass", "Visibility.BaseClass").WithLocation(62, 5),
+                // (28,13): error CS1729: 'ExtClass' does not contain a constructor that takes 0 arguments
+                //         new ExtClass();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ExtClass").WithArguments("ExtClass", "0").WithLocation(28, 13),
+                // (43,23): error CS0310: 'ExtClass' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'ExtAsNewConstraint.Foo<T>()'
+                //     void TestFoo() => Foo<ExtClass>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Foo<ExtClass>").WithArguments("ExtAsNewConstraint.Foo<T>()", "T", "ExtClass").WithLocation(43, 23)
             );
         }
     }

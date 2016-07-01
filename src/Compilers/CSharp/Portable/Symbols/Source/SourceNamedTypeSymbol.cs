@@ -999,8 +999,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.TypeKind == TypeKind.Class)
                 {
                     var baseType = this.BaseTypeNoUseSiteDiagnostics;
-                    if ((object)baseType != null && baseType.SpecialType != SpecialType.System_Object)
+                    if (((object)baseType != null && baseType.SpecialType != SpecialType.System_Object) || ((object)this.ExtensionClassTypeNoUseSiteDiagnostics != null))
                     {
+                        // PROTOTYPE: Add another message for extension classes?
                         // CS0424: '{0}': a class with the ComImport attribute cannot specify a base class
                         diagnostics.Add(ErrorCode.ERR_ComImportWithBase, this.Locations[0], this.Name);
                     }

@@ -719,8 +719,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 // types are considered static members for purposes of "using static" feature
-                // regardless of whether they are declared with "static" modifier or not
+                // regardless of whether they are declared with "static" modifier or not.
+                // Extension classes are not used.
                 case SymbolKind.NamedType:
+                    if (((NamedTypeSymbol)symbol).IsExtensionClass)
+                    {
+                        return false;
+                    }
+
                     break;
 
                 // lookup via "using static" ignores non-static members

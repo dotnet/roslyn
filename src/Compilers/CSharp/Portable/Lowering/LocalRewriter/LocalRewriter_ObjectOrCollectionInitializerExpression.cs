@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializer.InvokedAsExtensionMethod)
             {
                 // The add method was found as an extension method. The arguments were already rewritten into static form by MakeArguments.
-                Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
+                Debug.Assert(addMethod.IsStatic && (addMethod.IsExtensionMethod || addMethod.IsInExtensionClass));
                 Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
             }
 
