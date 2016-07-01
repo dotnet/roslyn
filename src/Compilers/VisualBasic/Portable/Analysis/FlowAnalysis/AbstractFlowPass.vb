@@ -2613,7 +2613,6 @@ EnteredRegion:
             Return Nothing
         End Function
 
-
         Public Overrides Function VisitMethodDefIndex(node As BoundMethodDefIndex) As BoundNode
             Return Nothing
         End Function

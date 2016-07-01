@@ -61,13 +61,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim factory As New SyntheticBoundNodeFactory(Me, Me, VisualBasicSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics)
 
-            ' Initialize the payload root for for each kind of dynamic analysis instrumentation.
+            ' Initialize the payload root for each kind of dynamic analysis instrumentation.
             ' A payload root Is an array of arrays of per-method instrumentation payloads.
             ' For each kind of instrumentation:
             '
             '     payloadRoot = New T(MaximumMethodDefIndex)() {}
             '
-            ' where T Is the type of the payload at each instrumentation point, And MaximumMethodDefIndex Is the 
+            ' where T Is the type of the payload at each instrumentation point, and MaximumMethodDefIndex is the 
             ' index portion of the greatest method definition token in the compilation. This guarantees that any
             ' method can use the index portion of its own method definition token as an index into the payload array.
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 body.Add(
                     factory.Assignment(
-                        factory.InstrumentationPayloadRoot(analysisKind, payloadArrayType, True),
+                        factory.InstrumentationPayloadRoot(analysisKind, payloadArrayType, isLValue:=True),
                         factory.Array(payloadArrayType.ElementType, ImmutableArray.Create(factory.MaximumMethodDefIndex()), ImmutableArray(Of BoundExpression).Empty)))
             Next
 
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If guidParse IsNot Nothing Then
                 body.Add(
                     factory.Assignment(
-                       factory.ModuleVersionId(True),
+                       factory.ModuleVersionId(isLValue:=True),
                        factory.Call(Nothing, guidParse, ImmutableArray.Create(factory.ModuleVersionIdString()))))
             End If
 

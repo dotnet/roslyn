@@ -2202,11 +2202,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitModuleVersionIdLoad(node As BoundModuleVersionId)
             _builder.EmitOpCode(ILOpCode.Ldsfld)
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+            EmitModuleVersionIdToken(node)
         End Sub
 
         Private Sub EmitModuleVersionIdStore(node As BoundModuleVersionId)
             _builder.EmitOpCode(ILOpCode.Stsfld)
+            EmitModuleVersionIdToken(node)
+        End Sub
+
+        Private Sub EmitModuleVersionIdToken(node As BoundModuleVersionId)
             _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
         End Sub
 
@@ -2217,11 +2221,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitInstrumentationPayloadRootLoad(node As BoundInstrumentationPayloadRoot)
             _builder.EmitOpCode(ILOpCode.Ldsfld)
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+            EmitInstrumentationPayloadRootToken(node)
         End Sub
 
         Private Sub EmitInstrumentationPayloadRootStore(node As BoundInstrumentationPayloadRoot)
             _builder.EmitOpCode(ILOpCode.Stsfld)
+            EmitInstrumentationPayloadRootToken(node)
+        End Sub
+
+        Private Sub EmitInstrumentationPayloadRootToken(node As BoundInstrumentationPayloadRoot)
             _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
         End Sub
     End Class

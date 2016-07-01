@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, syntax, compilationState, diagnostics);
             factory.CurrentMethod = this;
 
-            // Initialize the payload root for for each kind of dynamic analysis instrumentation.
+            // Initialize the payload root for each kind of dynamic analysis instrumentation.
             // A payload root is an array of arrays of per-method instrumentation payloads.
             // For each kind of instrumentation:
             //

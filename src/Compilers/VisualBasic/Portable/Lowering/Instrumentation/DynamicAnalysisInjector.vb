@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
     ''' This type provides means for instrumenting compiled methods for dynamic analysis.
-    ''' It can be combined with other <see cref= "Instrumenter" /> s.
+    ''' It can be combined with other <see cref= "Instrumenter"/>s.
     ''' </summary>
     Friend NotInheritable Class DynamicAnalysisInjector
         Inherits CompoundInstrumenter
@@ -76,16 +76,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Synthesize the initialization of the instrumentation payload array, using concurrency-safe code
                 '
-                ' Dim payload = PID.PayloadRootField[methodIndex]
+                ' Dim payload = PID.PayloadRootField(methodIndex)
                 ' If payload Is Nothing Then
                 '     payload = Instrumentation.CreatePayload(mvid, methodIndex, PID.PayloadRootField(methodIndex), payloadLength)
                 ' End If
 
-                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, True), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, False), False, ImmutableArray.Create(_factory.MethodDefIndex(_method))))
-                Dim mvid As BoundExpression = _factory.ModuleVersionId(False)
+                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, isLValue:=True), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_factory.MethodDefIndex(_method))))
+                Dim mvid As BoundExpression = _factory.ModuleVersionId(isLValue:=False)
                 Dim methodToken As BoundExpression = _factory.MethodDefIndex(_method)
-                Dim payloadSlot As BoundExpression = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, False), False, ImmutableArray.Create(_factory.MethodDefIndex(_method)))
-                Dim createPayloadCall As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, True), _factory.Call(Nothing, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)))
+                Dim payloadSlot As BoundExpression = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_factory.MethodDefIndex(_method)))
+                Dim createPayloadCall As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, isLValue:=True), _factory.Call(Nothing, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)))
 
                 Dim payloadNullTest As BoundExpression = _factory.Binary(BinaryOperatorKind.Equals, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload, False), _factory.Null(_payloadType))
                 Dim payloadIf As BoundStatement = _factory.If(payloadNullTest, createPayloadCall)
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function InstrumentDoLoopStatementEntryOrConditionalGotoStart(original As BoundDoLoopStatement, ifConditionGotoStartOpt As BoundStatement) As BoundStatement
             Dim previous As BoundStatement = MyBase.InstrumentDoLoopStatementEntryOrConditionalGotoStart(original, ifConditionGotoStartOpt)
-            If (original.ConditionOpt IsNot Nothing) Then
+            If original.ConditionOpt IsNot Nothing Then
                 Return AddDynamicAnalysis(original, previous)
             End If
             Return previous
@@ -239,11 +239,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim spansIndex As Integer = _spansBuilder.Count
-            _spansBuilder.Add(New SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character))
+            _spansBuilder.Add(New SourceSpan(_debugDocumentProvider.Invoke(path, basePath:=""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character))
 
             ' Generate "_payload(pointIndex) = True".
 
-            Dim payloadCell As BoundArrayAccess = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload, False), True, statementFactory.Literal(spansIndex))
+            Dim payloadCell As BoundArrayAccess = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload, isLValue:=False), isLValue:=True, indices:=ImmutableArray.Create(Of BoundExpression)(statementFactory.Literal(spansIndex)))
             Return statementFactory.Assignment(payloadCell, statementFactory.Literal(True))
         End Function
 
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(statement, BoundDoLoopStatement).ConditionOpt.Syntax
                 Case BoundKind.UsingStatement
                     Dim usingStatement As BoundUsingStatement = DirectCast(statement, BoundUsingStatement)
-                    Return If(usingStatement.ResourceExpressionOpt IsNot Nothing, DirectCast(usingStatement.ResourceExpressionOpt, BoundNode), usingStatement).Syntax
+                    Return If(usingStatement.ResourceExpressionOpt, DirectCast(usingStatement, BoundNode)).Syntax
                 Case BoundKind.SyncLockStatement
                     Return DirectCast(statement, BoundSyncLockStatement).LockExpression.Syntax
                 Case BoundKind.SelectStatement

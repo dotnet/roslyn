@@ -2687,12 +2687,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitModuleVersionIdLoad(BoundModuleVersionId node)
         {
             _builder.EmitOpCode(ILOpCode.Ldsfld);
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+            EmitModuleVersionIdToken(node);
         }
 
         private void EmitModuleVersionIdStore(BoundModuleVersionId node)
         {
             _builder.EmitOpCode(ILOpCode.Stsfld);
+            EmitModuleVersionIdToken(node);
+        }
+
+        private void EmitModuleVersionIdToken(BoundModuleVersionId node)
+        {
             _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
 
@@ -2705,12 +2710,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitInstrumentationPayloadRootLoad(BoundInstrumentationPayloadRoot node)
         {
             _builder.EmitOpCode(ILOpCode.Ldsfld);
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+            EmitInstrumentationPayloadRootToken(node);
         }
 
         private void EmitInstrumentationPayloadRootStore(BoundInstrumentationPayloadRoot node)
         {
             _builder.EmitOpCode(ILOpCode.Stsfld);
+            EmitInstrumentationPayloadRootToken(node);  
+        }
+
+        private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
+        {
             _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
 

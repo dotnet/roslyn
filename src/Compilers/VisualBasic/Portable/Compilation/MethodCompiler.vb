@@ -1298,17 +1298,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                 Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
-                Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
                 setterBody = Rewriter.LowerBodyOrInitializer(setter,
                                                              withEventPropertyIdDispenser,
                                                              setterBody,
                                                              previousSubmissionFields,
                                                              compilationState,
-                                                             False,
-                                                             dynamicAnalysisSpans,
-                                                             _debugDocumentProvider,
-                                                             diagnostics,
+                                                             instrumentForDynamicAnalysis:=False,
+                                                             dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty,
+                                                             debugDocumentProvider:=_debugDocumentProvider,
+                                                             diagnostics:=diagnostics,
                                                              lazyVariableSlotAllocator:=Nothing,
                                                              lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
                                                              closureDebugInfoBuilder:=closureDebugInfoBuilder,
@@ -1412,7 +1411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
-                                                   CBool(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData),
+                                                   CBool(_moduleBeingBuiltOpt?.EmitOptions?.EmitDynamicAnalysisData),
                                                    dynamicAnalysisSpans,
                                                    _debugDocumentProvider,
                                                    diagnostics,
