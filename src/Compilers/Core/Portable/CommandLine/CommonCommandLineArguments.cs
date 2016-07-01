@@ -358,16 +358,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void ResolveAnalyzersAndGeneratorsFromArguments(
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
-            IAnalyzerAssemblyLoader analyzerLoader,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators)
+            IAnalyzerAssemblyLoader analyzerLoader)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            var generatorBuilder = ImmutableArray.CreateBuilder<SourceGenerator>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -420,14 +417,12 @@ namespace Microsoft.CodeAnalysis
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language);
-                resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
-            analyzers = analyzerBuilder.ToImmutable();
-            generators = generatorBuilder.ToImmutable();
+            return analyzerBuilder.ToImmutable();
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

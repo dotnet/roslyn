@@ -316,7 +316,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (uint)VSConstants.VSITEMID.Nil,
                 moniker,
                 parseOptions.Kind,
-                isGenerated: false,
                 canUseTextBuffer: _ => true);
 
             // If the buffer has not yet been initialized, we won't get a document.

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using Roslyn.Test.Performance.Utilities;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -11,14 +10,13 @@ namespace Roslyn.Test.Performance.Runner
 {
     public static class Benchview 
     {
-        public static readonly string CPCDirectoryPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
         private const string s_BenchviewPath = @"\\vcbench-srv4\benchview\uploads\vibench";
 
-        public static void UploadBenchviewReport()
+        internal static void UploadBenchviewReport()
         {
             // Convert the produced consumptionTempResults.xml file to consumptionTempResults.csv file
-            var elapsedTimeCsvFilePath = Path.Combine(CPCDirectoryPath, "consumptionTempResults_ElapsedTime.csv");
-            var result = ConvertConsumptionToCsv(Path.Combine(CPCDirectoryPath, "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
+            var elapsedTimeCsvFilePath = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults_ElapsedTime.csv");
+            var result = ConvertConsumptionToCsv(Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
 
             if (result)
             {
@@ -98,7 +96,7 @@ namespace Roslyn.Test.Performance.Runner
         /// Gets a csv file with metrics and converts them to ViBench supported JSON file
         private static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
         {
-            RuntimeSettings.logger.Log("Convert the csv to JSON using ViBench tool");
+            RuntimeSettings.Logger.Log("Convert the csv to JSON using ViBench tool");
             string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
             string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
             string hash = FirstLine(StdoutFrom("git", $"show --format=\"%h\" {branch} --"));
@@ -129,6 +127,7 @@ namespace Roslyn.Test.Performance.Runner
     jobName:""RoslynPerf-{hash}-{date}""
     jobGroupName:""Roslyn-{branch}""
     jobTypeName:""official""
+    branch:""{branch}""
     buildInfoName:""{date}-{branch}-{hash}""
     configName:""Default Configuration""
     machinePoolName:""4-core-windows""
@@ -141,7 +140,7 @@ namespace Roslyn.Test.Performance.Runner
     machineName:""{machineName}""
     buildNumber:""{date}-{hash}""
     /json:""{outJson}""
-    ";
+";
 
             arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 

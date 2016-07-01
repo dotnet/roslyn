@@ -273,7 +273,7 @@ class A
 ";
 
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
     // (4,11): error CS1031: Type expected
     //     const delegate void D();
     Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
@@ -357,9 +357,9 @@ class A
                 // (5,43): error CS8200: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
-                // (5,43): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (5,43): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("tuples", "tuples").WithLocation(5, 43),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 43),
                 // (5,46): error CS1001: Identifier expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 46),

@@ -2513,5 +2513,97 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+        {
+            return Argument(nameColon, refOrOutKeyword, (CSharpSyntaxNode)expression);
+        }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(ExpressionSyntax expression)
+        {
+            return Argument(default(NameColonSyntax), default(SyntaxToken), expression);
+        }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
+        {
+            return Argument(nameColon, outKeyword, (CSharpSyntaxNode)declaration);
+        }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
+        {
+            return Argument(default(NameColonSyntax), outKeyword, declaration);
+        }
+
+        static partial void ValidateArgumentParts(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
+        {
+            if (expressionOrDeclaration.Kind() == SyntaxKind.VariableDeclaration)
+            {
+                if (refOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
+                {
+                    throw new ArgumentException("outKeyword");
+                }
+
+                if (!ArgumentSyntax.IsValidOutVariableDeclaration((VariableDeclarationSyntax)expressionOrDeclaration))
+                {
+                    throw new ArgumentException("declaration");
+                }
+            }
+            else if (!(expressionOrDeclaration is ExpressionSyntax))
+            {
+                throw new ArgumentException(nameof(expressionOrDeclaration));
+            }
+        }
     }
 }
+
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+{
+    internal static partial class SyntaxFactory
+    {
+#if DEBUG
+        static partial void ValidateArgumentParts(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
+        {
+            ValidateArgumentPartsImpl(nameColon, refOrOutKeyword, expressionOrDeclaration);
+        }
+
+        static public void ValidateArgumentPartsImpl(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
+        {
+            if (expressionOrDeclaration.Kind == SyntaxKind.VariableDeclaration)
+            {
+                if (refOrOutKeyword.Kind != SyntaxKind.OutKeyword)
+                {
+                    throw new ArgumentException(nameof(refOrOutKeyword));
+                }
+
+                var declaration = (VariableDeclarationSyntax)expressionOrDeclaration;
+
+                if (!(declaration.Variables.Count == 1 &&
+                    declaration.Variables[0].ArgumentList == null &&
+                    declaration.Variables[0].Initializer == null))
+                {
+                    throw new ArgumentException(nameof(expressionOrDeclaration));
+                }
+            }
+            else if (!(expressionOrDeclaration is ExpressionSyntax))
+            {
+                throw new ArgumentException(nameof(expressionOrDeclaration));
+            }
+        }
+#endif
+    }
+
+    internal partial class ContextAwareSyntax
+    {
+#if DEBUG
+        partial void ValidateArgumentParts(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
+        {
+            SyntaxFactory.ValidateArgumentPartsImpl(nameColon, refOrOutKeyword, expressionOrDeclaration);
+        }
+#endif
+    }
+}
+

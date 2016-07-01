@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
         protected override ITypeSymbol GetArgumentType(
             SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
         {
-            return semanticModel.GetType(argument.Expression, cancellationToken);
+            return argument.DetermineParameterType(semanticModel, cancellationToken);
         }
 
         protected override ITypeSymbol GetAttributeArgumentType(

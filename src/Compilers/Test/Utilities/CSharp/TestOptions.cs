@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // document every public member of every test input.
         public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
+
+        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
+        public static readonly CSharpParseOptions ExperimentalParseOptions =
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp7).WithFeatures(s_experimentalFeatures);
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
@@ -41,34 +46,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
 
+        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
+        }
+
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
+            return options.WithFeature("strict", "true");
         }
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureLocalFunctions);
+            return options;
         }
 
         public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureRefLocalsReturns);
+            return options;
         }
 
         public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureTuples);
+            return options;
         }
 
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureReplace);
-        }
-
-        public static CSharpParseOptions WithPatternsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeaturePatternMatching);
+            return options;
         }
 
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
@@ -87,11 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     throw new InvalidOperationException($"{feature} is not a valid experimental feature");
                 }
 
+
                 list.Add(new KeyValuePair<string, string>(name, "true"));
             }
 
+
             return options.WithFeatures(options.Features.Concat(list));
         }
+
     }
 }
 

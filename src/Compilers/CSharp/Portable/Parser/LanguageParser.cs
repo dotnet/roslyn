@@ -1274,8 +1274,6 @@ tryAgain:
                             return SyntaxModifier.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return SyntaxModifier.Async;
-                        case SyntaxKind.ReplaceKeyword:
-                            return SyntaxModifier.Replace;
                     }
 
                     goto default;
@@ -1381,8 +1379,7 @@ tryAgain:
 
         private bool ShouldCurrentContextualKeywordBeTreatedAsModifier()
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword ||
-                this.CurrentToken.ContextualKind == SyntaxKind.ReplaceKeyword);
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
 
             // Adapted from CParser::IsAsyncMethod.
 
@@ -2385,7 +2382,7 @@ tryAgain:
                 if (acceptStatement &&
                     this.CurrentToken.Kind != SyntaxKind.CloseBraceToken &&
                     this.CurrentToken.Kind != SyntaxKind.EndOfFileToken &&
-                    this.IsPossibleStatement())
+                    this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
@@ -2419,7 +2416,6 @@ tryAgain:
                 if (GetModifier(this.CurrentToken) != SyntaxModifier.None &&
                     this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                     this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
-                    this.CurrentToken.ContextualKind != SyntaxKind.ReplaceKeyword &&
                     IsComplete(type))
                 {
                     var misplacedModifier = this.CurrentToken;
@@ -2556,7 +2552,7 @@ parse_member_name:;
 
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
-            if ((contextualKind != SyntaxKind.AsyncKeyword && contextualKind != SyntaxKind.ReplaceKeyword) ||
+            if (contextualKind != SyntaxKind.AsyncKeyword ||
                 modifiers.Any(contextualKind))
             {
                 return false;
@@ -2970,11 +2966,9 @@ parse_member_name:;
                 Debug.Assert(!IsInAsync);
 
                 IsInAsync = modifiers.Any(SyntaxKind.AsyncKeyword);
-                IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
-                IsInReplace = false;
                 IsInAsync = false;
 
                 var decl = _syntaxFactory.MethodDeclaration(
@@ -3223,8 +3217,6 @@ parse_member_name:;
                 parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
             }
 
-            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
-
             AccessorListSyntax accessorList = null;
             ArrowExpressionClauseSyntax expressionBody = null;
             SyntaxToken semicolon = null;
@@ -3255,8 +3247,6 @@ parse_member_name:;
                 expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedIndexer);
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
-
-            IsInReplace = false;
 
             var decl = _syntaxFactory.IndexerDeclaration(
                 attributes,
@@ -3294,8 +3284,6 @@ parse_member_name:;
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
                          this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
-            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
-
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
@@ -3319,8 +3307,6 @@ parse_member_name:;
                 initializer = _syntaxFactory.EqualsValueClause(equals, refKeyword: null, value: value);
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureAutoPropertyInitializer);
             }
-
-            IsInReplace = false;
 
             SyntaxToken semicolon = null;
             if (expressionBody != null || initializer != null)
@@ -4424,11 +4410,7 @@ tryAgain:
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
-            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
-
             var accessorList = this.ParseAccessorList(isEvent: true);
-
-            IsInReplace = false;
 
             var decl = _syntaxFactory.EventDeclaration(
                 attributes,
@@ -6612,7 +6594,7 @@ tryAgain:
                 // it as either a declaration or as an "await X();" statement that is in a non-async
                 // method. 
 
-                return ParsePossibleBadAwaitStatement();
+                return ParsePossibleDeclarationOrBadAwaitStatement();
             }
             finally
             {
@@ -6620,34 +6602,46 @@ tryAgain:
             }
         }
 
-        private StatementSyntax ParsePossibleBadAwaitStatement()
+        private StatementSyntax ParsePossibleDeclarationOrBadAwaitStatement()
         {
             ResetPoint resetPointBeforeStatement = this.GetResetPoint();
-            StatementSyntax result = ParsePossibleBadAwaitStatement(ref resetPointBeforeStatement);
+            StatementSyntax result = ParsePossibleDeclarationOrBadAwaitStatement(ref resetPointBeforeStatement);
             this.Release(ref resetPointBeforeStatement);
             return result;
         }
 
-        private StatementSyntax ParsePossibleBadAwaitStatement(ref ResetPoint resetPointBeforeStatement)
+        private StatementSyntax ParsePossibleDeclarationOrBadAwaitStatement(ref ResetPoint resetPointBeforeStatement)
         {
             // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
             //
             // That means that we are in one of the following cases:
             //
-            // 1) This is a perfectly mundane and correct local declaration statement like "int x;"
-            // 2) This is a perfectly mundane but erroneous local declaration statement, like "int X();"
-            // 3) We are in the rare case of the code containing "await x;" and the intention is that
+            // 1) This is not a statement. This can happen if the start of the statement was an
+            //    accessibility modifier, but the rest of the statement did not parse as a local
+            //    function. If there was an accessibility modifier and the statement parsed as
+            //    local function, that should be marked as a mistake with local function visibility.
+            //    Otherwise, it's likely the user just forgot a closing brace on their method.
+            // 2) This is a perfectly mundane and correct local declaration statement like "int x;"
+            // 3) This is a perfectly mundane but erroneous local declaration statement, like "int X();"
+            // 4) We are in the rare case of the code containing "await x;" and the intention is that
             //    "await" is the type of "x".  This only works in a non-async method.
-            // 4) We have what would be a legal await statement, like "await X();", but we are not in
+            // 5) We have what would be a legal await statement, like "await X();", but we are not in
             //    an async method, so the parse failed. (Had we been in an async method then the parse
             //    attempt done by our caller would have succeeded.)
-            // 5) The statement begins with "await" but is not a legal local declaration and not a legal
+            // 6) The statement begins with "await" but is not a legal local declaration and not a legal
             //    await expression regardless of whether the method is marked as "async".
 
             bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
             StatementSyntax result = ParseLocalDeclarationStatement();
 
-            // Cases (1), (2) and (3):
+            // Case (1)
+            if (result == null)
+            {
+                this.Reset(ref resetPointBeforeStatement);
+                return null;
+            }
+
+            // Cases (2), (3) and (4):
             if (!beginsWithAwait || !result.ContainsDiagnostics)
             {
                 return result;
@@ -6659,7 +6653,7 @@ tryAgain:
 
             Debug.Assert(!IsInAsync);
 
-            // Let's see if we're in case (4). Pretend that we're in an async method and see if parsing
+            // Let's see if we're in case (5). Pretend that we're in an async method and see if parsing
             // a non-declaration statement would have succeeded.
 
             this.Reset(ref resetPointBeforeStatement);
@@ -6669,13 +6663,13 @@ tryAgain:
 
             if (!result.ContainsDiagnostics)
             {
-                // We are in case (4). We do not report that we have an "await" expression in a non-async
+                // We are in case (5). We do not report that we have an "await" expression in a non-async
                 // method at parse time; rather we do that in BindAwait(), during the initial round of
                 // semantic analysis.
                 return result;
             }
 
-            // We are in case (5); we can't figure out what is going on here. Our best guess is that it is
+            // We are in case (6); we can't figure out what is going on here. Our best guess is that it is
             // a malformed local declaration, so back up and re-parse it.
 
             this.Reset(ref resetPointBeforeStatement);
@@ -7220,23 +7214,26 @@ tryAgain:
                 && this.CurrentToken.Kind != SyntaxKind.EndOfFileToken
                 && !(stopOnSwitchSections && this.IsPossibleSwitchSection()))
             {
-                if (this.IsPossibleStatement())
+                if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
                     var statement = this.ParseStatementCore();
-                    statements.Add(statement);
+                    if (statement != null)
+                    {
+                        statements.Add(statement);
+                        continue;
+                    }
                 }
-                else
+
+                CSharpSyntaxNode trailingTrivia;
+                var action = this.SkipBadStatementListTokens(statements, SyntaxKind.CloseBraceToken, out trailingTrivia);
+                if (trailingTrivia != null)
                 {
-                    CSharpSyntaxNode trailingTrivia;
-                    var action = this.SkipBadStatementListTokens(statements, SyntaxKind.CloseBraceToken, out trailingTrivia);
-                    if (trailingTrivia != null)
-                    {
-                        previousNode = AddTrailingSkippedSyntax(previousNode, trailingTrivia);
-                    }
-                    if (action == PostSkipAction.Abort)
-                    {
-                        break;
-                    }
+                    previousNode = AddTrailingSkippedSyntax(previousNode, trailingTrivia);
+                }
+
+                if (action == PostSkipAction.Abort)
+                {
+                    break;
                 }
             }
 
@@ -7246,21 +7243,24 @@ tryAgain:
         private bool IsPossibleStatementStartOrStop()
         {
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken
-                || this.IsPossibleStatement();
+                || this.IsPossibleStatement(acceptAccessibilityMods: true);
         }
 
         private PostSkipAction SkipBadStatementListTokens(SyntaxListBuilder<StatementSyntax> statements, SyntaxKind expected, out CSharpSyntaxNode trailingTrivia)
         {
             return this.SkipBadListTokensWithExpectedKindHelper(
                 statements,
-                p => !p.IsPossibleStatement(),
+                // We know we have a bad statement, so it can't be a local
+                // function, meaning we shouldn't consider accessibility
+                // modifiers to be the start of a statement
+                p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected,
                 out trailingTrivia
             );
         }
 
-        private bool IsPossibleStatement()
+        private bool IsPossibleStatement(bool acceptAccessibilityMods)
         {
             var tk = this.CurrentToken.Kind;
             switch (tk)
@@ -7298,9 +7298,19 @@ tryAgain:
                 case SyntaxKind.CatchKeyword:
                 case SyntaxKind.FinallyKeyword:
                     return !_isInTry;
+
+                // Accessibility modifiers are not legal in a statement,
+                // but a common mistake for local functions. Parse to give a
+                // better error message.
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.PrivateKeyword:
+                    return acceptAccessibilityMods;
+
                 default:
                     return IsPredefinedType(tk)
-                       || IsPossibleExpression();
+                        || IsPossibleExpression();
             }
         }
 
@@ -8233,15 +8243,30 @@ tryAgain:
 
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
-                this.ParseLocalDeclaration(variables, true, mods.ToTokenList(), refKeyword, out type, out localFunction);
+                this.ParseLocalDeclaration(variables,
+                    allowLocalFunctions: true,
+                    mods: mods.ToTokenList(),
+                    refTokenOpt: refKeyword,
+                    type: out type,
+                    localFunction: out localFunction);
+
                 if (localFunction != null)
                 {
                     Debug.Assert(variables.Count == 0);
                     return localFunction;
                 }
+
                 for (int i = 0; i < mods.Count; i++)
                 {
                     var mod = (SyntaxToken)mods[i];
+
+                    // If we find an accessibility modifier but no local function it's likely
+                    // the user forgot a closing brace. Let's back out of statement parsing.
+                    if (IsAccessibilityModifier(mod.ContextualKind))
+                    {
+                        return null;
+                    }
+
                     if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
                     {
                         mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
@@ -8378,6 +8403,7 @@ tryAgain:
                 {
                     mod = this.EatToken();
                 }
+
                 if (k == SyntaxKind.StaticKeyword || k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
@@ -8412,7 +8438,31 @@ tryAgain:
             {
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                // Not a valid modifier, but we should parse to give a good
+                // error message
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.PrivateKeyword:
                     return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsAccessibilityModifier(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                // Accessibility modifiers aren't legal in a local function,
+                // but a common mistake. Parse to give a better error message.
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.PrivateKeyword:
+                    return true;
+
                 default:
                     return false;
             }
@@ -9061,12 +9111,7 @@ tryAgain:
                     if (this.IsTrueIdentifier())
                     {
                         var contextualKind = this.CurrentToken.ContextualKind;
-                        if (contextualKind == SyntaxKind.OriginalKeyword && this.IsInReplace)
-                        {
-                            var token = ConvertToKeyword(this.EatToken());
-                            expr = _syntaxFactory.OriginalExpression(token);
-                        }
-                        else if (contextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
+                        if (contextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
                         {
                             expr = this.ParseAnonymousMethodExpression();
                         }
@@ -9442,10 +9487,55 @@ tryAgain:
             }
             else
             {
-                expression = this.ParseSubExpression(Precedence.Expression);
+                // According to Language Specification, section 7.6.7 Element access
+                //      The argument-list of an element-access is not allowed to contain ref or out arguments.
+                // However, due to backward compatibility, compiler overlooks this restriction during parsing
+                // and even ignores out/ref modifiers in element access during binding.
+                //
+                // We will enforce that language rule for out variables declarations at the parser level. 
+                if (!isIndexer &&
+                    refOrOutKeyword != null && refOrOutKeyword.Kind == SyntaxKind.OutKeyword &&
+                    IsPossibleOutVarDeclaration())
+                {
+                    TypeSyntax typeSyntax = ParseType(parentIsParameter: false);
+                    SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
+
+                    return _syntaxFactory.Argument(nameColon, refOrOutKeyword, 
+                               _syntaxFactory.VariableDeclaration(typeSyntax,
+                                   new SeparatedSyntaxList<VariableDeclaratorSyntax>(
+                                       new SyntaxList<CSharpSyntaxNode>(
+                                           _syntaxFactory.VariableDeclarator(identifier, null, null)))));
+                }
+                else
+                {
+                    expression = this.ParseSubExpression(Precedence.Expression);
+                }
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+        }
+
+        private bool IsPossibleOutVarDeclaration()
+        {
+            var tk = this.CurrentToken.Kind;
+            if (SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken)
+            {
+                return true;
+            }
+
+            var resetPoint = this.GetResetPoint();
+            try
+            {
+                SyntaxToken lastTokenOfType;
+                ScanTypeFlags st = this.ScanType(out lastTokenOfType);
+
+                return st != ScanTypeFlags.NotType && this.IsTrueIdentifier(); 
+            }
+            finally
+            {
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+            }
         }
 
         private TypeOfExpressionSyntax ParseTypeOfExpression()
@@ -9708,7 +9798,7 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9719,7 +9809,7 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseSubExpression(0);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9754,11 +9844,11 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseSubExpression(0);
 
-                        arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                     }
                     else
                     {
-                        arg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                     }
 
                     list.Add(arg);
@@ -11174,18 +11264,6 @@ tryAgain:
             _syntaxFactoryContext.QueryDepth--;
         }
 
-        private bool IsInReplace
-        {
-            get
-            {
-                return _syntaxFactoryContext.IsInReplace;
-            }
-            set
-            {
-                _syntaxFactoryContext.IsInReplace = value;
-            }
-        }
-
         private new ResetPoint GetResetPoint()
         {
             return new ResetPoint(
@@ -11193,7 +11271,6 @@ tryAgain:
                 _termState,
                 _isInTry,
                 _syntaxFactoryContext.IsInAsync,
-                _syntaxFactoryContext.IsInReplace,
                 _syntaxFactoryContext.QueryDepth);
         }
 
@@ -11202,7 +11279,6 @@ tryAgain:
             _termState = state.TerminatorState;
             _isInTry = state.IsInTry;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
-            _syntaxFactoryContext.IsInReplace = state.IsInReplace;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
         }
@@ -11218,7 +11294,6 @@ tryAgain:
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInTry;
             internal readonly bool IsInAsync;
-            internal readonly bool IsInReplace;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
@@ -11226,14 +11301,12 @@ tryAgain:
                 TerminatorState terminatorState,
                 bool isInTry,
                 bool isInAsync,
-                bool isInReplace,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInTry = isInTry;
                 this.IsInAsync = isInAsync;
-                this.IsInReplace = isInReplace;
                 this.QueryDepth = queryDepth;
             }
         }

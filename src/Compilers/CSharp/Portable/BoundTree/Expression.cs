@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             (object)this.Method != null &&
             this.ReceiverOpt != null &&
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
-            (object)this.Method.ReplacedBy == null &&
             !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new Argument(ArgumentKind.Named, parameter, argument);
                 });
         }
-        
+
         private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
         {
             if (parameter.Type.TypeKind == TypeKind.Array)
@@ -443,7 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IMethodBindingExpression.IsVirtual =>
             (object)this.MethodOpt != null &&
             (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
-            (object)this.MethodOpt.ReplacedBy == null &&
             !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
@@ -500,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundTupleExpression 
+    internal partial class BoundTupleExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -751,7 +749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = this.SymbolOpt;
                 return (object)method != null &&
                     (method.IsAbstract || method.IsOverride || method.IsVirtual) &&
-                    (object)method.ReplacedBy == null &&
                     !this.SuppressVirtualCalls;
             }
         }
@@ -1279,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundImplicitReceiver : IInstanceReferenceExpression
     {
         InstanceReferenceKind IInstanceReferenceExpression.InstanceReferenceKind => InstanceReferenceKind.Implicit;
-        
+
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
         public override void Accept(OperationVisitor visitor)
@@ -1908,7 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundDynamicCollectionElementInitializer
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -2801,4 +2798,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.None;
     }
 
+    /// <summary>
+    /// Providing iplementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// </summary>
+    internal partial class OutVarLocalPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
+    }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class PatternVariableFinder : CSharpSyntaxWalker
     {
         private Binder _binder;
-        private ArrayBuilder<LocalSymbol> _declarationPatterns;
+        private ArrayBuilder<LocalSymbol> _localsBuilder;
 
         internal static void FindPatternVariables(
             Binder binder,
@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var finder = s_poolInstance.Allocate();
             finder._binder = binder;
-            finder._declarationPatterns = builder;
+            finder._localsBuilder = builder;
 
             finder.Visit(node);
 
             finder._binder = null;
-            finder._declarationPatterns = null;
+            finder._localsBuilder = null;
             s_poolInstance.Free(finder);
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var finder = s_poolInstance.Allocate();
             finder._binder = binder;
-            finder._declarationPatterns = builder;
+            finder._localsBuilder = builder;
 
             foreach (var n in nodes)
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             finder._binder = null;
-            finder._declarationPatterns = null;
+            finder._localsBuilder = null;
             s_poolInstance.Free(finder);
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            _declarationPatterns.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
@@ -155,6 +155,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             operands.Free();
+        }
+
+        public override void VisitArgument(ArgumentSyntax node)
+        {
+            if (node.Expression != null)
+            {
+                base.VisitArgument(node);
+                return;
+            }
+
+            var contextKind = node.Parent. // ArgumentListSyntax
+                                   Parent. // invocation/constructor initializer
+                                   Kind();
+
+            switch (contextKind)
+            {
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                    break;
+                default:
+
+                    // It looks like we are deling with a syntax tree that has a shape that could never be
+                    // produced by the LanguageParser, including all error conditions. 
+                    // Out Variable declarations can only appear in an argument list of the syntax nodes mentioned above.
+                    throw ExceptionUtilities.UnexpectedValue(contextKind);
+            }
+
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type, node.Identifier, LocalDeclarationKind.RegularVariable));
         }
 
         #region pool

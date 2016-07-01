@@ -1,17 +1,17 @@
-﻿{
-  "dependencies": {
-    "Microsoft.CSharp": "4.0.0",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24128-00",
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
-    "System.Collections.Concurrent": "4.0.12-rc3-24128-00",    
-    "System.Console": "4.0.0-rc3-24128-00",
-    "System.Diagnostics.Debug": "4.0.11-rc3-24128-00",
-    "System.Diagnostics.Tools": "4.0.1-rc3-24128-00",
-    "System.IO.FileSystem": "4.0.1-rc3-24128-00",
-    "System.Reflection.TypeExtensions": "4.1.0-rc3-24128-00",
-    "System.Threading.Thread": "4.0.0-rc3-24128-00",
-    "System.Xml.XDocument": "4.0.11-rc3-24128-00",
-    "System.Xml.XmlDocument": "4.0.1-rc3-24128-00"
+{
+  "dependencies": {    
+    "Microsoft.CSharp": "4.0.1",
+    "Microsoft.NETCore.Platforms": "1.0.1",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "System.Collections.Concurrent": "4.0.12",
+    "System.Console": "4.0.0",
+    "System.Diagnostics.Debug": "4.0.11",
+    "System.Diagnostics.Tools": "4.0.1",
+    "System.IO.FileSystem": "4.0.1",
+    "System.Reflection.TypeExtensions": "4.1.0",
+    "System.Threading.Thread": "4.0.0",
+    "System.Xml.XDocument": "4.0.11",
+    "System.Xml.XmlDocument": "4.0.1"
   },
   "frameworks": {
     "netstandard1.3": {

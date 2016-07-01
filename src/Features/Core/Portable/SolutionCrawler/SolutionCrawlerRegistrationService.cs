@@ -91,7 +91,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var coordinator = default(WorkCoordinator);
                 if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
                 {
-                    throw new ArgumentException("workspace");
+                    // this can happen if solution crawler is already unregistered from workspace.
+                    // one of those example will be VS shutting down so roslyn package is disposed but there is a pending
+                    // async operation.
+                    return;
                 }
 
                 // no specific projects or documents provided

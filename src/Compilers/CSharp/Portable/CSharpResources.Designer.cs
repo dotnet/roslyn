@@ -3509,15 +3509,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type already contains a replacement for &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_DuplicateReplace {
-            get {
-                return ResourceManager.GetString("ERR_DuplicateReplace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; duplicate TypeForwardedToAttribute.
         /// </summary>
         internal static string ERR_DuplicateTypeForwarder {
@@ -4810,6 +4801,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplicitlyTypedLocalCannotBeFixed {
             get {
                 return ResourceManager.GetString("ERR_ImplicitlyTypedLocalCannotBeFixed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference to an implicitly-typed out variable &apos;{0}&apos; is not permitted in the same argument list..
+        /// </summary>
+        internal static string ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList", resourceCulture);
             }
         }
         
@@ -6569,15 +6569,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No original member for &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_NoOriginalMember {
-            get {
-                return ResourceManager.GetString("ERR_NoOriginalMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
         internal static string ERR_NoPIAAssemblyMissingAttribute {
@@ -7222,15 +7213,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PartialMultipleBases {
             get {
                 return ResourceManager.GetString("ERR_PartialMultipleBases", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replacement methods cannot be partial.
-        /// </summary>
-        internal static string ERR_PartialReplace {
-            get {
-                return ResourceManager.GetString("ERR_PartialReplace", resourceCulture);
             }
         }
         
@@ -8711,6 +8693,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
+        /// </summary>
+        internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
+            get {
+                return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedOutVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type parameter declaration must be an identifier not a type.
         /// </summary>
         internal static string ERR_TypeParamMustBeIdentifier {
@@ -9734,6 +9725,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureOptionalParameter {
             get {
                 return ResourceManager.GetString("IDS_FeatureOptionalParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to out variable declaration.
+        /// </summary>
+        internal static string IDS_FeatureOutVar {
+            get {
+                return ResourceManager.GetString("IDS_FeatureOutVar", resourceCulture);
             }
         }
         

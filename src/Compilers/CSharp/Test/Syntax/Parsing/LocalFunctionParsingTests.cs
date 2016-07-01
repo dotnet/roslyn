@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
@@ -10,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
+        internal static readonly CSharpParseOptions LocalFuncOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+
         [Fact]
         public void DiagnosticsWithoutExperimental()
         {
@@ -26,17 +29,17 @@ class c
     {
         int local() { return 0; }
     }
-}");
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             Assert.NotNull(file);
             Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int local() => 0;").WithArguments("local functions", "localFunctions").WithLocation(6, 9),
-                // (10,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int local() => 0;").WithArguments("local functions", "7").WithLocation(6, 9),
+                // (10,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int local() { return 0; }").WithArguments("local functions", "localFunctions").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int local() { return 0; }").WithArguments("local functions", "7").WithLocation(10, 9)
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
@@ -56,7 +59,7 @@ class c
         {
             // Experimental nodes should only appear when experimental are
             // turned on in parse options
-            var file = ParseFileExperimental(@"
+            var file = ParseFile(@"
 class c
 {
     void m()
@@ -70,7 +73,7 @@ class c
             return 0;
         }
     }
-}", MessageID.IDS_FeatureLocalFunctions);
+}");
 
             Assert.NotNull(file);
             Assert.False(file.HasErrors);
@@ -103,13 +106,13 @@ class c
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10388")]
         public void LocalFunctionsWithAwait()
         {
-            var file = ParseFileExperimental(@"class c
+            var file = ParseFile(@"class c
 {
     void m1() { await await() => new await(); }
     void m2() { await () => new await(); }
     async void m3() { await () => new await(); }
     void m4() { async await() => new await(); }
-}", MessageID.IDS_FeatureLocalFunctions);
+}");
 
             Assert.NotNull(file);
             var c = (ClassDeclarationSyntax)file.Members.Single();

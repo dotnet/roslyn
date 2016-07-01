@@ -505,6 +505,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.Local:
+                    VisitLvalue((BoundLocal)node);
+                    break;
+
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                     // no need for it to be previously assigned: it is on the left.
@@ -547,6 +550,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_trackRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside) LeaveRegion();
         }
 
+        protected virtual void VisitLvalue(BoundLocal node)
+        {
+            // no need for it to be previously assigned: it is on the left.
+        }
+        
         /// <summary>
         /// Visit a boolean condition expression.
         /// </summary>
@@ -2503,6 +2511,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override sealed BoundNode VisitOutVarLocalPendingInference(OutVarLocalPendingInference node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
         #endregion visitors
     }
 }

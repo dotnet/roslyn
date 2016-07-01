@@ -9,6 +9,8 @@ BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 HOME_DIR = $(shell cd ~ && pwd)
 DOTNET_VERSION = 1.0.0-preview2-002911
+NUGET_VERSION = 3.5.0-beta2
+NUGET_EXE = $(shell pwd)/nuget.exe
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
@@ -36,7 +38,7 @@ endif
 
 MSBUILD_CMD = $(ROSLYN_TOOLSET_PATH)/corerun $(ROSLYN_TOOLSET_PATH)/MSBuild.exe $(MSBUILD_ARGS)
 
-.PHONY: all bootstrap test restore toolset
+.PHONY: all bootstrap test restore toolset nuget
 
 all: $(ROSLYN_TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
@@ -57,11 +59,16 @@ bootstrap: $(ROSLYN_TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 test:
 	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
-restore: $(RESTORE_SEMAPHORE_PATH)
+restore: $(NUGET_EXE) $(RESTORE_SEMAPHORE_PATH)
 
 $(RESTORE_SEMAPHORE_PATH): $(ROSLYN_TOOLSET_PATH)
-	@build/scripts/restore.sh $(ROSLYN_TOOLSET_PATH) && \
+	@build/scripts/restore.sh $(ROSLYN_TOOLSET_PATH) $(NUGET_EXE) && \
 	touch $(RESTORE_SEMAPHORE_PATH)
+
+$(NUGET_EXE):
+	curl https://dist.nuget.org/win-x86-commandline/v$(NUGET_VERSION)/NuGet.exe -o $(NUGET_EXE) --create-dirs
+
+nuget: $(NUGET_EXE)
 
 clean:
 	@rm -rf Binaries
