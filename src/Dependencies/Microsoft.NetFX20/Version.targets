@@ -1,7 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <RoslynSemanticVersion>1.0.3</RoslynSemanticVersion>
-    <NuGetVersion>$(RoslynSemanticVersion)</NuGetVersion>
+    <NuGetVersion>1.0.3</NuGetVersion>
     <NuGetVersionType>Release</NuGetVersionType>
   </PropertyGroup>
 </Project>
