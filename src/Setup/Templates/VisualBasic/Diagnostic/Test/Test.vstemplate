@@ -1,0 +1,56 @@
+﻿<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>UnitTestProject</Name>
+    <Description>&lt;No description available&gt;</Description>
+    <ProjectType>VisualBasic</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>UnitTestProject</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon></Icon>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="$safeprojectname$.vbproj" File="UnitTestProject.vbproj" ReplaceParameters="true">
+      <Folder Name="Helpers" TargetFolderName="Helpers">
+        <ProjectItem ReplaceParameters="true" TargetFileName="CodeFixVerifier.Helper.vb">CodeFixVerifier.Helper.vb</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="DiagnosticResult.vb">DiagnosticResult.vb</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="DiagnosticVerifier.Helper.vb">DiagnosticVerifier.Helper.vb</ProjectItem>
+      </Folder>
+      <Folder Name="My Project" TargetFolderName="My Project">
+        <ProjectItem ReplaceParameters="true" TargetFileName="Application.myapp">Application.myapp</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="Application.Designer.vb">Application.Designer.vb</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="AssemblyInfo.vb">AssemblyInfo.vb</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="Resources.resx">Resources.resx</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="Resources.Designer.vb">Resources.Designer.vb</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="Settings.settings">Settings.settings</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="Settings.Designer.vb">Settings.Designer.vb</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="true" TargetFileName="UnitTests.vb">UnitTests.vb</ProjectItem>
+      <Folder Name="Verifiers" TargetFolderName="Verifiers">
+        <ProjectItem ReplaceParameters="true" TargetFileName="CodeFixVerifier.vb">CodeFixVerifier.vb</ProjectItem>
+        <ProjectItem ReplaceParameters="true" TargetFileName="DiagnosticVerifier.vb">DiagnosticVerifier.vb</ProjectItem>
+      </Folder>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.Templates, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKTestTemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension" repositoryId="3a012d4e-6057-4e7c-8123-6d4be1d4723c">
+      <package id="Microsoft.CodeAnalysis.Common" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.CSharp" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.VisualBasic" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Workspaces.Common" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="System.Collections.Immutable" version="1.1.34-rc" skipAssemblyReferences="false" />
+      <package id="System.Reflection.Metadata" version="1.0.19-rc" skipAssemblyReferences="false" />
+      <package id="Microsoft.Composition" version="1.0.27" skipAssemblyReferences="false" />
+    </packages>
+  </WizardData>
+</VSTemplate>
