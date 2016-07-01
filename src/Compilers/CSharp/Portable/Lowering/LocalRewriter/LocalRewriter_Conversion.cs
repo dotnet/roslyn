@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!method.ReturnsVoid);
             Debug.Assert(method.ParameterCount == 1);
 
-            conversion = conversion.WithConversionMethod(method);
+            conversion = conversion.SetConversionMethod(method);
 
             if (source.IsNullableType() && target.IsNullableType())
             {

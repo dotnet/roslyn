@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (underlyingTupleConversion.Exists)
                     {
-                        return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { underlyingTupleConversion });
+                        return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingTupleConversion));
                     }
                 }
             }
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // strip nullable from the destination
             //
             // the following should work and it is an ExplicitNullable conversion
-            //    var x = ((byte, string)?)(1,2);
+            //    var x = ((byte, string)?)(1,null);
             if (destination.Kind == SymbolKind.NamedType)
             {
                 var nt = (NamedTypeSymbol)destination;
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (underlyingTupleConversion.Exists)
                     {
-                        return new Conversion(ConversionKind.ExplicitNullable, new Conversion[] { underlyingTupleConversion });
+                        return new Conversion(ConversionKind.ExplicitNullable, ImmutableArray.Create(underlyingTupleConversion));
                     }
                 }
             }
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentConversions.Add(result);
             }
 
-            return new Conversion(ConversionKind.ImplicitTupleLiteral, argumentConversions.ToArrayAndFree());
+            return new Conversion(ConversionKind.ImplicitTupleLiteral, argumentConversions.ToImmutableAndFree());
         }
 
         protected override Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentConversions.Add(result);
             }
 
-            return new Conversion(ConversionKind.ExplicitTupleLiteral, argumentConversions.ToArrayAndFree());
+            return new Conversion(ConversionKind.ExplicitTupleLiteral, argumentConversions.ToImmutableAndFree());
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

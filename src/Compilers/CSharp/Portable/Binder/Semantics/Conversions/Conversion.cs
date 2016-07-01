@@ -15,118 +15,178 @@ namespace Microsoft.CodeAnalysis.CSharp
     public struct Conversion : IEquatable<Conversion>
     {
         private readonly ConversionKind _kind;
+        private readonly UncommonData _uncommonData;
 
-        private readonly MethodSymbol _conversionMethod;
-        private readonly Conversion[] _nestedConversionsOpt;
+        // most conversions are trivial and do not require additional data besides Kind
+        // in uncommon cases an instance of this class is attached to the conversion.
+        private class UncommonData
+        {
+            public UncommonData(
+                bool isExtensionMethod,
+                bool isArrayIndex,
+                UserDefinedConversionResult conversionResult,
+                MethodSymbol conversionMethod,
+                ImmutableArray<Conversion> nestedConversions)
+            {
+                _conversionMethod = conversionMethod;
+                _conversionResult = conversionResult;
+                _nestedConversionsOpt = nestedConversions;
 
-        //no effect on Equals/GetHashCode
-        private readonly UserDefinedConversionResult _conversionResult; 
+                _flags = isExtensionMethod ? IsExtensionMethodMask : (byte)0;
+                if (isArrayIndex)
+                {
+                    _flags |= IsArrayIndexMask;
+                }
+            }
 
-        private readonly byte _flags;
-        private const byte IsExtensionMethodMask = 1 << 0;
-        private const byte IsArrayIndexMask = 1 << 1;
+            internal readonly MethodSymbol _conversionMethod;
+            internal readonly ImmutableArray<Conversion> _nestedConversionsOpt;
 
+            //no effect on Equals/GetHashCode
+            internal readonly UserDefinedConversionResult _conversionResult;
+
+            private const byte IsExtensionMethodMask = 1 << 0;
+            private const byte IsArrayIndexMask = 1 << 1;
+            private readonly byte _flags;
+
+            internal bool IsExtensionMethod
+            {
+                get
+                {
+                    return (_flags & IsExtensionMethodMask) != 0;
+                }
+            }
+
+            // used by dynamic, which needs to know if a conversion is an array index conversion.
+            internal bool IsArrayIndex
+            {
+                get
+                {
+                    return (_flags & IsArrayIndexMask) != 0;
+                }
+            }
+        }
 
         private Conversion(
-            ConversionKind kind, 
-            bool isExtensionMethod, 
-            bool isArrayIndex, 
-            UserDefinedConversionResult conversionResult, 
-            MethodSymbol conversionMethod,
-            Conversion[] nestedConversions)
+            ConversionKind kind,
+            UncommonData uncommonData)
         {
             _kind = kind;
-            _conversionResult = conversionResult;
-            _conversionMethod = conversionMethod;
-            _nestedConversionsOpt = nestedConversions;
-
-            _flags = isExtensionMethod ? IsExtensionMethodMask : (byte)0;
-            if (isArrayIndex)
-            {
-                _flags |= IsArrayIndexMask;
-            }
-        }
-
-        internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
-            : this()
-        {
-            this._kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
-                ? ConversionKind.NoConversion
-                : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-            _conversionResult = conversionResult;
-        }
-
-        // For the method group, lambda and anonymous method conversions
-        internal Conversion(ConversionKind kind, MethodSymbol methodGroupConversionMethod, bool isExtensionMethod)
-            : this()
-        {
-            this._kind = kind;
-            _conversionMethod = methodGroupConversionMethod;
-            if (isExtensionMethod)
-            {
-                _flags = IsExtensionMethodMask;
-            }
-        }
-
-        internal Conversion(ConversionKind kind, Conversion[] nestedConversions)
-            : this()
-        {
-            this._kind = kind;
-            this._nestedConversionsOpt = nestedConversions;
+            _uncommonData = uncommonData;
         }
 
         private Conversion(ConversionKind kind)
-            : this()
+            : this(kind, null)
         {
-            Debug.Assert(kind != ConversionKind.ImplicitNullable, "nullable conversion must have an underlying one");
-            Debug.Assert(kind != ConversionKind.ExplicitNullable, "nullable conversion must have an underlying one");
-            Debug.Assert(kind != ConversionKind.ImplicitTuple, "tuple conversion must have underlying conversions");
-            Debug.Assert(kind != ConversionKind.ImplicitTupleLiteral, "tuple conversion must have underlying conversions");
-            Debug.Assert(kind != ConversionKind.ExplicitTuple, "tuple conversion must have underlying conversions");
-            Debug.Assert(kind != ConversionKind.ExplicitTupleLiteral, "tuple conversion must have underlying conversions");
+        }
 
+        internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
+        {
+            _kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
+                ? ConversionKind.NoConversion
+                : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
+
+            _uncommonData = new UncommonData(
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                conversionResult: conversionResult,
+                conversionMethod: null,
+                nestedConversions: default(ImmutableArray<Conversion>));
+        }
+
+        // For the method group, lambda and anonymous method conversions
+        internal Conversion(ConversionKind kind, MethodSymbol conversionMethod, bool isExtensionMethod)
+        {
             this._kind = kind;
-        }
-        
-        internal Conversion WithConversionMethod(MethodSymbol methodGroupConversionMethod)
-        {
-            return new CSharp.Conversion(this.Kind, this.IsExtensionMethod, this.IsArrayIndex, this._conversionResult, methodGroupConversionMethod, this._nestedConversionsOpt);
+            _uncommonData = new UncommonData(
+                isExtensionMethod: isExtensionMethod,
+                isArrayIndex: false,
+                conversionResult: default(UserDefinedConversionResult),
+                conversionMethod: conversionMethod,
+                nestedConversions: default(ImmutableArray<Conversion>));
         }
 
-        internal Conversion WithArrayIndexConversion(bool isArrayIndex)
+        internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
         {
-            return new Conversion(this.Kind, this.IsExtensionMethod, isArrayIndex, _conversionResult, _conversionMethod, _nestedConversionsOpt);
+            this._kind = kind;
+            _uncommonData = new UncommonData(
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                conversionResult: default(UserDefinedConversionResult),
+                conversionMethod: null,
+                nestedConversions: nestedConversions);
+        }
+
+        internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
+        {
+            // we use this method to patch up the conversion method only in two cases - 
+            // 1) when rewriting MethodGroup conversions and the method gets substituted.
+            // 2) when lowering IntPtr conversion (a compat-related conversion which becomes a kind of a user-defined conversion)
+            // in those cases it is ok to ignore existing _uncommonData.
+            Debug.Assert(_kind == ConversionKind.MethodGroup || _kind == ConversionKind.IntPtr);
+
+            return new Conversion(this.Kind, conversionMethod, isExtensionMethod: IsExtensionMethod);
+        }
+
+        internal Conversion SetArrayIndexConversionForDynamic()
+        {
+            Debug.Assert(_kind.IsDynamic());
+            Debug.Assert(_uncommonData == null);
+
+            return new Conversion(
+                _kind,
+                new UncommonData(
+                    isExtensionMethod: false,
+                    isArrayIndex: true,
+                    conversionResult: default(UserDefinedConversionResult),
+                    conversionMethod: null,
+                    nestedConversions: default(ImmutableArray<Conversion>)));
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertTrivialConversion(ConversionKind kind)
+        {
+            bool isTrivial;
+
+            switch (kind)
+            {
+                case ConversionKind.NoConversion: 
+                case ConversionKind.Identity: 
+                case ConversionKind.ImplicitConstant: 
+                case ConversionKind.ImplicitNumeric: 
+                case ConversionKind.ImplicitReference: 
+                case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.AnonymousFunction: 
+                case ConversionKind.Boxing: 
+                case ConversionKind.NullLiteral: 
+                case ConversionKind.NullToPointer: 
+                case ConversionKind.PointerToVoid: 
+                case ConversionKind.PointerToPointer: 
+                case ConversionKind.PointerToInteger: 
+                case ConversionKind.IntegerToPointer: 
+                case ConversionKind.Unboxing: 
+                case ConversionKind.ExplicitReference: 
+                case ConversionKind.IntPtr: 
+                case ConversionKind.ExplicitEnumeration: 
+                case ConversionKind.ExplicitNumeric: 
+                case ConversionKind.ImplicitDynamic: 
+                case ConversionKind.ExplicitDynamic: 
+                case ConversionKind.InterpolatedString:
+                    isTrivial = true;
+                    break;
+
+                default:
+                    isTrivial = false;
+                    break;
+            }
+
+            Debug.Assert(isTrivial, "this conversion needs addtitional data: " + kind);
         }
 
         internal static Conversion GetTrivialConversion(ConversionKind kind)
         {
-            switch (kind)
-            {
-                case ConversionKind.NoConversion: return Conversion.NoConversion;
-                case ConversionKind.Identity: return Conversion.Identity;
-                case ConversionKind.ImplicitConstant: return Conversion.ImplicitConstant;
-                case ConversionKind.ImplicitNumeric: return Conversion.ImplicitNumeric;
-                case ConversionKind.ImplicitReference: return Conversion.ImplicitReference;
-                case ConversionKind.ImplicitEnumeration: return Conversion.ImplicitEnumeration;
-                case ConversionKind.AnonymousFunction: return Conversion.AnonymousFunction;
-                case ConversionKind.Boxing: return Conversion.Boxing;
-                case ConversionKind.NullLiteral: return Conversion.NullLiteral;
-                case ConversionKind.NullToPointer: return Conversion.NullToPointer;
-                case ConversionKind.PointerToVoid: return Conversion.PointerToVoid;
-                case ConversionKind.PointerToPointer: return Conversion.PointerToPointer;
-                case ConversionKind.PointerToInteger: return Conversion.PointerToInteger;
-                case ConversionKind.IntegerToPointer: return Conversion.IntegerToPointer;
-                case ConversionKind.Unboxing: return Conversion.Unboxing;
-                case ConversionKind.ExplicitReference: return Conversion.ExplicitReference;
-                case ConversionKind.IntPtr: return Conversion.IntPtr;
-                case ConversionKind.ExplicitEnumeration: return Conversion.ExplicitEnumeration;
-                case ConversionKind.ExplicitNumeric: return Conversion.ExplicitNumeric;
-                case ConversionKind.ImplicitDynamic: return Conversion.ImplicitDynamic;
-                case ConversionKind.ExplicitDynamic: return Conversion.ExplicitDynamic;
-                case ConversionKind.InterpolatedString: return Conversion.InterpolatedString;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(kind);
+            AssertTrivialConversion(kind);
+            return new Conversion(kind);
         }
 
         internal static Conversion NoConversion => new Conversion(ConversionKind.NoConversion);
@@ -154,18 +214,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
-        internal static Conversion[] IdentityUnderlying = new Conversion[] { Identity };
-        internal static Conversion[] ImplicitConstantUnderlying = new Conversion[] { ImplicitConstant };
-        internal static Conversion[] ImplicitNumericUnderlying = new Conversion[] { ImplicitNumeric };
-        internal static Conversion[] ExplicitNumericUnderlying = new Conversion[] { ExplicitNumeric };
-        internal static Conversion[] ExplicitEnumerationUnderlying = new Conversion[] { ExplicitEnumeration };
-        internal static Conversion[] PointerToIntegerUnderlying = new Conversion[] { PointerToInteger };
+        internal static ImmutableArray<Conversion> IdentityUnderlying => ConversionSingletons.IdentityUnderlying;
+        internal static ImmutableArray<Conversion> ImplicitConstantUnderlying => ConversionSingletons.ImplicitConstantUnderlying;
+        internal static ImmutableArray<Conversion> ImplicitNumericUnderlying => ConversionSingletons.ImplicitNumericUnderlying;
+        internal static ImmutableArray<Conversion> ExplicitNumericUnderlying => ConversionSingletons.ExplicitNumericUnderlying;
+        internal static ImmutableArray<Conversion> ExplicitEnumerationUnderlying => ConversionSingletons.ExplicitEnumerationUnderlying;
+        internal static ImmutableArray<Conversion> PointerToIntegerUnderlying => ConversionSingletons.PointerToIntegerUnderlying;
+
+        // these static fields are not directly inside the Conversion
+        // because that causes CLR loader failure.
+        private static class ConversionSingletons
+        {
+            internal static ImmutableArray<Conversion> IdentityUnderlying = ImmutableArray.Create(Identity);
+            internal static ImmutableArray<Conversion> ImplicitConstantUnderlying = ImmutableArray.Create(ImplicitConstant);
+            internal static ImmutableArray<Conversion> ImplicitNumericUnderlying = ImmutableArray.Create(ImplicitNumeric);
+            internal static ImmutableArray<Conversion> ExplicitNumericUnderlying = ImmutableArray.Create(ExplicitNumeric);
+            internal static ImmutableArray<Conversion> ExplicitEnumerationUnderlying = ImmutableArray.Create(ExplicitEnumeration);
+            internal static ImmutableArray<Conversion> PointerToIntegerUnderlying = ImmutableArray.Create(PointerToInteger);
+        }
+
 
         internal static Conversion MakeNullableConversion(ConversionKind kind, Conversion nestedConversion)
         {
             Debug.Assert(kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable);
 
-            Conversion[] nested;
+            ImmutableArray<Conversion> nested;
             switch (nestedConversion.Kind)
             {
                 case ConversionKind.Identity:
@@ -187,8 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     nested = PointerToIntegerUnderlying;
                     break;
                 default:
-                    Debug.Assert(false, "missing singleton for a nullable underlying conversion kind:" + nestedConversion.Kind);
-                    nested = new Conversion[] { nestedConversion };
+                    nested = ImmutableArray.Create(nestedConversion);
                     break;
             }
 
@@ -207,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (_flags & IsExtensionMethodMask) != 0;
+                return _uncommonData?.IsExtensionMethod == true;
             }
         }
 
@@ -215,15 +287,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (_flags & IsArrayIndexMask) != 0;
+                return _uncommonData?.IsArrayIndex == true;
             }
         }
 
-        internal Conversion[] UnderlyingConversions
+        internal ImmutableArray<Conversion> UnderlyingConversions
         {
             get
             {
-                return _nestedConversionsOpt;
+                return _uncommonData?._nestedConversionsOpt ?? default(ImmutableArray<Conversion>);
             }
         }
 
@@ -231,7 +303,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _conversionMethod ?? UserDefinedConversion;
+                var uncommonData = _uncommonData;
+                if (uncommonData != null)
+                {
+                    if ((object)uncommonData._conversionMethod != null)
+                    {
+                        return uncommonData._conversionMethod;
+                    }
+
+                    var conversionResult = _uncommonData._conversionResult;
+                    if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                    {
+                        UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
+                        return analysis.Operator;
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -245,9 +333,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (_nestedConversionsOpt != null)
+
+                var nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
+                if (nestedConversionsOpt != null)
                 {
-                    foreach (var conv in _nestedConversionsOpt)
+                    foreach (var conv in nestedConversionsOpt)
                     {
                         if (!conv.IsValid)
                         {
@@ -259,9 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                return !this.IsUserDefined || 
+                return !this.IsUserDefined ||
                     (object)this.Method != null ||
-                    _conversionResult.Kind == UserDefinedConversionResultKind.Valid;
+                    _uncommonData?._conversionResult.Kind == UserDefinedConversionResultKind.Valid;
             }
         }
 
@@ -600,7 +690,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                switch (_conversionResult.Kind)
+                var conversionResult = _uncommonData?._conversionResult ?? default(UserDefinedConversionResult);
+
+                switch (conversionResult.Kind)
                 {
                     case UserDefinedConversionResultKind.Valid:
                         return LookupResultKind.Viable;
@@ -609,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case UserDefinedConversionResultKind.NoBestTargetType:
                         return LookupResultKind.OverloadResolutionFailure;
                     case UserDefinedConversionResultKind.NoApplicableOperators:
-                        if (_conversionResult.Results.IsDefaultOrEmpty)
+                        if (conversionResult.Results.IsDefaultOrEmpty)
                         {
                             return this.Kind == ConversionKind.NoConversion ? LookupResultKind.Empty : LookupResultKind.Viable;
                         }
@@ -621,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return LookupResultKind.OverloadResolutionFailure;
                         }
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_conversionResult.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(conversionResult.Kind);
                 }
             }
         }
@@ -664,13 +756,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the IDE wants information about the *inferred* method, not the original unconstructed
                 // generic method.
 
-                if (_conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
+                if (_uncommonData == null)
+                {
+                    return ImmutableArray<MethodSymbol>.Empty;
+                }
+
+                var conversionResult = _uncommonData._conversionResult;
+                if (conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
                 {
                     return ImmutableArray<MethodSymbol>.Empty;
                 }
 
                 var builder = ArrayBuilder<MethodSymbol>.GetInstance();
-                foreach (var analysis in _conversionResult.Results)
+                foreach (var analysis in conversionResult.Results)
                 {
                     builder.Add(analysis.Operator);
                 }
@@ -678,22 +776,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private MethodSymbol UserDefinedConversion
-        {
-            get
-            {
-                UserDefinedConversionAnalysis best = BestUserDefinedConversionAnalysis;
-                return best == null ? null : best.Operator;
-            }
-        }
-
         internal UserDefinedConversionAnalysis BestUserDefinedConversionAnalysis
         {
             get
             {
-                if (_conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                if (_uncommonData == null)
                 {
-                    UserDefinedConversionAnalysis analysis = _conversionResult.Results[_conversionResult.Best];
+                    return null;
+                }
+
+                var conversionResult = _uncommonData._conversionResult;
+
+                if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                {
+                    UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
                     return analysis;
                 }
 

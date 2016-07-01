@@ -363,13 +363,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
+            var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
+                var elementConversion = underlyingConversions[i];
 
-                Conversion elementConversion = conversionWithoutNullable.UnderlyingConversions[i];
                 convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
             }
 

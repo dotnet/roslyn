@@ -322,11 +322,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Conversion.IsExtensionMethod; }
         }
 
-        public bool IsArrayIndex
-        {
-            get { return this.Conversion.IsArrayIndex; }
-        }
-
         public MethodSymbol SymbolOpt
         {
             get { return this.Conversion.Method; }

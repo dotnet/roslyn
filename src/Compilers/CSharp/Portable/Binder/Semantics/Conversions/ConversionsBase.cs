@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleConversion = ClassifyImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics);
             if (tupleConversion.Exists)
             {
-                return new Conversion(ConversionKind.ImplicitNullable, new Conversion[] { tupleConversion });
+                return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(tupleConversion));
             }
 
             return Conversion.NoConversion;
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions.Add(conversion);
             }
 
-            return new Conversion(ConversionKind.ImplicitTuple, nestedConversions.ToArrayAndFree());
+            return new Conversion(ConversionKind.ImplicitTuple, nestedConversions.ToImmutableAndFree());
         }
 
         private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
@@ -1027,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions.Add(conversion);
             }
 
-            return new Conversion(ConversionKind.ExplicitTuple, nestedConversions.ToArrayAndFree());
+            return new Conversion(ConversionKind.ExplicitTuple, nestedConversions.ToImmutableAndFree());
         }
 
         private Conversion ClassifyExplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics, forCast);
             if (tupleConversion.Exists)
             {
-                return new Conversion(ConversionKind.ExplicitNullable, new[] {tupleConversion});
+                return new Conversion(ConversionKind.ExplicitNullable, ImmutableArray.Create(tupleConversion));
             }
 
             if (HasExplicitEnumerationConversion(unwrappedSource, unwrappedDestination))
