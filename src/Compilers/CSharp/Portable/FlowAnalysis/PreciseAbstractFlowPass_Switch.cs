@@ -188,17 +188,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decisionTree;
-                        var expressionIsConstant = byValue.Expression.ConstantValue != null;
-                        bool valueHandled = false;
-                        foreach (var kvp in byValue.ValueAndDecision)
+                        var inputConstant = byValue.Expression.ConstantValue;
+                        if (inputConstant != null)
                         {
-                            if (!expressionIsConstant || Equals(byValue.Expression.ConstantValue.Value, kvp.Key))
+                            DecisionTree onValue;
+                            if (byValue.ValueAndDecision.TryGetValue(inputConstant.Value, out onValue))
                             {
-                                VisitDecisionTree(kvp.Value);
-                                valueHandled = true;
+                                VisitDecisionTree(onValue);
+                                if (!onValue.MatchIsComplete) VisitDecisionTree(byValue.Default);
+                            }
+                            else
+                            {
+                                VisitDecisionTree(byValue.Default);
                             }
                         }
-                        if (!expressionIsConstant || !valueHandled) VisitDecisionTree(byValue.Default);
+                        else
+                        {
+                            foreach (var kvp in byValue.ValueAndDecision)
+                            {
+                                VisitDecisionTree(kvp.Value);
+                            }
+                            VisitDecisionTree(byValue.Default);
+                        }
                         return;
                     }
                 case DecisionTree.DecisionKind.Guarded:

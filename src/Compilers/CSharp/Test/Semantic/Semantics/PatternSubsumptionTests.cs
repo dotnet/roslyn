@@ -664,5 +664,59 @@ null";
             compilation.VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void EqualConstant03()
+        {
+            var source =
+@"public class X
+{
+    public static void Main()
+    {
+        bool _false = false;
+        switch (1)
+        {
+            case 1 when _false:
+                break;
+            case var i:
+                break; // reachable because previous case does not handle all inputs
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12316")]
+        public void CascadedUnreachableDiagnostic()
+        {
+            var source =
+@"public class X
+{
+    public static void Main()
+    {
+        bool b = false;
+        switch (b)
+        {
+            case true:
+            case false:
+                break;
+            case ""foo"": // wrong type
+                break; // warning: unreachable (cascaded diagnostic)
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
+                //             case "foo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                );
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions).VerifyDiagnostics(
+                // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
+                //             case "foo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                );
+        }
     }
 }

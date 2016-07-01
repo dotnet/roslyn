@@ -932,10 +932,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal string Dump()
         {
             var builder = new StringBuilder();
-            DumpInternal(builder, 0);
+            DumpInternal(builder, "");
             return builder.ToString();
         }
-        internal abstract void DumpInternal(StringBuilder builder, int indent);
+        internal abstract void DumpInternal(StringBuilder builder, string indent);
 #endif
         public DecisionTree(BoundExpression expression, TypeSymbol type)
         {
@@ -971,23 +971,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override DecisionKind Kind => DecisionKind.ByType;
             public ByType(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
 #if DEBUG
-            internal override void DumpInternal(StringBuilder builder, int indent)
+            internal override void DumpInternal(StringBuilder builder, string indent)
             {
-                builder.AppendLine($"{"".PadLeft(indent)}ByType");
+                builder.AppendLine($"{indent}ByType");
                 if (WhenNull != null)
                 {
-                    builder.AppendLine($"{"".PadLeft(indent+2)}null");
-                    WhenNull.DumpInternal(builder, indent + 4);
+                    builder.AppendLine($"{indent}  null");
+                    WhenNull.DumpInternal(builder, indent + "    ");
                 }
                 foreach (var kv in TypeAndDecision)
                 {
-                    builder.AppendLine($"{"".PadLeft(indent + 2)}{kv.Key}");
-                    kv.Value.DumpInternal(builder, indent + 4);
+                    builder.AppendLine($"{indent}  {kv.Key}");
+                    kv.Value.DumpInternal(builder, indent + "    ");
                 }
                 if (Default != null)
                 {
-                    builder.AppendLine($"{"".PadLeft(indent + 2)}default");
-                    Default.DumpInternal(builder, indent + 4);
+                    builder.AppendLine($"{indent}  default");
+                    Default.DumpInternal(builder, indent + "    ");
                 }
             }
 #endif
@@ -1001,18 +1001,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override DecisionKind Kind => DecisionKind.ByValue;
             public ByValue(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
 #if DEBUG
-            internal override void DumpInternal(StringBuilder builder, int indent)
+            internal override void DumpInternal(StringBuilder builder, string indent)
             {
-                builder.AppendLine($"{"".PadLeft(indent)}ByValue");
+                builder.AppendLine($"{indent}ByValue");
                 foreach (var kv in ValueAndDecision)
                 {
-                    builder.AppendLine($"{"".PadLeft(indent + 2)}{kv.Key}");
-                    kv.Value.DumpInternal(builder, indent + 4);
+                    builder.AppendLine($"{indent}  {kv.Key}");
+                    kv.Value.DumpInternal(builder, indent + "    ");
                 }
                 if (Default != null)
                 {
-                    builder.AppendLine($"{"".PadLeft(indent + 2)}default");
-                    Default.DumpInternal(builder, indent + 4);
+                    builder.AppendLine($"{indent}  default");
+                    Default.DumpInternal(builder, indent + "    ");
                 }
             }
 #endif
@@ -1042,9 +1042,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (guard == null) || (guard.ConstantValue == ConstantValue.True);
             }
 #if DEBUG
-            internal override void DumpInternal(StringBuilder builder, int indent)
+            internal override void DumpInternal(StringBuilder builder, string indent)
             {
-                builder.Append($"{"".PadLeft(indent)}Guarded");
+                builder.Append($"{indent}Guarded");
                 if (Guard != null) builder.Append($" guard={Guard.Syntax.ToString()}");
                 builder.AppendLine($" label={Label.Syntax.ToString()}");
             }
