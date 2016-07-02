@@ -1957,5 +1957,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
+        FEATURE_ImplicitDefaultValueOptionalParameter
     End Enum
 End Namespace
