@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return kinds.Contains(token.Kind());
         }
 
+        public static bool IsParentKind(this SyntaxToken token, SyntaxKind kind)
+        {
+            return token.Parent != null && token.Parent.IsKind(kind);
+        }
+
         public static bool IsLiteral(this SyntaxToken token)
         {
             switch (token.Kind())

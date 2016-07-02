@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // Attribute names
         protected const string CrefAttributeName = "cref";
         protected const string FileAttributeName = "file";
+        protected const string LangwordAttributeName = "langword";
         protected const string NameAttributeName = "name";
         protected const string PathAttributeName = "path";
         protected const string TypeAttributeName = "type";
@@ -69,12 +70,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { ExceptionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { PermissionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeTagName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
                 new[] { SeeAlsoTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { ListTagName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
                 new[] { ParamTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { ParamRefTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { TypeParamTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { TypeParamRefTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { IncludeTagName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
                 new[] { IncludeTagName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
             };
+
+        private readonly ImmutableArray<string> _listTypeValues = ImmutableArray.Create("bullet", "number", "table");
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -157,6 +164,49 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 beforeCaretText: FormatParameterRefTag(TypeParamRefTagName, t),
                 afterCaretText: string.Empty));
         }
+
+        protected IEnumerable<CompletionItem> GetAttributeValueItems(ISymbol symbol, string tagName, string attributeName)
+        {
+            if (attributeName == NameAttributeName)
+            {
+                if (tagName == ParamTagName || tagName == ParamRefTagName)
+                {
+                    return GetParamNameItems(symbol);
+                }
+                else if (tagName == TypeParamTagName || tagName == TypeParamRefTagName)
+                {
+                    return GetTypeParamNameItems(symbol);
+                }
+            }
+            else if (attributeName == LangwordAttributeName && tagName == SeeTagName)
+            {
+                return GetKeywordItems();
+            }
+            else if (attributeName == TypeAttributeName && tagName == ListTagName)
+            {
+                return _listTypeValues.Select(value => CreateCompletionItem(value));
+            }
+
+            return null;
+        }
+
+        protected IEnumerable<CompletionItem> GetParamNameItems(ISymbol declaredSymbol)
+        {
+            var items = declaredSymbol?.GetParameters()
+                                       .Select(parameter => CreateCompletionItem(parameter.Name));
+
+            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
+        }
+
+        protected IEnumerable<CompletionItem> GetTypeParamNameItems(ISymbol declaredSymbol)
+        {
+            var items = declaredSymbol?.GetTypeParameters()
+                                       .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
+
+            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
+        }
+
+        protected abstract IEnumerable<CompletionItem> GetKeywordItems();
 
         protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
         {

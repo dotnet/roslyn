@@ -62,26 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            // User is trying to write a name, try to suggest only names.
-            if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
-                (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute)))
+            string tagName, attributeName;
+
+            if (IsAttributeValueContext(token, out tagName, out attributeName))
             {
-                string parentElementName = null;
-
-                var emptyElement = token.GetAncestor<XmlEmptyElementSyntax>();
-                if (emptyElement != null)
-                {
-                    parentElementName = emptyElement.Name.LocalName.Text;
-                }
-
-                if (parentElementName == ParamRefTagName)
-                {
-                    return GetParamNameItems(declaredSymbol);
-                }
-                else if (parentElementName == TypeParamRefTagName)
-                {
-                    return GetTypeParamNameItems(declaredSymbol);
-                }
+                return GetAttributeValueItems(declaredSymbol, tagName, attributeName);
             }
 
             if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
@@ -140,6 +125,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             items.AddRange(GetAlwaysVisibleItems());
             return items;
+        }
+
+        private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
+        {
+            XmlAttributeSyntax attributeSyntax;
+
+            if (IsAttributeValueContext(token, out attributeSyntax))
+            {
+                attributeName = attributeSyntax.Name.LocalName.ValueText;
+
+                var emptyElement = attributeSyntax.GetAncestor<XmlEmptyElementSyntax>();
+                if (emptyElement != null)
+                {
+                    tagName = emptyElement.Name.LocalName.Text;
+                    return true;
+                }
+                else
+                {
+                    var startTagSyntax = token.GetAncestor<XmlElementStartTagSyntax>();
+                    if (startTagSyntax != null)
+                    {
+                        tagName = startTagSyntax.Name.LocalName.Text;
+                        return true;
+                    }
+                }
+            }
+
+            attributeName = null;
+            tagName = null;
+            return false;
+        }
+
+        private bool IsAttributeValueContext(SyntaxToken token, out XmlAttributeSyntax syntax)
+        {
+            if (token.IsParentKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
+            {
+                syntax = (XmlAttributeSyntax)token.Parent.Parent;
+                return true;
+            }
+            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            {
+                syntax = (XmlAttributeSyntax)token.Parent;
+                return true;
+            }
+            else if (token.IsParentKind(SyntaxKind.XmlNameAttribute) || token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            {
+                syntax = (XmlAttributeSyntax)token.Parent;
+                return token == syntax.StartQuoteToken;
+            }
+            else
+            {
+                syntax = null;
+                return false;
+            }
+        }
+
+        protected override IEnumerable<CompletionItem> GetKeywordItems()
+        {
+            return SyntaxFacts.GetKeywordKinds()
+                              .Select(keyword => CreateCompletionItem(SyntaxFacts.GetText(keyword)));
         }
 
         private IEnumerable<CompletionItem> GetTopLevelSingleUseNames(DocumentationCommentTriviaSyntax parentTrivia)
@@ -268,22 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return items;
-        }
-
-        protected IEnumerable<CompletionItem> GetParamNameItems(ISymbol declaredSymbol)
-        {
-            var items = declaredSymbol?.GetParameters()
-                                       .Select(parameter => CreateCompletionItem(parameter.Name));
-
-            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
-        }
-
-        protected IEnumerable<CompletionItem> GetTypeParamNameItems(ISymbol declaredSymbol)
-        {
-            var items = declaredSymbol?.GetTypeParameters()
-                                       .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
-
-            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
         private static CompletionItemRules s_defaultRules = 
