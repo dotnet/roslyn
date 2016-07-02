@@ -319,7 +319,7 @@ public class TestClass
     }
 }";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
+                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(15, 13)
                 );
@@ -1018,7 +1018,10 @@ public class Test
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12),
+                // (13,5): warning CS0162: Unreachable code detected
+                //     return 0;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(13, 5)
                 );
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.RegularWithPatterns).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -2093,6 +2096,9 @@ struct X
 @"1
 null");
             CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput:
+@"1
+null");
+            CompileAndVerify(text, parseOptions: TestOptions.RegularWithPatterns, expectedOutput:
 @"1
 null");
         }

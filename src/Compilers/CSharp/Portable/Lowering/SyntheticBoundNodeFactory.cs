@@ -745,6 +745,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
+        /// <summary>
+        /// Produce an int switch.
+        /// </summary>
         public BoundStatement Switch(BoundExpression ex, params BoundSwitchSection[] sections)
         {
             Debug.Assert(ex.Type.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_String); // BoundSwitchStatement.StringEquality not set
@@ -766,6 +769,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        /// <summary>
+        /// Produce an int switch.
+        /// </summary>
         public BoundStatement Switch(BoundExpression ex, IEnumerable<BoundSwitchSection> sections)
         {
             return Switch(ex, sections.ToArray());
@@ -783,21 +789,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var l in s.SwitchLabels)
                 {
-                    var sl = (SourceLabelSymbol)l.Label;
-                    var v1 = sl.SwitchCaseLabelConstant.Int32Value;
-                    var v2 = l.ExpressionOpt;
-                    Debug.Assert(v2 == null || v1 == v2.ConstantValue.Int32Value);
-                    Debug.Assert(!labels.Contains(v1));
-                    labels.Add(v1);
+                    if (l.ConstantValueOpt == null) continue;
+                    var v2 = l.ConstantValueOpt.Int32Value;
+                    Debug.Assert(!labels.Contains(v2));
+                    labels.Add(v2);
                 }
             }
-            //Console.WriteLine();
         }
 
         public BoundSwitchSection SwitchSection(int value, params BoundStatement[] statements)
         {
-            var label = new SourceLabelSymbol(CurrentMethod, ConstantValue.Create(value));
-            var switchLabel = new BoundSwitchLabel(Syntax, label) { WasCompilerGenerated = true };
+            var label = GenerateLabel("case+" + value);
+            var literal = Literal(value);
+            var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
             return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
@@ -806,8 +810,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var i in values)
             {
-                var label = new SourceLabelSymbol(CurrentMethod, ConstantValue.Create(i));
-                builder.Add(new BoundSwitchLabel(Syntax, label) { WasCompilerGenerated = true });
+                var label = GenerateLabel("case+" + i);
+                var expression = Literal(i);
+                builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
             }
 
             return new BoundSwitchSection(Syntax, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };

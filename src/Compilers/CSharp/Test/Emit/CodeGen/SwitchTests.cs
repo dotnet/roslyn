@@ -3944,10 +3944,10 @@ namespace ConsoleApplication24
             ERR_BadDelegateConstructor = 148,
             ERR_MethodNameExpected = 149,
             ERR_ConstantExpected = 150,
-            // ERR_V6SwitchGoverningTypeValueExpected shares the same error code (CS0151) with ERR_IntegralTypeValueExpected in Dev10 compiler.
+            // ERR_SwitchGoverningTypeValueExpected shares the same error code (CS0151) with ERR_IntegralTypeValueExpected in Dev10 compiler.
             // However ERR_IntegralTypeValueExpected is currently unused and hence being removed. If we need to generate this error in future
             // we can use error code CS0166. CS0166 was originally reserved for ERR_SwitchFallInto in Dev10, but was never used. 
-            ERR_V6SwitchGoverningTypeValueExpected = 151,
+            ERR_SwitchGoverningTypeValueExpected = 151,
             ERR_DuplicateCaseLabel = 152,
             ERR_InvalidGotoCase = 153,
             ERR_PropertyLacksGet = 154,

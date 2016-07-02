@@ -4071,9 +4071,10 @@ namespace x
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
-    //             case 1:   // CS0152, two case 1 statements
-    Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13));
+                // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
+                //             case 1:   // CS0152, two case 1 statements
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13)
+                );
         }
 
         [Fact]

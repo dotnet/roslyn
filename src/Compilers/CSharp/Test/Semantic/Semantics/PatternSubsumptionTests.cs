@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternSubsumptionTests : CSharpTestBase
     {
-        private static CSharpParseOptions patternParseOptions = TestOptions.RegularWithPatterns;
+        private static readonly CSharpParseOptions s_patternParseOptions = TestOptions.RegularWithPatterns;
 
         [Fact]
         public void EqualConstant()
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case has already been handled by a previous case.
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: handled previously
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8120: The switch case has already been handled by a previous case.
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
@@ -185,7 +185,7 @@ public class X
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
@@ -217,7 +217,7 @@ public class X
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
@@ -247,7 +247,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
@@ -278,7 +278,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed
@@ -308,7 +308,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed by previous cases
@@ -338,7 +338,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -359,7 +359,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8121: An expression of type string cannot be handled by a pattern of type int.
                 //             case int i: // error: type mismatch.
@@ -410,7 +410,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
@@ -437,7 +437,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0037: Cannot convert null to 'bool' because it is a non-nullable value type
                 //             case null: // error: impossible given the type
@@ -463,7 +463,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //             case 3: // error: impossible given the type
@@ -489,7 +489,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
@@ -514,7 +514,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 11: // error: subsumed
@@ -545,7 +545,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case bool b: // error: subsumed
@@ -571,7 +571,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -594,7 +594,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -617,7 +617,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -640,7 +640,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -660,7 +660,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -683,7 +683,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -712,11 +712,158 @@ null";
                 //             case "foo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "foo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
+        }
+
+        [Fact]
+        public void EnumConversions01()
+        {
+            var source =
+@"enum Color { Red=0, Blue=1, Green=2, Mauve=3 }
+
+class Program
+{
+    public static void Main()
+    {
+        Color color = Color.Red;
+        switch (color)
+        {
+            case Color.Blue:
+                goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+            case 0:
+                break;
+            case 2:          // error CS0266: Cannot implicitly convert type 'int' to 'Color'. An explicit conversion exists (are you missing a cast?)
+                goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                             // error CS0159: No such label 'case 3:' within the scope of the goto statement
+                break;       // (optional) warning CS0162: Unreachable code detected
+            case Color x when false:
+                {}
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                //             case Color x when false:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7").WithLocation(18, 13),
+                // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(11, 17),
+                // (14,18): error CS0266: Cannot implicitly convert type 'int' to 'Color'. An explicit conversion exists (are you missing a cast?)
+                //             case 2:          // error CS0266: Cannot implicitly convert type 'int' to 'Color'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "2").WithArguments("int", "Color").WithLocation(14, 18),
+                // (15,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
+                // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
+                // (18,13): error CS8070: Control cannot fall out of switch from final case label ('case Color x when false:')
+                //             case Color x when false:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case Color x when false:").WithArguments("case Color x when false:").WithLocation(18, 13)
+                );
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(11, 17),
+                // (14,18): error CS0266: Cannot implicitly convert type 'int' to 'Color'. An explicit conversion exists (are you missing a cast?)
+                //             case 2:          // error CS0266: Cannot implicitly convert type 'int' to 'Color'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "2").WithArguments("int", "Color").WithLocation(14, 18),
+                // (15,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
+                // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
+                );
+        }
+
+        [Fact]
+        public void EnumConversions02()
+        {
+            var source =
+@"using System;
+
+enum Color { Red=0, Blue=1, Green=2, Mauve=3 }
+
+class Program
+{
+    public static void Main()
+    {
+        Color color = Color.Green;
+        switch (color)
+        {
+            case Color.Red:
+                goto default;
+            case Color.Blue:
+                goto case 0;
+            case Color.Green:
+                goto case 1;
+            case Color.Mauve when true:
+                break;
+            default:
+                Console.WriteLine(""done"");
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (17,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                //                 goto case 1;
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(17, 17)
+                );
+            var expectedOutput = @"done";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void WhenClause01()
+        {
+            // This test exercises a tricky aspect of lowering: the variables of a switch section
+            // (such as i and j below) need to be in scope, from the point of view of the IL, both
+            // in the when clause and in the body of the switch block. But those two bodies of
+            // code are separate from each other: the when clause is part of the decision tree,
+            // while the switch blocks are emitted after the entire decision tree has been emitted.
+            // To get the scoping right (from the point-of-view of emit and the debugger), the compiler
+            // organizes the code so that the when clauses and the section bodies are co-located
+            // within the block that defines the variables of the switch section. We branch to a
+            // label within the when clause, where the pattern variables are assigned followed by
+            // evaluating the when condition. If it fails we branch back into the decision tree. If
+            // it succeeds we branch to the user-written body of the switch block.
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main()
+    {
+        M(1);
+        M(""sasquatch"");
+    }
+    public static void M(object o)
+    {
+        switch (o)
+        {
+            case int i when i is int j:
+                Console.WriteLine(j);
+                break;
+            case string s when s is string t:
+                Console.WriteLine(t);
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"1
+sasquatch";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }
