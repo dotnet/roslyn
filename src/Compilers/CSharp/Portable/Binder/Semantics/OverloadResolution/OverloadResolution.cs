@@ -2015,13 +2015,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BetterResult BetterConversionTarget(TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private BetterResult BetterConversionTarget(
+            TypeSymbol type1,
+            TypeSymbol type2,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            int betterConversionTargetRecursionLimit = 100)
         {
+            if (betterConversionTargetRecursionLimit < 0)
+            {
+                return BetterResult.Neither;
+            }
+
             bool okToDowngradeToNeither;
-            return BetterConversionTarget(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither);
+            return BetterConversionTarget(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither, betterConversionTargetRecursionLimit - 1);
         }
 
-        private BetterResult BetterConversionTarget(BoundExpression node, TypeSymbol type1, Conversion conv1, TypeSymbol type2, Conversion conv2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool okToDowngradeToNeither)
+        private BetterResult BetterConversionTarget(
+            BoundExpression node,
+            TypeSymbol type1,
+            Conversion conv1,
+            TypeSymbol type2,
+            Conversion conv2,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out bool okToDowngradeToNeither,
+            int betterConversionTargetRecursionLimit = 100)
         {
             okToDowngradeToNeither = false;
 
@@ -2067,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
                         return BetterConversionTarget(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
                                                       ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ref useSiteDiagnostics);
+                                                      ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
                     }
 
                     // A shortcut, Task<T> type cannot satisfy other rules.
@@ -2117,7 +2134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (delegateResult == BetterResult.Neither)
                         {
                             //  - D2 has a return type S2, and S1 is a better conversion target than S2
-                            delegateResult = BetterConversionTarget(r1, r2, ref useSiteDiagnostics);
+                            delegateResult = BetterConversionTarget(r1, r2, ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
                         }
 
                         // Downgrade result to Neither if conversion used by the winner isn't actually valid method group conversion.
