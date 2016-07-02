@@ -542,5 +542,89 @@ End Class
             Await VerifyItemsExistAsync(text, "returns")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestListTypes() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <list type=""$$""
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "number", "bullet", "table")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeLangword() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""$$""
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "Await", "Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParamNames() As Task
+            Dim text = "
+Class C
+    ''' <param name=""$$""
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "i")
+            Await VerifyItemsAbsentAsync(text, "T")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParamRefNames() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <paramref name=""$$""
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "i")
+            Await VerifyItemsAbsentAsync(text, "T")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeParamNames() As Task
+            Dim text = "
+Class C
+    ''' <typeparam name=""$$""
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "T")
+            Await VerifyItemsAbsentAsync(text, "i")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeParamRefNames() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <typeparamref name=""$$""
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "T")
+            Await VerifyItemsAbsentAsync(text, "i")
+        End Function
+
     End Class
 End Namespace
