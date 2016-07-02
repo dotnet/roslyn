@@ -640,13 +640,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
-                        this.binder.BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)statement, diagnostics);
+                        var localDecl = (LocalDeclarationStatementSyntax)statement;
+                        var localBinder = this.binder.GetBinder(localDecl);
+                        var newLocalBinder = new ImplicitlyTypedLocalBinder(localBinder, this);
+                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Declaration, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)statement;
-                        var loopBinder = this.binder.GetBinder(forStatement);
-                        loopBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
+                        var forBinder = this.binder.GetBinder(forStatement);
+                        var newForBinder = new ImplicitlyTypedLocalBinder(forBinder, this);
+                        newForBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
                         break;
 
                     case SyntaxKind.ForEachStatement:

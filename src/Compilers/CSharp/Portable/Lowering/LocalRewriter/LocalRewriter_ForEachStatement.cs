@@ -533,15 +533,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return iterationVarDecl;
         }
 
-        private static BoundBlock CreateBlockDeclaringIterationVariable(
-            LocalSymbol iterationVariable,
-            BoundStatement iteratorVariableInitialization,
-            BoundStatement rewrittenBody,
-            ForEachStatementSyntax forEachSyntax)
-        {
-            return CreateBlockDeclaringIterationVariables(ImmutableArray.Create(iterationVariable), iteratorVariableInitialization, rewrittenBody, forEachSyntax);
-        }
-
         private static BoundBlock CreateBlockDeclaringIterationVariables(
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundStatement iteratorVariableInitialization,
