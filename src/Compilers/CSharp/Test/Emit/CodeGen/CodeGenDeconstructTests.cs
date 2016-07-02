@@ -4153,10 +4153,11 @@ class C
 {
     static void Main()
     {
-        foreach (var (x1, x2) in new[] { (1, 1) })
+        foreach ((int x1, var (x2, x3)) in new[] { (1, (1, 1)) })
         {
             x1 = 1;
             x2 = 2;
+            x3 = 3;
         }
     }
 }
@@ -4169,8 +4170,29 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x1").WithArguments("x1", "foreach iteration variable").WithLocation(8, 13),
                 // (9,13): error CS1656: Cannot assign to 'x2' because it is a 'foreach iteration variable'
                 //             x2 = 2;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x2").WithArguments("x2", "foreach iteration variable").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x2").WithArguments("x2", "foreach iteration variable").WithLocation(9, 13),
+                // (10,13): error CS1656: Cannot assign to 'x3' because it is a 'foreach iteration variable'
+                //             x3 = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x3").WithArguments("x3", "foreach iteration variable").WithLocation(10, 13)
                 );
+        }
+
+        [Fact]
+        public void ForeachWithExpressionBody()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in new[] { (1, 2), (3, 4) })
+            System.Console.Write(x1 + "" "" + x2 + "" - "");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
         }
     }
 }

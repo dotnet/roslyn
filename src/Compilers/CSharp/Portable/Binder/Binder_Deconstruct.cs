@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Inform the variables about found types (whether one was found or not).
+        /// Inform the variables about found types.
         /// </summary>
         private static void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
         {
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private BoundExpression MissingDeconstruct(BoundExpression receiver, CSharpSyntaxNode syntax, int numParameters, DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundNode childNode)
+        private BoundBadExpression MissingDeconstruct(BoundExpression receiver, CSharpSyntaxNode syntax, int numParameters, DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundNode childNode)
         {
             Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, receiver.Syntax, receiver.Type, numParameters);
             outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableDeclarationSyntax declaration, ExpressionSyntax right, DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
-            ArrayBuilder<DeconstructionVariable> locals = BindDeconstructionDeclarationVariables(declaration, declaration.Type, diagnostics);
+            ArrayBuilder<DeconstructionVariable> locals = BindDeconstructionDeclarationLocals(declaration, declaration.Type, diagnostics);
 
             var result = BindDeconstructionAssignment(node, right, locals, diagnostics, rightPlaceholder);
             FreeDeconstructionVariables(locals);
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each local is either a simple local (when its type is known) or a deconstruction local pending inference.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationVariables(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationLocals(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.IsDeconstructionDeclaration);
             SeparatedSyntaxList<VariableDeclarationSyntax> variables = node.Deconstruction.Variables;
@@ -527,11 +527,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeconstructionVariable local;
                 if (variable.IsDeconstructionDeclaration)
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariables(variable, typeSyntax, diagnostics), node.Deconstruction);
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationLocals(variable, typeSyntax, diagnostics), node.Deconstruction);
                 }
                 else
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationVariable(variable, typeSyntax, diagnostics));
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationLocal(variable, typeSyntax, diagnostics));
                 }
 
                 localsBuilder.Add(local);
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a BoundLocal when the type was explicit, otherwise returns a DeconstructionLocalPendingInference.
         /// </summary>
-        private BoundExpression BindDeconstructionDeclarationVariable(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
+        private BoundExpression BindDeconstructionDeclarationLocal(VariableDeclarationSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(!node.IsDeconstructionDeclaration);
             Debug.Assert(node.Variables.Count == 1);
@@ -577,4 +577,3 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 }
-
