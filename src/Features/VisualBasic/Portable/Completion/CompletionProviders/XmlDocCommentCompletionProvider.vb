@@ -171,32 +171,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                      position As Integer,
                                      items As List(Of CompletionItem),
                                      symbol As ISymbol)
+            Dim tagNameSyntax As XmlNameSyntax = Nothing
+            Dim tagAttributes As SyntaxList(Of XmlNodeSyntax) = Nothing
+
             Dim startTagSyntax = token.GetAncestor(Of XmlElementStartTagSyntax)()
             If startTagSyntax IsNot Nothing Then
-                Dim targetToken = GetPreviousTokenIfTouchingText(token, position)
+                tagNameSyntax = TryCast(startTagSyntax.Name, XmlNameSyntax)
+                tagAttributes = startTagSyntax.Attributes
+            Else
 
-                If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is startTagSyntax.Name Then
+                Dim emptyElementSyntax = token.GetAncestor(Of XmlEmptyElementSyntax)()
+                If emptyElementSyntax IsNot Nothing Then
+                    tagNameSyntax = TryCast(emptyElementSyntax.Name, XmlNameSyntax)
+                    tagAttributes = emptyElementSyntax.Attributes
+                End If
+
+            End If
+
+            If tagNameSyntax IsNot Nothing Then
+                Dim targetToken = GetPreviousTokenIfTouchingText(token, position)
+                Dim tagName = tagNameSyntax.LocalName.ValueText
+
+                If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is tagNameSyntax Then
                     ' <exception |
-                    items.AddRange(GetAttributes(startTagSyntax))
+                    items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
                 '<exception a|
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                     ' <exception |
-                    items.AddRange(GetAttributes(startTagSyntax))
+                    items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
                 '<exception a=""|
                 If targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
-                    items.AddRange(GetAttributes(startTagSyntax))
+                    items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
                 ' <param name="|"
                 If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.StartQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
                     targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.StartQuoteToken) Then
-                    Dim name = TryCast(startTagSyntax.Name, XmlNameSyntax)
-                    Dim tagName = name.LocalName.ValueText
-
                     Dim attributeName As String
 
                     Dim xmlAttributeName = targetToken.GetAncestor(Of XmlNameAttributeSyntax)()
@@ -206,18 +220,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         attributeName = DirectCast(targetToken.GetAncestor(Of XmlAttributeSyntax)().Name, XmlNameSyntax).LocalName.ValueText
                     End If
 
-                    If attributeName = NameAttributeName Then
-                        If tagName = ParamTagName Then
-                            items.AddRange(symbol.GetParameters().Select(Function(s) CreateCompletionItem(s.Name)))
-                        End If
-
-                        If tagName = TypeParamTagName Then
-                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) CreateCompletionItem(s.Name)))
-                        End If
-                    End If
+                    items.AddRange(GetAttributeValueItems(symbol, tagName, attributeName))
                 End If
             End If
         End Sub
+
+        Protected Overrides Function GetKeywordItems() As IEnumerable(Of CompletionItem)
+            Return SyntaxFacts.GetKeywordKinds() _
+                              .Select(Function(keyword) CreateCompletionItem(SyntaxFacts.GetText(keyword)))
+        End Function
 
         Private Function GetTagsForSymbol(symbol As ISymbol,
                                           parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
@@ -351,15 +362,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Next
         End Sub
 
-        Private Function GetAttributes(startTag As XmlElementStartTagSyntax) As IEnumerable(Of CompletionItem)
-            Dim nameSyntax = TryCast(startTag.Name, XmlNameSyntax)
-            If nameSyntax IsNot Nothing Then
-                Dim name = nameSyntax.LocalName.ValueText
-                Dim existingAttributeNames = startTag.Attributes.OfType(Of XmlAttributeSyntax).Select(Function(a) DirectCast(a.Name, XmlNameSyntax).LocalName.ValueText)
-                Return GetAttributeItem(name).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
-            End If
+        Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
+            Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull()
+            Return GetAttributeItem(tagName).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
+        End Function
 
-            Return Nothing
+        Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
+            Dim nameSyntax As XmlNameSyntax = node.TypeSwitch(
+                Function(attribute As XmlAttributeSyntax) TryCast(attribute.Name, XmlNameSyntax),
+                Function(attribute As XmlNameAttributeSyntax) attribute.Name,
+                Function(attribute As XmlCrefAttributeSyntax) attribute.Name)
+
+            Return nameSyntax?.LocalName.ValueText
         End Function
 
         Private Shared s_defaultRules As CompletionItemRules =

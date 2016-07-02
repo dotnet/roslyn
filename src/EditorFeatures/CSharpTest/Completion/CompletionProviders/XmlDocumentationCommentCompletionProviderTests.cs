@@ -1084,6 +1084,41 @@ static void Main(string[] args)
 ", "args");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ParamNames()
+        {
+            await VerifyItemExistsAsync(@"
+/// <param name=""$$""/>
+static void Foo(string str)
+{
+}
+", "str");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamRefNames()
+        {
+            await VerifyItemExistsAsync(@"
+/// <summary>
+/// <typeparamref name=""$$""/>
+/// </summary>
+static void Foo<T>()
+{
+}
+", "T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamNames()
+        {
+            await VerifyItemExistsAsync(@"
+/// <typeparam name=""$$""/>
+static void Foo<T>()
+{
+}
+", "T");
+        }
+
         [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PartialTagCompletion()
@@ -1134,6 +1169,32 @@ public class Foo<T>
 static void Foo(string str)
 {
 }", "param name=\"str\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ListTypes()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// <list type=""$$""
+/// </summary>
+static void Foo()
+{
+}
+", "bullet", "number", "table");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeLangword()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// <see langword=""$$""
+/// </summary>
+static void Foo()
+{
+}
+", "await", "class");
         }
     }
 }
