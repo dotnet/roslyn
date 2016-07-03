@@ -6077,7 +6077,11 @@ checkNullable:
         End Function
 
         Friend Shared Function CheckFeatures(feature As Feature, opts As VisualBasicParseOptions) As Boolean
-            Return (opts.Features IsNot Nothing) AndAlso (opts.Features.ContainsKey(feature.GetFeatureFlag))
+            If opts.Features Is Nothing OrElse opts.Features.Count = 0 Then Return False
+            Dim flag = feature.GetFeatureFlag
+            If flag Is Nothing Then Return False
+            Dim value As String = Nothing
+            Return opts.Features.TryGetValue(feature.GetFeatureFlag, value)
         End Function
 
         Friend Shared Function CheckFeatureAvailability(opts As VisualBasicParseOptions, feature As Feature) As Boolean
