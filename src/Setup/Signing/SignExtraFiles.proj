@@ -22,9 +22,9 @@
     <AssembliesToSign Include="$(OutDir)vbicore\vbi.exe">
       <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
     </AssembliesToSign>
-    <AssembliesToSign Include="$(OutDir)\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll">
+    <!--<AssembliesToSign Include="$(OutDir)\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll">
         <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
-    </AssembliesToSign>
+      </AssembliesToSign> -->
     <AssembliesToSign Include="$(OutDir)CodeAnalysisBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll">
         <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
     </AssembliesToSign>

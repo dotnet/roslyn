@@ -5,11 +5,11 @@
   </ImportGroup>
 
   <ItemGroup>
-    <Project Include="..\..\..\Closed\Deployment\Current\Roslyn.Deployment.Full.csproj">
+    <Project Include="Deployment\Current\Roslyn.Deployment.Full.csproj">
       <!-- No reason to rebuild the VSIXes again that were built previously -->
       <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
     </Project>
-    <Project Include="..\..\..\Closed\Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
+    <Project Include="Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
       <!-- No reason to rebuild the VSIXes again that were built previously -->
       <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
     </Project>
@@ -36,7 +36,7 @@
     <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
 
     <!-- Dependencies -->
-    <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" />
+    <!-- <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" /> -->
     <MSBuild Projects="..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
 
     <!-- Microsoft.NetFX20 -->

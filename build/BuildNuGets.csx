@@ -107,7 +107,7 @@ string[] NonRedistPackageNames = {
 };
 
 string[] TestPackageNames = {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+
 };
 
 // the following packages will only be publised on myget not on nuget:
