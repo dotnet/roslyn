@@ -203,6 +203,7 @@
   <!-- Verify some build flags are correct -->
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);VerifyBuildFlags</PrepareForBuildDependsOn>
+    <RealSignBuild>false</RealSignBuild>
   </PropertyGroup>
 
   <Target Name="VerifyBuildFlags">

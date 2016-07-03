@@ -3,48 +3,13 @@
     <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.props" />
     <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.targets" />
 
+    <!--
   <ItemGroup>
     <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' != 'true' And '$(TargetPath)' != ''">
       <Authenticode>$(AuthenticodeCertificateName)</Authenticode>
       <StrongName>MsSharedLib72</StrongName>
     </FilesToSign>
   </ItemGroup>
+  -->
 
-  <PropertyGroup>
-    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);SignVsixInputs</CreateVsixContainerDependsOn>
-    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);SignVsix</PrepareForRunDependsOn>
-  </PropertyGroup>
-
-  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="AfterCompile">
-    <!-- Ensure the build tasks project is already built -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\..\Closed\Setup\BuildTasks\BuildTasks.vbproj" Condition="!Exists('$(OutDir)\Roslyn.Setup.BuildTasks.dll') AND '$(RunningInMicroBuild)' != 'true'" />
-
-    <ItemGroup>
-        <FilesToSign Include="@(IntermediateAssembly)" Condition="'$(IncludeAssemblyInVSIXContainer)' == 'true'">
-            <Authenticode>$(AuthenticodeCertificateName)</Authenticode>
-            <StrongName>MsSharedLib72</StrongName>
-        </FilesToSign>
-    </ItemGroup>
-
-    <SignFiles Files="@(FilesToSign)"
-               BinariesDirectory="$(OutDir)"
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)"
-               Condition="'@(FilesToSign)' != ''"/>
-  </Target>
-
-  <Target Name="SignVsix"  Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="CreateVsixContainer">
-    <Message Text="Signing VSIX: $(TargetVsixContainer)"/>
-
-    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
-        <VsixToSign Include="$(TargetVsixContainer)">
-            <Authenticode>VsixSHA2</Authenticode>
-        </VsixToSign>
-    </ItemGroup>
-
-    <SignFiles Files="@(VsixToSign)"
-               BinariesDirectory="$(OutDir)"
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)" />
-  </Target>
 </Project>
