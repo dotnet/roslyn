@@ -6081,8 +6081,10 @@ checkNullable:
             Return CheckFeatureAvailability(_scanner.Options, feature)
         End Function
 
-        Shared Function CheckFeatures(feature As Feature, opts As VisualBasicParseOptions) As Boolean
-            If (opts.Features Is Nothing) OrElse (opts.Features.Count = 0) Then Return False
+        Friend Shared Function CheckFeatures(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+            If opts.Features Is Nothing OrElse opts.Features.Count = 0 Then Return False
+            Dim flag = feature.GetFeatureFlag
+            If flag Is Nothing Then Return False
             Dim value As String = Nothing
             Return opts.Features.TryGetValue(feature.GetFeatureFlag, value)
         End Function
