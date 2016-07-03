@@ -298,11 +298,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\BuildTasks\BuildTasks.vbproj">
-      <Project>{85e262d1-6e8b-46a6-9912-92b19ffcf7aa}</Project>
-      <Name>BuildTasks</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Target BeforeTargets="CreateVsixContainer" Name="MakeVsixOutputDirectory">
     <MakeDir Condition="!Exists('$(OutDir)$(VsixOutDirSuffix)')" Directories="$(OutDir)$(VsixOutDirSuffix)" />
@@ -348,20 +343,6 @@
       <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Analyzers\1.1.0\Microsoft.CodeAnalysis.Analyzers.1.1.0.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-    </ItemGroup>
-  </Target>
-  <!-- rewriting of .vstemplate files to reference the correct NuGet version number -->
-  <UsingTask AssemblyFile="$(OutDir)Roslyn.Setup.BuildTasks.dll" TaskName="Roslyn.Setup.BuildTasks.UpdateNuGetTemplateVersions" />
-  <Target Name="UpdateNuGetReferencesInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
-    <ItemGroup>
-      <_OriginalVSTemplate Include="@(VSTemplate)" />
-    </ItemGroup>
-    <UpdateNuGetTemplateVersions ItemsToRewrite="@(VSTemplate)" AssemblyVersion="$(AssemblyVersion)" IntermediatePath="ModifiedTemplates">
-      <Output TaskParameter="NewItems" ItemName="VSTemplate" />
-      <Output TaskParameter="ReferencedNuGetPackages" ItemName="ReferencedNuGetPackage" />
-    </UpdateNuGetTemplateVersions>
-    <ItemGroup>
-      <VSTemplate Remove="@(_OriginalVSTemplate)" />
     </ItemGroup>
   </Target>
   <PropertyGroup>
