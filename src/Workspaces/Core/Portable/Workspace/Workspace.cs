@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
-                this.CheckProjectCanBeRemoved(projectId);
 
                 var oldSolution = this.CurrentSolution;
 
@@ -425,9 +424,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [Obsolete("Projects can always be removed.  This method will be removed in a future release.")]
         protected virtual void CheckProjectCanBeRemoved(ProjectId projectId)
         {
-            CheckProjectDoesNotContainOpenDocuments(projectId);
         }
 
         /// <summary>
