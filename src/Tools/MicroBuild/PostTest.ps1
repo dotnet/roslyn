@@ -33,7 +33,7 @@ try
     Stop-Process -Name "vbcscompiler" -Force -ErrorAction SilentlyContinue
 
     # Load in the NuGet.exe information
-    . "$PSScriptRoot\..\..\..\builds\scripts\LoadNuGetInfo.ps1"
+    . "$PSScriptRoot\..\..\..\build\scripts\LoadNuGetInfo.ps1"
     write-host "NuGet.exe path is $nugetexe"
 
     $exitCode = 0

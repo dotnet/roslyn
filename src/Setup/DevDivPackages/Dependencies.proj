@@ -17,7 +17,7 @@
       and/or move the source for the packages to separate repos.
      -->		
     <NuSpec Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</Version>
       <External>false</External>
     </NuSpec>
     <NuSpec Include="Microsoft.DiaSymReader.PortablePdb">
