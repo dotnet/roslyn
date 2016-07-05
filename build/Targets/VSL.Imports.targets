@@ -155,11 +155,6 @@
   </Choose>
 
   <Choose>
-    <When Condition="'$(ProjectLanguage)' == 'C++'">
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(VCTargetsPath)\Microsoft.Cpp.targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
       <PropertyGroup>
         <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
@@ -204,21 +199,6 @@
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <BuildDependsOn>
-      $(BuildDependsOn);
-      CopyCppOutputBackToIntDir;
-    </BuildDependsOn>
-  </PropertyGroup>
-
-  <!-- A task for C++ projects to copy their output back under obj\Debug or the like. This is slightly hacky. -->
-  <Target
-    Name="CopyCppOutputBackToIntDir" Condition="'$(ProjectLanguage)' == 'C++'">
-
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)$(TargetName).pdb')" />
-  </Target>
 
   <!-- Verify some build flags are correct -->
   <PropertyGroup>
@@ -336,7 +316,6 @@
        ==================================================================================== -->
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
-  <Import Project="GenerateVersionInfoResourceFile.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
   <!-- ====================================================================================
 
