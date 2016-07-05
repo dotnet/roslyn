@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 if (provider == null)
                 {
                     var viewBuffer = this.TextView.TextBuffer;
-                    var commitDocument = model.TriggerSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var triggerSnapshotDocument = model.TriggerSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                     // Get the desired text changes for this item. Note that these changes are
                     // specified in terms of the trigger snapshot.
-                    var completionService = CompletionService.GetService(commitDocument);
-                    var commitChange = completionService.GetChangeAsync(
-                        commitDocument, item.Item, commitChar, cancellationToken).WaitAndGetResult(cancellationToken);
-                    textChangesInTriggerSnapshot = commitChange.TextChanges;
+                    var completionService = CompletionService.GetService(triggerSnapshotDocument);
+                    var triggerSnapshotChange = completionService.GetChangeAsync(
+                        triggerSnapshotDocument, item.Item, commitChar, cancellationToken).WaitAndGetResult(cancellationToken);
+                    textChangesInTriggerSnapshot = triggerSnapshotChange.TextChanges;
 
                     // Use character based diffing here to avoid overwriting the commit character placed into the editor.
                     var editOptions = new EditOptions(new StringDifferenceOptions
@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // Try mapping the item span against the trigger snapshot to the ViewBuffer's trigger snapshot.
                         // Then map that forward to the ViewBuffer's current snapshot.
                         var originalSpanInView = model.GetViewBufferSpan(triggerSnapshotTextChange.Span).TextSpan.ToSnapshotSpan(model.ViewTriggerSnapshot);
-                        var translatedOriginalSpanInView = originalSpanInView.TranslateTo(TextView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                        var originalViewSpanTranslatedToCurrentViewSnapshot = originalSpanInView.TranslateTo(TextView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                        textChangesInCurrentViewSnapshot.Add(new TextChange(translatedOriginalSpanInView.Span.ToTextSpan(), triggerSnapshotTextChange.NewText));
+                        textChangesInCurrentViewSnapshot.Add(new TextChange(originalViewSpanTranslatedToCurrentViewSnapshot.Span.ToTextSpan(), triggerSnapshotTextChange.NewText));
                     }
 
                     // Note: we currently create the edit on the textview's buffer.  This is 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             var isLast = iChange == textChangesInCurrentViewSnapshot.Count - 1;
 
                             // add commit char to end of last change if not already included 
-                            if (isLast && !commitChange.IncludesCommitCharacter && commitChar.HasValue)
+                            if (isLast && !triggerSnapshotChange.IncludesCommitCharacter && commitChar.HasValue)
                             {
                                 textChangeInView = new TextChange(
                                     textChangeInView.Span, textChangeInView.NewText + commitChar.Value);
@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // adjust the caret position if requested by completion service
-                    if (commitChange.NewPosition != null)
+                    if (triggerSnapshotChange.NewPosition != null)
                     {
-                        var target = new SnapshotPoint(this.SubjectBuffer.CurrentSnapshot, commitChange.NewPosition.Value);
+                        var target = new SnapshotPoint(this.SubjectBuffer.CurrentSnapshot, triggerSnapshotChange.NewPosition.Value);
                         this.TextView.TryMoveCaretToAndEnsureVisible(target);
                     }
 
