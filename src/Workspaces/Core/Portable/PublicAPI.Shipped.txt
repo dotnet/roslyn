@@ -977,6 +977,7 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(M
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MethodDeclaration(string name, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> parameters = null, System.Collections.Generic.IEnumerable<string> typeParameters = null, Microsoft.CodeAnalysis.SyntaxNode returnType = null, Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers = default(Microsoft.CodeAnalysis.Editing.DeclarationModifiers), System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ModuloExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MultiplyExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NamespaceDeclaration(Microsoft.CodeAnalysis.SyntaxNode name, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> declarations) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NamespaceImportDeclaration(Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NegateExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1102,6 +1103,7 @@ override Microsoft.CodeAnalysis.DocumentId.ToString() -> string
 override Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Editing.DeclarationModifiers.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Editing.DeclarationModifiers.ToString() -> string
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 override Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Host.Mef.MefHostServices.CreateWorkspaceServices(Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
