@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private void Commit(PresentationItem item, Model model, char? commitChar, CancellationToken cancellationToken)
         {
-            var textChangesInSubjectBuffer = ImmutableArray<TextChange>.Empty;
+            var textChangesInTriggerSnapshot = ImmutableArray<TextChange>.Empty;
 
             // NOTE(cyrusn): It is intentional that we get the undo history for the
             // surface buffer and not the subject buffer.
@@ -78,20 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 if (provider == null)
                 {
                     var viewBuffer = this.TextView.TextBuffer;
-                    var commitDocument = this.SubjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    // adjust commit item span foward to match current document that is passed to 
-                    // GetChangeAsync below
-                    var originalItemSpan = new SnapshotSpan(model.TriggerSnapshot, item.Item.Span.ToSpan());
-                    var translatedSpan = originalItemSpan.TranslateTo(this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                    var translatedItem = item.Item.WithSpan(translatedSpan.Span.ToTextSpan());
+                    var commitDocument = model.TriggerSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                     // Get the desired text changes for this item. Note that these changes are
-                    // specified in terms of the subject buffer.
+                    // specified in terms of the trigger snapshot.
                     var completionService = CompletionService.GetService(commitDocument);
                     var commitChange = completionService.GetChangeAsync(
-                        commitDocument, translatedItem, commitChar, cancellationToken).WaitAndGetResult(cancellationToken);
-                    textChangesInSubjectBuffer = commitChange.TextChanges;
+                        commitDocument, item.Item, commitChar, cancellationToken).WaitAndGetResult(cancellationToken);
+                    textChangesInTriggerSnapshot = commitChange.TextChanges;
 
                     // Use character based diffing here to avoid overwriting the commit character placed into the editor.
                     var editOptions = new EditOptions(new StringDifferenceOptions
@@ -100,30 +94,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         IgnoreTrimWhiteSpace = EditOptions.DefaultMinimalChange.DifferenceOptions.IgnoreTrimWhiteSpace
                     });
 
-                    var textChangesInView = new List<TextChange>();
+                    var textChangesInCurrentViewSnapshot = new List<TextChange>();
 
-                    var bufferGraph = new DisconnectedBufferGraph(this.SubjectBuffer, this.TextView.TextBuffer);
-                    foreach (var textChangeInBuffer in textChangesInSubjectBuffer)
+                    foreach (var triggerSnapshotTextChange in textChangesInTriggerSnapshot)
                     {
                         var currentSpanInBuffer = new SnapshotSpan(
-                            this.SubjectBuffer.CurrentSnapshot,
-                            textChangeInBuffer.Span.ToSpan());
+                            model.TriggerSnapshot,
+                            triggerSnapshotTextChange.Span.ToSpan());
 
-                        var viewSpan = bufferGraph.GetSubjectBufferTextSpanInViewBuffer(
-                            currentSpanInBuffer.Span.ToTextSpan());
+                        // Try mapping the item span against the trigger snapshot to the ViewBuffer's trigger snapshot.
+                        // Then map that forward to the ViewBuffer's current snapshot.
+                        var originalSpanInView = model.GetViewBufferSpan(triggerSnapshotTextChange.Span).TextSpan.ToSnapshotSpan(model.ViewTriggerSnapshot);
+                        var translatedOriginalSpanInView = originalSpanInView.TranslateTo(TextView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                        textChangesInView.Add(new TextChange(viewSpan.TextSpan, textChangeInBuffer.NewText));
+                        textChangesInCurrentViewSnapshot.Add(new TextChange(translatedOriginalSpanInView.Span.ToTextSpan(), triggerSnapshotTextChange.NewText));
                     }
 
                     // Note: we currently create the edit on the textview's buffer.  This is 
                     // necessary as our own 
                     using (var textEdit = TextView.TextBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
                     {
-                        for (int iChange = 0; iChange < textChangesInSubjectBuffer.Length; iChange++)
+                        for (int iChange = 0; iChange < textChangesInCurrentViewSnapshot.Count; iChange++)
                         { 
-                            var textChangeInView = textChangesInView[iChange];
+                            var textChangeInView = textChangesInCurrentViewSnapshot[iChange];
                             var isFirst = iChange == 0;
-                            var isLast = iChange == textChangesInView.Count - 1;
+                            var isLast = iChange == textChangesInCurrentViewSnapshot.Count - 1;
 
                             // add commit char to end of last change if not already included 
                             if (isLast && !commitChange.IncludesCommitCharacter && commitChar.HasValue)
@@ -235,11 +230,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // find the appropriate range to format.
                         changes = formattingService.GetFormattingChangesAsync(document, commitChar.Value, caretPoint.Value.Position, cancellationToken).WaitAndGetResult(cancellationToken);
                     }
-                    else if (textChangesInSubjectBuffer.Length > 0)
+                    else if (textChangesInTriggerSnapshot.Length > 0)
                     {
                         // if this is not a supported trigger character for formatting service (space or tab etc.)
                         // then format the span of the textchange.
-                        var totalSpan = TextSpan.FromBounds(textChangesInSubjectBuffer.Min(c => c.Span.Start), textChangesInSubjectBuffer.Max(c => c.Span.End));
+                        var totalSpan = TextSpan.FromBounds(textChangesInTriggerSnapshot.Min(c => c.Span.Start), textChangesInTriggerSnapshot.Max(c => c.Span.End));
                         changes = formattingService.GetFormattingChangesAsync(document, totalSpan, cancellationToken).WaitAndGetResult(cancellationToken);
                     }
 
