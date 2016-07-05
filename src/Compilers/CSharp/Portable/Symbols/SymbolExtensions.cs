@@ -338,7 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static MethodSymbol GetConstructedUnreducedFrom(this MethodSymbol method)
         {
-            // PROTOTYPE: Finish this method?
             if (method.MethodKind != MethodKind.UnreducedExtension)
             {
                 // not a unreduced extension method

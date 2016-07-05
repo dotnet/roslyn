@@ -1130,8 +1130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.Property:
-                    // PROTOTYPE: this is weird.
-                    result = symbol;
                     {
                         var property = (PropertySymbol)symbol;
                         if (property.IsStatic)
@@ -1158,7 +1156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    result = UnreducedExtensionMethodSymbol.Create(method);
+                                    var constructedFrom = method.ConstructedFrom;
+                                    result = new UnreducedExtensionMethodSymbol(constructedFrom);
                                 }
                                 // PROTOTYPE: Generics/construction of result? (probably put in Create method)
                                 break;

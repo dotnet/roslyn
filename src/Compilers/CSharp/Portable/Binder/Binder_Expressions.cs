@@ -5427,11 +5427,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(lookupResult.IsMultiViable);
             Debug.Assert(lookupResult.Symbols.Any());
 
-            // PROTOTYPE: Include the below code?
-            //HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            //OverloadResolution.BestExtensionOverloadResolution(lookupResult.Symbols, ref useSiteDiagnostics);
-            //diagnostics.Add(node, useSiteDiagnostics);
-
             var members = ArrayBuilder<Symbol>.GetInstance();
             BoundExpression result;
             bool wasError;
@@ -5559,7 +5554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                         {
-                            // PROTOTYPE: I think this (the extension class) is wrong. For example, type constraints might not match on the receiver.
+                            // PROTOTYPE: This (the extension class) is wrong. Need to check type compatibility, constraints, etc. (which is what Reduce() == null does)
                             if (methodGroup.Methods[i].IsInExtensionClass) continue;
                             if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
                         }

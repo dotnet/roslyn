@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is a property set access. We return a BoundPropertyAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
-                // PROTOTYPE: Handle extension properties
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiverOpt, propertySymbol, resultKind, type) :
                     new BoundPropertyAccess(syntax, rewrittenReceiverOpt, propertySymbol, resultKind, type);
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewrittenArguments = ImmutableArray<BoundExpression>.Empty;
 
-            Debug.Assert(!(property is UnreducedExtensionPropertySymbol));
+            Debug.Assert(!property.IsUnreducedExtensionMember);
             property = property.UnreduceExtensionProperty() ?? property;
 
             var getMethod = property.GetOwnOrInheritedGetMethod();

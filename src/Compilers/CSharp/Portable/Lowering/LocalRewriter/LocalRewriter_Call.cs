@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (invokedAsExtensionMethod)
             {
                 Debug.Assert(method.IsInExtensionClass || method.MethodKind == MethodKind.ReducedExtension);
-                method = method.UnreduceExtensionMethod(); // PROTOTYPE: Will be renamed eventually, but this method also handles reduced ext methods
+                method = method.UnreduceExtensionMethod();
             }
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,

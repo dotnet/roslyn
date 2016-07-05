@@ -888,13 +888,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Method resolution should never return method kind of UnreducedExtension
             Debug.Assert(method.MethodKind != MethodKind.UnreducedExtension);
-            // Skip building up a new array if the first argument doesn't have to be modified.
-            // PROTOTYPE: Deal with the comment and commented-out code.
-            // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-            // conversion here.
-            //Debug.Assert(method.ParameterCount > 0);
-            //Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-            //BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
+            // PROTOTYPE: Ensure that the receiver is converted appropriately to the method's receiver type, especially for extension methods.
+            //   Might need to call CreateConversion(receiver, conversionForReceiver, targetType, diagnostics).
             var args = analyzedArguments.Arguments.ToImmutable();
 
             // This will be the receiver of the BoundCall node that we create.

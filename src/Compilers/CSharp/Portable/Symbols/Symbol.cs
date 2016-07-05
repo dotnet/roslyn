@@ -414,13 +414,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (this.Kind)
                 {
                     case SymbolKind.Method:
-                        switch (((MethodSymbol)this).MethodKind)
+                        var method = (MethodSymbol)this;
+                        switch (method.MethodKind)
                         {
                             case MethodKind.UnreducedExtension:
                                 return true;
                             default:
-                                // PROTOTYPE: Do methods with `this` parameter count? (the unreduced form)
-                                return false;
+                                // PROTOTYPE: PE extension class symbols are unreduced, once those are implemented.
+                                return method.IsStatic && method.IsExtensionMethod;
                         }
                     case SymbolKind.Property:
                         return this is UnreducedExtensionPropertySymbol;

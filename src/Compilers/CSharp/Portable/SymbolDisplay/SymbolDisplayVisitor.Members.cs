@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
+        // PROTOTYPE: Handle extension class members nicely
         private const string IL_KEYWORD_MODOPT = "modopt";
         private const string IL_KEYWORD_MODREQ = "modreq";
 
