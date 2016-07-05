@@ -3034,6 +3034,13 @@ ProduceBoundNode:
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
             Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
+            If defaultConstantValue Is Nothing Then
+                If param.HasExplicitDefaultValue = False Then
+                    If InternalSyntax.Parser.CheckFeatureAvailability(_compilation.Options.ParseOptions, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                        defaultConstantValue = ConstantValue.Null
+                    End If
+                End If
+            End If
 
             If defaultConstantValue IsNot Nothing Then
 
@@ -3067,7 +3074,7 @@ ProduceBoundNode:
                 End If
 
                 defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
-
+                Debug.WriteLine(defaultArgument)
             ElseIf param.IsOptional Then
 
                 ' Handle optional object type argument when no default value is specified.
@@ -3145,10 +3152,10 @@ ProduceBoundNode:
         End Sub
 
         Private Function CheckCallerInfoAttributes(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, callerInfoOpt As VisualBasicSyntaxNode, defaultConstantValue As ConstantValue) As ConstantValue
-            If callerInfoOpt IsNot Nothing AndAlso
-               callerInfoOpt.SyntaxTree IsNot Nothing AndAlso
-               Not callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree() AndAlso
-               Not SuppressCallerInfo Then
+            If (callerInfoOpt IsNot Nothing) AndAlso
+               (callerInfoOpt.SyntaxTree IsNot Nothing) AndAlso
+               (Not callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree()) AndAlso
+               (Not SuppressCallerInfo) Then
 
                 Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
                 Dim isCallerMemberName As Boolean = param.IsCallerMemberName
@@ -3160,11 +3167,15 @@ ProduceBoundNode:
                     If isCallerLineNumber Then
                         callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
                     ElseIf isCallerMemberName Then
+
                         Dim container As Symbol = ContainingMember
 
                         While container IsNot Nothing
                             Select Case container.Kind
-                                Case SymbolKind.Field, SymbolKind.Property, SymbolKind.Event
+
+                                Case SymbolKind.Field,
+                                     SymbolKind.Property,
+                                     SymbolKind.Event
                                     Exit While
 
                                 Case SymbolKind.Method
@@ -3172,11 +3183,7 @@ ProduceBoundNode:
                                         container = container.ContainingSymbol
                                     Else
                                         Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
-
-                                        If propertyOrEvent IsNot Nothing Then
-                                            container = propertyOrEvent
-                                        End If
-
+                                        If propertyOrEvent IsNot Nothing Then container = propertyOrEvent
                                         Exit While
                                     End If
 
@@ -3185,7 +3192,7 @@ ProduceBoundNode:
                             End Select
                         End While
 
-                        If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
+                        If (container IsNot Nothing) AndAlso (container.Name IsNot Nothing) Then
                             callerInfoValue = ConstantValue.Create(container.Name)
                         End If
                     Else

@@ -175,3 +175,5 @@ $RECYCLE.BIN/
 
 # Visual Studio Code
 .vscode/
+/ErrorReporter.exe
+/errors.txt

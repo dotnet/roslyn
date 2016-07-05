@@ -6060,6 +6060,7 @@ checkNullable:
         End Function
 
         Friend Shared Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, opts As VisualBasicParseOptions) As TNode
+            Debug.Assert(opts IsNot Nothing, NameOf(opts))
             If CheckFeatureAvailability(opts, feature) Then Return node
             If feature <> Feature.InterpolatedStrings Then Return ReportFeatureUnavailable(feature, node, opts.LanguageVersion)
             ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
@@ -6077,14 +6078,17 @@ checkNullable:
         End Function
 
         Friend Shared Function CheckFeatures(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+            Debug.Assert(opts IsNot Nothing, NameOf(opts))
+            Debug.Assert(opts.Features IsNot Nothing, NameOf(opts.Features))
             If opts.Features Is Nothing OrElse opts.Features.Count = 0 Then Return False
             Dim flag = feature.GetFeatureFlag
             If flag Is Nothing Then Return False
-            Dim value As String = Nothing
-            Return opts.Features.TryGetValue(feature.GetFeatureFlag, value)
+            '           Dim value As String = Nothing
+            Return opts.Features.ContainsKey(feature.GetFeatureFlag)
         End Function
 
         Friend Shared Function CheckFeatureAvailability(opts As VisualBasicParseOptions, feature As Feature) As Boolean
+            Debug.Assert(opts IsNot Nothing, NameOf(opts))
             Dim required = feature.GetLanguageVersion()
             Return CInt(required) <= CInt(opts.LanguageVersion) OrElse CheckFeatures(feature, opts)
         End Function
