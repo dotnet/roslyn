@@ -3708,10 +3708,11 @@ class C
     {
         foreach (var (x1, x2) in M())
         {
-            System.Console.WriteLine(x1 + "" "" + x2);
+            Print(x1, x2);
         }
     }
     static IEnumerable<(int, int)> M() { yield return (1, 2); }
+    static void Print(object a, object b) { System.Console.WriteLine(a + "" "" + b); }
 }
 ";
 
@@ -3741,8 +3742,8 @@ class C
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       80 (0x50)
-  .maxstack  3
+  // Code size       70 (0x46)
+  .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
                 int V_1, //x1
                 int V_2) //x2
@@ -3751,7 +3752,7 @@ class C
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_003b
+    IL_000b:  br.s       IL_0031
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
     IL_0013:  dup
@@ -3761,25 +3762,23 @@ class C
     IL_001f:  stloc.2
     IL_0020:  ldloc.1
     IL_0021:  box        ""int""
-    IL_0026:  ldstr      "" ""
-    IL_002b:  ldloc.2
-    IL_002c:  box        ""int""
-    IL_0031:  call       ""string string.Concat(object, object, object)""
-    IL_0036:  call       ""void System.Console.WriteLine(string)""
-    IL_003b:  ldloc.0
-    IL_003c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0041:  brtrue.s   IL_000d
-    IL_0043:  leave.s    IL_004f
+    IL_0026:  ldloc.2
+    IL_0027:  box        ""int""
+    IL_002c:  call       ""void C.Print(object, object)""
+    IL_0031:  ldloc.0
+    IL_0032:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0037:  brtrue.s   IL_000d
+    IL_0039:  leave.s    IL_0045
   }
   finally
   {
-    IL_0045:  ldloc.0
-    IL_0046:  brfalse.s  IL_004e
-    IL_0048:  ldloc.0
-    IL_0049:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_004e:  endfinally
+    IL_003b:  ldloc.0
+    IL_003c:  brfalse.s  IL_0044
+    IL_003e:  ldloc.0
+    IL_003f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0044:  endfinally
   }
-  IL_004f:  ret
+  IL_0045:  ret
 }
 ");
         }
@@ -3827,6 +3826,60 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       91 (0x5b)
+  .maxstack  4
+  .locals init ((int, int)[] V_0,
+                int V_1,
+                int V_2, //x1
+                int V_3) //x2
+  IL_0000:  call       ""(int, int)[] C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
+  IL_0008:  br.s       IL_0054
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  ldelem     ""System.ValueTuple<int, int>""
+  IL_0011:  dup
+  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0017:  stloc.2
+  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001d:  stloc.3
+  IL_001e:  ldc.i4.4
+  IL_001f:  newarr     ""object""
+  IL_0024:  dup
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldloc.2
+  IL_0027:  box        ""int""
+  IL_002c:  stelem.ref
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldstr      "" ""
+  IL_0034:  stelem.ref
+  IL_0035:  dup
+  IL_0036:  ldc.i4.2
+  IL_0037:  ldloc.3
+  IL_0038:  box        ""int""
+  IL_003d:  stelem.ref
+  IL_003e:  dup
+  IL_003f:  ldc.i4.3
+  IL_0040:  ldstr      "" - ""
+  IL_0045:  stelem.ref
+  IL_0046:  call       ""string string.Concat(params object[])""
+  IL_004b:  call       ""void System.Console.Write(string)""
+  IL_0050:  ldloc.1
+  IL_0051:  ldc.i4.1
+  IL_0052:  add
+  IL_0053:  stloc.1
+  IL_0054:  ldloc.1
+  IL_0055:  ldloc.0
+  IL_0056:  ldlen
+  IL_0057:  conv.i4
+  IL_0058:  blt.s      IL_000a
+  IL_005a:  ret
+}");
         }
 
         [Fact]
@@ -3839,10 +3892,11 @@ class C
     {
         foreach (var (x1, x2) in M())
         {
-            System.Console.Write(x1 + "" "" + x2 + "" - "");
+            Print(x1, x2);
         }
     }
     static (int, int)[,] M() { return new (int, int)[2, 2] { { (1, 2), (3, 4) }, { (5, 6), (7, 8) } }; }
+    static void Print(object a, object b) { System.Console.Write(a + "" "" + b + "" - ""); }
 }
 ";
 
@@ -3869,6 +3923,67 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size      106 (0x6a)
+  .maxstack  3
+  .locals init ((int, int)[,] V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                int V_5, //x1
+                int V_6) //x2
+  IL_0000:  call       ""(int, int)[,] C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  callvirt   ""int System.Array.GetUpperBound(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  callvirt   ""int System.Array.GetUpperBound(int)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
+  IL_001d:  stloc.3
+  IL_001e:  br.s       IL_0065
+  IL_0020:  ldloc.0
+  IL_0021:  ldc.i4.1
+  IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  br.s       IL_005c
+  IL_002b:  ldloc.0
+  IL_002c:  ldloc.3
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  call       ""(int, int)[*,*].Get""
+  IL_0034:  dup
+  IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_003a:  stloc.s    V_5
+  IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0041:  stloc.s    V_6
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  box        ""int""
+  IL_004a:  ldloc.s    V_6
+  IL_004c:  box        ""int""
+  IL_0051:  call       ""void C.Print(object, object)""
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldc.i4.1
+  IL_0059:  add
+  IL_005a:  stloc.s    V_4
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  ldloc.2
+  IL_005f:  ble.s      IL_002b
+  IL_0061:  ldloc.3
+  IL_0062:  ldc.i4.1
+  IL_0063:  add
+  IL_0064:  stloc.3
+  IL_0065:  ldloc.3
+  IL_0066:  ldloc.1
+  IL_0067:  ble.s      IL_0020
+  IL_0069:  ret
+}");
         }
 
         [Fact]
@@ -3881,10 +3996,11 @@ class C
     {
         foreach (var (x1, x2) in M())
         {
-            System.Console.Write(x1 + "" "" + x2 + "" - "");
+            Print(x1, x2);
         }
     }
     static string M() { return ""123""; }
+    static void Print(object a, object b) { System.Console.Write(a + "" "" + b + "" - ""); }
 }
 static class Extension
 {
@@ -3918,6 +4034,43 @@ static class Extension
 
             var comp = CompileAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  3
+  .locals init (string V_0,
+                int V_1,
+                int V_2, //x2
+                int V_3,
+                int V_4)
+  IL_0000:  call       ""string C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
+  IL_0008:  br.s       IL_0032
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  callvirt   ""char string.this[int].get""
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  ldloca.s   V_4
+  IL_0015:  call       ""void Extension.Deconstruct(char, out int, out int)""
+  IL_001a:  ldloc.3
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  stloc.2
+  IL_001e:  box        ""int""
+  IL_0023:  ldloc.2
+  IL_0024:  box        ""int""
+  IL_0029:  call       ""void C.Print(object, object)""
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldloc.0
+  IL_0034:  callvirt   ""int string.Length.get""
+  IL_0039:  blt.s      IL_000a
+  IL_003b:  ret
+}");
         }
 
         [Fact]
@@ -4057,10 +4210,11 @@ class C
     {
         foreach ((long x1, var (x2, x3)) in M())
         {
-            System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+            Print(x1, x2, x3);
         }
     }
     static IEnumerable<Pair<int, Pair<int, int>>> M() { yield return Pair.Create(1, Pair.Create(2, 3)); yield return Pair.Create(4, Pair.Create(5, 6)); }
+    static void Print(object a, object b, object c) { System.Console.WriteLine(a + "" "" + b + "" "" + c); }
 }
 " + commonSource;
 
@@ -4102,79 +4256,56 @@ Deconstructing (5, 6)
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      129 (0x81)
-  .maxstack  4
+  // Code size       90 (0x5a)
+  .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
-                long V_1, //x1
-                int V_2, //x2
-                int V_3, //x3
-                int V_4,
-                Pair<int, int> V_5,
-                int V_6,
-                int V_7)
+                int V_1, //x2
+                int V_2, //x3
+                int V_3,
+                Pair<int, int> V_4,
+                int V_5,
+                int V_6)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_006c
+    IL_000b:  br.s       IL_0045
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
-    IL_0013:  ldloca.s   V_4
-    IL_0015:  ldloca.s   V_5
+    IL_0013:  ldloca.s   V_3
+    IL_0015:  ldloca.s   V_4
     IL_0017:  callvirt   ""void Pair<int, Pair<int, int>>.Deconstruct(out int, out Pair<int, int>)""
-    IL_001c:  ldloc.s    V_5
-    IL_001e:  ldloca.s   V_6
-    IL_0020:  ldloca.s   V_7
+    IL_001c:  ldloc.s    V_4
+    IL_001e:  ldloca.s   V_5
+    IL_0020:  ldloca.s   V_6
     IL_0022:  callvirt   ""void Pair<int, int>.Deconstruct(out int, out int)""
-    IL_0027:  ldloc.s    V_4
-    IL_0029:  conv.i8
-    IL_002a:  stloc.1
-    IL_002b:  ldloc.s    V_6
-    IL_002d:  stloc.2
-    IL_002e:  ldloc.s    V_7
-    IL_0030:  stloc.3
-    IL_0031:  ldc.i4.5
-    IL_0032:  newarr     ""object""
-    IL_0037:  dup
-    IL_0038:  ldc.i4.0
-    IL_0039:  ldloc.1
-    IL_003a:  box        ""long""
-    IL_003f:  stelem.ref
-    IL_0040:  dup
-    IL_0041:  ldc.i4.1
-    IL_0042:  ldstr      "" ""
-    IL_0047:  stelem.ref
-    IL_0048:  dup
-    IL_0049:  ldc.i4.2
-    IL_004a:  ldloc.2
-    IL_004b:  box        ""int""
-    IL_0050:  stelem.ref
-    IL_0051:  dup
-    IL_0052:  ldc.i4.3
-    IL_0053:  ldstr      "" ""
-    IL_0058:  stelem.ref
-    IL_0059:  dup
-    IL_005a:  ldc.i4.4
-    IL_005b:  ldloc.3
-    IL_005c:  box        ""int""
-    IL_0061:  stelem.ref
-    IL_0062:  call       ""string string.Concat(params object[])""
-    IL_0067:  call       ""void System.Console.WriteLine(string)""
-    IL_006c:  ldloc.0
-    IL_006d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0072:  brtrue.s   IL_000d
-    IL_0074:  leave.s    IL_0080
+    IL_0027:  ldloc.3
+    IL_0028:  conv.i8
+    IL_0029:  ldloc.s    V_5
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.s    V_6
+    IL_002e:  stloc.2
+    IL_002f:  box        ""long""
+    IL_0034:  ldloc.1
+    IL_0035:  box        ""int""
+    IL_003a:  ldloc.2
+    IL_003b:  box        ""int""
+    IL_0040:  call       ""void C.Print(object, object, object)""
+    IL_0045:  ldloc.0
+    IL_0046:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_004b:  brtrue.s   IL_000d
+    IL_004d:  leave.s    IL_0059
   }
   finally
   {
-    IL_0076:  ldloc.0
-    IL_0077:  brfalse.s  IL_007f
-    IL_0079:  ldloc.0
-    IL_007a:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_007f:  endfinally
+    IL_004f:  ldloc.0
+    IL_0050:  brfalse.s  IL_0058
+    IL_0052:  ldloc.0
+    IL_0053:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0058:  endfinally
   }
-  IL_0080:  ret
+  IL_0059:  ret
 }
 ");
         }
@@ -4448,6 +4579,31 @@ class C
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36)
                 );
+        }
+
+        [Fact]
+        public void ForeachCreatesNewVariables()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var lambdas = new System.Action[2];
+        int index = 0;
+        foreach (var (x1, x2) in M())
+        {
+            lambdas[index] = () => { System.Console.Write(x1 + "" ""); };
+            index++;
+        }
+        lambdas[0]();
+        lambdas[1]();
+    }
+    static (int, int)[] M() { return new[] { (0, 0), (10, 10) }; }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
         }
     }
 }
