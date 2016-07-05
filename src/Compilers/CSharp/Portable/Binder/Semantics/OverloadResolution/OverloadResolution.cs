@@ -275,10 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // Not spec'ed yet: Extension Everything overload resolution based on receiver type
-            // PROTOTYPE: We might remove the only applicable member, only to be left with no applicable methods left.
-            //BestExtensionReceiverResolution(results, ref useSiteDiagnostics);
-
             // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
             // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
 

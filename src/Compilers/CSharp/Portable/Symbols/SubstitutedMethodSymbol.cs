@@ -146,27 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE: The only usage of this property is in tests. Is it needed?
         internal sealed override MethodSymbol CallsiteReducedFromMethod
         {
             get
             {
                 var method = OriginalDefinition.ReducedFrom;
                 return ((object)method == null) ? null : method.Construct(this.TypeArguments);
-            }
-        }
-
-        public override TypeSymbol ReceiverType
-        {
-            get
-            {
-                // PROTOTYPE: Figure this out? What is CallsiteReducedFromMethod (this is only non-test usage)
-                var reduced = this.CallsiteReducedFromMethod;
-                if ((object)reduced == null)
-                {
-                    return this.ContainingType;
-                }
-
-                return reduced.Parameters[0].Type;
             }
         }
 

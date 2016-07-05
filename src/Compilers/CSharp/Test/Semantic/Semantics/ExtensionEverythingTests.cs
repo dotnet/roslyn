@@ -875,8 +875,17 @@ class BaseClass
 
 extension class ExtClass : BaseClass
 {
-    public int this[int a, int b = 4, params int[] c] =>
-        Log(a + b + c.Sum(), ""["" + a + b + string.Join("""", c) + ""]"");
+    public int this[int a, int b = 4, params int[] c]
+    {
+        get
+        {
+            return Log(a + b + c.Sum(), ""["" + a + b + string.Join("""", c) + ""]"");
+        }
+        set
+        {
+            Console.Write(""["" + a + b + string.Join("""", c) + ""]="" + value);
+        }
+    }
     public int Func(int a, int b = 4, params int[] c) =>
         Log(a + b + c.Sum(), ""("" + a + b + string.Join("","", c) + "")"");
     public static int StaticFunc(int a, int b = 4, params int[] c) =>
@@ -890,6 +899,7 @@ class Program
         Console.Write(Log(new BaseClass(), ""1"")[c: new[] { Log(1, ""2""), Log(2, ""3"") }, a: Log(3, ""4"")]);
         Console.Write(Log(new BaseClass(), ""1"").Func(c: new[] { Log(1, ""2""), Log(2, ""3"") }, a: Log(3, ""4"")));
         Console.Write(BaseClass.StaticFunc(c: new[] { Log(1, ""1""), Log(2, ""2"") }, a: Log(3, ""3"")));
+        Log(new BaseClass(), ""1"")[c: new[] { Log(1, ""2""), Log(2, ""3"") }, a: Log(3, ""4"")] = 5;
     }
 }
 ";
@@ -897,7 +907,7 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs,
-                expectedOutput: "1234[3412]1234(3412)1234{3412}",
+                expectedOutput: "1234[3412]1234(3412)1234{3412}1234[3412]=5",
                 parseOptions: parseOptions);
         }
 

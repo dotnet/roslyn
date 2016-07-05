@@ -670,7 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // PROTOTYPE: Extension class members?
                 // This is also populated by loading attributes, but
                 // loading attributes is more expensive, so we should only do it if
                 // attributes are requested.
@@ -701,7 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var attributeData = default(ImmutableArray<CSharpAttributeData>);
                 var containingPEModuleSymbol = _containingType.ContainingPEModule;
 
-                // PROTOTYPE: Extension class members
                 // Could this possibly be an extension method?
                 bool alreadySet = _packedFlags.IsExtensionMethodIsPopulated;
                 bool checkForExtension = alreadySet

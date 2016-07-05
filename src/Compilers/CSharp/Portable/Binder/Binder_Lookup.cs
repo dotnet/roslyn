@@ -737,27 +737,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.IsMultiViable && (options & LookupOptions.IncludeExtensionMethods) != 0)
             {
                 originalBinder.LookupExtensionMembers(result, name, arity, options, ref useSiteDiagnostics);
-                // PROTOTYPE: Deal with commented out code here
-                /*
-                var tempResult = LookupResult.GetInstance();
-                originalBinder.LookupExtensionMembers(tempResult, name, arity, options, ref useSiteDiagnostics);
-                // PROTOTYPE: Provide better errors on lookup failure?
-                // PROTOTYPE: Extension methods found through member lookup go through this trimming twice (one here, one in overload resolution). Fix?
-                if (tempResult.IsMultiViable)
-                {
-                    foreach (var extension in tempResult.Symbols)
-                    {
-                        var method = extension as MethodSymbol;
-                        var receiverType = ((object)method != null && method.MethodKind == MethodKind.ReducedExtension) ? method.ReceiverType : extension.ContainingType.ExtensionClassType;
-                        var conversion = Conversions.ClassifyImplicitConversion(type, receiverType, ref useSiteDiagnostics);
-                        if (ConversionsBase.IsValidExtensionMethodThisArgConversion(conversion))
-                        {
-                            result.MergeEqual(new SingleLookupResult(LookupResultKind.Viable, extension, null));
-                        }
-                    }
-                }
-                tempResult.Free();
-                */
             }
 
             visited?.Free();

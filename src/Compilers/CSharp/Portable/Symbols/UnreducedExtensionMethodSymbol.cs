@@ -25,71 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeSymbol> _typeArguments;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        /// <summary>
-        /// Return the extension method in unreduced form if the extension method
-        /// is applicable, and satisfies type parameter constraints, based on the
-        /// "this" argument type. Otherwise, returns null.
-        /// </summary>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, Compilation compilation)
-        {
-            Debug.Assert(method.IsInExtensionClass && method.MethodKind != MethodKind.UnreducedExtension);
-            Debug.Assert((object)receiverType != null);
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-            // PROTOTYPE: fix this, left over from ReducedExtensionMethodSymbol
-            method = method.InferExtensionMethodTypeArguments(receiverType, compilation, ref useSiteDiagnostics);
-            if ((object)method == null)
-            {
-                return null;
-            }
-
-            var conversions = new TypeConversions(method.ContainingAssembly.CorLibrary);
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteDiagnostics);
-            if (!conversion.Exists)
-            {
-                return null;
-            }
-
-            if (useSiteDiagnostics != null)
-            {
-                foreach (var diag in useSiteDiagnostics)
-                {
-                    if (diag.Severity == DiagnosticSeverity.Error)
-                    {
-                        return null;
-                    }
-                }
-            }
-
-            return Create(method);
-        }
-
-        public static MethodSymbol Create(MethodSymbol method)
-        {
-            Debug.Assert(method.IsInExtensionClass && method.MethodKind != MethodKind.UnreducedExtension);
-
-            // The unreduced form is always created from the unconstructed method symbol.
-            var constructedFrom = method.ConstructedFrom;
-            var unreducedMethod = new UnreducedExtensionMethodSymbol(constructedFrom);
-
-            if (constructedFrom == method)
-            {
-                return unreducedMethod;
-            }
-
-            // If the given method is a constructed method, the same type arguments
-            // are applied to construct the result from the unreduced form.
-            Debug.Assert(!method.TypeArguments.IsEmpty);
-            return unreducedMethod.Construct(method.TypeArguments);
-        }
-
-        private UnreducedExtensionMethodSymbol(MethodSymbol unreducedFrom)
+        public UnreducedExtensionMethodSymbol(MethodSymbol unreducedFrom)
         {
             Debug.Assert((object)unreducedFrom != null);
             Debug.Assert(unreducedFrom.IsInExtensionClass);
+            // Should never try to unreduce a reduced symbol - callers of this should have short-circuited.
             Debug.Assert((object)unreducedFrom.ReducedFrom == null);
+            Debug.Assert((object)unreducedFrom.UnreducedFrom == null);
             Debug.Assert(unreducedFrom.ConstructedFrom == unreducedFrom);
+            Debug.Assert(unreducedFrom.MethodKind != MethodKind.UnreducedExtension);
 
             _unreducedFrom = unreducedFrom;
             _typeMap = TypeMap.Empty.WithAlphaRename(unreducedFrom, this, out _typeParameters);
@@ -102,9 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = null;
             return true;
         }
-
-        // PROTOTYPE: Do we need to return something from here? (return null is same as base virtual property)
-        internal override MethodSymbol CallsiteReducedFromMethod => null;
 
         public override TypeSymbol ReceiverType => null;
 
@@ -122,9 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
-
-        // PROTOTYPE: Same comment as CallsiteReducedFromMethod
-        public override MethodSymbol ReducedFrom => null;
 
         public override MethodSymbol UnreducedFrom => _unreducedFrom;
 
@@ -247,7 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE: Not here, but need to test explicit interface impls in extension class (should produce error)
         internal override bool IsExplicitInterfaceImplementation => false;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;

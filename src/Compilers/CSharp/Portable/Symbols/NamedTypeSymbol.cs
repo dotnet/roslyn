@@ -421,7 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
-            // PROTOTYPE: Find refs of these two props and make sure both are considered.
             if (this.MightContainExtensionMembers)
             {
                 DoGetExtensionMembers(members, nameOpt, arity, options);

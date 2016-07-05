@@ -27,12 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)unreducedFrom != null);
             Debug.Assert(unreducedFrom.IsInExtensionClass);
-            Debug.Assert(!(unreducedFrom is UnreducedExtensionPropertySymbol));
+            Debug.Assert(!unreducedFrom.IsUnreducedExtensionMember);
 
             _unreducedFrom = unreducedFrom;
         }
 
-        // PROTOTYPE: Make virtual?
+        // Only use of this is when we know we have an unreduced property and want to "reduce" it
+        // - no need for it to be on PropertySymbol and be virtual
         public PropertySymbol UnreducedFrom => _unreducedFrom;
 
         public override Symbol ContainingSymbol => _unreducedFrom.ContainingSymbol;
@@ -47,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodSymbol SetMethod => _unreducedFrom.SetMethod?.UnreduceExtensionMethod();
 
-        // PROTOTYPE: extra parameters causing problems? (find references of IsIndexer)
         public override bool IsIndexer => _unreducedFrom.IsIndexer;
 
         public override bool IsAbstract => _unreducedFrom.IsAbstract;

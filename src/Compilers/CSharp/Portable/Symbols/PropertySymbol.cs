@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public PropertySymbol UnreduceExtensionProperty()
         {
-            Debug.Assert(!(this is UnreducedExtensionPropertySymbol));
+            Debug.Assert(!this.IsUnreducedExtensionMember);
             if (!this.IsInExtensionClass)
                 return null;
 

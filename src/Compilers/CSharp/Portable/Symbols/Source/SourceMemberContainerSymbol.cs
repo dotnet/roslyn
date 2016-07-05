@@ -1308,11 +1308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var memberNames = ArrayBuilder<string>.GetInstance(membersDictionary.Count);
                     memberNames.AddRange(membersDictionary.Keys);
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
-                    if (this.IsExtensionClass)
-                    {
-                        // PROTOTYPE: Is this needed?
-                        //ReplaceExtensionClassMembers(memberNames, membersDictionary, diagnostics);
-                    }
                     memberNames.Free();
                     AddDeclarationDiagnostics(diagnostics);
                     state.NotePartComplete(CompletionPart.Members);
