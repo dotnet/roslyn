@@ -3738,6 +3738,50 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       80 (0x50)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
+                int V_1, //x1
+                int V_2) //x2
+  IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
+  IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  br.s       IL_003b
+    IL_000d:  ldloc.0
+    IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
+    IL_0013:  dup
+    IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0019:  stloc.1
+    IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_001f:  stloc.2
+    IL_0020:  ldloc.1
+    IL_0021:  box        ""int""
+    IL_0026:  ldstr      "" ""
+    IL_002b:  ldloc.2
+    IL_002c:  box        ""int""
+    IL_0031:  call       ""string string.Concat(object, object, object)""
+    IL_0036:  call       ""void System.Console.WriteLine(string)""
+    IL_003b:  ldloc.0
+    IL_003c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0041:  brtrue.s   IL_000d
+    IL_0043:  leave.s    IL_004f
+  }
+  finally
+  {
+    IL_0045:  ldloc.0
+    IL_0046:  brfalse.s  IL_004e
+    IL_0048:  ldloc.0
+    IL_0049:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_004e:  endfinally
+  }
+  IL_004f:  ret
+}
+");
         }
 
         [Fact]
@@ -4011,7 +4055,7 @@ class C
 {
     static void Main()
     {
-        foreach ((int x1, var (x2, x3)) in M())
+        foreach ((long x1, var (x2, x3)) in M())
         {
             System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
         }
@@ -4055,6 +4099,84 @@ Deconstructing (5, 6)
 
             var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size      129 (0x81)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
+                long V_1, //x1
+                int V_2, //x2
+                int V_3, //x3
+                int V_4,
+                Pair<int, int> V_5,
+                int V_6,
+                int V_7)
+  IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
+  IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  br.s       IL_006c
+    IL_000d:  ldloc.0
+    IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
+    IL_0013:  ldloca.s   V_4
+    IL_0015:  ldloca.s   V_5
+    IL_0017:  callvirt   ""void Pair<int, Pair<int, int>>.Deconstruct(out int, out Pair<int, int>)""
+    IL_001c:  ldloc.s    V_5
+    IL_001e:  ldloca.s   V_6
+    IL_0020:  ldloca.s   V_7
+    IL_0022:  callvirt   ""void Pair<int, int>.Deconstruct(out int, out int)""
+    IL_0027:  ldloc.s    V_4
+    IL_0029:  conv.i8
+    IL_002a:  stloc.1
+    IL_002b:  ldloc.s    V_6
+    IL_002d:  stloc.2
+    IL_002e:  ldloc.s    V_7
+    IL_0030:  stloc.3
+    IL_0031:  ldc.i4.5
+    IL_0032:  newarr     ""object""
+    IL_0037:  dup
+    IL_0038:  ldc.i4.0
+    IL_0039:  ldloc.1
+    IL_003a:  box        ""long""
+    IL_003f:  stelem.ref
+    IL_0040:  dup
+    IL_0041:  ldc.i4.1
+    IL_0042:  ldstr      "" ""
+    IL_0047:  stelem.ref
+    IL_0048:  dup
+    IL_0049:  ldc.i4.2
+    IL_004a:  ldloc.2
+    IL_004b:  box        ""int""
+    IL_0050:  stelem.ref
+    IL_0051:  dup
+    IL_0052:  ldc.i4.3
+    IL_0053:  ldstr      "" ""
+    IL_0058:  stelem.ref
+    IL_0059:  dup
+    IL_005a:  ldc.i4.4
+    IL_005b:  ldloc.3
+    IL_005c:  box        ""int""
+    IL_0061:  stelem.ref
+    IL_0062:  call       ""string string.Concat(params object[])""
+    IL_0067:  call       ""void System.Console.WriteLine(string)""
+    IL_006c:  ldloc.0
+    IL_006d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0072:  brtrue.s   IL_000d
+    IL_0074:  leave.s    IL_0080
+  }
+  finally
+  {
+    IL_0076:  ldloc.0
+    IL_0077:  brfalse.s  IL_007f
+    IL_0079:  ldloc.0
+    IL_007a:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_007f:  endfinally
+  }
+  IL_0080:  ret
+}
+");
         }
 
         [Fact]
