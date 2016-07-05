@@ -4434,11 +4434,10 @@ var(x, y)=(1,2);
 {
     void bar()
     {
-        var(x, y) = (1, 2);
+        var (x, y) = (1, 2);
     }
 }";
 
-            // PROTOTYPE(tuples) the expectation is wrong. There should be a space after "var"
             await AssertFormatAsync(expectedCode, code);
         }
 
