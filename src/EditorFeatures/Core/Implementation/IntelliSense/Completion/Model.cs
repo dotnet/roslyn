@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal class Model
     {
-        private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
+        internal readonly DisconnectedBufferGraph _disconnectedBufferGraph;
         public ITextSnapshot TriggerSnapshot { get { return _disconnectedBufferGraph.SubjectBufferSnapshot; } }
 
         public CompletionList OriginalList { get; }

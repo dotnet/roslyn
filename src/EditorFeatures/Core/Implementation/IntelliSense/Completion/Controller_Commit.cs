@@ -79,18 +79,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     var viewBuffer = this.TextView.TextBuffer;
                     var commitDocument = this.SubjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
+                    commitDocument = model.TriggerSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                     // adjust commit item span foward to match current document that is passed to 
                     // GetChangeAsync below
                     var originalItemSpan = new SnapshotSpan(model.TriggerSnapshot, item.Item.Span.ToSpan());
-                    var translatedSpan = originalItemSpan.TranslateTo(this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                    var translatedItem = item.Item.WithSpan(translatedSpan.Span.ToTextSpan());
+                    //var translatedSpan = originalItemSpan.TranslateTo(this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                    //var translatedItem = item.Item.WithSpan(translatedSpan.Span.ToTextSpan());
 
                     // Get the desired text changes for this item. Note that these changes are
                     // specified in terms of the subject buffer.
                     var completionService = CompletionService.GetService(commitDocument);
                     var commitChange = completionService.GetChangeAsync(
-                        commitDocument, translatedItem, commitChar, cancellationToken).WaitAndGetResult(cancellationToken);
+                        commitDocument, item.Item, commitChar, cancellationToken).WaitAndGetResult(cancellationToken);
                     textChangesInSubjectBuffer = commitChange.TextChanges;
 
                     // Use character based diffing here to avoid overwriting the commit character placed into the editor.
@@ -106,14 +106,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     foreach (var textChangeInBuffer in textChangesInSubjectBuffer)
                     {
                         var currentSpanInBuffer = new SnapshotSpan(
-                            this.SubjectBuffer.CurrentSnapshot,
+                            model.TriggerSnapshot,
                             textChangeInBuffer.Span.ToSpan());
 
-                        var viewSpan = bufferGraph.GetSubjectBufferTextSpanInViewBuffer(
-                            currentSpanInBuffer.Span.ToTextSpan());
+                        // Try mapping the *original item span* to the ViewBuffer's *original* snapshot
+                        // Then map that forward to the ViewBuffer's current snapshot.
+                        var originalSpanInView = model.GetViewBufferSpan(textChangeInBuffer.Span).TextSpan.ToSnapshotSpan(model._disconnectedBufferGraph.ViewSnapshot);
+                        var translatedOriginalSpanInView = originalSpanInView.TranslateTo(TextView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                        textChangesInView.Add(new TextChange(viewSpan.TextSpan, textChangeInBuffer.NewText));
+                        //var viewSpan = bufferGraph.GetSubjectBufferTextSpanInViewBuffer(
+                        //    currentSpanInBuffer.Span.ToTextSpan());
+
+                        textChangesInView.Add(new TextChange(translatedOriginalSpanInView.Span.ToTextSpan(), textChangeInBuffer.NewText));
                     }
+
+                    
 
                     // Note: we currently create the edit on the textview's buffer.  This is 
                     // necessary as our own 
@@ -165,6 +172,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             }
 
                             caretPoint = this.TextView.GetCaretPoint(this.SubjectBuffer);
+
+                            //var realReplacementSpan = new Span(translatedOriginalSpanInView.Start, currentSpan.Length);
+                            //currentSpan = new SnapshotSpan(TextView.TextBuffer.CurrentSnapshot, realReplacementSpan);
 
                             // Now that we're doing character level diffing, we need to move the caret to the end of 
                             // the span being replaced. Otherwise, we can replace M|ai with Main and wind up with 
