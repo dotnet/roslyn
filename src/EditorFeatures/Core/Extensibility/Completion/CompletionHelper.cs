@@ -7,9 +7,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -332,16 +330,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// to see if it should commit that item.  If it does neither, then completion will be
         /// dismissed.
         /// </summary>
-        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar, string textTypedWithChar = null)
+        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar)
         {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            textTypedWithChar = textTypedWithChar ?? textTypedSoFar + ch;
-            if (item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase)
-                || item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase))
-            {
-                return false;
-            }
-
             foreach (var rule in item.Rules.CommitCharacterRules)
             {
                 switch (rule.Kind)
@@ -358,6 +348,17 @@ namespace Microsoft.CodeAnalysis.Editor
 
                     case CharacterSetModificationKind.Replace:
                         return rule.Characters.IndexOf(ch) >= 0;
+                }
+            }
+
+            // general rule: if the filtering text exactly matches the start of the item then it
+            // must be a filter character
+            if (textTypedSoFar.Length > 0)
+            {
+                if (item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return false;
                 }
             }
 
@@ -451,16 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor
             char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var change = await service.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
-
-            // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
-            if (change.TextChanges.Length == 1)
-            {
-                return change.TextChanges[0];
-            }
-            else
-            {
-                return new TextChange(item.Span, item.DisplayText);
-            }
+            return change.TextChange;
         }
     }
 }

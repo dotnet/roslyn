@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -12,8 +14,11 @@ namespace Microsoft.CodeAnalysis.Completion
     public sealed class CompletionChange
     {
         /// <summary>
-        /// The text changes to be applied to the document.
+        /// The text change to be applied to the document.
         /// </summary>
+        public TextChange TextChange { get; }
+
+        [Obsolete("Use TextChange instead")]
         public ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
@@ -23,16 +28,25 @@ namespace Microsoft.CodeAnalysis.Completion
         public int? NewPosition { get; }
 
         /// <summary>
-        /// True if the changes include the typed character that caused the <see cref="CompletionItem"/> to be committed.
-        /// If false the completion host will determine if and where the commit character is inserted into the document.
+        /// True if the changes include the typed character that caused the <see cref="CompletionItem"/>
+        /// to be committed.  If false the completion host will determine if and where the commit 
+        /// character is inserted into the document.
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
-        private CompletionChange(ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommit)
+        private CompletionChange(ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
+            : this(textChanges.Single(), newPosition, includesCommitCharacter)
         {
-            this.TextChanges = textChanges.IsDefault ? ImmutableArray<TextChange>.Empty : textChanges;
-            this.NewPosition = newPosition;
-            this.IncludesCommitCharacter = includesCommit;
+        }
+
+        private CompletionChange(TextChange textChange, int? newPosition, bool includesCommitCharacter)
+        {
+            TextChange = textChange;
+#pragma warning disable CS0618 // Type or member is obsolete
+            TextChanges = ImmutableArray.Create(textChange);
+#pragma warning restore CS0618 // Type or member is obsolete
+            NewPosition = newPosition;
+            IncludesCommitCharacter = includesCommitCharacter;
         }
 
         /// <summary>
@@ -44,17 +58,37 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="includesCommitCharacter">True if the changes include the typed character that caused the <see cref="CompletionItem"/> to be committed.
         /// If false, the completion host will determine if and where the commit character is inserted into the document.</param>
         /// <returns></returns>
-        public static CompletionChange Create(ImmutableArray<TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false)
+        [Obsolete("Use Create overload that only takes a single TextChange")]
+        public static CompletionChange Create(
+            ImmutableArray<TextChange> textChanges,
+            int? newPosition,
+            bool includesCommitCharacter)
         {
             return new CompletionChange(textChanges, newPosition, includesCommitCharacter);
+        }
+
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+        public static CompletionChange Create(
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+            TextChange textChange,
+            int? newPosition = null,
+            bool includesCommitCharacter = false)
+        {
+            return new CompletionChange(textChange, newPosition, includesCommitCharacter);
         }
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="TextChange"/> property changed.
         /// </summary>
+        [Obsolete("Use WithTextChange instead")]
         public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
         {
             return new CompletionChange(textChanges, this.NewPosition, this.IncludesCommitCharacter);
+        }
+
+        public CompletionChange WithTextChange(TextChange textChange)
+        {
+            return new CompletionChange(textChange, this.NewPosition, this.IncludesCommitCharacter);
         }
 
         /// <summary>
@@ -62,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionChange WithNewPosition(int? newPostion)
         {
-            return new CompletionChange(this.TextChanges, newPostion, this.IncludesCommitCharacter);
+            return new CompletionChange(this.TextChange, newPostion, this.IncludesCommitCharacter);
         }
 
         /// <summary>
@@ -70,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionChange WithIncludesCommitCharacter(bool includesCommitCharacter)
         {
-            return new CompletionChange(this.TextChanges, this.NewPosition, includesCommitCharacter);
+            return new CompletionChange(this.TextChange, this.NewPosition, includesCommitCharacter);
         }
     }
 }

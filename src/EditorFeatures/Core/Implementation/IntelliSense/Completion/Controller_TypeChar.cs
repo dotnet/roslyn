@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             AssertIsForeground();
 
+            var initialTextSnapshot = this.SubjectBuffer.CurrentSnapshot;
+            var initialVirtualCaretPosition = this.TextView.Caret.Position.VirtualBufferPosition;
+
             var initialCaretPosition = GetCaretPointInViewBuffer();
 
             // When a character is typed it is *always* sent through to the editor.  This way the
@@ -87,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         Trace.WriteLine("typechar was on seam and a commit char, cannot have a completion session.");
 
-                        this.CommitOnTypeChar(args.TypedChar);
+                        this.CommitOnTypeChar(
+                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
                         return;
                     }
                     else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
@@ -98,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                         // we don't do multiple buffer change check
-                        this.CommitOnTypeChar(args.TypedChar);
+                        this.CommitOnTypeChar(
+                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
                         return;
                     }
                     else
@@ -218,7 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // Known to be a commit character for the currently selected item.  So just
                         // commit the session.
-                        this.CommitOnTypeChar(args.TypedChar);
+                        this.CommitOnTypeChar(
+                            args.TypedChar, initialTextSnapshot, initialVirtualCaretPosition, nextHandler);
                     }
                     else
                     {
@@ -358,7 +364,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return filterText;
         }
 
-        private void CommitOnTypeChar(char ch)
+        private void CommitOnTypeChar(
+            char ch, ITextSnapshot initialTextSnapshot, 
+            VirtualSnapshotPoint initialCaretPointInView,
+            Action nextHandler)
         {
             AssertIsForeground();
 
@@ -370,7 +379,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // was commit character if we had a selected item.
             Contract.ThrowIfNull(model);
 
-            this.Commit(model.SelectedItem, model, ch);
+            this.Commit(model.SelectedItem, model, ch, 
+                initialTextSnapshot, initialCaretPointInView, nextHandler);
         }
     }
 }

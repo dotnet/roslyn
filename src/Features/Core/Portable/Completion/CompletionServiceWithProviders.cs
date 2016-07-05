@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText)));
+                return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
             }
         }
 

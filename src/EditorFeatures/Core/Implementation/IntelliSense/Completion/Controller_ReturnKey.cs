@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            this.Commit(model.SelectedItem, model, commitChar: null);
+            this.CommitOnNonTypeChar(model.SelectedItem, model);
             committed = true;
         }
     }

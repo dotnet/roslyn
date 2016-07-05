@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
 
             var text = await document.GetTextAsync();
-            var newText = text.WithChanges(commit.TextChanges);
+            var newText = text.WithChanges(commit.TextChange);
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
@@ -422,7 +422,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var text = await document.GetTextAsync();
 
-            if (commitChar == '\t' || completionRules.IsCommitCharacter(firstItem, commitChar, textTypedSoFar))
+            if (commitChar == '\t' ||
+                completionRules.IsCommitCharacter(firstItem, commitChar, textTypedSoFar + commitChar))
             {
                 var textChange = CompletionHelper.GetTextChangeAsync(service, document, firstItem, commitChar).Result;
 

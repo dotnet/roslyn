@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return text[characterPosition] == '<';
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, TextSpan span, CompletionTrigger trigger, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
+            Document document, int position, TextSpan span,
+            CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);

@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
@@ -170,6 +171,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
             }.ToImmutableArray()
         End Function
-
     End Class
 End Namespace
