@@ -4427,7 +4427,7 @@ case 1: break; case 2: break; default: break;}
             var code = @"class Class5{
 void bar()
 {
-var(x, y)=(1,2);
+var(x,y)=(1,2);
 }
 }";
             var expectedCode = @"class Class5
@@ -4435,6 +4435,27 @@ var(x, y)=(1,2);
     void bar()
     {
         var (x, y) = (1, 2);
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNestedDeconstruction()
+        {
+            var code = @"class Class5{
+void bar()
+{
+( int x1 , var( x2,x3 ) )=(1,(2,3));
+}
+}";
+            var expectedCode = @"class Class5
+{
+    void bar()
+    {
+        (int x1, var (x2, x3)) = (1, (2, 3));
     }
 }";
 

@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Always put a space in the var form of deconstruction-declaration
-            if (currentKind == SyntaxKind.OpenParenToken && currentToken.Parent?.Kind() == SyntaxKind.VariableDeconstructionDeclarator && previousToken.Kind() == SyntaxKind.IdentifierToken && previousToken.ValueText == "var")
+            if (currentToken.IsOpenParenInVarDeconstructionDeclaration())
             {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
             }
