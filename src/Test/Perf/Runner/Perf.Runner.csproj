@@ -54,9 +54,7 @@
   <ItemGroup>
     <Compile Include="Benchview.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="CPC-Consumption\ScenarioGenerator.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="CPC-Consumption\TraceManager.cs" />
     <Compile Include="TraceBackup.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -82,6 +80,9 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CPC-Consumption\" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

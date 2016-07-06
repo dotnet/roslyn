@@ -3,11 +3,11 @@ using Roslyn.Test.Performance.Utilities;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
-namespace Roslyn.Test.Performance.Runner
+namespace Roslyn.Test.Performance.Utilities
 {
     public class TraceManagerFactory
     {
-        public static ITraceManager GetTraceManager()
+        public static ITraceManager GetBestTraceManager()
         {
             var cpcFullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "CPC.exe");
             var scenarioPath = TestUtilities.GetCPCDirectoryPath();
@@ -22,26 +22,11 @@ namespace Roslyn.Test.Performance.Runner
                 return new NoOpTraceManager();
             }
         }
-    }
 
-    public interface ITraceManager
-    {
-        bool HasWarmUpIteration { get; }
-
-        void Initialize();
-        void Cleanup();
-        void EndEvent();
-        void EndScenario();
-        void EndScenarios();
-        void ResetScenarioGenerator();
-        void Setup();
-        void Start();
-        void StartEvent();
-        void StartScenario(string scenarioName, string processName);
-        void StartScenarios();
-        void Stop();
-        void WriteScenarios(string[] scenarios);
-        void WriteScenariosFileToDisk();
+        public static ITraceManager NoOpTraceManager()
+        {
+            return new NoOpTraceManager();
+        }
     }
 
     public class TraceManager : ITraceManager
