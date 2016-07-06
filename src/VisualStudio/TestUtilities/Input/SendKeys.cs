@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Roslyn.VisualStudio.Test.Utilities.Interop;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Input
@@ -14,98 +15,98 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
             _visualStudioInstance = visualStudioInstance;
         }
 
-        public void Send(KeyPress keyPress)
+        public void Send(object[] keys)
         {
-            Send(keyPress.VirtualKey, keyPress.ShiftState);
-        }
+            var inputs = new List<User32.INPUT>(keys.Length);
 
-        public void Send(VirtualKey virtualKey, ShiftState shiftState = 0)
-        {
-            var foregroundWindow = IntPtr.Zero;
-            var inputBlocked = false;
-
-            try
+            foreach (var key in keys)
             {
-                inputBlocked = IntegrationHelper.BlockInput();
-                foregroundWindow = IntegrationHelper.GetForegroundWindow();
-
-                _visualStudioInstance.ActivateMainWindow();
-
-                if ((shiftState & ShiftState.Shift) != 0)
+                if (key is string)
                 {
-                    SendKey(VirtualKey.Shift, User32.KEYEVENTF_NONE);
+                    var text = ((string)key)
+                        .Replace("\r\n", "\r")
+                        .Replace("\n", "\r");
+
+                    foreach (var ch in text)
+                    {
+                        AddInputs(inputs, ch);
+                    }
                 }
-
-                if ((shiftState & ShiftState.Ctrl) != 0)
+                else if (key is char)
                 {
-                    SendKey(VirtualKey.Control, User32.KEYEVENTF_NONE);
+                    AddInputs(inputs, (char)key);
                 }
-
-                if ((shiftState & ShiftState.Alt) != 0)
+                else if (key is VirtualKey)
                 {
-                    SendKey(VirtualKey.Alt, User32.KEYEVENTF_NONE);
+                    AddInputs(inputs, (VirtualKey)key);
                 }
-
-                SendKeyPressAndRelease(virtualKey);
-
-                if ((shiftState & ShiftState.Shift) != 0)
+                else if (key is KeyPress)
                 {
-                    SendKey(VirtualKey.Shift, User32.KEYEVENTF_KEYUP);
+                    AddInputs(inputs, (KeyPress)key);
                 }
-
-                if ((shiftState & ShiftState.Ctrl) != 0)
+                else if (key == null)
                 {
-                    SendKey(VirtualKey.Control, User32.KEYEVENTF_KEYUP);
+                    throw new ArgumentNullException(nameof(keys));
                 }
-
-                if ((shiftState & ShiftState.Alt) != 0)
+                else
                 {
-                    SendKey(VirtualKey.Alt, User32.KEYEVENTF_KEYUP);
+                    throw new ArgumentException($"Unexpected type encountered: {key.GetType()}", nameof(keys));
                 }
             }
-            finally
-            {
-                if (foregroundWindow != IntPtr.Zero)
-                {
-                    IntegrationHelper.SetForegroundWindow(foregroundWindow);
-                }
 
-                if (inputBlocked)
-                {
-                    IntegrationHelper.UnblockInput();
-                }
-            }
+            SendInputs(inputs.ToArray());
         }
 
-        public void Send(char character)
+        private static void AddInputs(List<User32.INPUT> inputs, char ch)
         {
-            var result = User32.VkKeyScan(character);
+            var result = User32.VkKeyScan(ch);
             if (result == -1)
             {
-                SendUnicodeCharacter(character);
+                // This is a unicode character that must be handled differently.
+
+                AddUnicodeInputs(inputs, ch);
                 return;
             }
 
-            var virtualKeyCode = (VirtualKey)(result & 0xff);
+            var virtualKey = (VirtualKey)(result & 0xff);
             var shiftState = (ShiftState)(((ushort)result >> 8) & 0xff);
 
-            Send(virtualKeyCode, shiftState);
+            AddInputs(inputs, virtualKey, shiftState);
         }
 
-        private static bool IsExtendedKey(VirtualKey virtualKey)
+        private static void AddUnicodeInputs(List<User32.INPUT> inputs, char ch)
         {
-            return (virtualKey >= VirtualKey.PageUp && virtualKey <= VirtualKey.Down)
-                || virtualKey == VirtualKey.Insert
-                || virtualKey == VirtualKey.Delete;
+            var keyDownInput = new User32.INPUT
+            {
+                Type = User32.INPUT_KEYBOARD,
+                ki = new User32.KEYBDINPUT
+                {
+                    wVk = 0,
+                    wScan = ch,
+                    dwFlags = User32.KEYEVENTF_UNICODE,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            };
+
+            var keyUpInput = new User32.INPUT
+            {
+                Type = User32.INPUT_KEYBOARD,
+                ki = new User32.KEYBDINPUT
+                {
+                    wVk = 0,
+                    wScan = ch,
+                    dwFlags = User32.KEYEVENTF_UNICODE | User32.KEYEVENTF_KEYUP,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            };
+
+            inputs.Add(keyDownInput);
+            inputs.Add(keyUpInput);
         }
 
-        private void SendKeyPressAndRelease(VirtualKey virtualKey)
-        {
-            SendKey(virtualKey, User32.KEYEVENTF_NONE);
-            SendKey(virtualKey, User32.KEYEVENTF_KEYUP);
-        }
-
-        private void SendKey(VirtualKey virtualKey, uint dwFlags)
+        private static void AddInputs(List<User32.INPUT> inputs, VirtualKey virtualKey, uint dwFlags)
         {
             var input = new User32.INPUT
             {
@@ -125,38 +126,83 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
                 input.ki.dwFlags |= User32.KEYEVENTF_EXTENDEDKEY;
             }
 
-            IntegrationHelper.SendInput(new[] { input });
+            inputs.Add(input);
         }
 
-        private void SendUnicodeCharacter(char character)
+        private static bool IsExtendedKey(VirtualKey virtualKey)
         {
-            var keyDownInput = new User32.INPUT
-            {
-                Type = User32.INPUT_KEYBOARD,
-                ki = new User32.KEYBDINPUT
-                {
-                    wVk = 0,
-                    wScan = character,
-                    dwFlags = User32.KEYEVENTF_UNICODE,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            };
+            return (virtualKey >= VirtualKey.PageUp && virtualKey <= VirtualKey.Down)
+                || virtualKey == VirtualKey.Insert
+                || virtualKey == VirtualKey.Delete;
+        }
 
-            var keyUpInput = new User32.INPUT
-            {
-                Type = User32.INPUT_KEYBOARD,
-                ki = new User32.KEYBDINPUT
-                {
-                    wVk = 0,
-                    wScan = character,
-                    dwFlags = User32.KEYEVENTF_UNICODE | User32.KEYEVENTF_KEYUP,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            };
+        private static void AddInputs(List<User32.INPUT> inputs, KeyPress keyPress)
+        {
+            AddInputs(inputs, keyPress.VirtualKey, keyPress.ShiftState);
+        }
 
-            IntegrationHelper.SendInput(new[] { keyDownInput, keyUpInput });
+        private static void AddInputs(List<User32.INPUT> inputs, VirtualKey virtualKey, ShiftState shiftState = 0)
+        {
+            if ((shiftState & ShiftState.Shift) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Shift, User32.KEYEVENTF_NONE);
+            }
+
+            if ((shiftState & ShiftState.Ctrl) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Control, User32.KEYEVENTF_NONE);
+            }
+
+            if ((shiftState & ShiftState.Alt) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Alt, User32.KEYEVENTF_NONE);
+            }
+
+            AddInputs(inputs, virtualKey, User32.KEYEVENTF_NONE);
+            AddInputs(inputs, virtualKey, User32.KEYEVENTF_KEYUP);
+
+            if ((shiftState & ShiftState.Shift) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Shift, User32.KEYEVENTF_KEYUP);
+            }
+
+            if ((shiftState & ShiftState.Ctrl) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Control, User32.KEYEVENTF_KEYUP);
+            }
+
+            if ((shiftState & ShiftState.Alt) != 0)
+            {
+                AddInputs(inputs, VirtualKey.Alt, User32.KEYEVENTF_KEYUP);
+            }
+        }
+
+        private void SendInputs(User32.INPUT[] inputs)
+        {
+            var foregroundWindow = IntPtr.Zero;
+            var inputBlocked = false;
+
+            try
+            {
+                inputBlocked = IntegrationHelper.BlockInput();
+                foregroundWindow = IntegrationHelper.GetForegroundWindow();
+
+                _visualStudioInstance.ActivateMainWindow();
+
+                IntegrationHelper.SendInput(inputs);
+            }
+            finally
+            {
+                if (foregroundWindow != IntPtr.Zero)
+                {
+                    IntegrationHelper.SetForegroundWindow(foregroundWindow);
+                }
+
+                if (inputBlocked)
+                {
+                    IntegrationHelper.UnblockInput();
+                }
+            }
         }
     }
 }
