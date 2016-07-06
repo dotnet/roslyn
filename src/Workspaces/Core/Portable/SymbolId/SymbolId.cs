@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = new StringBuilder();
-            var generator = new Generator(builder, typeParameterContext: null);
+            var generator = new Generator(builder);
             generator.Visit(symbol);
             return builder.ToString();
         }
@@ -202,12 +202,10 @@ namespace Microsoft.CodeAnalysis
         private struct Generator
         {
             private readonly StringBuilder _builder;
-            private readonly ISymbol _typeParameterContext;
 
-            public Generator(StringBuilder builder, ISymbol typeParameterContext)
+            public Generator(StringBuilder builder)
             {
                 _builder = builder;
-                _typeParameterContext = typeParameterContext;
             }
 
             public bool Visit(ISymbol symbol)
@@ -363,7 +361,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (symbol.IsGenericMethod)
                 {
-                    if (object.ReferenceEquals(symbol.OriginalDefinition, symbol))
+                    if (Equals(symbol, symbol.ConstructedFrom))
                     {
                         if (symbol.TypeParameters.Length > 0)
                         {
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis
                                 _builder.Append(",");
                             }
 
-                            new Generator(_builder, symbol.ConstructedFrom).Visit(symbol.TypeArguments[i]);
+                            Visit(symbol.TypeArguments[i]);
                         }
 
                         _builder.Append("}");
@@ -404,7 +402,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var p = parameters[i];
-                        new Generator(_builder, p.ContainingSymbol).Visit(p.Type);
+                        Visit(p.Type);
                         if (p.RefKind != RefKind.None)
                         {
                             _builder.Append("@");
@@ -467,7 +465,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (symbol.IsGenericType)
                 {
-                    if (Equals(symbol.OriginalDefinition, symbol))
+                    if (Equals(symbol, symbol.ConstructedFrom))
                     {
                         _builder.Append("`");
                         _builder.Append(symbol.TypeParameters.Length);
@@ -485,14 +483,7 @@ namespace Microsoft.CodeAnalysis
 
                             // If we already have a type parameter context (say because we're encoding parameters of a generic method), then use it.
                             // Otherwise, use the current type as the context, so that it's type parameters resolve
-                            if (_typeParameterContext == null)
-                            {
-                                new Generator(_builder, symbol).Visit(symbol.TypeArguments[i]);
-                            }
-                            else
-                            {
-                                this.Visit(symbol.TypeArguments[i]);
-                            }
+                            this.Visit(symbol.TypeArguments[i]);
                         }
 
                         _builder.Append("}");
@@ -539,15 +530,6 @@ namespace Microsoft.CodeAnalysis
 
             private bool VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (!IsInScope(symbol))
-                {
-                    // reference to type parameter not in scope, make explicit scope reference
-                    if (this.Visit(symbol.ContainingSymbol))
-                    {
-                        _builder.Append(":");
-                    }
-                }
-
                 if (symbol.DeclaringMethod != null)
                 {
                     _builder.Append("``");
@@ -563,22 +545,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return true;
-            }
-
-            private bool IsInScope(ITypeParameterSymbol typeParameterSymbol)
-            {
-                // determine if the type parameter is declared in scope defined by the typeParameterContext symbol
-                var typeParameterDeclarer = typeParameterSymbol.ContainingSymbol;
-
-                for (var scope = _typeParameterContext; scope != null; scope = scope.ContainingSymbol)
-                {
-                    if (Equals(scope, typeParameterDeclarer))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
 
             private bool VisitLocal(ILocalSymbol symbol)
@@ -806,6 +772,7 @@ namespace Microsoft.CodeAnalysis
             private readonly string _id;
             private readonly Compilation _compilation;
             private ISymbol _typeParameterContext;
+            private bool _inSignature;
             private int _index;
 
             private Parser(string id, int index, Compilation compilation, ISymbol typeParameterContext)
@@ -814,6 +781,7 @@ namespace Microsoft.CodeAnalysis
                 _compilation = compilation;
                 _typeParameterContext = typeParameterContext;
                 _index = index;
+                _inSignature = false;
             }
 
             public static bool Parse(string id, Compilation compilation, List<ISymbol> results)
@@ -882,18 +850,22 @@ namespace Microsoft.CodeAnalysis
                         switch (prefix)
                         {
                             case MethodPrefix:
+                                _inSignature = true;
                                 GetMatchingMethods(containers, name, results);
                                 break;
                             case NamedTypePrefix:
                                 GetMatchingTypes(containers, name, results);
                                 break;
                             case PropertyPrefix:
+                                _inSignature = true;
                                 GetMatchingProperties(containers, name, results);
                                 break;
                             case EventPrefix:
+                                _inSignature = true;
                                 GetMatchingEvents(containers, name, results);
                                 break;
                             case FieldPrefix:
+                                _inSignature = true;
                                 GetMatchingFields(containers, name, results);
                                 break;
                             case NamespacePrefix:
@@ -1258,55 +1230,56 @@ namespace Microsoft.CodeAnalysis
 
             private void GetMatchingTypes(INamespaceOrTypeSymbol container, string name, List<ISymbol> results)
             {
+                var originalContext = _typeParameterContext;
                 var typeArguments = s_symbolListPool.Allocate();
                 try
                 {
                     var startIndex = _index;
                     var endIndex = _index;
 
-                    var members = container.GetMembers(name);
+                    var members = container.GetTypeMembers(name);
 
                     foreach (var symbol in members)
                     {
-                        if (symbol.Kind == SymbolKind.NamedType)
+                        var namedType = symbol;
+                        _index = startIndex;
+
+                        // has type arguments?
+                        if (PeekNextChar() == '{')
                         {
-                            var namedType = (INamedTypeSymbol)symbol;
-                            _index = startIndex;
-
-                            // has type arguments?
-                            if (PeekNextChar() == '{')
+                            if (!_inSignature)
                             {
-                                //_typeParameterContext = namedType;
-
-                                typeArguments.Clear();
-                                ParseTypeArguments(typeArguments);
-
-                                if (namedType.Arity != typeArguments.Count)
-                                {
-                                    // if no type arguments are found then the type cannot be identified
-                                    continue;
-                                }
-
-                                namedType = namedType.Construct(typeArguments.Cast<ITypeSymbol>().ToArray());
+                                _typeParameterContext = namedType;
                             }
-                            // has type parameters?
-                            else if (PeekNextChar() == '`')
+
+                            typeArguments.Clear();
+                            ParseTypeArguments(typeArguments);
+
+                            if (namedType.Arity != typeArguments.Count)
                             {
-                                _index++;
-                                var arity = ParseIntegerLiteral();
-                                if (arity != namedType.Arity)
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (namedType.Arity > 0)
-                            {
+                                // if no type arguments are found then the type cannot be identified
                                 continue;
                             }
 
-                            endIndex = _index;
-                            results.Add(namedType);
+                            namedType = namedType.Construct(typeArguments.Cast<ITypeSymbol>().ToArray());
                         }
+                        // has type parameters?
+                        else if (PeekNextChar() == '`')
+                        {
+                            _index++;
+                            var arity = ParseIntegerLiteral();
+                            if (arity != namedType.Arity)
+                            {
+                                continue;
+                            }
+                        }
+                        else if (namedType.Arity > 0)
+                        {
+                            continue;
+                        }
+
+                        endIndex = _index;
+                        results.Add(namedType);
                     }
 
                     _index = endIndex;
@@ -1314,6 +1287,7 @@ namespace Microsoft.CodeAnalysis
                 finally
                 {
                     s_symbolListPool.ClearAndFree(typeArguments);
+                    _typeParameterContext = originalContext;
                 }
             }
 
