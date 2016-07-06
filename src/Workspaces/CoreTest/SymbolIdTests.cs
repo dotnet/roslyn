@@ -500,6 +500,33 @@ public class A<T1>
             TestRoundTrip(a_b_m_datetime, compilation, "T:A`1.T:B`1.M:M{N:System.T:DateTime}(`0,`1,N:System.T:DateTime,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{N:System.T:DateTime})");
         }
 
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestGenericTypeTypeParameter()
+        {
+            var source = @"class C<T> { }";
+
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().TypeParameters.Single();
+
+            TestRoundTrip(typeParameter, compilation, "T:C`1:`0");
+        }
+
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestGenericMethodTypeParameter()
+        {
+            var source = @"class C { void M<T>() { } }";
+
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
+
+            TestRoundTrip(typeParameter, compilation, "T:C.M:M`1:``0");
+        }
+
         [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
         public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
         {

@@ -530,6 +530,15 @@ namespace Microsoft.CodeAnalysis
 
             private bool VisitTypeParameter(ITypeParameterSymbol symbol)
             {
+                // Normally, we just refer to our type parameter ordinal within the symbol being
+                // visited.  However, if the outermost symbol being visited is the type parameter
+                // itself, we need to provide some context first.
+                if (_builder.Length == 0)
+                {
+                    Visit(symbol.ContainingSymbol);
+                    _builder.Append(":");
+                }
+
                 if (symbol.DeclaringMethod != null)
                 {
                     _builder.Append("``");
