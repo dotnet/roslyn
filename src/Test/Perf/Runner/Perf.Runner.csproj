@@ -79,9 +79,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="CPC-Consumption\" />
   </ItemGroup>
   <ImportGroup Label="Targets">
