@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)builder.CurrentPropertyGetter == null;
 
             TypeSymbol iterationVariableType;
-            BoundTypeExpression boundIterationVariableType = null;
+            BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
             if (_syntax.IsDeconstructionDeclaration)

@@ -3698,7 +3698,7 @@ class C
         }
 
         [Fact]
-        public void ForeachIEnumerableDeclarationWithImplicitVarType()
+        public void ForEachIEnumerableDeclarationWithImplicitVarType()
         {
             string source = @"
 using System.Collections.Generic;
@@ -3784,7 +3784,7 @@ class C
         }
 
         [Fact]
-        public void ForeachSZArrayDeclarationWithImplicitVarType()
+        public void ForEachSZArrayDeclarationWithImplicitVarType()
         {
             string source = @"
 class C
@@ -3883,7 +3883,7 @@ class C
         }
 
         [Fact]
-        public void ForeachMDArrayDeclarationWithImplicitVarType()
+        public void ForEachMDArrayDeclarationWithImplicitVarType()
         {
             string source = @"
 class C
@@ -3987,7 +3987,7 @@ class C
         }
 
         [Fact]
-        public void ForeachStringDeclarationWithImplicitVarType()
+        public void ForEachStringDeclarationWithImplicitVarType()
         {
             string source = @"
 class C
@@ -4074,7 +4074,7 @@ static class Extension
         }
 
         [Fact]
-        public void ForeachIEnumerableDeclarationWithNesting()
+        public void ForEachIEnumerableDeclarationWithNesting()
         {
             string source = @"
 using System.Collections.Generic;
@@ -4129,7 +4129,7 @@ class C
         }
 
         [Fact]
-        public void ForeachSZArrayDeclarationWithNesting()
+        public void ForEachSZArrayDeclarationWithNesting()
         {
             string source = @"
 class C
@@ -4150,7 +4150,7 @@ class C
         }
 
         [Fact]
-        public void ForeachMDArrayDeclarationWithNesting()
+        public void ForEachMDArrayDeclarationWithNesting()
         {
             string source = @"
 class C
@@ -4171,7 +4171,7 @@ class C
         }
 
         [Fact]
-        public void ForeachStringDeclarationWithNesting()
+        public void ForEachStringDeclarationWithNesting()
         {
             string source = @"
 class C
@@ -4200,7 +4200,7 @@ static class Extension
         }
 
         [Fact]
-        public void ForeachIEnumerableDeclarationWithDeconstruct()
+        public void ForEachIEnumerableDeclarationWithDeconstruct()
         {
             string source = @"
 using System.Collections.Generic;
@@ -4311,7 +4311,7 @@ Deconstructing (5, 6)
         }
 
         [Fact]
-        public void ForeachSZArrayDeclarationWithDeconstruct()
+        public void ForEachSZArrayDeclarationWithDeconstruct()
         {
             string source = @"
 class C
@@ -4340,7 +4340,7 @@ Deconstructing (5, 6)
         }
 
         [Fact]
-        public void ForeachMDArrayDeclarationWithDeconstruct()
+        public void ForEachMDArrayDeclarationWithDeconstruct()
         {
             string source = @"
 class C
@@ -4369,7 +4369,7 @@ Deconstructing (5, 6)
         }
 
         [Fact]
-        public void ForeachNameConflict()
+        public void ForEachNameConflict()
         {
             string source = @"
 class C
@@ -4393,7 +4393,7 @@ class C
         }
 
         [Fact]
-        public void ForeachNameConflict2()
+        public void ForEachNameConflict2()
         {
             string source = @"
 class C
@@ -4415,7 +4415,7 @@ class C
         }
 
         [Fact]
-        public void ForeachNameConflict3()
+        public void ForEachNameConflict3()
         {
             string source = @"
 class C
@@ -4441,7 +4441,7 @@ class C
         }
 
         [Fact]
-        public void ForeachUseBeforeDeclared()
+        public void ForEachUseBeforeDeclared()
         {
             string source = @"
 class C
@@ -4463,7 +4463,7 @@ class C
         }
 
         [Fact]
-        public void ForeachUseOutsideScope()
+        public void ForEachUseOutsideScope()
         {
             string source = @"
 class C
@@ -4486,7 +4486,7 @@ class C
         }
 
         [Fact]
-        public void ForeachNoIEnumerable()
+        public void ForEachNoIEnumerable()
         {
             string source = @"
 class C
@@ -4510,7 +4510,7 @@ class C
         }
 
         [Fact]
-        public void ForeachIterationVariablesAreReadonly()
+        public void ForEachIterationVariablesAreReadonly()
         {
             string source = @"
 class C
@@ -4542,7 +4542,7 @@ class C
         }
 
         [Fact]
-        public void ForeachWithExpressionBody()
+        public void ForEachWithExpressionBody()
         {
             string source = @"
 class C
@@ -4560,7 +4560,7 @@ class C
         }
 
         [Fact]
-        public void ForeachWithCircularity()
+        public void ForEachScoping()
         {
             string source = @"
 class C
@@ -4582,7 +4582,7 @@ class C
         }
 
         [Fact]
-        public void ForeachCreatesNewVariables()
+        public void ForEachCreatesNewVariables()
         {
             string source = @"
 class C

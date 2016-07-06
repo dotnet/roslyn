@@ -816,7 +816,7 @@
 
     <!-- Pieces corresponding to the syntax -->
     <!-- This is so the binding API can find produce semantic info if the type is "var". -->
-    <!-- Information about the iteration variable is only applicable if there is no deconstruction. -->
+    <!-- If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it). -->
     <Field Name="IterationVariableType" Type="BoundTypeExpression"/>
     <Field Name="IterationVariableOpt" Type="LocalSymbol" Null="allow"/>
     <!-- If this node does not have errors, then this is the foreach expression wrapped

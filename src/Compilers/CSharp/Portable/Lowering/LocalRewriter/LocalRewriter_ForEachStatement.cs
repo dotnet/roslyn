@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
 
             ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, forEachSyntax, iterationVar, iterationVarAssignValue, out iterationVariables);
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarAssignValue, out iterationVariables);
 
             AddForEachIterationVariableSequencePoint(forEachSyntax, ref iterationVarDecl);
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
             ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, forEachSyntax, iterationVar, iterationVarInitValue, out iterationVariables);
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
 
             AddForEachIterationVariableSequencePoint(forEachSyntax, ref iterationVarDecl);
 
@@ -503,11 +503,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement LocalOrDeconstructionDeclaration(
                                     BoundForEachStatement forEachBound,
-                                    ForEachStatementSyntax forEachSyntax,
                                     LocalSymbol iterationVar,
                                     BoundExpression iterationVarValue,
                                     out ImmutableArray<LocalSymbol> iterationVariables)
         {
+            var forEachSyntax = (ForEachStatementSyntax)forEachBound.Syntax;
+
             BoundStatement iterationVarDecl;
             BoundForEachDeconstructStep deconstruction = forEachBound.DeconstructionOpt;
 
@@ -626,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, forEachSyntax, iterationVar, iterationVarInitValue, out iterationVariables);
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
 
             AddForEachIterationVariableSequencePoint(forEachSyntax, ref iterationVariableDecl);
 
@@ -786,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // V v = (V)a[p_0, p_1, ...];   /* OR */   (D1 d1, ...) = (V)a[p_0, p_1, ...];
 
             ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, forEachSyntax, iterationVar, iterationVarInitValue, out iterationVariables);
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
 
             AddForEachIterationVariableSequencePoint(forEachSyntax, ref iterationVarDecl);
 
