@@ -23,18 +23,24 @@ namespace SignRoslyn
             var ignoreFailures = false;
 #endif
 
+            var signData = ReadSignData(binariesPath);
+            var tool = new SignTool(
+                AppContext.BaseDirectory,
+                binariesPath: binariesPath,
+                sourcePath: sourcePath,
+                ignoreFailures: ignoreFailures);
+            var util = new RunSignUtil(tool, signData);
+            util.Go();
+        }
+
+        internal static SignData ReadSignData(string rootBinaryPath)
+        {
             var filePath = Path.Combine(AppContext.BaseDirectory, "BinaryData.json");
             using (var file = File.OpenText(filePath))
             {
                 var serializer = new JsonSerializer();
                 var fileJson = (FileJson)serializer.Deserialize(file, typeof(FileJson));
-                var tool = new SignTool(
-                    AppContext.BaseDirectory,
-                    binariesPath: binariesPath,
-                    sourcePath: sourcePath,
-                    ignoreFailures: ignoreFailures);
-                var util = new RunSignUtil(tool, binariesPath, fileJson.SignList, fileJson.ExcludeList);
-                util.Go();
+                return new SignData(rootBinaryPath, fileJson.SignList, fileJson.ExcludeList);
             }
         }
     }

@@ -18,41 +18,18 @@ namespace SignRoslyn
         /// The number of bytes from the start of the <see cref="CorHeader"/> to its <see cref="CorFlags"/>.
         /// </summary>
         internal const int OffsetFromStartOfCorHeaderToFlags =
-           sizeof(Int32)  // byte count
-         + sizeof(Int16)  // major version
-         + sizeof(Int16)  // minor version
-         + sizeof(Int64); // metadata directory
+               sizeof(Int32)  // byte count
+             + sizeof(Int16)  // major version
+             + sizeof(Int16)  // minor version
+             + sizeof(Int64); // metadata directory
 
+        private readonly SignData _signData;
         private readonly ISignTool _signTool;
 
-        /// <summary>
-        /// The path to search for binaries on.
-        /// </summary>
-        private readonly string _binaryPath;
-
-        /// <summary>
-        /// The collection of binaries that must be signed.  This list must be exhaustive and transitively include
-        /// all VSIX and contents of VSIX that must be signed.
-        /// </summary>
-        private readonly ImmutableArray<string> _binaryNameList;
-
-        private readonly ImmutableHashSet<string> _binaryNameSet;
-
-        /// <summary>
-        /// The collection of binaries included in our VSIX files which we do not need to sign.  This helps validate we 
-        /// don't accidentally include binaries.
-        /// </summary>
-        private readonly ImmutableHashSet<string> _excludeBinaryNameSet;
-
-        internal RunSignUtil(ISignTool signTool, string binaryPath, IEnumerable<string> binaryNameList, IEnumerable<string> excludeBinaryNameList)
+        internal RunSignUtil(ISignTool signTool, SignData signData)
         {
             _signTool = signTool;
-            _binaryPath = binaryPath;
-
-            // Use OrderBy here to ensure the tool operates deterministically.
-            _binaryNameList = binaryNameList.OrderBy(x => x).ToImmutableArray();
-            _binaryNameSet = _binaryNameList.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
-            _excludeBinaryNameSet = excludeBinaryNameList.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+            _signData = signData;
         }
 
         internal void Go()
@@ -74,10 +51,10 @@ namespace SignRoslyn
         private void RemovePublicSign()
         {
             Console.WriteLine("Removing public sign");
-            foreach (var name in _binaryNameList.Where(x => IsAssembly(x)))
+            foreach (var name in _signData.AssemblyNames)
             {
                 Console.WriteLine($"\t{name}");
-                var path = Path.Combine(_binaryPath, name);
+                var path = Path.Combine(_signData.RootBinaryPath, name);
                 RemovePublicSign(path);
             }
         }
@@ -87,15 +64,13 @@ namespace SignRoslyn
         /// </summary>
         private void SignAssemblies()
         {
-            var assemblyNames = _binaryNameList.Where(x => IsAssembly(x));
-
             Console.WriteLine("Signing assemblies");
-            foreach (var name in assemblyNames)
+            foreach (var name in _signData.AssemblyNames)
             {
                 Console.WriteLine($"\t{name}");
             }
 
-            _signTool.Sign(assemblyNames.Select(x => Path.Combine(_binaryPath, x)));
+            _signTool.Sign(_signData.AssemblyNames.Select(x => Path.Combine(_signData.RootBinaryPath, x)));
         }
 
         /// <summary>
@@ -106,7 +81,7 @@ namespace SignRoslyn
         {
             var round = 0;
             var signedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var toSignList = _binaryNameList.Where(x => IsVsix(x)).ToList();
+            var toSignList = _signData.VsixNames.ToList();
             do
             {
                 Console.WriteLine($"Signing VSIX round {round}");
@@ -136,7 +111,7 @@ namespace SignRoslyn
                 }
 
                 Console.WriteLine($"\tSigning ...");
-                _signTool.Sign(list.Select(x => Path.Combine(_binaryPath, x)));
+                _signTool.Sign(list.Select(x => Path.Combine(_signData.RootBinaryPath, x)));
 
                 // Signing is complete so now we can update the signed set.
                 list.ForEach(x => signedSet.Add(x));
@@ -150,7 +125,7 @@ namespace SignRoslyn
         /// </summary>
         private void Repack(string vsixName)
         {
-            var vsixPath = Path.Combine(_binaryPath, vsixName);
+            var vsixPath = Path.Combine(_signData.RootBinaryPath, vsixName);
             using (var package = Package.Open(vsixPath, FileMode.Open, FileAccess.ReadWrite))
             {
                 foreach (var part in package.GetParts())
@@ -164,7 +139,7 @@ namespace SignRoslyn
                         continue;
                     }
 
-                    var signedPath = Path.Combine(_binaryPath, name);
+                    var signedPath = Path.Combine(_signData.RootBinaryPath, name);
                     using (var stream = File.OpenRead(signedPath))
                     using (var partStream = part.GetStream(FileMode.Open, FileAccess.ReadWrite))
                     {
@@ -203,7 +178,7 @@ namespace SignRoslyn
         private List<string> GetVsixPartRelativeNames(string vsixName)
         {
             var list = new List<string>();
-            var vsixPath = Path.Combine(_binaryPath, vsixName);
+            var vsixPath = Path.Combine(_signData.RootBinaryPath, vsixName);
             using (var package = Package.Open(vsixPath, FileMode.Open, FileAccess.Read))
             {
                 foreach (var part in package.GetParts())
@@ -227,12 +202,12 @@ namespace SignRoslyn
         private bool ValidateBinariesExist()
         {
             var allGood = true;
-            foreach (var binaryName in _binaryNameList)
+            foreach (var binaryName in _signData.BinaryNames)
             {
-                var path = Path.Combine(_binaryPath, binaryName);
+                var path = Path.Combine(_signData.RootBinaryPath, binaryName);
                 if (!File.Exists(path))
                 {
-                    Console.WriteLine($"Did not find {binaryName} in {_binaryPath}");
+                    Console.WriteLine($"Did not find {binaryName} at {path}");
                     allGood = false;
                 }
             }
@@ -242,10 +217,12 @@ namespace SignRoslyn
 
         private bool ValidateVsixContents()
         {
+            var allBinaryNames = _signData.BinaryNames.Concat(_signData.ExcludeBinaryNames);
+            var allBinarySet = new HashSet<string>(allBinaryNames, StringComparer.OrdinalIgnoreCase);
             var allGood = true;
-            foreach (var vsixName in _binaryNameList.Where(x => IsVsix(x)))
+            foreach (var vsixName in _signData.VsixNames)
             {
-                if (!ValidateVsixContents(vsixName))
+                if (!ValidateVsixContents(vsixName, allBinarySet))
                 {
                     allGood = false;
                 }
@@ -254,7 +231,7 @@ namespace SignRoslyn
             return allGood;
         }
 
-        private bool ValidateVsixContents(string vsixName)
+        private bool ValidateVsixContents(string vsixName, HashSet<string> allBinarySet)
         {
             var allGood = true;
             foreach (var relativeName in GetVsixPartRelativeNames(vsixName))
@@ -265,7 +242,7 @@ namespace SignRoslyn
                     continue;
                 }
 
-                if (!_binaryNameSet.Contains(name) && !_excludeBinaryNameSet.Contains(name))
+                if (!allBinarySet.Contains(name))
                 {
                     Console.WriteLine($"Vsix {vsixName} contains assembly {name} which is not in the binary list");
                     allGood = false;
