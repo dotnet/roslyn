@@ -11,6 +11,17 @@
 
     <!-- NuGetReleaseVersion -->
     <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
+
+    <!-- Dependencies -->
+    <MSBuild Projects="..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
+
+    <!-- Microsoft.NetFX20 -->
+    <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
+
+    <!-- DevDiv packages --> 
+    <MSBuild Projects="..\Setup\DevDivPackages\Dependencies.proj" />
+    <MSBuild Projects="..\Setup\DevDivPackages\Roslyn.proj" />
+
   </Target>
 
   <Target Name="Clean">

@@ -29,16 +29,9 @@
     <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\VisualBasic\Diagnostic\Analyzer\tools"/> 
 
     <!-- Build CoreXT packages for insertion into DevDiv (order of the following actions matters) -->
-    <MSBuild Projects="DevDivPackages\Dependencies.proj" />
     <MSBuild Projects="DevDivInsertionFiles\DevDivInsertionFiles.sln" />
-    <MSBuild Projects="DevDivPackages\Roslyn.proj" />
     <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
     <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
-
-    <MSBuild Projects="..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
-
-    <!-- Microsoft.NetFX20 -->
-    <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
 
     <!-- Roslyn SDK -->
     <!-- Because the SDK references 1.0 versions of roslyn, we want it to build into its own folder to avoid overwriting other components -->
@@ -46,6 +39,7 @@
     
     <!-- VSIX Gallery -->
     <MSBuild Projects="Vsix\Vsix.proj" />
+
   </Target>
 
   <Target Name="Clean">
