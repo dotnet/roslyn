@@ -114,7 +114,9 @@
     <Compile Include="MetadataSignatureHelper.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="ProcessResult.cs" />
-    <Compile Include="ReflectionAssert.cs" />
+    <Compile Include="..\Portable\ReflectionAssert.cs" >
+      <Link>ReflectionAssert.cs</Link>
+    </Compile>
     <Compile Include="IlasmUtilities.cs" />
     <Compile Include="SigningTestHelpers.cs" />
     <Compile Include="TestHelpers.cs" />

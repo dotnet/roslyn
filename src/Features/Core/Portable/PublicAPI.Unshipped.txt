@@ -80,10 +80,12 @@ Microsoft.CodeAnalysis.Completion.CompletionRules.DefaultCommitCharacters.get ->
 Microsoft.CodeAnalysis.Completion.CompletionRules.DefaultEnterKeyRule.get -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
 Microsoft.CodeAnalysis.Completion.CompletionRules.DismissIfEmpty.get -> bool
 Microsoft.CodeAnalysis.Completion.CompletionRules.DismissIfLastCharacterDeleted.get -> bool
+Microsoft.CodeAnalysis.Completion.CompletionRules.SnippetsRule.get -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithDefaultCommitCharacters(System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithDefaultEnterKeyRule(Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfEmpty(bool dismissIfEmpty) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfLastCharacterDeleted(bool dismissIfLastCharacterDeleted) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionRules.WithSnippetsRule(Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionService
 Microsoft.CodeAnalysis.Completion.CompletionService.CompletionService() -> void
 Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders
@@ -111,6 +113,11 @@ Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Name.get -> 
 Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Roles.get -> string[]
 Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Roles.set -> void
 Microsoft.CodeAnalysis.Completion.MatchPriority
+Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.AlwaysInclude = 2 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.Default = 0 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.IncludeAfterTypingIdentifierQuestionTab = 3 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.NeverInclude = 1 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.TaggedText
 Microsoft.CodeAnalysis.TaggedText.Tag.get -> string
 Microsoft.CodeAnalysis.TaggedText.TaggedText(string tag, string text) -> void
@@ -198,7 +205,8 @@ static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Create(System.Colle
 static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> filterCharacterRules, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> commitCharacterRules, Microsoft.CodeAnalysis.Completion.EnterKeyRule enterKeyRule, bool formatOnCommit, int? matchPriority) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
 static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Default -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
 static Microsoft.CodeAnalysis.Completion.CompletionList.Create(Microsoft.CodeAnalysis.Text.TextSpan defaultSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem> items, Microsoft.CodeAnalysis.Completion.CompletionRules rules = null, Microsoft.CodeAnalysis.Completion.CompletionItem suggestionModeItem = null) -> Microsoft.CodeAnalysis.Completion.CompletionList
-static Microsoft.CodeAnalysis.Completion.CompletionRules.Create(bool dismissIfEmpty = false, bool dismissIfLastCharacterDeleted = false, System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters = default(System.Collections.Immutable.ImmutableArray<char>), Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule = Microsoft.CodeAnalysis.Completion.EnterKeyRule.Default) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+static Microsoft.CodeAnalysis.Completion.CompletionRules.Create(bool dismissIfEmpty = false, bool dismissIfLastCharacterDeleted = false, System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters = default(System.Collections.Immutable.ImmutableArray<char>), Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule = Microsoft.CodeAnalysis.Completion.EnterKeyRule.Default, Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule = Microsoft.CodeAnalysis.Completion.SnippetsRule.Default) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+static Microsoft.CodeAnalysis.Completion.CompletionRules.Create(bool dismissIfEmpty, bool dismissIfLastCharacterDeleted, System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters, Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 static Microsoft.CodeAnalysis.Completion.CompletionService.GetService(Microsoft.CodeAnalysis.Document document) -> Microsoft.CodeAnalysis.Completion.CompletionService
 static Microsoft.CodeAnalysis.Completion.CompletionTrigger.CreateDeletionTrigger(char deletedCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
 static Microsoft.CodeAnalysis.Completion.CompletionTrigger.CreateInsertionTrigger(char insertedCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionTrigger

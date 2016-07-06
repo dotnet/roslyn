@@ -443,14 +443,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddDocumentCore(info, text, isAdditionalDocument: true);
         }
 
-        protected override void UpdateGeneratedDocuments(ProjectId projectId, ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
-        {
-            Debug.Assert(documentsRemoved.All(d => d.Id.ProjectId == projectId));
-            Debug.Assert(documentsAdded.All(d => d.Id.ProjectId == projectId));
-            var project = GetHostProject(projectId);
-            project.UpdateGeneratedDocuments(documentsRemoved, documentsAdded);
-        }
-
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
         {
             IVsHierarchy hierarchy;
@@ -1402,11 +1394,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IVisualStudioWorkspaceHost2.OnHasAllInformation(ProjectId projectId, bool hasAllInformation)
             {
                 _workspace.OnHasAllInformationChanged(projectId, hasAllInformation);
-            }
-
-            void IVisualStudioWorkspaceHost2.UpdateGeneratedDocumentsIfNecessary(ProjectId projectId)
-            {
-                _workspace.UpdateGeneratedDocumentsIfNecessary(projectId);
             }
 
             void IVisualStudioWorkingFolder.OnBeforeWorkingFolderChange()

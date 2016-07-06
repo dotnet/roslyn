@@ -137,16 +137,33 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, CompletionTrigger trigger)
+        protected virtual ImmutableArray<CompletionProvider> GetProviders(
+            ImmutableHashSet<string> roles, CompletionTrigger trigger)
         {
-            if (trigger.Kind == CompletionTriggerKind.Snippets)
+            var snippetsRule = this.GetRules().SnippetsRule;
+
+            if (snippetsRule == SnippetsRule.Default ||
+                snippetsRule == SnippetsRule.NeverInclude)
             {
-                return GetProviders(roles).Where(p => p.IsSnippetProvider).ToImmutableArray();
+                return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
-            else
+            else if (snippetsRule == SnippetsRule.AlwaysInclude)
             {
                 return GetProviders(roles);
             }
+            else if (snippetsRule == SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
+            {
+                if (trigger.Kind == CompletionTriggerKind.Snippets)
+                {
+                    return GetProviders(roles).Where(p => p.IsSnippetProvider).ToImmutableArray();
+                }
+                else
+                {
+                    return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                }
+            }
+
+            return ImmutableArray<CompletionProvider>.Empty;
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)

@@ -1370,6 +1370,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal = 8924,
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
+        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8927,
+        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8928,
+
+        // Available  = 8929,
 
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
@@ -1382,11 +1386,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
-
-        // replace/original errors
-        ERR_NoOriginalMember = 8944,
-        ERR_DuplicateReplace = 8945,
-        ERR_PartialReplace = 8946,
 
         // tuple related errors
         ERR_TupleTooFewElements = 8200,

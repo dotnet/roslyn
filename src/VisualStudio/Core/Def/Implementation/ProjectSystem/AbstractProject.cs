@@ -399,44 +399,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return document;
         }
 
-        public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
-        {
-            foreach (var info in documentsRemoved)
-            {
-                RemoveGeneratedDocument(info.Id);
-            }
-            foreach (var info in documentsAdded)
-            {
-                AddGeneratedDocument(info.Id, info.FilePath);
-            }
-        }
-
-        private IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
-        {
-            IVisualStudioHostDocument document;
-            using (this.DocumentProvider.ProvideDocumentIdHint(filePath, id))
-            {
-                document = this.DocumentProvider.TryGetDocumentForFile(
-                    this,
-                    (uint)VSConstants.VSITEMID.Nil,
-                    filePath,
-                    SourceCodeKind.Regular,
-                    isGenerated: true,
-                    canUseTextBuffer: _ => true);
-            }
-            AddGeneratedDocument(document, isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
-            return document;
-        }
-
-        private void RemoveGeneratedDocument(DocumentId id)
-        {
-            IVisualStudioHostDocument doc;
-            if (_documents.TryGetValue(id, out doc))
-            {
-                RemoveGeneratedDocument(doc);
-            }
-        }
-
         public bool HasMetadataReference(string filename)
         {
             return _metadataReferences.Any(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, filename));
@@ -459,6 +421,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             return _analyzers.ContainsKey(fullPath);
         }
+
+        /// <summary>
+        /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.
+        /// </summary>
+        public ImmutableDictionary<string, VisualStudioAnalyzer> GetProjectAnalyzersMap() => _analyzers.ToImmutableDictionary();
 
         private static string GetAssemblyName(string outputPath)
         {
@@ -825,7 +792,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 itemId,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
-                isGenerated: false,
                 canUseTextBuffer: canUseTextBuffer);
 
             if (document == null)
@@ -942,11 +908,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _documentMonikers.Remove(document.Key.Moniker);
 
             UninitializeAdditionalDocument(document);
-        }
-
-        internal void UpdateGeneratedFiles()
-        {
-            this.ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.UpdateGeneratedDocumentsIfNecessary(_id));
         }
 
         private void AddGeneratedDocument(IVisualStudioHostDocument document, bool isCurrentContext)

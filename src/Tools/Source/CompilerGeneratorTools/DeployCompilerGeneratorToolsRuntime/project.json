@@ -1,9 +1,9 @@
-﻿{
+{
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-rc3-24128-00",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24128-00",
-    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc3-24128-00",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24128-00"
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "Microsoft.NETCore.Platforms": "1.0.1",
+    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.3-rc4-24221-02",
+    "Microsoft.NETCore.TestHost": "1.0.0"
   },
   "frameworks": {
     "NETCoreApp1.0": {

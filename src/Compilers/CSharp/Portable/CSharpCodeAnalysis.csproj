@@ -199,6 +199,7 @@
     <Compile Include="BoundTree\BoundTreeWalker.cs" />
     <Compile Include="BoundTree\Constructors.cs" />
     <Compile Include="BoundTree\Expression.cs" />
+    <Compile Include="BoundTree\OutVarLocalPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
@@ -739,6 +740,7 @@
     <Compile Include="Symbols\Wrapped\WrappedPropertySymbol.cs" />
     <Compile Include="Symbols\Wrapped\WrappedTypeParameterSymbol.cs" />
     <Compile Include="Syntax\AliasedQualifiedNameSyntax.cs" />
+    <Compile Include="Syntax\ArgumentSyntax.cs" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />

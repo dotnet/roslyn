@@ -98,5 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var line = endLinePosition.Line;
             var lines2 = line + 1;
         }
+
+        [WorkItem(12197, "https://github.com/dotnet/roslyn/issues/12197")]
+        [Fact]
+        public void ThrowInInvocationCompletes()
+        {
+            var code = "SomeMethod(throw new Exception())";
+
+            SyntaxFactory.ParseExpression(code);
+        }
     }
 }

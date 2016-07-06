@@ -13,6 +13,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
+    /// Base class for logging compiler diagnostics.
+    /// </summary>
+    internal abstract class ErrorLogger
+    {
+        public abstract void LogDiagnostic(Diagnostic diagnostic);
+    }
+
+    /// <summary>
     /// Used for logging all compiler diagnostics into a given <see cref="Stream"/>.
     /// This logger is responsible for closing the given stream on <see cref="Dispose"/>.
     /// It is incorrect to use the logger concurrently from multiple threads.
@@ -21,13 +29,13 @@ namespace Microsoft.CodeAnalysis
     /// https://sarifweb.azurewebsites.net
     /// https://github.com/sarif-standard/sarif-spec
     /// </summary>
-    internal partial class ErrorLogger : IDisposable
+    internal sealed class StreamErrorLogger : ErrorLogger, IDisposable
     {
         private readonly JsonWriter _writer;
         private readonly DiagnosticDescriptorSet _descriptors;
         private readonly CultureInfo _culture;
 
-        public ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
+        public StreamErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.Position == 0);
@@ -53,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteArrayStart("results");
         }
 
-        public void LogDiagnostic(Diagnostic diagnostic)
+        public override void LogDiagnostic(Diagnostic diagnostic)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);

@@ -332,6 +332,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.Unreachable;
         }
+        
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _switchSyntax;
+            }
+        }
 
         # region "Switch statement binding methods"
 

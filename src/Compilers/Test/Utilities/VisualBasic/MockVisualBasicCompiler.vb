@@ -34,17 +34,16 @@ Friend Class MockVisualBasicCompiler
         Throw New NotImplementedException
     End Sub
 
-    Protected Overrides Sub ResolveAnalyzersAndGeneratorsFromArguments(
+    Protected Overrides Function ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
-        messageProvider As CommonMessageProvider,
-        ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
-        ByRef generators As ImmutableArray(Of SourceGenerator))
+        messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
 
-        MyBase.ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, messageProvider, analyzers, generators)
+        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
-    End Sub
+        Return analyzers
+    End Function
 
     Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
         Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger)

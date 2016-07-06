@@ -1,0 +1,23 @@
+// Signing Unknown since it is native dlls.
+Microsoft\.DiaSymReader\.Native\.x86\.dll$
+Microsoft\.DiaSymReader\.Native\.x86\.dll$
+Microsoft\.DiaSymReader\.Native\.amd64\.dll$
+
+// it is not our decision whether we sign this or not
+NuGet\.exe$
+
+// we don't care about dlls that are for testing
+IntegrationTestFiles\\.*$
+UnitTestFiles\\.*$
+
+// We don't ship this VSIX, and thus it doesn't ensure it's contents are signed
+Roslyn.VisualStudio.DiagnosticsWindow.vsix\\.*$
+
+// The test setup VSIX is non-shipping
+Roslyn.VisualStudio.Test.Setup.vsix\\.*$
+
+// we need to decide what to do with this dll. - https://github.com/dotnet/roslyn/issues/4440
+Microsoft\.NetFX20.*\.nupkg\\lib\\net20\\mscorlib\.dll$
+
+// we need to decide what to do with this - https://github.com/dotnet/roslyn/issues/4442
+Roslyn\.Samples\.Converting\.PasteExtension\.vsix\\CSharpToVisualBasicConverter\.dll$

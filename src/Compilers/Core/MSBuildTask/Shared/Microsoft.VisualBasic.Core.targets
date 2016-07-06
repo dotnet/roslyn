@@ -13,7 +13,8 @@
                 $(Win32Resource);
                 $(Win32Manifest);
                 @(CustomAdditionalCompileInputs);
-                $(ResolvedCodeAnalysisRuleSet)"
+                $(ResolvedCodeAnalysisRuleSet);
+                @(AdditionalFiles)"
           Outputs="@(DocFileItem);
                  @(IntermediateAssembly);
                  @(_DebugSymbolsIntermediatePath);
@@ -43,6 +44,8 @@
       <Prefer32Bit>false</Prefer32Bit>
     </PropertyGroup>
 
+    <!-- TODO: Remove this ItemGroup once it has been moved to "_GenerateCompileInputs" target in Microsoft.Common.CurrentVersion.targets.
+         https://github.com/dotnet/roslyn/issues/12223 -->
     <ItemGroup Condition="('$(AdditionalFileItemNames)' != '')">
       <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />

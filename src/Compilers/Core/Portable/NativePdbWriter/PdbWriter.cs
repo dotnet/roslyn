@@ -21,9 +21,6 @@ using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-    using Roslyn.Reflection.PortableExecutable;
-
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating
     /// from writing PDBs. We resurface such exceptions as this type, to eventually
@@ -82,7 +79,7 @@ namespace Microsoft.Cci
             // that should be very rare though.
             if (_logData.Count + space >= bufferFlushLimit)
             {
-                _incrementalHash.AppendData(_logData);
+                _incrementalHash.AppendData(_logData.GetBlobs());
                 _logData.Clear();
             }
         }
@@ -91,7 +88,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_logData != null);
 
-            _incrementalHash.AppendData(_logData);
+            _incrementalHash.AppendData(_logData.GetBlobs());
             _logData.Clear();
 
             return _incrementalHash.GetHashAndReset();
@@ -837,7 +834,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe ContentId GetContentId()
+        public unsafe BlobContentId GetContentId()
         {
             if (_deterministic)
             {
@@ -913,7 +910,7 @@ namespace Microsoft.Cci
             Debug.Assert(age == Age);
 
             Debug.Assert(BitConverter.IsLittleEndian);
-            return new ContentId(guidBytes, BitConverter.GetBytes(stamp));
+            return new BlobContentId(new Guid(guidBytes), stamp);
         }
 
         public void SetEntryPoint(uint entryMethodToken)
