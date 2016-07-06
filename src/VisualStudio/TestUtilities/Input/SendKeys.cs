@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
 
         public void Send(object[] keys)
         {
-            var inputs = new List<User32.INPUT>(keys.Length);
+            var inputs = new List<NativeMethods.INPUT>(keys.Length);
 
             foreach (var key in keys)
             {
@@ -57,9 +57,9 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
             SendInputs(inputs.ToArray());
         }
 
-        private static void AddInputs(List<User32.INPUT> inputs, char ch)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, char ch)
         {
-            var result = User32.VkKeyScan(ch);
+            var result = NativeMethods.VkKeyScan(ch);
             if (result == -1)
             {
                 // This is a unicode character that must be handled differently.
@@ -74,29 +74,29 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
             AddInputs(inputs, virtualKey, shiftState);
         }
 
-        private static void AddUnicodeInputs(List<User32.INPUT> inputs, char ch)
+        private static void AddUnicodeInputs(List<NativeMethods.INPUT> inputs, char ch)
         {
-            var keyDownInput = new User32.INPUT
+            var keyDownInput = new NativeMethods.INPUT
             {
-                Type = User32.INPUT_KEYBOARD,
-                ki = new User32.KEYBDINPUT
+                Type = NativeMethods.INPUT_KEYBOARD,
+                ki = new NativeMethods.KEYBDINPUT
                 {
                     wVk = 0,
                     wScan = ch,
-                    dwFlags = User32.KEYEVENTF_UNICODE,
+                    dwFlags = NativeMethods.KEYEVENTF_UNICODE,
                     time = 0,
                     dwExtraInfo = IntPtr.Zero
                 }
             };
 
-            var keyUpInput = new User32.INPUT
+            var keyUpInput = new NativeMethods.INPUT
             {
-                Type = User32.INPUT_KEYBOARD,
-                ki = new User32.KEYBDINPUT
+                Type = NativeMethods.INPUT_KEYBOARD,
+                ki = new NativeMethods.KEYBDINPUT
                 {
                     wVk = 0,
                     wScan = ch,
-                    dwFlags = User32.KEYEVENTF_UNICODE | User32.KEYEVENTF_KEYUP,
+                    dwFlags = NativeMethods.KEYEVENTF_UNICODE | NativeMethods.KEYEVENTF_KEYUP,
                     time = 0,
                     dwExtraInfo = IntPtr.Zero
                 }
@@ -106,12 +106,12 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
             inputs.Add(keyUpInput);
         }
 
-        private static void AddInputs(List<User32.INPUT> inputs, VirtualKey virtualKey, uint dwFlags)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, VirtualKey virtualKey, uint dwFlags)
         {
-            var input = new User32.INPUT
+            var input = new NativeMethods.INPUT
             {
-                Type = User32.INPUT_KEYBOARD,
-                ki = new User32.KEYBDINPUT
+                Type = NativeMethods.INPUT_KEYBOARD,
+                ki = new NativeMethods.KEYBDINPUT
                 {
                     wVk = (ushort)virtualKey,
                     wScan = 0,
@@ -123,7 +123,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
 
             if (IsExtendedKey(virtualKey))
             {
-                input.ki.dwFlags |= User32.KEYEVENTF_EXTENDEDKEY;
+                input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
             }
 
             inputs.Add(input);
@@ -136,48 +136,48 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
                 || virtualKey == VirtualKey.Delete;
         }
 
-        private static void AddInputs(List<User32.INPUT> inputs, KeyPress keyPress)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, KeyPress keyPress)
         {
             AddInputs(inputs, keyPress.VirtualKey, keyPress.ShiftState);
         }
 
-        private static void AddInputs(List<User32.INPUT> inputs, VirtualKey virtualKey, ShiftState shiftState = 0)
+        private static void AddInputs(List<NativeMethods.INPUT> inputs, VirtualKey virtualKey, ShiftState shiftState = 0)
         {
             if ((shiftState & ShiftState.Shift) != 0)
             {
-                AddInputs(inputs, VirtualKey.Shift, User32.KEYEVENTF_NONE);
+                AddInputs(inputs, VirtualKey.Shift, NativeMethods.KEYEVENTF_NONE);
             }
 
             if ((shiftState & ShiftState.Ctrl) != 0)
             {
-                AddInputs(inputs, VirtualKey.Control, User32.KEYEVENTF_NONE);
+                AddInputs(inputs, VirtualKey.Control, NativeMethods.KEYEVENTF_NONE);
             }
 
             if ((shiftState & ShiftState.Alt) != 0)
             {
-                AddInputs(inputs, VirtualKey.Alt, User32.KEYEVENTF_NONE);
+                AddInputs(inputs, VirtualKey.Alt, NativeMethods.KEYEVENTF_NONE);
             }
 
-            AddInputs(inputs, virtualKey, User32.KEYEVENTF_NONE);
-            AddInputs(inputs, virtualKey, User32.KEYEVENTF_KEYUP);
+            AddInputs(inputs, virtualKey, NativeMethods.KEYEVENTF_NONE);
+            AddInputs(inputs, virtualKey, NativeMethods.KEYEVENTF_KEYUP);
 
             if ((shiftState & ShiftState.Shift) != 0)
             {
-                AddInputs(inputs, VirtualKey.Shift, User32.KEYEVENTF_KEYUP);
+                AddInputs(inputs, VirtualKey.Shift, NativeMethods.KEYEVENTF_KEYUP);
             }
 
             if ((shiftState & ShiftState.Ctrl) != 0)
             {
-                AddInputs(inputs, VirtualKey.Control, User32.KEYEVENTF_KEYUP);
+                AddInputs(inputs, VirtualKey.Control, NativeMethods.KEYEVENTF_KEYUP);
             }
 
             if ((shiftState & ShiftState.Alt) != 0)
             {
-                AddInputs(inputs, VirtualKey.Alt, User32.KEYEVENTF_KEYUP);
+                AddInputs(inputs, VirtualKey.Alt, NativeMethods.KEYEVENTF_KEYUP);
             }
         }
 
-        private void SendInputs(User32.INPUT[] inputs)
+        private void SendInputs(NativeMethods.INPUT[] inputs)
         {
             var foregroundWindow = IntPtr.Zero;
             var inputBlocked = false;

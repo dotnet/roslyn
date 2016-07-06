@@ -29,16 +29,14 @@
     <Compile Include="Input\ShiftState.cs" />
     <Compile Include="Input\VirtualKey.cs" />
     <Compile Include="IntegrationHelper.cs" />
-    <Compile Include="Interop\Kernel32.cs" />
     <Compile Include="InProcess\Editor_InProc.cs" />
+    <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
     <Compile Include="WellKnownCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
     <Compile Include="IntegrationService.cs" />
-    <Compile Include="Interop\Ole32.cs" />
-    <Compile Include="Interop\User32.cs" />
     <Compile Include="InProcess\InteractiveWindow_InProc.cs" />
     <Compile Include="Settings.Designer.cs">
       <AutoGen>True</AutoGen>

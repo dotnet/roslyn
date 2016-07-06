@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
     {
         public static bool AttachThreadInput(uint idAttach, uint idAttachTo)
         {
-            var success = User32.AttachThreadInput(idAttach, idAttachTo, true);
+            var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, true);
 
             if (!success)
             {
@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static bool BlockInput()
         {
-            var success = User32.BlockInput(true);
+            var success = NativeMethods.BlockInput(true);
 
             if (!success)
             {
@@ -81,7 +81,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
         {
-            var success = User32.AttachThreadInput(idAttach, idAttachTo, false);
+            var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, false);
 
             if (!success)
             {
@@ -102,14 +102,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static IntPtr GetForegroundWindow()
         {
-            // Attempt to get the foreground window in a loop, as the User32 function can return IntPtr.Zero
+            // Attempt to get the foreground window in a loop, as the NativeMethods function can return IntPtr.Zero
             // in certain circumstances, such as when a window is losing activation.
 
             var foregroundWindow = IntPtr.Zero;
 
             do
             {
-                foregroundWindow = User32.GetForegroundWindow();
+                foregroundWindow = NativeMethods.GetForegroundWindow();
             }
             while (foregroundWindow == IntPtr.Zero);
 
@@ -127,9 +127,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 //  * The owner window has the WS_POPUP style
                 // GetWindow with GW_OWNER specified will return the owner window, but not the parent window
                 // GetAncestor with GA_PARENT specified will return the parent window, but not the owner window
-                if ((User32.GetParent(topLevelWindow) == parentWindow) ||
-                    (User32.GetWindow(topLevelWindow, User32.GW_OWNER) == parentWindow) ||
-                    (User32.GetAncestor(topLevelWindow, User32.GA_PARENT) == parentWindow))
+                if ((NativeMethods.GetParent(topLevelWindow) == parentWindow) ||
+                    (NativeMethods.GetWindow(topLevelWindow, NativeMethods.GW_OWNER) == parentWindow) ||
+                    (NativeMethods.GetAncestor(topLevelWindow, NativeMethods.GA_PARENT) == parentWindow))
                 {
                     return topLevelWindow;
                 }
@@ -159,7 +159,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// </remarks>
         public static string GetTitleForWindow(IntPtr window)
         {
-            var titleLength = User32.SendMessage(window, User32.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
+            var titleLength = NativeMethods.SendMessage(window, NativeMethods.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
 
             if (titleLength == IntPtr.Zero)
             {
@@ -168,7 +168,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             var title = new StringBuilder(titleLength.ToInt32() + 1);
 
-            User32.SendMessage(window, User32.WM_GETTEXT, (IntPtr)(title.Capacity), title);
+            NativeMethods.SendMessage(window, NativeMethods.WM_GETTEXT, (IntPtr)(title.Capacity), title);
             return title.ToString();
         }
 
@@ -176,13 +176,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             var topLevelWindows = new List<IntPtr>();
 
-            var enumFunc = new User32.WNDENUMPROC((hWnd, lParam) =>
+            var enumFunc = new NativeMethods.WNDENUMPROC((hWnd, lParam) =>
             {
                 topLevelWindows.Add(hWnd);
                 return true;
             });
 
-            var success = User32.EnumWindows(enumFunc, IntPtr.Zero);
+            var success = NativeMethods.EnumWindows(enumFunc, IntPtr.Zero);
 
             if (!success)
             {
@@ -224,8 +224,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 return;
             }
 
-            var activeThreadId = User32.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
-            var currentThreadId = Kernel32.GetCurrentThreadId();
+            var activeThreadId = NativeMethods.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
+            var currentThreadId = NativeMethods.GetCurrentThreadId();
 
             bool threadInputsAttached = false;
 
@@ -235,10 +235,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
 
                 // Make the window a top-most window so it will appear above any existing top-most windows
-                User32.SetWindowPos(window, (IntPtr)User32.HWND_TOPMOST, 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
 
                 // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
-                var success = User32.SetForegroundWindow(window);
+                var success = NativeMethods.SetForegroundWindow(window);
 
                 if (!success)
                 {
@@ -246,13 +246,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
 
                 // Ensure the window is 'Active' as it may not have been achieved by 'SetForegroundWindow'
-                User32.SetActiveWindow(window);
+                NativeMethods.SetActiveWindow(window);
 
                 // Give the window the keyboard focus as it may not have been achieved by 'SetActiveWindow'
-                User32.SetFocus(window);
+                NativeMethods.SetFocus(window);
 
                 // Remove the 'Top-Most' qualification from the window
-                User32.SetWindowPos(window, (IntPtr)User32.HWND_NOTOPMOST, 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
             }
             finally
             {
@@ -264,13 +264,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public static void SendInput(User32.INPUT[] inputs)
+        public static void SendInput(NativeMethods.INPUT[] inputs)
         {
             // NOTE: This assumes that Visual Studio is the active foreground window.
 
             LogKeyboardInputs(inputs);
 
-            var eventsInserted = User32.SendInput((uint)inputs.Length, inputs, User32.SizeOf_INPUT);
+            var eventsInserted = NativeMethods.SendInput((uint)inputs.Length, inputs, NativeMethods.SizeOf_INPUT);
 
             if (eventsInserted == 0)
             {
@@ -280,19 +280,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         [Conditional("DEBUG")]
-        private static void LogKeyboardInputs(User32.INPUT[] inputs)
+        private static void LogKeyboardInputs(NativeMethods.INPUT[] inputs)
         {
             foreach (var input in inputs)
             {
                 switch (input.Type)
                 {
-                    case User32.INPUT_KEYBOARD:
+                    case NativeMethods.INPUT_KEYBOARD:
                         LogKeyboardInput(input.ki);
                         break;
-                    case User32.INPUT_MOUSE:
+                    case NativeMethods.INPUT_MOUSE:
                         Debug.WriteLine("UNEXPECTED: Encountered mouse input");
                         break;
-                    case User32.INPUT_HARDWARE:
+                    case NativeMethods.INPUT_HARDWARE:
                         Debug.WriteLine("UNEXPECTED: Encountered hardware input");
                         break;
                     default:
@@ -303,12 +303,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         [Conditional("DEBUG")]
-        private static void LogKeyboardInput(User32.KEYBDINPUT input)
+        private static void LogKeyboardInput(NativeMethods.KEYBDINPUT input)
         {
-            var isExtendedKey = (input.dwFlags & User32.KEYEVENTF_EXTENDEDKEY) != 0;
-            var isKeyUp = (input.dwFlags & User32.KEYEVENTF_KEYUP) != 0;
-            var isUnicode = (input.dwFlags & User32.KEYEVENTF_UNICODE) != 0;
-            var isScanCode = (input.dwFlags & User32.KEYEVENTF_SCANCODE) != 0;
+            var isExtendedKey = (input.dwFlags & NativeMethods.KEYEVENTF_EXTENDEDKEY) != 0;
+            var isKeyUp = (input.dwFlags & NativeMethods.KEYEVENTF_KEYUP) != 0;
+            var isUnicode = (input.dwFlags & NativeMethods.KEYEVENTF_UNICODE) != 0;
+            var isScanCode = (input.dwFlags & NativeMethods.KEYEVENTF_SCANCODE) != 0;
 
             if (isUnicode && input.wVk != 0)
             {
@@ -329,7 +329,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             else
             {
                 builder.Append(input.wVk.ToString("x4"));
-                ch = (char)(User32.MapVirtualKey(input.wVk, User32.MAPVK_VK_TO_CHAR) & 0x0000ffff);
+                ch = (char)(NativeMethods.MapVirtualKey(input.wVk, NativeMethods.MAPVK_VK_TO_CHAR) & 0x0000ffff);
             }
 
             // Append code and printable character
@@ -457,9 +457,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             var monikers = new IMoniker[1];
             var vsProgId = VisualStudioInstanceFactory.VsProgId;
 
-            Ole32.GetRunningObjectTable(0, out runningObjectTable);
+            NativeMethods.GetRunningObjectTable(0, out runningObjectTable);
             runningObjectTable.EnumRunning(out enumMoniker);
-            Ole32.CreateBindCtx(0, out bindContext);
+            NativeMethods.CreateBindCtx(0, out bindContext);
 
             do
             {
@@ -507,7 +507,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static void UnblockInput()
         {
-            var success = User32.BlockInput(false);
+            var success = NativeMethods.BlockInput(false);
 
             if (!success)
             {
