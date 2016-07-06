@@ -38,7 +38,8 @@ Module Module1
     Sub Main()
         Dim q As List($$)
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
             SendKeys(
                 VirtualKey.Down,
@@ -49,7 +50,8 @@ Module Module1
     Sub Main()
         Dim q As List(Of$$)
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
             SendKeys(" inte");
             VerifyCompletionItemExists("Integer");
@@ -61,52 +63,58 @@ Module Module1
     Sub Main()
         Dim q As List(Of Integer)$$
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
-            SendKeys(KeyPress(VirtualKey.Z, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Z));
 
             VerifyTextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of inte)$$
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
-            SendKeys(KeyPress(VirtualKey.Z, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Z));
 
             VerifyTextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of inte$$)
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
-            SendKeys(KeyPress(VirtualKey.Z, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Z));
 
             VerifyTextContains(@"
 Module Module1
     Sub Main()
         Dim q As List(Of$$)
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
-            SendKeys(KeyPress(VirtualKey.Z, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Z));
 
             VerifyTextContains(@"
 Module Module1
     Sub Main()
         Dim q As lis($$)
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
 
-            SendKeys(KeyPress(VirtualKey.Z, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Z));
 
             VerifyTextContains(@"
 Module Module1
     Sub Main()
         Dim q As lis($$
     End Sub
-End Module");
+End Module",
+assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -228,25 +236,24 @@ Module Module1
     Function M(val As Integer) As Integer
         M=val $$
     End Function
-End Module");
+End Module",
+assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
-            SetUpEditor("$$");
-
             DisableSuggestionMode();
 
             SendKeys("Nam Foo");
-            VerifyCurrentLineText("Namespace Foo$$");
+            VerifyCurrentLineText("Namespace Foo$$", assertCaretPosition: true);
 
-            SetUpEditor("$$");
+            ClearEditor();
 
             ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
 
             SendKeys("Nam Foo");
-            VerifyCurrentLineText("Nam Foo$$");
+            VerifyCurrentLineText("Nam Foo$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -29,10 +29,10 @@ class C {
 }");
 
             SendKeys("if (true) {");
-            VerifyCurrentLineText("if (true) { $$}");
+            VerifyCurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
             SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("if (true) { }$$");
+            VerifyCurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -46,10 +46,10 @@ class C {
 }");
 
             SendKeys("if (true) {");
-            VerifyCurrentLineText("if (true) { $$}");
+            VerifyCurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
             SendKeys("}");
-            VerifyCurrentLineText("if (true) { }$$");
+            VerifyCurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -75,7 +75,8 @@ class C {
             var a = 1;$$
         }
     }
-}");
+}",
+assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -102,21 +103,21 @@ class C {
             var a = 1;
         }$$
     }
-}");
+}",
+assertCaretPosition: true);
         }
 
         [WorkItem(653540, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnWithNonWhitespaceSpanInside()
         {
-            SetUpEditor("$$");
-
             SendKeys(
                 "class A { int i;",
                 VirtualKey.Enter);
 
             VerifyTextContains(@"class A { int i;
-$$}");
+$$}",
+assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -128,10 +129,10 @@ class C {
 }");
 
             SendKeys("void Foo(");
-            VerifyCurrentLineText("void Foo($$)");
+            VerifyCurrentLineText("void Foo($$)", assertCaretPosition: true);
 
             SendKeys("int x", VirtualKey.Tab);
-            VerifyCurrentLineText("void Foo(int x)$$");
+            VerifyCurrentLineText("void Foo(int x)$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -147,7 +148,7 @@ class C {
                 VirtualKey.Escape,
                 ")");
 
-            VerifyCurrentLineText("void Foo()$$");
+            VerifyCurrentLineText("void Foo()$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -159,7 +160,7 @@ class C {
 }");
 
             SendKeys("int [");
-            VerifyCurrentLineText("int [$$]");
+            VerifyCurrentLineText("int [$$]", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -171,7 +172,7 @@ class C {
 }");
 
             SendKeys("int [", ']');
-            VerifyCurrentLineText("int []$$");
+            VerifyCurrentLineText("int []$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -183,7 +184,7 @@ class C {
 }");
 
             SendKeys("string str = \"", VirtualKey.Tab);
-            VerifyCurrentLineText("string str = \"\"$$");
+            VerifyCurrentLineText("string str = \"\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -195,7 +196,7 @@ class C {
 }");
 
             SendKeys("string str = \"Hi Roslyn!", '"');
-            VerifyCurrentLineText("string str = \"Hi Roslyn!\"$$");
+            VerifyCurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -208,7 +209,7 @@ class C {
 }");
 
             SendKeys("System.Action<", VirtualKey.Tab);
-            VerifyCurrentLineText("System.Action<>$$");
+            VerifyCurrentLineText("System.Action<>$$", assertCaretPosition: true);
 
             SetUpEditor(@"
 class C {
@@ -217,7 +218,7 @@ class C {
 }");
 
             SendKeys("void GenericMethod<", VirtualKey.Tab);
-            VerifyCurrentLineText("void GenericMethod<>$$");
+            VerifyCurrentLineText("void GenericMethod<>$$", assertCaretPosition: true);
 
             SetUpEditor(@"
 class C {
@@ -226,7 +227,7 @@ class C {
 }");
 
             SendKeys("delegate void Del<");
-            VerifyCurrentLineText("delegate void Del<$$>");
+            VerifyCurrentLineText("delegate void Del<$$>", assertCaretPosition: true);
 
             SetUpEditor(@"
 //using directive
@@ -234,7 +235,7 @@ $$
 ");
 
             SendKeys("using ActionOfT = System.Action<");
-            VerifyCurrentLineText("using ActionOfT = System.Action<$$>");
+            VerifyCurrentLineText("using ActionOfT = System.Action<$$>", assertCaretPosition: true);
 
             SetUpEditor(@"
 //class
@@ -242,7 +243,7 @@ $$
 ");
 
             SendKeys("class GenericClass<", '>');
-            VerifyCurrentLineText("class GenericClass<>$$");
+            VerifyCurrentLineText("class GenericClass<>$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -254,12 +255,12 @@ class C {
 }");
 
             SendKeys("char c = '");
-            VerifyCurrentLineText("char c = '$$'");
+            VerifyCurrentLineText("char c = '$$'", assertCaretPosition: true);
 
             SendKeys(VirtualKey.Delete, VirtualKey.Backspace);
             SendKeys("'\u6666", "'");
 
-            VerifyCurrentLineText("char c = '\u6666'$$");
+            VerifyCurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -287,7 +288,7 @@ class Bar<U>
                 VirtualKey.Tab,
                 ';');
 
-            VerifyCurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$");
+            VerifyCurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -299,7 +300,7 @@ class C {
 }");
 
             SendKeys("{([\"'");
-            VerifyCurrentLineText("// {([\"'$$");
+            VerifyCurrentLineText("// {([\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -313,7 +314,7 @@ class C {
 }");
 
             SendKeys("{([\"'");
-            VerifyCurrentLineText("{([\"'$$");
+            VerifyCurrentLineText("{([\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -325,17 +326,17 @@ class C {
 }");
 
             SendKeys("string s = \"{([<'");
-            VerifyCurrentLineText("string s = \"{([<'\"$$");
+            VerifyCurrentLineText("string s = \"{([<'\"$$", assertCaretPosition: true);
 
             SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
             SendKeys("string y = @\"{([<'");
-            VerifyCurrentLineText("string y = @\"{([<'\"$$");
+            VerifyCurrentLineText("string y = @\"{([<'\"$$", assertCaretPosition: true);
 
             SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
             SendKeys("char ch = '{([<\"");
-            VerifyCurrentLineText("char ch = '{([<\"'$$");
+            VerifyCurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -349,7 +350,7 @@ class C { }");
                 "///",
                 "{([<\"'");
 
-            VerifyCurrentLineText("/// {([<\"'$$");
+            VerifyCurrentLineText("/// {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -363,7 +364,7 @@ $$
 }");
 
             SendKeys("void Foo(");
-            VerifyCurrentLineText("void Foo($$");
+            VerifyCurrentLineText("void Foo($$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -376,7 +377,7 @@ $$
 ");
 
             SendKeys("{([<\"'");
-            VerifyCurrentLineText("#region {([<\"'$$");
+            VerifyCurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -389,7 +390,7 @@ $$
 ");
 
             SendKeys("{([<\"'");
-            VerifyCurrentLineText("#endregion {([<\"'$$");
+            VerifyCurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -400,7 +401,7 @@ $$
 ");
 
             SendKeys("{([<\"'");
-            VerifyCurrentLineText("#if {([<\"'$$");
+            VerifyCurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -411,7 +412,7 @@ $$
 ");
 
             SendKeys("{([<\"'");
-            VerifyCurrentLineText("#pragma {([<\"'$$");
+            VerifyCurrentLineText("#pragma {([<\"'$$", assertCaretPosition: true);
         }
 
         [WorkItem(651954, "DevDiv")]
@@ -459,7 +460,7 @@ class C
 ");
 
             SendKeys("new Li(", VirtualKey.Tab);
-            VerifyCurrentLineText("List<int> li = new List<int>($$)");
+            VerifyCurrentLineText("List<int> li = new List<int>($$)", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -477,7 +478,7 @@ class C
 ");
 
             SendKeys("new int[]{");
-            VerifyCurrentLineText("var x = new int[] {$$}");
+            VerifyCurrentLineText("var x = new int[] {$$}", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -495,7 +496,7 @@ class C
 ");
 
             SendKeys("new {");
-            VerifyCurrentLineText("var x = new {$$}");
+            VerifyCurrentLineText("var x = new {$$}", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -507,7 +508,7 @@ class $$
 ");
 
             SendKeys("C{");
-            VerifyCurrentLineText("class C { $$}");
+            VerifyCurrentLineText("class C { $$}", assertCaretPosition: true);
 
             SendKeys(
                 VirtualKey.Enter,
@@ -517,7 +518,8 @@ class $$
 class C
 {
     int Prop { $$}
-}");
+}",
+assertCaretPosition: true);
         }
     }
 }

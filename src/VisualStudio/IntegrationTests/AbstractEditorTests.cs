@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     public abstract class AbstractEditorTests : IDisposable
     {
         private readonly VisualStudioInstanceContext _visualStudio;
-        private readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspace;
+        private readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspaceOutOfProc;
         private readonly Editor_OutOfProc _editor;
 
         protected AbstractEditorTests(VisualStudioInstanceFactory instanceFactory, string solutionName)
@@ -24,10 +24,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
 
-            _visualStudioWorkspace = _visualStudio.Instance.VisualStudioWorkspace;
-            _visualStudioWorkspace.SetUseSuggestionMode(false);
+            _visualStudioWorkspaceOutOfProc = _visualStudio.Instance.VisualStudioWorkspace;
+            _visualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
             _editor = _visualStudio.Instance.Editor;
+
+            ClearEditor();
         }
 
         protected abstract string LanguageName { get; }
@@ -37,14 +39,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudio.Dispose();
         }
 
-        public void WaitForAsyncOperations(string featuresToWaitFor)
+        private void WaitForAsyncOperations(string featuresToWaitFor)
         {
-            _visualStudioWorkspace.WaitForAsyncOperations(featuresToWaitFor);
+            _visualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
         }
 
-        protected void WaitForAllAsyncOperations()
+        protected void ClearEditor()
         {
-            _visualStudioWorkspace.WaitForAllAsyncOperations();
+            SetUpEditor("$$");
         }
 
         protected void SetUpEditor(string markupCode)
@@ -53,9 +55,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             int caretPosition;
             MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
 
-            var originalValue = _visualStudioWorkspace.IsPrettyListingOn(LanguageName);
+            var originalValue = _visualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
 
-            _visualStudioWorkspace.SetPrettyListing(LanguageName, false);
+            _visualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, false);
             try
             {
                 _editor.SetText(code);
@@ -63,7 +65,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             finally
             {
-                _visualStudioWorkspace.SetPrettyListing(LanguageName, originalValue);
+                _visualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, originalValue);
             }
         }
 
@@ -77,14 +79,24 @@ namespace Roslyn.VisualStudio.IntegrationTests
             return new KeyPress(virtualKey, shiftState);
         }
 
+        protected KeyPress Ctrl(VirtualKey virtualKey)
+        {
+            return new KeyPress(virtualKey, ShiftState.Ctrl);
+        }
+
+        protected KeyPress Shift(VirtualKey virtualKey)
+        {
+            return new KeyPress(virtualKey, ShiftState.Shift);
+        }
+
         protected void DisableSuggestionMode()
         {
-            _visualStudioWorkspace.SetUseSuggestionMode(false);
+            _visualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
         }
 
         protected void EnableSuggestionMode()
         {
-            _visualStudioWorkspace.SetUseSuggestionMode(true);
+            _visualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
         }
 
         protected void InvokeCompletionList()
@@ -98,51 +110,55 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudio.Instance.ExecuteCommand(commandName);
         }
 
-        protected void VerifyCurrentLineText(string expectedText, bool trimWhitespace = true)
+        private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
-
-            if (caretStartIndex >= 0)
+            if (caretStartIndex < 0)
             {
-                var caretEndIndex = caretStartIndex + "$$".Length;
+                throw new ArgumentException("Expected caret position to be specified with $$", nameof(expectedText));
+            }
 
-                var expectedTextBeforeCaret = caretStartIndex < expectedText.Length
-                    ? expectedText.Substring(0, caretStartIndex)
-                    : expectedText;
+            var caretEndIndex = caretStartIndex + "$$".Length;
 
-                var expectedTextAfterCaret = caretEndIndex < expectedText.Length
-                    ? expectedText.Substring(caretEndIndex)
-                    : string.Empty;
+            var expectedTextBeforeCaret = expectedText.Substring(0, caretStartIndex);
+            var expectedTextAfterCaret = expectedText.Substring(caretEndIndex);
 
-                var lineText = _editor.GetCurrentLineText();
+            var lineText = _editor.GetCurrentLineText();
 
-                if (trimWhitespace)
+            if (trimWhitespace)
+            {
+                if (caretStartIndex == 0)
                 {
-                    if (caretStartIndex == 0)
-                    {
-                        lineText = lineText.TrimEnd();
-                    }
-                    else if (caretEndIndex == expectedText.Length)
-                    {
-                        lineText = lineText.TrimStart();
-                    }
-                    else
-                    {
-                        lineText = lineText.Trim();
-                    }
+                    lineText = lineText.TrimEnd();
                 }
+                else if (caretEndIndex == expectedText.Length)
+                {
+                    lineText = lineText.TrimStart();
+                }
+                else
+                {
+                    lineText = lineText.Trim();
+                }
+            }
 
-                var lineTextBeforeCaret = caretStartIndex < lineText.Length
-                    ? lineText.Substring(0, caretStartIndex)
-                    : lineText;
+            var lineTextBeforeCaret = caretStartIndex < lineText.Length
+                ? lineText.Substring(0, caretStartIndex)
+                : lineText;
 
-                var lineTextAfterCaret = caretStartIndex < lineText.Length
-                    ? lineText.Substring(caretStartIndex)
-                    : string.Empty;
+            var lineTextAfterCaret = caretStartIndex < lineText.Length
+                ? lineText.Substring(caretStartIndex)
+                : string.Empty;
 
-                Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
-                Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
-                Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+            Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
+            Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
+            Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+        }
+
+        protected void VerifyCurrentLineText(string expectedText, bool assertCaretPosition = false, bool trimWhitespace = true)
+        {
+            if (assertCaretPosition)
+            {
+                VerifyCurrentLineTextAndAssertCaretPosition(expectedText, trimWhitespace);
             }
             else
             {
@@ -157,31 +173,35 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected void VerifyTextContains(string expectedText)
+        private void VerifyTextContainsAndAssertCaretPosition(string expectedText)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
-
-            if (caretStartIndex >= 0)
+            if (caretStartIndex < 0)
             {
-                var caretEndIndex = caretStartIndex + "$$".Length;
+                throw new ArgumentException("Expected caret position to be specified with $$", nameof(expectedText));
+            }
 
-                var expectedTextBeforeCaret = caretStartIndex < expectedText.Length
-                    ? expectedText.Substring(0, caretStartIndex)
-                    : expectedText;
+            var caretEndIndex = caretStartIndex + "$$".Length;
 
-                var expectedTextAfterCaret = caretEndIndex < expectedText.Length
-                    ? expectedText.Substring(caretEndIndex)
-                    : string.Empty;
+            var expectedTextBeforeCaret = expectedText.Substring(0, caretStartIndex);
+            var expectedTextAfterCaret = expectedText.Substring(caretEndIndex);
 
-                var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
+            var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
-                var editorText = _editor.GetText();
-                Assert.Contains(expectedTextWithoutCaret, editorText);
+            var editorText = _editor.GetText();
+            Assert.Contains(expectedTextWithoutCaret, editorText);
 
-                var index = editorText.IndexOf(expectedTextWithoutCaret);
+            var index = editorText.IndexOf(expectedTextWithoutCaret);
 
-                var caretPosition = _editor.GetCaretPosition();
-                Assert.Equal(caretStartIndex + index, caretPosition);
+            var caretPosition = _editor.GetCaretPosition();
+            Assert.Equal(caretStartIndex + index, caretPosition);
+        }
+
+        protected void VerifyTextContains(string expectedText, bool assertCaretPosition = false)
+        {
+            if (assertCaretPosition)
+            {
+                VerifyTextContainsAndAssertCaretPosition(expectedText);
             }
             else
             {
@@ -192,8 +212,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void VerifyCompletionItemExists(params string[] expectedItems)
         {
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-
             var completionItems = _editor.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
             {
@@ -203,16 +221,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void VerifyCurrentCompletionItem(string expectedItem)
         {
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-
             var currentItem = _editor.GetCurrentCompletionItem();
             Assert.Equal(expectedItem, currentItem);
         }
 
         protected void VerifyCurrentSignature(Signature expectedSignature)
         {
-            WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
-
             var currentSignature = _editor.GetCurrentSignature();
             Assert.Equal(expectedSignature, currentSignature);
         }
@@ -224,7 +238,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void VerifyCompletionListIsActive(bool expected)
         {
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
             Assert.Equal(expected, _editor.IsCompletionActive());
         }
     }

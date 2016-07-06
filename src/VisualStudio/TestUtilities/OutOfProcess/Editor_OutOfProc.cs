@@ -32,12 +32,35 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
 
         public void MoveCaret(int position) => _inProc.MoveCaret(position);
 
-        public string[] GetCompletionItems() => _inProc.GetCompletionItems();
-        public string GetCurrentCompletionItem() => _inProc.GetCurrentCompletionItem();
-        public bool IsCompletionActive() => _inProc.IsCompletionActive();
+        public string[] GetCompletionItems()
+        {
+            WaitForCompletionSet();
+            return _inProc.GetCompletionItems();
+        }
 
-        public Signature[] GetSignatures() => _inProc.GetSignatures();
-        public Signature GetCurrentSignature() => _inProc.GetCurrentSignature();
+        public string GetCurrentCompletionItem()
+        {
+            WaitForCompletionSet();
+            return _inProc.GetCurrentCompletionItem();
+        }
+
+        public bool IsCompletionActive()
+        {
+            WaitForCompletionSet();
+            return _inProc.IsCompletionActive();
+        }
+
+        public Signature[] GetSignatures()
+        {
+            WaitForSignatureHelp();
+            return _inProc.GetSignatures();
+        }
+
+        public Signature GetCurrentSignature()
+        {
+            WaitForSignatureHelp();
+            return _inProc.GetCurrentSignature();
+        }
 
         public bool IsCaretOnScreen() => _inProc.IsCaretOnScreen();
 

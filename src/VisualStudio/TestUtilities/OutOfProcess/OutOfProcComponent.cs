@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
 
 namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
@@ -23,6 +24,16 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
             return visualStudioInstance.ExecuteInHostProcess<TInProcComponent>(
                 type: typeof(TInProcComponent),
                 methodName: "Create");
+        }
+
+        protected void WaitForCompletionSet()
+        {
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+
+        protected void WaitForSignatureHelp()
+        {
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
         }
     }
 }

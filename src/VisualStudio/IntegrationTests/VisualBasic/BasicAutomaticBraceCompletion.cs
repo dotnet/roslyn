@@ -29,14 +29,14 @@ Class C
 End Class");
 
             SendKeys("Dim x = {");
-            VerifyCurrentLineText("Dim x = {$$}");
+            VerifyCurrentLineText("Dim x = {$$}", assertCaretPosition: true);
 
             SendKeys(
                 "New Object",
                 VirtualKey.Escape,
                 VirtualKey.Tab);
 
-            VerifyCurrentLineText("Dim x = {New Object}$$");
+            VerifyCurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -51,7 +51,7 @@ End Class");
 
             SendKeys("Dim x = {");
             SendKeys('}');
-            VerifyCurrentLineText("Dim x = {}$$");
+            VerifyCurrentLineText("Dim x = {}$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -65,16 +65,16 @@ Class C
 End Class");
 
             SendKeys("Console.Write(");
-            VerifyCurrentLineText("Console.Write($$)");
+            VerifyCurrentLineText("Console.Write($$)", assertCaretPosition: true);
 
             SendKeys('"');
-            VerifyCurrentLineText("Console.Write(\"$$\")");
+            VerifyCurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
 
             SendKeys('"');
-            VerifyCurrentLineText("Console.Write(\"\"$$)");
+            VerifyCurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
 
             SendKeys(')');
-            VerifyCurrentLineText("Console.Write(\"\")$$");
+            VerifyCurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -89,7 +89,7 @@ End Class");
 
             SendKeys("Dim x = {");
             SendKeys(VirtualKey.Enter);
-            VerifyCurrentLineText("            $$}", trimWhitespace: false);
+            VerifyCurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
 
             VerifyTextContains(@"
 Class C
@@ -97,7 +97,8 @@ Class C
         Dim x = {
             $$}
     End Sub
-End Class");
+End Class",
+assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -109,12 +110,12 @@ Class C
 End Class");
 
             SendKeys("Sub Foo(");
-            VerifyCurrentLineText("Sub Foo($$)");
+            VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
 
             SendKeys("x As Long");
             SendKeys(VirtualKey.Escape);
             SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("Sub Foo(x As Long)$$");
+            VerifyCurrentLineText("Sub Foo(x As Long)$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -126,11 +127,11 @@ Class C
 End Class");
 
             SendKeys("Sub Foo(");
-            VerifyCurrentLineText("Sub Foo($$)");
+            VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
 
             SendKeys(VirtualKey.Escape);
             SendKeys(')');
-            VerifyCurrentLineText("Sub Foo()$$");
+            VerifyCurrentLineText("Sub Foo()$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -144,7 +145,7 @@ Class C
 End Class");
 
             SendKeys("Dim [Dim");
-            VerifyCurrentLineText("Dim [Dim$$]");
+            VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -158,10 +159,10 @@ Class C
 End Class");
 
             SendKeys("Dim [Dim");
-            VerifyCurrentLineText("Dim [Dim$$]");
+            VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
 
             SendKeys("] As Long");
-            VerifyCurrentLineText("Dim [Dim] As Long$$");
+            VerifyCurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -175,10 +176,10 @@ Class C
 End Class");
 
             SendKeys("Dim str = \"");
-            VerifyCurrentLineText("Dim str = \"$$\"");
+            VerifyCurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
 
             SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("Dim str = \"\"$$");
+            VerifyCurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -240,7 +241,7 @@ Class C
 End Class");
 
             SendKeys("{([\"");
-            VerifyCurrentLineText("' {([\"$$");
+            VerifyCurrentLineText("' {([\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -254,7 +255,7 @@ Class C
 End Class");
 
             SendKeys("Dim s = \"{([");
-            VerifyCurrentLineText("Dim s = \"{([$$\"");
+            VerifyCurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -270,7 +271,7 @@ End Class");
             SendKeys('(');
             SendKeys('[');
             SendKeys('"');
-            VerifyCurrentLineText("''' {([\"$$");
+            VerifyCurrentLineText("''' {([\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -286,7 +287,7 @@ Class C
 End Class");
 
             SendKeys("(");
-            VerifyCurrentLineText("''' <see></see>($$");
+            VerifyCurrentLineText("''' <see></see>($$", assertCaretPosition: true);
         }
 
         [WorkItem(652015, "DevDiv")]
@@ -301,7 +302,7 @@ Class C
 End Class");
 
             SendKeys("Dim x=\"\" '");
-            VerifyCurrentLineText("Dim x=\"\" '$$");
+            VerifyCurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
         }
 
         [WorkItem(653399, "DevDiv")]
@@ -318,7 +319,7 @@ End Class");
             SendKeys('(');
             SendKeys(VirtualKey.Backspace);
 
-            VerifyCurrentLineText("        $$", trimWhitespace: false);
+            VerifyCurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
         }
 
         [WorkItem(659684, "DevDiv")]
@@ -335,7 +336,7 @@ Class C
 End Class");
 
             SendKeys("Foo(");
-            VerifyCurrentLineText("Foo($$)");
+            VerifyCurrentLineText("Foo($$)", assertCaretPosition: true);
         }
 
         [WorkItem(657451, "DevDiv")]
@@ -347,7 +348,7 @@ Class C
     $$");
 
             SendKeys("Sub Foo(");
-            VerifyCurrentLineText("Sub Foo($$)");
+            VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
         }
     }
 }
