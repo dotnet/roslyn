@@ -2,7 +2,9 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Common
 {
@@ -33,57 +35,64 @@ namespace Roslyn.VisualStudio.Test.Utilities.Common
             PrettyPrintedContent = actual.PrettyPrintedContent;
         }
 
-        private bool ParametersEqual(Parameter[] otherParameters)
-        {
-            if (this.Parameters.Length != otherParameters.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < this.Parameters.Length; i++)
-            {
-                if (!this.Parameters[i].Equals(otherParameters[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         public bool Equals(Signature other)
         {
             return other != null
-                && this.Content == other.Content
+                && Comparison.AreStringValuesEqual(Content, other.Content)
                 && Equals(CurrentParameter, other.CurrentParameter)
-                && this.PrettyPrintedContent == other.PrettyPrintedContent
-                && this.Documentation == other.Documentation
-                && ParametersEqual(other.Parameters);
+                && Comparison.AreStringValuesEqual(PrettyPrintedContent, other.PrettyPrintedContent)
+                && Comparison.AreStringValuesEqual(Documentation, other.Documentation)
+                && Comparison.AreArraysEqual(Parameters, other.Parameters);
         }
 
         public override bool Equals(object obj)
         {
-            Signature other = obj as Signature;
-            return Equals(other);
+            return Equals(obj as Signature);
         }
 
         public override int GetHashCode()
         {
-            return (Content ?? string.Empty).GetHashCode()
-                 ^ (Documentation ?? string.Empty).GetHashCode()
-                 ^ (PrettyPrintedContent ?? string.Empty).GetHashCode()
-                 ^ (CurrentParameter ?? new Parameter()).GetHashCode();
+            return
+                Hash.Combine(Content,
+                Hash.Combine(Documentation,
+                Hash.Combine(PrettyPrintedContent,
+                Hash.Combine(CurrentParameter, 0))));
         }
 
         public override string ToString()
         {
-            return string.Join(
-                Environment.NewLine,
-                Content,
-                Documentation,
-                PrettyPrintedContent,
-                (CurrentParameter ?? new Parameter()).ToString(),
-                Parameters != null ? string.Join(",", Parameters.Select(p => p.ToString())) : "No parameters");
+            var builder = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(Content))
+            {
+                builder.AppendLine(Content);
+            }
+
+            if (!string.IsNullOrEmpty(Documentation))
+            {
+                builder.AppendLine(Documentation);
+            }
+
+            if (!string.IsNullOrEmpty(PrettyPrintedContent))
+            {
+                builder.AppendLine(PrettyPrintedContent);
+            }
+
+            if (CurrentParameter != null)
+            {
+                builder.AppendLine(CurrentParameter.ToString());
+            }
+
+            if (Parameters?.Length > 0)
+            {
+                builder.Append(string.Join(",", Parameters.Select(p => p.ToString())));
+            }
+            else
+            {
+                builder.Append("No parameters");
+            }
+
+            return builder.ToString();
         }
     }
 }

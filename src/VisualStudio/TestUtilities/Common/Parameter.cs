@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Common
 {
@@ -18,16 +19,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Common
         public Parameter(IParameter actual)
         {
             Name = actual.Name;
-            if (string.IsNullOrEmpty(Name))
-            {
-                Name = null;
-            }
-
             Documentation = actual.Documentation;
-            if (string.IsNullOrEmpty(Documentation))
-            {
-                Documentation = null;
-            }
         }
 
         public bool Equals(Parameter other)
@@ -37,24 +29,27 @@ namespace Roslyn.VisualStudio.Test.Utilities.Common
                 return false;
             }
 
-            return Name == other.Name && Documentation == other.Documentation;
+            return Comparison.AreStringValuesEqual(Name, other.Name)
+                && Comparison.AreStringValuesEqual(Documentation, other.Documentation);
         }
 
         public override bool Equals(object obj)
         {
-            Parameter other = obj as Parameter;
-            return Equals(other);
+            return Equals(obj as Parameter);
         }
 
         public override int GetHashCode()
         {
-            return (Name ?? string.Empty).GetHashCode()
-                 ^ (Documentation ?? string.Empty).GetHashCode();
+            return
+                Hash.Combine(Name,
+                Hash.Combine(Documentation, 0));
         }
 
         public override string ToString()
         {
-            return Name + " (" + Documentation + ")";
+            return !string.IsNullOrEmpty(Documentation)
+                ? $"{Name} ({Documentation})"
+                : Name;
         }
     }
 }

@@ -18,6 +18,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />
     <Compile Include="Common\Signature.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
