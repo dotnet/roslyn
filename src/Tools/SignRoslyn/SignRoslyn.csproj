@@ -28,6 +28,7 @@
     <Compile Include="PathUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="RunSignUtil.cs" />
+    <Compile Include="SignData.cs" />
     <Compile Include="SignTool.cs" />
   </ItemGroup>
   <ItemGroup>
