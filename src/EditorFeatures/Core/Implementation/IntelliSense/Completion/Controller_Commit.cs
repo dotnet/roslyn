@@ -98,10 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     foreach (var triggerSnapshotTextChange in textChangesInTriggerSnapshot)
                     {
-                        var currentSpanInBuffer = new SnapshotSpan(
-                            model.TriggerSnapshot,
-                            triggerSnapshotTextChange.Span.ToSpan());
-
                         // Try mapping the item span against the trigger snapshot to the ViewBuffer's trigger snapshot.
                         // Then map that forward to the ViewBuffer's current snapshot.
                         var originalSpanInView = model.GetViewBufferSpan(triggerSnapshotTextChange.Span).TextSpan.ToSnapshotSpan(model.ViewTriggerSnapshot);
