@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -37,5 +38,10 @@ namespace Microsoft.CodeAnalysis.Options
         public abstract OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string language, T value);
 
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
+
+        internal bool GetOption(object runtimeOptions)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -13,5 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
 
         public static readonly Option<bool> FullSolutionAnalysis = new Option<bool>(OptionName, "Full Solution Analysis", defaultValue: true);
         public static readonly Option<bool> FullSolutionAnalysisInfoBarShown = new Option<bool>(OptionName, "Full Solution Analysis Info Bar Shown", defaultValue: false);
+        public static readonly Option<bool> RemoteHostAvailable = new Option<bool>(OptionName, "Remote Host Available", defaultValue: false);
     }
 }

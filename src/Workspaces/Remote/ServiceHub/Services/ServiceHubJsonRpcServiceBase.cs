@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly CancellationTokenSource _source;
 
         protected readonly JsonRpc Rpc;
-        protected readonly CancellationToken Token;
+        protected readonly CancellationToken CancellationToken;
 
         public ServiceHubJsonRpcServiceBase(Stream stream, IServiceProvider serviceProvider) : base(stream, serviceProvider)
         {
             _source = new CancellationTokenSource();
-            Token = _source.Token;
+            CancellationToken = _source.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
             Rpc.Disconnected += OnRpcDisconnected;
@@ -26,6 +26,13 @@ namespace Microsoft.CodeAnalysis.Remote
         protected virtual void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            Rpc.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

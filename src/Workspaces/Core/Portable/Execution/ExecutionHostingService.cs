@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Options;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -34,7 +35,12 @@ namespace Microsoft.CodeAnalysis.Execution
                 //         engine should determine for them.
 
                 // TODO: here we need to put some heuristic to determine what is best host to run
-                // the service. for now always return InProc
+                // the service. for now, just explicit options
+                if (_workspaceServices.Workspace.Options.GetOption(RuntimeOptions.RemoteHostAvailable))
+                {
+                    return GetService(HostKinds.OutOfProc);
+                }
+
                 return GetService(HostKinds.InProc);
             }
 

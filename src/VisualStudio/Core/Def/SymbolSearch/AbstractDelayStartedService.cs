@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private void OnOptionChanged(object sender, EventArgs e)
         {
-            this.AssertIsForeground();
+            // this.AssertIsForeground();
 
             if (!_registeredLanguageNames.Any(IsRegisteredForLanguage))
             {

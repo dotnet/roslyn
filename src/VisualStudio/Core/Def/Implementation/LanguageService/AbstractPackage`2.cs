@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -24,8 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private SymbolSearchService _symbolSearchService;
-
-        private System.Threading.Tasks.Task _remoteHost;
 
         public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
@@ -77,8 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.Workspace.StartSolutionCrawler();
             }
 
-            // start remote host
-            _remoteHost = RemoteHost.StartAsync(CancellationToken.None);
+            // start remote host if enabled
+            if (this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.RemoteHost))
+            {
+                Workspace.Services.GetService<IRemoteHostService>()?.Enable();
+            }
 
             // Ensure services that must be created on the UI thread have been.
             HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
@@ -140,6 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (this.Workspace != null)
             {
                 this.Workspace.StopSolutionCrawler();
+
+                if (this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.RemoteHost))
+                {
+                    Workspace.Services.GetService<IRemoteHostService>()?.Disable();
+                }
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.

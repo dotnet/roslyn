@@ -71,5 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         [ExportOption]
         public static readonly Option<bool> ProjectReferenceConversion = new Option<bool>(OptionName, "Project Reference Conversion", defaultValue: true);
+
+        [ExportOption]
+        public static readonly Option<bool> RemoteHost = new Option<bool>(OptionName, "Remote Host", defaultValue: false);
     }
 }

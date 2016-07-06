@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     [ExportHostSpecificService(typeof(ICompilerDiagnosticExecutor), HostKinds.InProc), Shared]
-    internal class DiagnosticIncProcHostSpecificService : ICompilerDiagnosticExecutor
+    internal class DiagnosticInProcHostSpecificService : ICompilerDiagnosticExecutor
     {
         public async Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {

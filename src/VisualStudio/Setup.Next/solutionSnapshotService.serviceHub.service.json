@@ -3,7 +3,7 @@
   "host": "desktopClr.x86",
   "hostId": "1",
   "entryPoint": {
-    "assemblyPath": "Microsoft.CodeAnalysis.Workspaces.Desktop.dll",
+    "assemblyPath": "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
     "fullClassName": "Microsoft.CodeAnalysis.Remote.SolutionSnapshotService"
   }
 }

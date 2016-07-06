@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "StreamJsonRpc": "0.14.3-alpha",
-    "Microsoft.ServiceHub.Client": "0.13.54-alpha-g315dc9a206"
+    "Newtonsoft.Json": "6.0.6"
   },
   "frameworks": {
     "net46": { }

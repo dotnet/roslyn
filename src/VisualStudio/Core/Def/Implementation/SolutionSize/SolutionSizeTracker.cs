@@ -8,11 +8,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
 {
@@ -139,29 +136,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return false;
             }
 
-            private SolutionSnapshot _lastSnapshot;
-
-            public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
-                var solution = project.Solution;
-                var snapshotService = solution.Workspace.Services.GetService<ISolutionSnapshotService>();
-
-                var lastSnapshot = _lastSnapshot;
-                _lastSnapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false);
-                lastSnapshot?.Dispose();
-
-                var snapshot = _lastSnapshot;
-                using (var sync = await RemoteHost.Instance.SynchronizeAsync(snapshot, CancellationToken.None).ConfigureAwait(false))
-                {
-                    using (var hubClient = new HubClient("diagnostic test"))
-                    {
-                        using (var stream = await hubClient.RequestServiceAsync("diagnosticService").ConfigureAwait(false))
-                        {
-                            var rpc = JsonRpc.Attach(stream);
-                            await rpc.InvokeAsync("CalculateAsync", snapshot.Id.Checksum.ToArray(), project.Id.Id, project.Id.DebugName).ConfigureAwait(false);
-                        }
-                    }
-                }
+                return SpecializedTasks.EmptyTask;
             }
 
             public void RemoveProject(ProjectId projectId)

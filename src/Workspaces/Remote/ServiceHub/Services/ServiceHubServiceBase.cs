@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
+            Stream.Dispose();
+
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
