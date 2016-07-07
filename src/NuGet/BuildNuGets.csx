@@ -17,7 +17,7 @@ if (Args.Count() != 3)
     Environment.Exit(1);
 }
 
-var SolutionRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "../"));
+var SolutionRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "../../"));
 
 string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(path);
 
