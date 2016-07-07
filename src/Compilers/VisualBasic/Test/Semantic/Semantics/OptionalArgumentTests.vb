@@ -430,7 +430,7 @@ End Structure
         End Sub
 
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
-        Public Sub OptionalNullableIntegerWithNothingValue()
+        Public Sub OptionalNullableIntegerWithNothingValue_1()
             Dim source =
 <compilation name="OptionalNullableInteger">
     <file name="a.vb">
@@ -451,6 +451,44 @@ End Structure
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
             CompileAndVerify(source,
+     expectedOutput:=<![CDATA[
+False
+]]>).VerifyIL("m.main", <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Integer? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "Integer?"
+  IL_0008:  ldloc.0
+  IL_0009:  call       "Sub m.X(Integer?)"
+  IL_000e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
+        Public Sub OptionalNullableIntegerWithNothingValue_2()
+            Dim source =
+<compilation name="OptionalNullableInteger">
+    <file name="a.vb">
+        <![CDATA[
+    Imports System
+
+    Module m
+      Sub X(Optional i As Integer?)
+        Console.WriteLine("{0}", i.hasValue)
+      End Sub
+  
+    Sub main()
+        X()
+    End Sub
+  End Module
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions)
+            CompileAndVerify(source, parseOptions:=MyParseOptions,
      expectedOutput:=<![CDATA[
 False
 ]]>).VerifyIL("m.main", <![CDATA[
