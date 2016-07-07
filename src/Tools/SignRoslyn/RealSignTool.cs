@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -77,6 +78,38 @@ namespace SignRoslyn
                 stream.Position = peReader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags;
                 writer.Write((UInt32)(peReader.PEHeaders.CorHeader.Flags | CorFlags.StrongNameSigned));
             }
+        }
+
+        internal override bool VerifySignedAssembly(Stream assemblyStream)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                assemblyStream.CopyTo(memoryStream);
+
+                var byteArray = memoryStream.ToArray();
+                unsafe
+                {
+                    fixed (byte* bytes = byteArray)
+                    {
+                        int outFlags;
+                        return NativeMethods.StrongNameSignatureVerificationFromImage(
+                            bytes, 
+                            byteArray.Length, 
+                            NativeMethods.SN_INFLAG_FORCE_VER, out outFlags) &&
+                            (outFlags & NativeMethods.SN_OUTFLAG_WAS_VERIFIED) == NativeMethods.SN_OUTFLAG_WAS_VERIFIED;
+                    }
+                }
+            }
+        }
+
+        private unsafe static class NativeMethods
+        {
+            public const int SN_INFLAG_FORCE_VER = 0x1;
+            public const int SN_OUTFLAG_WAS_VERIFIED = 0x1;
+
+            [DllImport("mscoree.dll", CharSet = CharSet.Unicode)]
+            [PreserveSig]
+            public static extern bool StrongNameSignatureVerificationFromImage(byte* bytes, int length, int inFlags, out int outFlags);
         }
     }
 }

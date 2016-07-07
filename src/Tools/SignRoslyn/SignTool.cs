@@ -30,6 +30,8 @@ namespace SignRoslyn
 
         internal abstract void RemovePublicSign(string assemblyPath);
 
+        internal abstract bool VerifySignedAssembly(Stream assemblyStream);
+
         protected abstract int RunMSBuild(ProcessStartInfo startInfo);
 
         internal void Sign(IEnumerable<string> filePaths)
