@@ -15,21 +15,16 @@ namespace SignRoslyn
 #if DEBUG
             var binariesPath = @"e:\dd\roslyn\Binaries\Debug";
             var sourcePath = @"e:\dd\roslyn";
-            var ignoreFailures = true;
+            var signTool = new TestSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
 #else
 
             var sourcePath = Environment.GetEnvironmentVariable("BUILD_SOURCESDIRECTORY");
             var binariesPath = Path.Combine(sourcePath, @"Binaries\Release");
-            var ignoreFailures = false;
+            var signTool = new RealSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
 #endif
 
             var signData = ReadSignData(binariesPath);
-            var tool = new SignTool(
-                AppContext.BaseDirectory,
-                binariesPath: binariesPath,
-                sourcePath: sourcePath,
-                ignoreFailures: ignoreFailures);
-            var util = new RunSignUtil(tool, signData);
+            var util = new RunSignUtil(signTool, signData);
             util.Go();
         }
 
