@@ -113,24 +113,6 @@ namespace Roslyn.Diagnostics.Analyzers
             return lines;
         }
 
-        private static ISymbol FindDeclaration(SyntaxNode root, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            SyntaxNode node = root.FindNode(location.SourceSpan);
-            ISymbol symbol = null;
-            while (node != null)
-            {
-                symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                if (symbol != null)
-                {
-                    break;
-                }
-
-                node = node.Parent;
-            }
-
-            return symbol;
-        }
-
         private class AdditionalDocumentChangeAction : CodeAction
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;

@@ -120,11 +120,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         protected abstract class CompilationAnalyzer
         {
             private readonly INamedTypeSymbol _codeFixProviderSymbol;
-            private readonly IMethodSymbol _getFixAllProvider;
 
             private readonly INamedTypeSymbol _codeActionSymbol;
             private readonly ImmutableHashSet<IMethodSymbol> _createMethods;
-            private readonly IPropertySymbol _equivalenceKeyProperty;
 
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeFixProvider"/> in this compilation.
@@ -154,16 +152,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             protected CompilationAnalyzer(
                 INamedTypeSymbol codeFixProviderSymbol,
-                IMethodSymbol getFixAllProvider,
                 INamedTypeSymbol codeActionSymbol,
-                ImmutableHashSet<IMethodSymbol> createMethods,
-                IPropertySymbol equivalenceKeyProperty)
+                ImmutableHashSet<IMethodSymbol> createMethods)
             {
                 _codeFixProviderSymbol = codeFixProviderSymbol;
-                _getFixAllProvider = getFixAllProvider;
                 _codeActionSymbol = codeActionSymbol;
                 _createMethods = createMethods;
-                _equivalenceKeyProperty = equivalenceKeyProperty;
 
                 _codeFixProviders = null;
                 _codeActionsWithEquivalenceKey = null;

@@ -18,13 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.FixAnalyzers
     Public NotInheritable Class BasicFixerWithFixAllAnalyzer
         Inherits FixerWithFixAllAnalyzer(Of SyntaxKind)
         Protected Overrides Function GetCompilationAnalyzer(codeFixProviderSymbol As INamedTypeSymbol, getFixAllProvider As IMethodSymbol, codeActionSymbol As INamedTypeSymbol, createMethods As ImmutableHashSet(Of IMethodSymbol), equivalenceKeyProperty As IPropertySymbol) As CompilationAnalyzer
-            Return New CSharpCompilationAnalyzer(codeFixProviderSymbol, getFixAllProvider, codeActionSymbol, createMethods, equivalenceKeyProperty)
+            Return New CSharpCompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, createMethods)
         End Function
 
         Private NotInheritable Class CSharpCompilationAnalyzer
             Inherits CompilationAnalyzer
-            Public Sub New(codeFixProviderSymbol As INamedTypeSymbol, getFixAllProvider As IMethodSymbol, codeActionSymbol As INamedTypeSymbol, createMethods As ImmutableHashSet(Of IMethodSymbol), equivalenceKeyProperty As IPropertySymbol)
-                MyBase.New(codeFixProviderSymbol, getFixAllProvider, codeActionSymbol, createMethods, equivalenceKeyProperty)
+            Public Sub New(codeFixProviderSymbol As INamedTypeSymbol, codeActionSymbol As INamedTypeSymbol, createMethods As ImmutableHashSet(Of IMethodSymbol))
+                MyBase.New(codeFixProviderSymbol, codeActionSymbol, createMethods)
             End Sub
 
             Protected Overrides ReadOnly Property GetInvocationKind As SyntaxKind

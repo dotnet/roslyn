@@ -20,18 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.FixAnalyzers
     {
         protected override CompilationAnalyzer GetCompilationAnalyzer(INamedTypeSymbol codeFixProviderSymbol, IMethodSymbol getFixAllProvider, INamedTypeSymbol codeActionSymbol, ImmutableHashSet<IMethodSymbol> createMethods, IPropertySymbol equivalenceKeyProperty)
         {
-            return new CSharpCompilationAnalyzer(codeFixProviderSymbol, getFixAllProvider, codeActionSymbol, createMethods, equivalenceKeyProperty);
+            return new CSharpCompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, createMethods);
         }
 
         private sealed class CSharpCompilationAnalyzer : CompilationAnalyzer
         {
             public CSharpCompilationAnalyzer(
                 INamedTypeSymbol codeFixProviderSymbol,
-                IMethodSymbol getFixAllProvider,
                 INamedTypeSymbol codeActionSymbol,
-                ImmutableHashSet<IMethodSymbol> createMethods,
-                IPropertySymbol equivalenceKeyProperty)
-                : base(codeFixProviderSymbol, getFixAllProvider, codeActionSymbol, createMethods, equivalenceKeyProperty)
+                ImmutableHashSet<IMethodSymbol> createMethods)
+                : base(codeFixProviderSymbol, codeActionSymbol, createMethods)
             {
             }
 
