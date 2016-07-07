@@ -8645,7 +8645,6 @@ tryAgain:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.ColonColonToken: // bad aliased name
-                case SyntaxKind.ThrowKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an

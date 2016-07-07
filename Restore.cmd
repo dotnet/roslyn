@@ -41,8 +41,14 @@ call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\dev14.project.json" %
 echo Restoring packages: Toolsets (Dev15 VS SDK build tools)
 call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\dev15.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Roslyn SDK
+call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\roslynsdk.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Samples
 call %NugetExe% restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
+echo Restoring packages: Templates
+call %NugetExe% restore "%RoslynRoot%src\Setup\Templates\Templates.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: Roslyn (this may take some time)
 call %NugetExe% restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed

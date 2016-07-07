@@ -262,8 +262,7 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
-        Available,
-        Last = Available - 1,
+        NextAvailable,
     }
 
     internal static class WellKnownTypes
@@ -271,7 +270,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Number of well known types in WellKnownType enum
         /// </summary>
-        internal const int Count = WellKnownType.Last - WellKnownType.First + 1;
+        internal const int Count = WellKnownType.NextAvailable - WellKnownType.First;
 
         /// <summary>
         /// Array of names for types.
@@ -542,31 +541,52 @@ namespace Microsoft.CodeAnalysis
                 var typeId = (WellKnownType)(i + WellKnownType.First);
 
                 string typeIdName;
-                if (typeId == WellKnownType.First)
+                switch (typeId)
                 {
-                    typeIdName = "System.Math";
-                }
-                else if (typeId == WellKnownType.Last)
-                {
-                    typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
-                }
-                else if (typeId == WellKnownType.ExtSentinel)
-                {
-                    Debug.Assert(name == "");
-                    continue;
-                }
-                else
-                {
-                    typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
+                    case WellKnownType.First:
+                        typeIdName = "System.Math";
+                        break;
+                    case WellKnownType.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl:
+                        typeIdName = "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl";
+                        break;
+                    case WellKnownType.CSharp7Sentinel:
+                        typeIdName = "System.IFormatProvider";
+                        break;
+                    case WellKnownType.ExtSentinel:
+                        typeIdName = "";
+                        continue;
+                    case (WellKnownType.NextAvailable - 1):
+                        typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
+                        continue;
+                    default:
+                        typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
+                        break;
                 }
 
-                Debug.Assert(name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
-                          || name.IndexOf('`') > 0 // a generic type
-                          || name == typeIdName);
+                int separator = name.IndexOf('`');
+                if (separator >= 0)
+                {
+                    // Ignore type parameter qualifier for generic types.
+                    name = name.Substring(0, separator);
+                    typeIdName = typeIdName.Substring(0, separator);
+                }
+
+                Debug.Assert(name == typeIdName);
             }
 
             Debug.Assert((int)WellKnownType.ExtSentinel == 255);
-            Debug.Assert((int)WellKnownType.Last < 512);
+            Debug.Assert((int)WellKnownType.NextAvailable <= 512);
+        }
+
+        public static bool IsWellKnownType(this WellKnownType typeId)
+        {
+            Debug.Assert(typeId != WellKnownType.ExtSentinel);
+            return typeId >= WellKnownType.First && typeId < WellKnownType.NextAvailable;
+        }
+
+        public static bool IsValid(this WellKnownType typeId)
+        {
+            return typeId >= WellKnownType.First && typeId < WellKnownType.NextAvailable && typeId != WellKnownType.ExtSentinel;
         }
 
         public static string GetMetadataName(this WellKnownType id)

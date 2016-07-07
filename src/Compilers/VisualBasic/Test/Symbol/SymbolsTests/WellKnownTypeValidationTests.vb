@@ -493,8 +493,9 @@ End Namespace
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
+            Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
@@ -517,7 +518,7 @@ End Namespace
             Next
 
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CallType,
                          WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators,

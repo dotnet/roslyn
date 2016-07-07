@@ -1,173 +1,161 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
-using EnvDTE;
-using Roslyn.VisualStudio.Test.Utilities.Remoting;
-
-using Process = System.Diagnostics.Process;
+using Microsoft.VisualStudio;
+using Roslyn.VisualStudio.Test.Utilities.InProcess;
+using Roslyn.VisualStudio.Test.Utilities.Input;
+using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
     public class VisualStudioInstance
     {
         private readonly Process _hostProcess;
-        private readonly DTE _dte;
+        private readonly EnvDTE.DTE _dte;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
+        private readonly VisualStudio_InProc _inProc;
 
-        // TODO: We could probably expose all the windows/services/features of the host process in a better manner
-        private readonly Lazy<CSharpInteractiveWindow> _csharpInteractiveWindow;
-        private readonly Lazy<EditorWindow> _editorWindow;
-        private readonly Lazy<SolutionExplorer> _solutionExplorer;
-        private readonly Lazy<Workspace> _workspace;
+        public SendKeys SendKeys { get; }
 
-        public VisualStudioInstance(Process process, DTE dte)
+        public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
+        public Editor_OutOfProc Editor { get; }
+        public SolutionExplorer_OutOfProc SolutionExplorer { get; }
+        public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
+
+        public VisualStudioInstance(Process hostProcess, EnvDTE.DTE dte)
         {
-            _hostProcess = process;
+            _hostProcess = hostProcess;
             _dte = dte;
 
-            dte.ExecuteCommandAsync(VisualStudioCommandNames.VsStartServiceCommand).GetAwaiter().GetResult();
+            StartRemoteIntegrationService(dte);
 
             _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {_hostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
-            var serviceUri = string.Format($"ipc://{IntegrationService.PortNameFormatString}", _hostProcess.Id);
-            _integrationService = (IntegrationService)(Activator.GetObject(typeof(IntegrationService), $"{serviceUri}/{typeof(IntegrationService).FullName}"));
-            _integrationService.Uri = serviceUri;
+            _integrationService = IntegrationService.GetInstanceFromHostProcess(hostProcess);
+
+            // Create marshal-by-ref object that runs in host-process.
+            _inProc = ExecuteInHostProcess<VisualStudio_InProc>(
+                type: typeof(VisualStudio_InProc),
+                methodName: nameof(VisualStudio_InProc.Create));
 
             // There is a lot of VS initialization code that goes on, so we want to wait for that to 'settle' before
             // we start executing any actual code.
-            _integrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.WaitForSystemIdle));
+            _inProc.WaitForSystemIdle();
 
-            _csharpInteractiveWindow = new Lazy<CSharpInteractiveWindow>(() => new CSharpInteractiveWindow(this));
-            _editorWindow = new Lazy<EditorWindow>(() => new EditorWindow(this));
-            _solutionExplorer = new Lazy<SolutionExplorer>(() => new SolutionExplorer(this));
-            _workspace = new Lazy<Workspace>(() => new Workspace(this));
+            this.CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            this.Editor = new Editor_OutOfProc(this);
+            this.SolutionExplorer = new SolutionExplorer_OutOfProc(this);
+            this.VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
+
+            this.SendKeys = new SendKeys(this);
 
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
-            Cleanup();
+            CleanUp();
         }
 
-        public DTE Dte => _dte;
+        public void ExecuteInHostProcess(Type type, string methodName)
+        {
+            var result = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName);
+
+            if (result != null)
+            {
+                throw new InvalidOperationException("The specified call was not expected to return a value.");
+            }
+        }
+
+        public T ExecuteInHostProcess<T>(Type type, string methodName)
+        {
+            var objectUri = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName);
+
+            if (objectUri == null)
+            {
+                throw new InvalidOperationException("The specified call was expected to return a value.");
+            }
+
+            return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
+        }
+
+        public void ActivateMainWindow()
+        {
+            _inProc.ActivateMainWindow();
+        }
+
+        public void WaitForApplicationIdle()
+        {
+            _inProc.WaitForApplicationIdle();
+        }
+
+        public void ExecuteCommand(string commandName)
+        {
+            _inProc.ExecuteCommand(commandName);
+        }
 
         public bool IsRunning => !_hostProcess.HasExited;
 
-        public CSharpInteractiveWindow CSharpInteractiveWindow => _csharpInteractiveWindow.Value;
-
-        public EditorWindow EditorWindow => _editorWindow.Value;
-
-        public SolutionExplorer SolutionExplorer => _solutionExplorer.Value;
-
-        public Workspace Workspace => _workspace.Value;
-
-        internal IntegrationService IntegrationService => _integrationService;
-
-        #region Automation Elements
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
-            var automationElement = await LocateAutomationElementAsync(elementName, recursive).ConfigureAwait(continueOnCapturedContext: false);
+            var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
 
-            object invokePattern = null;
-            if (automationElement.TryGetCurrentPattern(InvokePattern.Pattern, out invokePattern))
+            if (element != null)
             {
-                ((InvokePattern)(invokePattern)).Invoke();
-            }
-        }
-
-        private async Task<AutomationElement> LocateAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            AutomationElement automationElement = null;
-            var scope = (recursive ? TreeScope.Descendants : TreeScope.Children);
-            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
-
-            await IntegrationHelper.WaitForResultAsync(() =>
-            {
-                automationElement = AutomationElement.RootElement.FindFirst(scope, condition);
-                return (automationElement != null);
-            }, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false);
-
-            return automationElement;
-        }
-        #endregion
-
-        #region Cleanup
-        public void Cleanup()
-        {
-            CleanupOpenSolution();
-            CleanupInteractiveWindow();
-            CleanupWaitingService();
-            CleanupWorkspace();
-        }
-
-        private void CleanupInteractiveWindow()
-        {
-            var csharpInteractiveWindow = _dte.LocateWindow(CSharpInteractiveWindow.DteWindowTitle);
-            IntegrationHelper.RetryRpcCall(() => csharpInteractiveWindow?.Close());
-        }
-
-        private void CleanupOpenSolution()
-        {
-            IntegrationHelper.RetryRpcCall(() => _dte.Documents.CloseAll(vsSaveChanges.vsSaveChangesNo));
-
-            var dteSolution = IntegrationHelper.RetryRpcCall(() => _dte.Solution);
-
-            if (dteSolution != null)
-            {
-                var directoriesToDelete = IntegrationHelper.RetryRpcCall(() =>
+                var tcs = new TaskCompletionSource<object>();
+                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) =>
                 {
-                    var directoryList = new List<string>();
-
-                    var dteSolutionProjects = IntegrationHelper.RetryRpcCall(() => dteSolution.Projects);
-
-                    // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
-                    foreach (EnvDTE.Project project in dteSolutionProjects)
-                    {
-                        var projectFullName = IntegrationHelper.RetryRpcCall(() => project.FullName);
-                        directoryList.Add(Path.GetDirectoryName(projectFullName));
-                    }
-
-                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                    // The solution might be zero-impact and thus has no name, so deal with that
-                    var dteSolutionFullName = IntegrationHelper.RetryRpcCall(() => dteSolution.FullName);
-
-                    if (!string.IsNullOrEmpty(dteSolutionFullName))
-                    {
-                        directoryList.Add(Path.GetDirectoryName(dteSolutionFullName));
-
-                    }
-
-                    return directoryList;
+                    tcs.SetResult(null);
                 });
 
-                IntegrationHelper.RetryRpcCall(() => dteSolution.Close(SaveFirst: false));
-
-                foreach (var directoryToDelete in directoriesToDelete)
+                object invokePatternObj = null;
+                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out invokePatternObj))
                 {
-                    IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
+                    var invokePattern = (InvokePattern)invokePatternObj;
+                    invokePattern.Invoke();
                 }
+
+                await tcs.Task;
             }
         }
 
-        private void CleanupWaitingService() => _integrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.CleanupWaitingService));
+        private async Task<AutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
+        {
+            AutomationElement element = null;
+            var scope = recursive ? TreeScope.Descendants : TreeScope.Children;
+            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
 
-        private void CleanupWorkspace() => _integrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.CleanupWorkspace));
-        #endregion
+            // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
+            // element can't be found, it'll continue to spin until the heat death of the universe.
+            await IntegrationHelper.WaitForResultAsync(
+                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null,
+                expectedResult: true)
+                .ConfigureAwait(false);
 
-        #region Close
+            return element;
+        }
+
+        public void CleanUp()
+        {
+            VisualStudioWorkspace.CleanUpWaitingService();
+            VisualStudioWorkspace.CleanUpWorkspace();
+            SolutionExplorer.CleanUpOpenSolution();
+            CSharpInteractiveWindow.CleanUpInteractiveWindow();
+        }
+
         public void Close()
         {
             if (!IsRunning)
             {
                 return;
             }
-            Cleanup();
+
+            CleanUp();
 
             CloseRemotingService();
             CloseHostProcess();
@@ -175,7 +163,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CloseHostProcess()
         {
-            IntegrationHelper.RetryRpcCall(() => _dte.Quit());
+            _inProc.Quit();
 
             IntegrationHelper.KillProcess(_hostProcess);
         }
@@ -184,10 +172,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if ((IntegrationHelper.RetryRpcCall(() => _dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
-                {
-                    _dte.ExecuteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
-                }
+                StopRemoteIntegrationService();
             }
             finally
             {
@@ -197,6 +182,53 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
             }
         }
-        #endregion
+
+        private void StartRemoteIntegrationService(EnvDTE.DTE dte)
+        {
+            // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
+
+            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.VsStartServiceCommand).IsAvailable))
+            {
+                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.VsStartServiceCommand));
+            }
+        }
+
+        private void StopRemoteIntegrationService()
+        {
+            if (_inProc.IsCommandAvailable(WellKnownCommandNames.VsStopServiceCommand))
+            {
+                _inProc.ExecuteCommand(WellKnownCommandNames.VsStopServiceCommand);
+            }
+        }
+
+        private static void RetryRpcCall(Action action)
+        {
+            do
+            {
+                try
+                {
+                    action();
+                    return;
+                }
+                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
+                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
+                {
+                    // We'll just try again in this case
+                }
+            }
+            while (true);
+        }
+
+        private static T RetryRpcCall<T>(Func<T> action)
+        {
+            T result = default(T);
+
+            RetryRpcCall(() =>
+            {
+                result = action();
+            });
+
+            return result;
+        }
     }
 }

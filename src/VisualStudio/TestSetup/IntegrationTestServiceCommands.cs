@@ -19,8 +19,8 @@ namespace Roslyn.VisualStudio.Test.Setup
 
         public static readonly Guid GrpIdIntegrationTestServiceCommands = new Guid("82A24540-AEBC-4883-A717-5317F0C0DAE9");
 
-        private static readonly string DefaultPortName = string.Format(IntegrationService.PortNameFormatString, Process.GetCurrentProcess().Id);
-        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider() {
+        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider()
+        {
             TypeFilterLevel = TypeFilterLevel.Full
         };
 
@@ -78,13 +78,19 @@ namespace Roslyn.VisualStudio.Test.Setup
             StopServiceCallback(this, EventArgs.Empty);
         }
 
-        /// <summary>Starts the IPC server for the Integration Test service.</summary>
+        /// <summary>
+        /// Starts the IPC server for the Integration Test service.
+        /// </summary>
         private void StartServiceCallback(object sender, EventArgs e)
         {
             if (_startServiceMenuCmd.Enabled)
             {
                 _service = new IntegrationService();
-                _serviceChannel = new IpcServerChannel(null, DefaultPortName, DefaultSinkProvider);
+
+                _serviceChannel = new IpcServerChannel(
+                    name: null,
+                    portName: _service.PortName,
+                    sinkProvider: DefaultSinkProvider);
 
                 var serviceType = typeof(IntegrationService);
                 _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);
