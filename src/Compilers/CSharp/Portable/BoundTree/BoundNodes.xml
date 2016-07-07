@@ -816,17 +816,25 @@
 
     <!-- Pieces corresponding to the syntax -->
     <!-- This is so the binding API can find produce semantic info if the type is "var". -->
-    <Field Name="IterationVariableType" Type="BoundTypeExpression"/> 
-    <Field Name="IterationVariable" Type="LocalSymbol"/>
-    <!-- If this node does not have errors, then this is the foreach expression wrapped 
+    <!-- If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it). -->
+    <Field Name="IterationVariableType" Type="BoundTypeExpression"/>
+    <Field Name="IterationVariableOpt" Type="LocalSymbol" Null="allow"/>
+    <!-- If this node does not have errors, then this is the foreach expression wrapped
          in a conversion to the collection type used by the foreach loop.  The conversion
          is here so that the binding API can return the correct ConvertedType in semantic 
          info.  It will be stripped off in the rewriter if it is redundant or causes extra
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow" SkipInVisitor="true"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="Boolean"/>
+  </Node>
+
+  <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
+  <Node Name="BoundForEachDeconstructStep" Base="BoundNode">
+    <Field Name="DeconstructionAssignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
   <Node Name="BoundUsingStatement" Base="BoundStatement">

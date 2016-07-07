@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (current.Kind() == SyntaxKind.VariableDeclaration &&
+                             (current.Parent as ForEachStatementSyntax)?.DeconstructionVariables == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent);
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of

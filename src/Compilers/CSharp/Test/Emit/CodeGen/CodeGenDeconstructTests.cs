@@ -1278,9 +1278,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics(
-                // (7,9): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (7,18): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (x, x) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(x, x) = null").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 18)
                 );
         }
 
@@ -1534,7 +1534,7 @@ class C
         }
 
         [Fact]
-        public void TupleWithNoConversion()
+        public void AssigningTupleWithNoConversion()
         {
             string source = @"
 class C
@@ -1550,12 +1550,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (9,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                // (9,10): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(x, y) = (1, 2)").WithArguments("int", "byte").WithLocation(9, 9),
-                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "byte").WithLocation(9, 10),
+                // (9,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(x, y) = (1, 2)").WithArguments("int", "string").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "string").WithLocation(9, 13)
                 );
         }
 
@@ -1651,7 +1651,6 @@ class C
 }
 ");
         }
-
 
         [Fact]
         public void TupleWithUseSiteError()
@@ -2586,13 +2585,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,14): error CS8213: Deconstruction must contain at least two variables.
                 //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var (x, y)) = Pair.Create(1, 2)").WithLocation(6, 14),
-                // (6,29): error CS7036: There is no argument given that corresponds to the required formal parameter 'item2' of 'Pair<int, int>.Deconstruct(out int, out int)'
-                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Pair.Create(1, 2)").WithArguments("item2", "Pair<int, int>.Deconstruct(out int, out int)").WithLocation(6, 29),
-                // (6,29): error CS8206: No Deconstruct instance or extension method was found for type 'Pair<int, int>', with 1 out parameters.
-                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Pair.Create(1, 2)").WithArguments("Pair<int, int>", "1").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var (x, y)) = Pair.Create(1, 2)").WithLocation(6, 14)
                 );
         }
 
@@ -2606,13 +2599,12 @@ class C
     {
         var (x1, x2) = Pair.Create(1, 2);
         (int x3, int x4) = Pair.Create(1, 2);
-        //foreach ((int x5, var (x6, x7)) in null) { }
-        //for ((int x8, var (x9, x10)) = null; ; ) { }
+        foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
+        for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
     }
 }
 " + commonSource;
 
-            // PROTOTYPE(tuples) uncomment above once binding is fixed
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
@@ -2620,7 +2612,13 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x1, x2) = Pair.Create(1, 2)").WithArguments("tuples", "7").WithLocation(6, 9),
                 // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (int x3, int x4) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4) = Pair.Create(1, 2)").WithArguments("tuples", "7").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4) = Pair.Create(1, 2)").WithArguments("tuples", "7").WithLocation(7, 9),
+                // (8,18): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x5, var (x6, x7))").WithArguments("tuples", "7").WithLocation(8, 18),
+                // (9,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3))").WithArguments("tuples", "7").WithLocation(9, 14)
                 );
         }
 
@@ -3027,6 +3025,11 @@ Deconstructing (1, hello)
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForInitializerVariable, references);
         }
 
+        private static void VerifyModelForDeconstructionForeach(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForEachIterationVariable, references);
+        }
+
         private static void VerifyModelForDeconstruction(SemanticModel model, VariableDeclarationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
         {
             var variableDeclaratorSyntax = decl.Variables.Single();
@@ -3150,12 +3153,12 @@ class var { }
                 // (6,18): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
-                // (6,24): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                // (6,14): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("int", "var").WithLocation(6, 24),
-                // (6,24): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("int", "var").WithLocation(6, 14),
+                // (6,18): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("int", "var").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("int", "var").WithLocation(6, 18)
                 );
         }
 
@@ -3206,7 +3209,7 @@ class C
                 Assert.Null(x3.Type);
                 Assert.Null(x4.Type);
 
-                var x34Var = (VariableDeclarationSyntax) x3.Parent.Parent;
+                var x34Var = (VariableDeclarationSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
             };
@@ -3292,12 +3295,12 @@ class D
                 // (7,18): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
-                // (7,24): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                // (7,14): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(3, 4)").WithArguments("int", "D").WithLocation(7, 24),
-                // (7,24): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x3").WithArguments("int", "D").WithLocation(7, 14),
+                // (7,18): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(3, 4)").WithArguments("int", "D").WithLocation(7, 24)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x4").WithArguments("int", "D").WithLocation(7, 18)
                 );
         }
 
@@ -3316,13 +3319,13 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,34): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(1, 2, 3)").WithArguments("3", "2").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3);").WithArguments("3", "2").WithLocation(6, 9)
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void DeclarationWithCircularity1()
         {
             string source = @"
@@ -3331,40 +3334,19 @@ class C
     static void Main()
     {
         var (x1, x2) = (1, x1);
-        System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                var tree = compilation.SyntaxTrees.First();
-                var model = compilation.GetSemanticModel(tree);
-
-                var x1 = GetDeconstructionLocal(tree, "x1");
-                var x1Ref = GetReferences(tree, "x1", 2);
-                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
-
-                var x2 = GetDeconstructionLocal(tree, "x2");
-                var x2Ref = GetReference(tree, "x2");
-                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
-
-                // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
-
-                // extra checks on x2
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
-            };
-
-            var comp = CompileAndVerify(source, expectedOutput: "1 1", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
-            comp.VerifyDiagnostics( );
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,28): error CS0165: Use of unassigned local variable 'x1'
+                //         var (x1, x2) = (1, x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 28)
+                );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void DeclarationWithCircularity2()
         {
             string source = @"
@@ -3373,37 +3355,15 @@ class C
     static void Main()
     {
         var (x1, x2) = (x2, 2);
-        System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
 ";
-
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                var tree = compilation.SyntaxTrees.First();
-                var model = compilation.GetSemanticModel(tree);
-
-                var x1 = GetDeconstructionLocal(tree, "x1");
-                var x1Ref = GetReference(tree, "x1");
-                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
-
-                var x2 = GetDeconstructionLocal(tree, "x2");
-                var x2Ref = GetReferences(tree, "x2", 2);
-                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
-
-                // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
-
-                // extra checks on x2
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
-            };
-
-            var comp = CompileAndVerify(source, expectedOutput: "2 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,25): error CS0165: Use of unassigned local variable 'x2'
+                //         var (x1, x2) = (x2, 2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
+                );
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -3542,7 +3502,7 @@ class C
         }
 
         [Fact]
-        public void ForDeclarationWithImplicitVarType()
+        public void ForWithImplicitVarType()
         {
             string source = @"
 class C
@@ -3579,11 +3539,11 @@ class C
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void ForDeclarationWithActualVarType()
+        public void ForWithActualVarType()
         {
             string source = @"
 class C
@@ -3631,7 +3591,7 @@ class var
         }
 
         [Fact]
-        public void ForDeconstructionWithTypes()
+        public void ForWithTypes()
         {
             string source = @"
 class C
@@ -3675,7 +3635,7 @@ class C
         }
 
         [Fact]
-        public void ForDeconstructionWithExistingVariableName()
+        public void ForWithExistingVariableName()
         {
             string source = @"
 class C
@@ -3696,5 +3656,954 @@ class C
                 );
         }
 
+        [Fact]
+        public void ForWithCircularity1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for (var (x1, x2) = (1, x1); ; ) { }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0165: Use of unassigned local variable 'x1'
+                //         for (var (x1, x2) = (1, x1); ; ) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void ForWithCircularity2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for (var (x1, x2) = (x2, 2); ; ) { }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0165: Use of unassigned local variable 'x2'
+                //         for (var (x1, x2) = (x2, 2); ; ) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 30)
+                );
+        }
+
+        [Fact]
+        public void ForEachIEnumerableDeclarationWithImplicitVarType()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in M())
+        {
+            Print(x1, x2);
+        }
+    }
+    static IEnumerable<(int, int)> M() { yield return (1, 2); }
+    static void Print(object a, object b) { System.Console.WriteLine(a + "" "" + b); }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionForeach(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionForeach(model, x2, x2Ref);
+
+                // extra check on var
+                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
+                int V_1, //x1
+                int V_2) //x2
+  IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
+  IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  br.s       IL_0031
+    IL_000d:  ldloc.0
+    IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
+    IL_0013:  dup
+    IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0019:  stloc.1
+    IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_001f:  stloc.2
+    IL_0020:  ldloc.1
+    IL_0021:  box        ""int""
+    IL_0026:  ldloc.2
+    IL_0027:  box        ""int""
+    IL_002c:  call       ""void C.Print(object, object)""
+    IL_0031:  ldloc.0
+    IL_0032:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0037:  brtrue.s   IL_000d
+    IL_0039:  leave.s    IL_0045
+  }
+  finally
+  {
+    IL_003b:  ldloc.0
+    IL_003c:  brfalse.s  IL_0044
+    IL_003e:  ldloc.0
+    IL_003f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0044:  endfinally
+  }
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ForEachSZArrayDeclarationWithImplicitVarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in M())
+        {
+            System.Console.Write(x1 + "" "" + x2 + "" - "");
+        }
+    }
+    static (int, int)[] M() { return new[] { (1, 2), (3, 4) }; }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                var variableDeclaratorSyntax = x1.Variables.Single();
+                var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+
+                VerifyModelForDeconstructionForeach(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionForeach(model, x2, x2Ref);
+
+                // extra check on var
+                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       91 (0x5b)
+  .maxstack  4
+  .locals init ((int, int)[] V_0,
+                int V_1,
+                int V_2, //x1
+                int V_3) //x2
+  IL_0000:  call       ""(int, int)[] C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
+  IL_0008:  br.s       IL_0054
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  ldelem     ""System.ValueTuple<int, int>""
+  IL_0011:  dup
+  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0017:  stloc.2
+  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001d:  stloc.3
+  IL_001e:  ldc.i4.4
+  IL_001f:  newarr     ""object""
+  IL_0024:  dup
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldloc.2
+  IL_0027:  box        ""int""
+  IL_002c:  stelem.ref
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldstr      "" ""
+  IL_0034:  stelem.ref
+  IL_0035:  dup
+  IL_0036:  ldc.i4.2
+  IL_0037:  ldloc.3
+  IL_0038:  box        ""int""
+  IL_003d:  stelem.ref
+  IL_003e:  dup
+  IL_003f:  ldc.i4.3
+  IL_0040:  ldstr      "" - ""
+  IL_0045:  stelem.ref
+  IL_0046:  call       ""string string.Concat(params object[])""
+  IL_004b:  call       ""void System.Console.Write(string)""
+  IL_0050:  ldloc.1
+  IL_0051:  ldc.i4.1
+  IL_0052:  add
+  IL_0053:  stloc.1
+  IL_0054:  ldloc.1
+  IL_0055:  ldloc.0
+  IL_0056:  ldlen
+  IL_0057:  conv.i4
+  IL_0058:  blt.s      IL_000a
+  IL_005a:  ret
+}");
+        }
+
+        [Fact]
+        public void ForEachMDArrayDeclarationWithImplicitVarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in M())
+        {
+            Print(x1, x2);
+        }
+    }
+    static (int, int)[,] M() { return new (int, int)[2, 2] { { (1, 2), (3, 4) }, { (5, 6), (7, 8) } }; }
+    static void Print(object a, object b) { System.Console.Write(a + "" "" + b + "" - ""); }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionForeach(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionForeach(model, x2, x2Ref);
+
+                // extra check on var
+                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size      106 (0x6a)
+  .maxstack  3
+  .locals init ((int, int)[,] V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                int V_5, //x1
+                int V_6) //x2
+  IL_0000:  call       ""(int, int)[,] C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  callvirt   ""int System.Array.GetUpperBound(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  callvirt   ""int System.Array.GetUpperBound(int)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
+  IL_001d:  stloc.3
+  IL_001e:  br.s       IL_0065
+  IL_0020:  ldloc.0
+  IL_0021:  ldc.i4.1
+  IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  br.s       IL_005c
+  IL_002b:  ldloc.0
+  IL_002c:  ldloc.3
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  call       ""(int, int)[*,*].Get""
+  IL_0034:  dup
+  IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_003a:  stloc.s    V_5
+  IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0041:  stloc.s    V_6
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  box        ""int""
+  IL_004a:  ldloc.s    V_6
+  IL_004c:  box        ""int""
+  IL_0051:  call       ""void C.Print(object, object)""
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldc.i4.1
+  IL_0059:  add
+  IL_005a:  stloc.s    V_4
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  ldloc.2
+  IL_005f:  ble.s      IL_002b
+  IL_0061:  ldloc.3
+  IL_0062:  ldc.i4.1
+  IL_0063:  add
+  IL_0064:  stloc.3
+  IL_0065:  ldloc.3
+  IL_0066:  ldloc.1
+  IL_0067:  ble.s      IL_0020
+  IL_0069:  ret
+}");
+        }
+
+        [Fact]
+        public void ForEachStringDeclarationWithImplicitVarType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in M())
+        {
+            Print(x1, x2);
+        }
+    }
+    static string M() { return ""123""; }
+    static void Print(object a, object b) { System.Console.Write(a + "" "" + b + "" - ""); }
+}
+static class Extension
+{
+    public static void Deconstruct(this char value, out int item1, out int item2)
+    {
+        item1 = item2 = System.Int32.Parse(value.ToString());
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionForeach(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionForeach(model, x2, x2Ref);
+
+                // extra check on var
+                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  3
+  .locals init (string V_0,
+                int V_1,
+                int V_2, //x2
+                int V_3,
+                int V_4)
+  IL_0000:  call       ""string C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
+  IL_0008:  br.s       IL_0032
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  callvirt   ""char string.this[int].get""
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  ldloca.s   V_4
+  IL_0015:  call       ""void Extension.Deconstruct(char, out int, out int)""
+  IL_001a:  ldloc.3
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  stloc.2
+  IL_001e:  box        ""int""
+  IL_0023:  ldloc.2
+  IL_0024:  box        ""int""
+  IL_0029:  call       ""void C.Print(object, object)""
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldloc.0
+  IL_0034:  callvirt   ""int string.Length.get""
+  IL_0039:  blt.s      IL_000a
+  IL_003b:  ret
+}");
+        }
+
+        [Fact]
+        public void ForEachIEnumerableDeclarationWithNesting()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3), (int x4, int x5)) in M())
+        {
+            System.Console.Write(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4 + "" "" + x5 + "" - "");
+        }
+    }
+    static IEnumerable<(int, (int, int), (int, int))> M() { yield return (1, (2, 3), (4, 5)); yield return (6, (7, 8), (9, 10)); }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionForeach(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionForeach(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionForeach(model, x3, x3Ref);
+
+                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4Ref = GetReference(tree, "x4");
+                VerifyModelForDeconstructionForeach(model, x4, x4Ref);
+
+                var x5 = GetDeconstructionLocal(tree, "x5");
+                var x5Ref = GetReference(tree, "x5");
+                VerifyModelForDeconstructionForeach(model, x5, x5Ref);
+
+                // extra check on var
+                var x23Var = (VariableDeclarationSyntax)x2.Parent.Parent;
+                Assert.Equal("var", x23Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachSZArrayDeclarationWithNesting()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3), (int x4, int x5)) in M())
+        {
+            System.Console.Write(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4 + "" "" + x5 + "" - "");
+        }
+    }
+    static (int, (int, int), (int, int))[] M() { return new[] { (1, (2, 3), (4, 5)), (6, (7, 8), (9, 10)) }; }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachMDArrayDeclarationWithNesting()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3), (int x4, int x5)) in M())
+        {
+            System.Console.Write(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4 + "" "" + x5 + "" - "");
+        }
+    }
+    static (int, (int, int), (int, int))[,] M() { return new(int, (int, int), (int, int))[1, 2] { { (1, (2, 3), (4, 5)), (6, (7, 8), (9, 10)) } }; }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachStringDeclarationWithNesting()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3)) in M())
+        {
+            System.Console.Write(x1 + "" "" + x2 + "" "" + x3 + "" - "");
+        }
+    }
+    static string M() { return ""12""; }
+}
+static class Extension
+{
+    public static void Deconstruct(this char value, out int item1, out (int, int) item2)
+    {
+        item1 = System.Int32.Parse(value.ToString());
+        item2 = (item1, item1);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 1 1 - 2 2 2 - ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachIEnumerableDeclarationWithDeconstruct()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        foreach ((long x1, var (x2, x3)) in M())
+        {
+            Print(x1, x2, x3);
+        }
+    }
+    static IEnumerable<Pair<int, Pair<int, int>>> M() { yield return Pair.Create(1, Pair.Create(2, 3)); yield return Pair.Create(4, Pair.Create(5, 6)); }
+    static void Print(object a, object b, object c) { System.Console.WriteLine(a + "" "" + b + "" "" + c); }
+}
+" + commonSource;
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionForeach(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionForeach(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionForeach(model, x3, x3Ref);
+
+                // extra check on var
+                var x23Var = (VariableDeclarationSyntax)x2.Parent.Parent;
+                Assert.Equal("var", x23Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+            };
+
+            string expected =
+@"Deconstructing (1, (2, 3))
+Deconstructing (2, 3)
+1 2 3
+Deconstructing (4, (5, 6))
+Deconstructing (5, 6)
+4 5 6";
+
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       90 (0x5a)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
+                int V_1, //x2
+                int V_2, //x3
+                int V_3,
+                Pair<int, int> V_4,
+                int V_5,
+                int V_6)
+  IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
+  IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  br.s       IL_0045
+    IL_000d:  ldloc.0
+    IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
+    IL_0013:  ldloca.s   V_3
+    IL_0015:  ldloca.s   V_4
+    IL_0017:  callvirt   ""void Pair<int, Pair<int, int>>.Deconstruct(out int, out Pair<int, int>)""
+    IL_001c:  ldloc.s    V_4
+    IL_001e:  ldloca.s   V_5
+    IL_0020:  ldloca.s   V_6
+    IL_0022:  callvirt   ""void Pair<int, int>.Deconstruct(out int, out int)""
+    IL_0027:  ldloc.3
+    IL_0028:  conv.i8
+    IL_0029:  ldloc.s    V_5
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.s    V_6
+    IL_002e:  stloc.2
+    IL_002f:  box        ""long""
+    IL_0034:  ldloc.1
+    IL_0035:  box        ""int""
+    IL_003a:  ldloc.2
+    IL_003b:  box        ""int""
+    IL_0040:  call       ""void C.Print(object, object, object)""
+    IL_0045:  ldloc.0
+    IL_0046:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_004b:  brtrue.s   IL_000d
+    IL_004d:  leave.s    IL_0059
+  }
+  finally
+  {
+    IL_004f:  ldloc.0
+    IL_0050:  brfalse.s  IL_0058
+    IL_0052:  ldloc.0
+    IL_0053:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0058:  endfinally
+  }
+  IL_0059:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ForEachSZArrayDeclarationWithDeconstruct()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3)) in M())
+        {
+            System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+        }
+    }
+    static Pair<int, Pair<int, int>>[] M() { return new[] { Pair.Create(1, Pair.Create(2, 3)), Pair.Create(4, Pair.Create(5, 6)) }; }
+}
+" + commonSource;
+
+            string expected =
+@"Deconstructing (1, (2, 3))
+Deconstructing (2, 3)
+1 2 3
+Deconstructing (4, (5, 6))
+Deconstructing (5, 6)
+4 5 6";
+
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachMDArrayDeclarationWithDeconstruct()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3)) in M())
+        {
+            System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+        }
+    }
+    static Pair<int, Pair<int, int>>[,] M() { return new Pair<int, Pair<int, int>> [1, 2] { { Pair.Create(1, Pair.Create(2, 3)), Pair.Create(4, Pair.Create(5, 6)) } }; }
+}
+" + commonSource;
+
+            string expected =
+@"Deconstructing (1, (2, 3))
+Deconstructing (2, 3)
+1 2 3
+Deconstructing (4, (5, 6))
+Deconstructing (5, 6)
+4 5 6";
+
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachNameConflict()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 1;
+        foreach ((int x1, int x2) in M()) { }
+        System.Console.Write(x1);
+    }
+    static (int, int)[] M() { return new[] { (1, 2) }; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,23): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         foreach ((int x1, int x2) in M())
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(7, 23)
+                );
+        }
+
+        [Fact]
+        public void ForEachNameConflict2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, int x2) in M(out int x1)) { }
+    }
+    static (int, int)[] M(out int a) { a = 1; return new[] { (1, 2) }; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,23): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         foreach ((int x1, int x2) in M(out int x1)) { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(6, 23)
+                );
+        }
+
+        [Fact]
+        public void ForEachNameConflict3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, int x2) in M())
+        {
+            int x1 = 1;
+            System.Console.Write(x1);
+        }
+    }
+    static (int, int)[] M() { return new[] { (1, 2) }; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,17): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int x1 = 1;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void ForEachUseBeforeDeclared()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, int x2) in M(x1)) { }
+    }
+    static (int, int)[] M(int a) { return new[] { (1, 2) }; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,40): error CS0103: The name 'x1' does not exist in the current context
+                //         foreach ((int x1, int x2) in M(x1))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 40)
+                );
+        }
+
+        [Fact]
+        public void ForEachUseOutsideScope()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, int x2) in M()) { }
+        System.Console.Write(x1);
+    }
+    static (int, int)[] M() { return new[] { (1, 2) }; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.Write(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 30)
+                );
+        }
+
+        [Fact]
+        public void ForEachNoIEnumerable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in 1)
+        {
+            System.Console.WriteLine(x1 + "" "" + x2);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,34): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public definition for 'GetEnumerator'
+                //         foreach (var (x1, x2) in 1)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "1").WithArguments("int", "GetEnumerator").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        public void ForEachIterationVariablesAreReadonly()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int x1, var (x2, x3)) in new[] { (1, (1, 1)) })
+        {
+            x1 = 1;
+            x2 = 2;
+            x3 = 3;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1656: Cannot assign to 'x1' because it is a 'foreach iteration variable'
+                //             x1 = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x1").WithArguments("x1", "foreach iteration variable").WithLocation(8, 13),
+                // (9,13): error CS1656: Cannot assign to 'x2' because it is a 'foreach iteration variable'
+                //             x2 = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x2").WithArguments("x2", "foreach iteration variable").WithLocation(9, 13),
+                // (10,13): error CS1656: Cannot assign to 'x3' because it is a 'foreach iteration variable'
+                //             x3 = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x3").WithArguments("x3", "foreach iteration variable").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void ForEachWithExpressionBody()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in new[] { (1, 2), (3, 4) })
+            System.Console.Write(x1 + "" "" + x2 + "" - "");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEachScoping()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in M(x1)) { }
+    }
+    static (int, int) M(int i) { return (1, 2); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,36): error CS0103: The name 'x1' does not exist in the current context
+                //         foreach (var (x1, x2) in M(x1)) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36)
+                );
+        }
+
+        [Fact]
+        public void ForEachCreatesNewVariables()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var lambdas = new System.Action[2];
+        int index = 0;
+        foreach (var (x1, x2) in M())
+        {
+            lambdas[index] = () => { System.Console.Write(x1 + "" ""); };
+            index++;
+        }
+        lambdas[0]();
+        lambdas[1]();
+    }
+    static (int, int)[] M() { return new[] { (0, 0), (10, 10) }; }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
     }
 }

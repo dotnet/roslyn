@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case LocalDeclarationKind.ForEachIterationVariable:
-                        Debug.Assert(node is ForEachStatementSyntax);
+                        Debug.Assert(node is ForEachStatementSyntax || node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.CatchVariable:
@@ -617,8 +617,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
                 SyntaxNode parent;
                 Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent));
+
                 Debug.Assert(parent.Parent != null);
-                Debug.Assert(parent.Parent.Kind() == SyntaxKind.LocalDeclarationStatement || parent.Parent.Kind() == SyntaxKind.ForStatement);
+
+                Debug.Assert(
+                        parent.Parent.Kind() == SyntaxKind.LocalDeclarationStatement ||
+                        parent.Parent.Kind() == SyntaxKind.ForStatement ||
+                        parent.Parent.Kind() == SyntaxKind.ForEachStatement);
 #endif
             }
 
@@ -630,19 +635,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(isDeconstruction);
                 Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).IsDeconstructionDeclaration);
-                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).Deconstruction.Value != null);
 
                 var statement = topLevelVariableDeclaration.Parent;
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
-                        this.binder.BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)statement, diagnostics);
+                        var localDecl = (LocalDeclarationStatementSyntax)statement;
+                        var localBinder = this.binder.GetBinder(localDecl);
+                        var newLocalBinder = new ImplicitlyTypedLocalBinder(localBinder, this);
+                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Declaration, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)statement;
-                        var loopBinder = this.binder.GetBinder(forStatement);
-                        loopBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
+                        var forBinder = this.binder.GetBinder(forStatement);
+                        var newForBinder = new ImplicitlyTypedLocalBinder(forBinder, this);
+                        newForBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
+                        break;
+
+                    case SyntaxKind.ForEachStatement:
+                        var foreachBinder = this.binder.GetBinder((ForEachStatementSyntax)statement);
+                        foreachBinder.BindForEachDeconstruction(diagnostics, foreachBinder);
                         break;
 
                     default:
