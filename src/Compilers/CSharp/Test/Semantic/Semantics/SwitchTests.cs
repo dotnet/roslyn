@@ -326,10 +326,7 @@ public class TestClass
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.RegularWithPatterns).VerifyDiagnostics(
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:            //CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13),
-                // (16,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 17)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
                 );
         }
 

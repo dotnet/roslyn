@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, originalBinder, localDiagnostics);
             diagnostics.AddRangeAndFree(localDiagnostics);
 
-            DefaultSwitchLabelSyntax defaultLabel = null;
-            ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(boundSwitchExpression, node.Sections, originalBinder, ref defaultLabel, diagnostics);
+            BoundPatternSwitchLabel defaultLabel;
+            ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(boundSwitchExpression, node.Sections, originalBinder, out defaultLabel, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
                 node, boundSwitchExpression,
-                locals, functions, switchSections, this.BreakLabel, this);
+                locals, functions, switchSections, defaultLabel, this.BreakLabel, this);
         }
 
         private SourceLabelSymbol GetDefaultLabel()
@@ -58,18 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return FindMatchingSwitchLabel(s_defaultKey);
         }
 
-        private static object _nullKey = new object();
+        private static readonly object s_nullKey = new object();
         private static object KeyForConstant(ConstantValue constantValue)
         {
             Debug.Assert(constantValue != (object)null);
-            return constantValue.IsNull ? _nullKey : constantValue.Value;
+            return constantValue.IsNull ? s_nullKey : constantValue.Value;
         }
 
         private SourceLabelSymbol FindMatchingSwitchCaseLabel(ConstantValue constantValue, CSharpSyntaxNode labelSyntax)
         {
             // SwitchLabelsMap: Dictionary for the switch case/default labels.
             // Case labels with a non-null constant value are indexed on their ConstantValue.
-            // Invalid case labels with null constant value are indexed on the labelName.
+            // Invalid case labels (with null constant value) are indexed on the label syntax.
 
             object key;
             if (constantValue != (object)null)
@@ -166,21 +166,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return map;
         }
 
-        private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(BoundExpression boundSwitchExpression, SyntaxList<SwitchSectionSyntax> sections, Binder originalBinder, ref DefaultSwitchLabelSyntax defaultLabel, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(BoundExpression boundSwitchExpression, SyntaxList<SwitchSectionSyntax> sections, Binder originalBinder, out BoundPatternSwitchLabel defaultLabel, DiagnosticBag diagnostics)
         {
+            defaultLabel = null;
+
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            bool? switchExpressionIsNull = ExpressionIsNull(boundSwitchExpression);
-
             foreach (var sectionSyntax in sections)
             {
-                boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(boundSwitchExpression, switchExpressionIsNull, sectionSyntax, originalBinder, ref defaultLabel, diagnostics));
+                boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(boundSwitchExpression, sectionSyntax, originalBinder, ref defaultLabel, diagnostics));
             }
 
             return boundPatternSwitchSectionsBuilder.ToImmutableAndFree();
         }
 
-        private BoundPatternSwitchSection BindPatternSwitchSection(BoundExpression boundSwitchExpression, bool? switchExpressionIsNull, SwitchSectionSyntax node, Binder originalBinder, ref DefaultSwitchLabelSyntax defaultLabel, DiagnosticBag diagnostics)
+        private BoundPatternSwitchSection BindPatternSwitchSection(
+            BoundExpression boundSwitchExpression,
+            SwitchSectionSyntax node,
+            Binder originalBinder,
+            ref BoundPatternSwitchLabel defaultLabel,
+            DiagnosticBag diagnostics)
         {
             // Bind match section labels
             var boundLabelsBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var labelSyntax in node.Labels)
             {
                 LabelSymbol label = labelsByNode[labelSyntax];
-                BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, boundSwitchExpression, switchExpressionIsNull, labelSyntax, label, ref defaultLabel, diagnostics);
+                BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, boundSwitchExpression, labelSyntax, label, ref defaultLabel, diagnostics);
                 boundLabelsBuilder.Add(boundLabel);
             }
 
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPatternSwitchLabel BindPatternSwitchSectionLabel(
-            Binder sectionBinder, BoundExpression boundSwitchExpression, bool? switchExpressionIsNull, SwitchLabelSyntax node, LabelSymbol label, ref DefaultSwitchLabelSyntax defaultLabel, DiagnosticBag diagnostics)
+            Binder sectionBinder, BoundExpression boundSwitchExpression, SwitchLabelSyntax node, LabelSymbol label, ref BoundPatternSwitchLabel defaultLabel, DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -215,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         bool wasExpression;
                         var pattern = sectionBinder.BindConstantPattern(
-                            node, boundSwitchExpression, switchExpressionIsNull, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
+                            node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         bool hasErrors = pattern.HasErrors;
                         var constantValue = pattern.ConstantValue;
                         if (!hasErrors && constantValue != (object)null && this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
@@ -237,17 +242,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        defaultLabel = defaultLabelSyntax;
                         // Note that this is semantically last! The caller will place it in the decision tree
                         // in the final position.
-                        return new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
+                        defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
+                        return defaultLabel;
                     }
 
                 case SyntaxKind.CasePatternSwitchLabel:
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, boundSwitchExpression, switchExpressionIsNull, boundSwitchExpression.Type, node.HasErrors, diagnostics, wasSwitchCase: true);
+                            matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics, wasSwitchCase: true);
                         return new BoundPatternSwitchLabel(node, label, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null, node.HasErrors);
                     }

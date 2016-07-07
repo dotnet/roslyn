@@ -183,7 +183,7 @@ expression  is not String";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [Fact, WorkItem(10932, "https://github.com/dotnet/roslyn/issues/10932")]
         public void PatternErrors()
         {
             var source =
@@ -194,26 +194,31 @@ public class X
     public static void Main()
     {
         var s = nameof(Main);
+        byte b = 1;
         if (s is string t) { } else Console.WriteLine(t); // t not in scope
         if (null is dynamic t) { } // null not allowed
         if (s is NullableInt x) { } // error: cannot use nullable type
         if (s is long l) { } // error: cannot convert string to long
+        if (b is 1000) { } // error: cannot convert 1000 to byte
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
             compilation.VerifyDiagnostics(
-                // (8,55): error CS0103: The name 't' does not exist in the current context
+                // (9,55): error CS0103: The name 't' does not exist in the current context
                 //         if (s is string t) { } else Console.WriteLine(t); // t not in scope
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(8, 55),
-                // (9,13): error CS8117: Invalid operand for pattern match.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(9, 55),
+                // (10,13): error CS8117: Invalid operand for pattern match.
                 //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(9, 13),
-                // (10,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(10, 13),
+                // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(10, 18),
-                // (11,18): error CS8121: An expression of type string cannot be handled by a pattern of type long.
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
+                // (12,18): error CS8121: An expression of type string cannot be handled by a pattern of type long.
                 //         if (s is long l) { } // error: cannot convert string to long
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),
+                // (13,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
+                //         if (b is 1000) { } // error: cannot convert 1000 to byte
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(13, 18)
                 );
         }
 
@@ -585,7 +590,7 @@ public class X
         }
 
         [Fact]
-        public void PatternVariablesAreReadonly()
+        public void PatternVariablesAreMutable()
         {
             var source =
 @"
@@ -594,29 +599,18 @@ public class X
     public static void Main()
     {
         if (12 is var x) {
-        x = x + 1; // error: x is readonly
-        x++;       // error: x is readonly
-        M1(ref x); // error: x is readonly
-        M2(out x); // error: x is readonly
-    }}
+            x = x + 1;
+            x++;
+            M1(ref x);
+            M2(out x);
+        }
+    }
     public static void M1(ref int x) {}
     public static void M2(out int x) { x = 1; }
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
             compilation.VerifyDiagnostics(
-                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         x = x + 1; // error: x is readonly
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x").WithLocation(7, 9),
-                // (8,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         x++;       // error: x is readonly
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "x").WithLocation(8, 9),
-                // (9,16): error CS1510: A ref or out argument must be an assignable variable
-                //         M1(ref x); // error: x is readonly
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(9, 16),
-                // (10,16): error CS1510: A ref or out argument must be an assignable variable
-                //         M2(out x); // error: x is readonly
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(10, 16)
                 );
         }
 
@@ -10158,6 +10152,57 @@ other 6");
                 //             case 1 when true:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7").WithLocation(7, 13)
                 );
+        }
+
+        [Fact, WorkItem(11379, "https://github.com/dotnet/roslyn/issues/11379")]
+        public void DeclarationPatternWithStaticClass()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object o = args;
+        switch (o)
+        {
+            case StaticType t:
+                break;
+        }
+    }
+}
+public static class StaticType
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0723: Cannot declare a variable of static type 'StaticType'
+                //             case StaticType t:
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("StaticType").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternVariablesAreMutable02()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object o = ""  whatever  "";
+        if (o is string s)
+        {
+            s = s.Trim();
+            System.Console.WriteLine(s);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatterns);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
     }
 }

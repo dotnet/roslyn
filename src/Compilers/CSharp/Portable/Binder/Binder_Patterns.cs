@@ -15,73 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = BindExpression(node.Expression, diagnostics);
             var hasErrors = node.HasErrors || IsOperandErrors(node, expression, diagnostics);
-            var pattern = BindPattern(node.Pattern, expression, ExpressionIsNull(expression), expression.Type, hasErrors, diagnostics);
+            var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
-        }
-
-        /// <summary>
-        /// Returns true if the expression is known to always be null.
-        /// Returns false if the expression is always known to be non-null.
-        /// Returns null otherwise.
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        internal static bool? ExpressionIsNull(BoundExpression expression)
-        {
-            if (expression.ConstantValue != null)
-            {
-                return expression.ConstantValue.IsNull;
-            }
-
-            if (expression.Type == null || expression.Type.IsNonNullableValueType())
-            {
-                // A null constant is handled above. Other expressions that lack a type
-                // (e.g. lambda, tuple, etc) describe objects that are never null at runtime.
-                return false;
-            }
-
-            switch (expression.Kind)
-            {
-                case BoundKind.Conversion:
-                    {
-                        var conversion = (BoundConversion)expression;
-                        switch(conversion.ConversionKind)
-                        {
-                            case ConversionKind.AnonymousFunction:
-                            case ConversionKind.Boxing:
-                            case ConversionKind.ImplicitNullable:
-                            case ConversionKind.InterpolatedString:
-                            case ConversionKind.MethodGroup:
-                                return false;
-                            case ConversionKind.ExplicitReference:
-                            case ConversionKind.Identity:
-                            case ConversionKind.ImplicitReference:
-                                return ExpressionIsNull(conversion.Operand);
-                            case ConversionKind.NullLiteral:
-                                return true;
-                            default:
-                                return null;
-                        }
-                    }
-                case BoundKind.AnonymousObjectCreationExpression:
-                case BoundKind.ArrayCreation:
-                case BoundKind.DelegateCreationExpression:
-                case BoundKind.DynamicObjectCreationExpression:
-                case BoundKind.NoPiaObjectCreationExpression:
-                    return false;
-                case BoundKind.ObjectCreationExpression:
-                    // new int?() can be null
-                    return expression.Type.IsNullableType() ? null : (bool?)false;
-                default:
-                    return null;
-            }
         }
 
         internal BoundPattern BindPattern(
             PatternSyntax node,
             BoundExpression operand,
-            bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
@@ -91,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern(
-                        (DeclarationPatternSyntax)node, operand, operandIsNull, operandType, hasErrors, diagnostics);
+                        (DeclarationPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operand, operandIsNull, operandType, hasErrors, diagnostics, wasSwitchCase);
+                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitchCase);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -159,20 +100,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
             BoundExpression operand,
-            bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
             bool wasSwitchCase)
         {
             bool wasExpression;
-            return BindConstantPattern(node, operand, operandIsNull, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
+            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
         }
 
         internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
             BoundExpression operand,
-            bool? operandIsNull,
             TypeSymbol operandType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
@@ -246,6 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
                 return true;
             }
+            else if (patternType.IsStatic)
+            {
+                Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
+                return true;
+            }
             else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
             {
                 // It is an error to use pattern-matching with a null, method group, or lambda
@@ -287,9 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindDeclarationPattern(
             DeclarationPatternSyntax node,
             BoundExpression operand,
-            // PROTOTYPE(typeswitch): use null state of operand vs the decl type for additional diagnostics,
-            // PROTOTYPE(typeswitch): e.g. `if (null is string s) ...`
-            bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics)

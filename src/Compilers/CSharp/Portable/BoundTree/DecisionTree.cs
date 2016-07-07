@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal DecisionTree ComputeDecisionTree()
         {
             var expression = _switchStatement.Expression;
-            var expressionCouldBeNull = Binder.ExpressionIsNull(expression) != false;
             if (expression.ConstantValue == null && expression.Kind != BoundKind.Local)
             {
                 // unless the expression is simple enough, copy it into a local
@@ -271,7 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         this._syntax = label.Syntax;
-                        var subsumedErrorCode = CheckSubsumed(label.Pattern, result, expressionCouldBeNull);
+                        // For purposes of subsumption, we do not take into consideration the value
+                        // of the input expression. Therefore we consider null possible if the type permits.
+                        var subsumedErrorCode = CheckSubsumed(label.Pattern, result, inputCouldBeNull: true);
                         if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                         {
                             if (!label.HasErrors)
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal delegate DecisionTree DecisionMaker(
+        private delegate DecisionTree DecisionMaker(
             BoundExpression expression,
             TypeSymbol type);
 
@@ -536,7 +537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 guarded.Default = new DecisionTree.ByValue(guarded.Expression, guarded.Type);
-                guarded.Default.Parent = guarded;
             }
 
             return AddByValue(guarded.Default, value, makeDecision, hasErrors);
@@ -550,31 +550,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AddByValue(byValue.Default, value, makeDecision, hasErrors);
             }
 
-            if (byValue.Expression.ConstantValue != null)
-            {
-                // We are switching on a constant expression. See if the constant value matches
-                bool matches = byValue.Expression.ConstantValue == value.ConstantValue;
-                if (!matches) return null;
-                byValue.Default = makeDecision(byValue.Expression, byValue.Type);
-                byValue.Default.Parent = byValue;
-                if (byValue.Default.MatchIsComplete)
-                {
-                    byValue.MatchIsComplete = true;
-                }
-                return byValue.Default;
-            }
-
             // For error recovery, to avoid "unreachable code" diagnostics when there is a bad case
             // label, we use the case label itself as the value key.
             object valueKey = hasErrors ? (object)value : value.ConstantValue.Value;
             DecisionTree valueDecision;
             if (byValue.ValueAndDecision.TryGetValue(valueKey, out valueDecision))
             {
-                return Add(valueDecision, makeDecision);
+                valueDecision = Add(valueDecision, makeDecision);
             }
-            valueDecision = makeDecision(byValue.Expression, byValue.Type);
-            valueDecision.Parent = byValue;
-            byValue.ValueAndDecision.Add(valueKey, valueDecision);
+            else
+            {
+                valueDecision = makeDecision(byValue.Expression, byValue.Type);
+                byValue.ValueAndDecision.Add(valueKey, valueDecision);
+            }
+
+            if (byValue.Type.SpecialType == SpecialType.System_Boolean &&
+                byValue.ValueAndDecision.Count == 2 &&
+                byValue.ValueAndDecision.Values.All(d => d.MatchIsComplete))
+            {
+                byValue.MatchIsComplete = true;
+            }
+
             return valueDecision;
         }
 
@@ -593,7 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (value.ConstantValue == ConstantValue.Null)
             {
-                return AddByNull((DecisionTree)byType, makeDecision);
+                return byType.Expression.ConstantValue?.IsNull == false
+                    ? null : AddByNull((DecisionTree)byType, makeDecision);
             }
 
             foreach (var kvp in byType.TypeAndDecision)
@@ -639,7 +636,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, _syntax, false, RefKind.None);
                 var narrowedExpression = new BoundLocal(_syntax, localSymbol, null, type);
                 forType = new DecisionTree.ByValue(narrowedExpression, value.Type.TupleUnderlyingTypeOrSelf());
-                forType.Parent = byType;
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Type, forType));
             }
 
@@ -648,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete) return null;
+            if (decision.MatchIsComplete || decision.Expression.ConstantValue?.IsNull == true) return null;
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -659,7 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (byValue.Default == null)
                         {
                             byValue.Default = makeDecision(byValue.Expression, byValue.Type);
-                            byValue.Default.Parent = byValue.Default;
                             if (byValue.Default.MatchIsComplete) byValue.MatchIsComplete = true;
                             return byValue.Default;
                         }
@@ -681,7 +676,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (guarded.Default == null)
             {
                 guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type);
-                guarded.Default.Parent = guarded;
             }
 
             var result = AddByType(guarded.Default, type, makeDecision);
@@ -722,7 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, _syntax, false, RefKind.None);
             var expression = new BoundLocal(_syntax, localSymbol, null, type);
             var result = makeDecision(expression, type);
-            result.Parent = byType;
             byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
             if (_conversions.ExpressionOfTypeMatchesPatternType(byType.Type, type) == true && result.MatchIsComplete && byType.WhenNull?.MatchIsComplete == true)
             {
@@ -769,7 +762,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (byType.WhenNull == null)
             {
                 result = byType.WhenNull = makeDecision(byType.Expression, byType.Type);
-                result.Parent = byType;
             }
             else
             {
@@ -804,7 +796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (guarded.Default == null)
             {
                 guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type);
-                guarded.Default.Parent = guarded;
             }
 
             var result = AddByNull(guarded.Default, makeDecision);
@@ -840,7 +831,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var result = guarded.Default = makeDecision(guarded.Expression, guarded.Type);
-                guarded.Default.Parent = guarded;
                 if (guarded.Default.MatchIsComplete) guarded.MatchIsComplete = true;
                 return result;
             }
@@ -856,7 +846,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 result = byValue.Default = makeDecision(byValue.Expression, byValue.Type);
-                result.Parent = byValue;
             }
             if (byValue.Default.MatchIsComplete) byValue.MatchIsComplete = true;
             return result;
@@ -869,7 +858,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (byType.Default == null)
                 {
                     byType.Default = makeDecision(byType.Expression, byType.Type);
-                    byType.Default.Parent = byType;
                     return byType.Default;
                 }
                 else
@@ -933,7 +921,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract class DecisionTree
     {
-        public DecisionTree Parent;
         public readonly BoundExpression Expression;
         public readonly TypeSymbol Type;
         public bool MatchIsComplete;
@@ -941,6 +928,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public enum DecisionKind { ByType, ByValue, Guarded }
         public abstract DecisionKind Kind { get; }
 
+#if DEBUG
+        internal string Dump()
+        {
+            var builder = new StringBuilder();
+            DumpInternal(builder, "");
+            return builder.ToString();
+        }
+        internal abstract void DumpInternal(StringBuilder builder, string indent);
+#endif
         public DecisionTree(BoundExpression expression, TypeSymbol type)
         {
             this.Expression = expression;
@@ -974,6 +970,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByType;
             public ByType(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
+#if DEBUG
+            internal override void DumpInternal(StringBuilder builder, string indent)
+            {
+                builder.AppendLine($"{indent}ByType");
+                if (WhenNull != null)
+                {
+                    builder.AppendLine($"{indent}  null");
+                    WhenNull.DumpInternal(builder, indent + "    ");
+                }
+                foreach (var kv in TypeAndDecision)
+                {
+                    builder.AppendLine($"{indent}  {kv.Key}");
+                    kv.Value.DumpInternal(builder, indent + "    ");
+                }
+                if (Default != null)
+                {
+                    builder.AppendLine($"{indent}  default");
+                    Default.DumpInternal(builder, indent + "    ");
+                }
+            }
+#endif
         }
 
         public class ByValue : DecisionTree
@@ -983,6 +1000,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByValue;
             public ByValue(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
+#if DEBUG
+            internal override void DumpInternal(StringBuilder builder, string indent)
+            {
+                builder.AppendLine($"{indent}ByValue");
+                foreach (var kv in ValueAndDecision)
+                {
+                    builder.AppendLine($"{indent}  {kv.Key}");
+                    kv.Value.DumpInternal(builder, indent + "    ");
+                }
+                if (Default != null)
+                {
+                    builder.AppendLine($"{indent}  default");
+                    Default.DumpInternal(builder, indent + "    ");
+                }
+            }
+#endif
         }
 
         public class Guarded : DecisionTree
@@ -1008,6 +1041,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.MatchIsComplete =
                     (guard == null) || (guard.ConstantValue == ConstantValue.True);
             }
+#if DEBUG
+            internal override void DumpInternal(StringBuilder builder, string indent)
+            {
+                builder.Append($"{indent}Guarded");
+                if (Guard != null) builder.Append($" guard={Guard.Syntax.ToString()}");
+                builder.AppendLine($" label={Label.Syntax.ToString()}");
+            }
+#endif
         }
     }
 }
