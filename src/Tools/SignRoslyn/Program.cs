@@ -12,17 +12,18 @@ namespace SignRoslyn
     {
         internal static void Main(string[] args)
         {
-#if DEBUG
-            var binariesPath = @"e:\dd\roslyn\Binaries\Debug";
-            var sourcePath = @"e:\dd\roslyn";
-            var signTool = new TestSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
-#else
+            string binariesPath;
+            string sourcePath;
+            bool test;
+            if (!ParseCommandLineArguments(args, out binariesPath, out sourcePath, out test))
+            {
+                Console.WriteLine("signroslyn.exe [-test] [-binariesPath <path>]");
+                Environment.Exit(1);
+            }
 
-            var sourcePath = Environment.GetEnvironmentVariable("BUILD_SOURCESDIRECTORY");
-            var binariesPath = Path.Combine(sourcePath, @"Binaries\Release");
-            var signTool = new RealSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
-#endif
-
+            var signTool = test
+                ? (SignTool)new TestSignTool(AppContext.BaseDirectory, binariesPath, sourcePath)
+                : new RealSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
             var signData = ReadSignData(binariesPath);
             var util = new RunSignUtil(signTool, signData);
             util.Go();
@@ -37,6 +38,45 @@ namespace SignRoslyn
                 var fileJson = (FileJson)serializer.Deserialize(file, typeof(FileJson));
                 return new SignData(rootBinaryPath, fileJson.SignList, fileJson.ExcludeList);
             }
+        }
+
+        internal static bool ParseCommandLineArguments(
+            string[] args,
+            out string binariesPath,
+            out string sourcePath,
+            out bool test)
+        {
+            binariesPath = Path.GetDirectoryName(AppContext.BaseDirectory);
+            sourcePath = Path.GetDirectoryName(Path.GetDirectoryName(binariesPath));
+            test = false;
+
+            var i = 0;
+            while (i < args.Length)
+            {
+                var current = args[i];
+                switch (current.ToLower())
+                {
+                    case "-test":
+                        test = true;
+                        i++;
+                        break;
+                    case "-binariespath":
+                        if (i + 1 >= args.Length)
+                        {
+                            Console.WriteLine("-binariesPath needs an argument");
+                            return false;
+                        }
+
+                        binariesPath = args[i + 1];
+                        i += 2;
+                        break;
+                    default:
+                        Console.WriteLine($"Unrecognized option {current}");
+                        return false;
+                }
+            }
+
+            return true;
         }
     }
 }
