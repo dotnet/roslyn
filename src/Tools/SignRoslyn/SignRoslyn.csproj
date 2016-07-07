@@ -22,6 +22,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryName.cs" />
+    <Compile Include="ContentUtil.cs" />
     <Compile Include="FileJson.cs" />
     <Compile Include="ISignTool.cs" />
     <Compile Include="NopSignTool.cs" />
@@ -30,6 +32,7 @@
     <Compile Include="RunSignUtil.cs" />
     <Compile Include="SignData.cs" />
     <Compile Include="SignTool.cs" />
+    <Compile Include="VsixData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
