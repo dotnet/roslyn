@@ -4,10 +4,6 @@ param (
 set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
 
-get-module 
-
-get-module | %{ $_.exportedCommands } 
-
 if (-not (test-path $destPath)) {
     mkdir $destPath | out-null
 }
