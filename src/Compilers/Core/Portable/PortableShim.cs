@@ -577,7 +577,7 @@ namespace Roslyn.Utilities
                     s_lazyTransformBlock = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(TransformBlock), new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]), typeof(int) });
                 }
 
-                return (int)s_lazyTransformBlock.Invoke(hashAlgorithm, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
+                return (int)s_lazyTransformBlock.Invoke(hashAlgorithm, new object[] { inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset });
             }
 
             internal static byte[] TransformFinalBlock(object hashAlgorithm, byte[] inputBuffer, int inputOffset, int inputCount)
