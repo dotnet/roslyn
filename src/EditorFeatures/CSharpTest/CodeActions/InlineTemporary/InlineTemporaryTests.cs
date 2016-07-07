@@ -4059,14 +4059,13 @@ class C
     }
 }";
 
-            // PROTOTYPE(tuples) The extra parens should be removed
             var expected = @"
 using System;
 class C
 {
     public void M()
     {
-        var (x1, x2) = (new C());
+        var (x1, x2) = new C();
         var x3 = new C();
     }
 }";
