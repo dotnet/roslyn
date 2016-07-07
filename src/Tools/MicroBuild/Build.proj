@@ -15,6 +15,7 @@
     <UploadVsixes>false</UploadVsixes>
     <UploadCoreXTPackages>false</UploadCoreXTPackages>
     <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
+    <SignRoslynArgs>-test</SignRoslynArgs>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -25,7 +26,7 @@
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
 
     <!-- TODO: pass arguments -->
-    <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe" WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(MSBuildThisFileDirectory)Binaries\$(Configuration)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
