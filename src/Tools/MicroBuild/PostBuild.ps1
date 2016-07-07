@@ -11,7 +11,7 @@ The root directory where the sources are checked out: e:\path\to\source
 #>
 param(
     [string]$binariesDirectory,
-    [string]$sourceDirectory,
+    [string]$sourceDirectory
 )
 
 set-strictmode -version 2.0
