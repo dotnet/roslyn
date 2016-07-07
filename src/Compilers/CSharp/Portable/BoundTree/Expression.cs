@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             (object)this.Method != null &&
             this.ReceiverOpt != null &&
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
-            (object)this.Method.ReplacedBy == null &&
             !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
@@ -459,7 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IMethodBindingExpression.IsVirtual =>
             (object)this.MethodOpt != null &&
             (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
-            (object)this.MethodOpt.ReplacedBy == null &&
             !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
@@ -767,7 +765,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = this.SymbolOpt;
                 return (object)method != null &&
                     (method.IsAbstract || method.IsOverride || method.IsVirtual) &&
-                    (object)method.ReplacedBy == null &&
                     !this.SuppressVirtualCalls;
             }
         }

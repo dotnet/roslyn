@@ -3554,15 +3554,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type already contains a replacement for &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_DuplicateReplace {
-            get {
-                return ResourceManager.GetString("ERR_DuplicateReplace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; duplicate TypeForwardedToAttribute.
         /// </summary>
         internal static string ERR_DuplicateTypeForwarder {
@@ -6632,15 +6623,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No original member for &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_NoOriginalMember {
-            get {
-                return ResourceManager.GetString("ERR_NoOriginalMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
         internal static string ERR_NoPIAAssemblyMissingAttribute {
@@ -7285,15 +7267,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PartialMultipleBases {
             get {
                 return ResourceManager.GetString("ERR_PartialMultipleBases", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replacement methods cannot be partial.
-        /// </summary>
-        internal static string ERR_PartialReplace {
-            get {
-                return ResourceManager.GetString("ERR_PartialReplace", resourceCulture);
             }
         }
         

@@ -41,11 +41,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
-        protected abstract void ResolveAnalyzersAndGeneratorsFromArguments(
+        protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators);
+            CommonMessageProvider messageProvider);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -245,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
-            if (diagnostics != null && diagnostics.Any())
+            if (diagnostics != null)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -273,7 +271,7 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(diagnostic.ToString(Culture));
         }
 
-        public ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public StreamErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
@@ -283,7 +281,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
+            return new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
         }
 
         /// <summary>
@@ -292,7 +290,7 @@ namespace Microsoft.CodeAnalysis
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
 
             try
             {
@@ -333,7 +331,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        internal int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
 
@@ -364,9 +362,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-            ImmutableArray<DiagnosticAnalyzer> analyzers;
-            ImmutableArray<SourceGenerator> sourceGenerators;
-            ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, MessageProvider, out analyzers, out sourceGenerators);
+            ImmutableArray<DiagnosticAnalyzer> analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
@@ -384,19 +380,6 @@ namespace Microsoft.CodeAnalysis
                 if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
                 {
                     return Failed;
-                }
-
-                if (!sourceGenerators.IsEmpty)
-                {
-                    var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
-                    if (!trees.IsEmpty)
-                    {
-                        compilation = compilation.AddSyntaxTrees(trees);
-                        if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
-                        {
-                            return Failed;
-                        }
-                    }
                 }
 
                 ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;

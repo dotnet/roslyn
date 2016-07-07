@@ -31,10 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         Indexer = 1 << 18, // not a real modifier, but used to record that indexer syntax was used. 
 
         Async = 1 << 19,
-        Replace = 1 << 20,
 
-        All = (1 << 21) - 1, // all modifiers
-        Unset = 1 << 21, // used when a modifiers value hasn't yet been computed
+        All = (1 << 20) - 1, // all modifiers
+        Unset = 1 << 20, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = Private | Protected | Internal | ProtectedInternal | Public,
     }

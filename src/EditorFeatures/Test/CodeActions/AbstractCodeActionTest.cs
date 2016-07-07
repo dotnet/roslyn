@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
                 var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
-                var diffView = content as IWpfDifferenceViewer;
-                Assert.NotNull(diffView);
-                var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                diffView.Close();
+                var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
+                var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
+                diffView.Dispose();
 
                 Assert.Equal(expectedPreviewContents, previewContents);
             }
