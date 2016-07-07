@@ -2,72 +2,63 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading.Tasks;
 using static SignRoslyn.PathUtil;
 
 namespace SignRoslyn
 {
-    internal sealed class SignTool : ISignTool
+    internal abstract class SignTool 
     {
-        private readonly string _msbuildPath;
-        private readonly string _binariesPath;
-        private readonly string _sourcePath;
-        private readonly string _buildFilePath;
-        private readonly string _runPath;
-        private readonly bool _ignoreFailures;
+        internal string MSBuildPath { get; }
+        internal string BinariesPath { get; }
+        internal string SourcePath { get; }
+        internal string AppPath { get; }
 
-        internal SignTool(string runPath, string binariesPath, string sourcePath, bool ignoreFailures)
+        internal SignTool(string appPath, string binariesPath, string sourcePath)
         {
-            _binariesPath = binariesPath;
-            _sourcePath = sourcePath;
-            _buildFilePath = Path.Combine(runPath, "build.proj");
-            _runPath = runPath;
-            _ignoreFailures = ignoreFailures;
+            BinariesPath = binariesPath;
+            SourcePath = sourcePath;
+            AppPath = appPath;
 
             var path = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            _msbuildPath = Path.Combine(path, @"MSBuild\14.0\Bin\MSBuild.exe");
-            if (!File.Exists(_msbuildPath))
+            MSBuildPath = Path.Combine(path, @"MSBuild\14.0\Bin\MSBuild.exe");
+            if (!File.Exists(MSBuildPath))
             {
                 throw new Exception(@"Unable to locate MSBuild at the path {_msbuildPath}");
             }
         }
 
-        private void Sign(IEnumerable<string> filePaths)
+        internal abstract void RemovePublicSign(string assemblyPath);
+
+        protected abstract int RunMSBuild(ProcessStartInfo startInfo);
+
+        internal void Sign(IEnumerable<string> filePaths)
         {
+            var buildFilePath = Path.Combine(AppPath, "build.proj");
             var commandLine = new StringBuilder();
             commandLine.Append(@"/v:m /target:RoslynSign ");
-            commandLine.Append($@"""{_buildFilePath}"" ");
+            commandLine.Append($@"""{buildFilePath}"" ");
             Console.WriteLine($"msbuild.exe {commandLine.ToString()}");
 
             var content = GenerateBuildFileContent(filePaths);
-            File.WriteAllText(_buildFilePath, content);
+            File.WriteAllText(buildFilePath, content);
             Console.WriteLine("Generated project file");
             Console.WriteLine(content);
 
             var startInfo = new ProcessStartInfo()
             {
-                FileName = _msbuildPath,
+                FileName = MSBuildPath,
                 Arguments = commandLine.ToString(),
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                WorkingDirectory = _runPath,
+                WorkingDirectory = AppPath,
             };
 
-            var process = Process.Start(startInfo);
-            process.OutputDataReceived += (sender, e) =>
-            {
-                Console.WriteLine(e.Data);
-            };
-            process.BeginOutputReadLine();
-            process.WaitForExit();
+            var exitCode = RunMSBuild(startInfo);
 
-            File.Delete(_buildFilePath);
+            File.Delete(buildFilePath);
 
-            if (process.ExitCode != 0 && !_ignoreFailures)
+            if (exitCode != 0)
             {
                 Console.WriteLine("MSBuild failed!!!");
                 throw new Exception("Sign failed");
@@ -80,7 +71,7 @@ namespace SignRoslyn
             AppendLine(builder, depth: 0, text: @"<?xml version=""1.0"" encoding=""utf-8""?>");
             AppendLine(builder, depth: 0, text: @"<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">");
 
-            AppendLine(builder, depth: 1, text: $@"<Import Project=""{Path.Combine(_sourcePath, @"build\Targets\VSL.Settings.targets")}"" />");
+            AppendLine(builder, depth: 1, text: $@"<Import Project=""{Path.Combine(SourcePath, @"build\Targets\VSL.Settings.targets")}"" />");
 
             AppendLine(builder, depth: 1, text: $@"<Import Project=""$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.props"" />");
             AppendLine(builder, depth: 1, text: $@"<Import Project=""$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.targets"" />");
@@ -110,9 +101,9 @@ namespace SignRoslyn
 
             AppendLine(builder, depth: 1, text: $@"</ItemGroup>");
 
-            var intermediatesPath = Path.Combine(Path.GetDirectoryName(_binariesPath), "Obj");
+            var intermediatesPath = Path.Combine(Path.GetDirectoryName(BinariesPath), "Obj");
             AppendLine(builder, depth: 1, text: @"<Target Name=""RoslynSign"">");
-            AppendLine(builder, depth: 2, text: $@"<SignFiles Files=""@(FilesToSign)"" BinariesDirectory=""{_binariesPath}"" IntermediatesDirectory=""{intermediatesPath}"" Type=""real"" />");
+            AppendLine(builder, depth: 2, text: $@"<SignFiles Files=""@(FilesToSign)"" BinariesDirectory=""{BinariesPath}"" IntermediatesDirectory=""{intermediatesPath}"" Type=""real"" />");
             AppendLine(builder, depth: 1, text: @"</Target>");
             AppendLine(builder, depth: 0, text: @"</Project>");
 
@@ -127,11 +118,6 @@ namespace SignRoslyn
             }
 
             builder.AppendLine(text);
-        }
-
-        void ISignTool.Sign(IEnumerable<string> filePaths)
-        {
-            Sign(filePaths);
         }
     }
 }

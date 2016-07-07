@@ -14,22 +14,13 @@ namespace SignRoslyn
 {
     internal sealed class RunSignUtil
     {
-        /// <summary>
-        /// The number of bytes from the start of the <see cref="CorHeader"/> to its <see cref="CorFlags"/>.
-        /// </summary>
-        internal const int OffsetFromStartOfCorHeaderToFlags =
-               sizeof(Int32)  // byte count
-             + sizeof(Int16)  // major version
-             + sizeof(Int16)  // minor version
-             + sizeof(Int64); // metadata directory
-
         internal static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
 
         private readonly SignData _signData;
-        private readonly ISignTool _signTool;
+        private readonly SignTool _signTool;
         private readonly ContentUtil _contentUtil = new ContentUtil();
 
-        internal RunSignUtil(ISignTool signTool, SignData signData)
+        internal RunSignUtil(SignTool signTool, SignData signData)
         {
             _signTool = signTool;
             _signData = signData;
@@ -57,7 +48,7 @@ namespace SignRoslyn
             foreach (var name in _signData.AssemblyNames)
             {
                 Console.WriteLine($"\t{name}");
-                RemovePublicSign(name.FullPath);
+                _signTool.RemovePublicSign(name.FullPath);
             }
         }
 
@@ -303,43 +294,6 @@ namespace SignRoslyn
             }
 
             return path;
-        }
-
-        /// <summary>
-        /// Returns true if the PE file meets all of the pre-conditions to be Open Source Signed.
-        /// Returns false and logs msbuild errors otherwise.
-        /// </summary>
-        private static bool IsPublicSigned(PEReader peReader)
-        {
-            if (!peReader.HasMetadata)
-            {
-                return false;
-            }
-
-            var mdReader = peReader.GetMetadataReader();
-            if (!mdReader.IsAssembly)
-            {
-                return false;
-            }
-
-            CorHeader header = peReader.PEHeaders.CorHeader;
-            return (header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned;
-        }
-
-        private void RemovePublicSign(string assemblyPath, bool force = false)
-        {
-            using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
-            using (var peReader = new PEReader(stream))
-            using (var writer = new BinaryWriter(stream))
-            {
-                if (!IsPublicSigned(peReader) && force)
-                {
-                    throw new Exception($"{Path.GetFileName(assemblyPath)} is not public signed.");
-                }
-
-                stream.Position = peReader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags;
-                writer.Write((UInt32)(peReader.PEHeaders.CorHeader.Flags | CorFlags.StrongNameSigned));
-            }
         }
     }
 }
