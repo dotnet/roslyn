@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FailRemainingInferences(checkedVariables, diagnostics);
 
                     return new BoundDeconstructionAssignmentOperator(
-                                node, FlattenDeconstructVariables(checkedVariables), boundRHS,
+                                node, isDeclaration, FlattenDeconstructVariables(checkedVariables), boundRHS,
                                 ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
                                 voidType, hasErrors: true);
                 }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var assignments = assignmentSteps.ToImmutableAndFree();
 
             FailRemainingInferences(checkedVariables, diagnostics);
-            return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
+            return new BoundDeconstructionAssignmentOperator(node, isDeclaration, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
         }
 
         /// <summary>

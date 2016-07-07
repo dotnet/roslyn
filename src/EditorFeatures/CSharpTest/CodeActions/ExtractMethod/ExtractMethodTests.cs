@@ -524,9 +524,8 @@ withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestDeconstruction()
         {
-            // PROTOTYPE(tuples) This test fails
             await TestAsync(
-@"class Program { static void Main ( string [ ] args ) { var (x, y) = [| (1, 2); |]  System . Console . WriteLine ( x ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { var (x, y) = [| (1, 2) |];  System . Console . WriteLine ( x ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"class Program { static void Main ( string [ ] args ) { var (x, y) = {|Rename:NewMethod|}(); System . Console . WriteLine ( x ); } private static (int, int) NewMethod() { return (1, 2); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 0,
 parseOptions: TestOptions.Regular,
@@ -537,7 +536,7 @@ withScriptOption: true);
         public async Task TestDeconstruction2()
         {
             await TestAsync(
-@"class Program { static void Main ( string [ ] args ) { var (x, y) = (1, 2); int z = [| 3; |]  System . Console . WriteLine ( z ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { var (x, y) = (1, 2); var z = [| 3; |]  System . Console . WriteLine ( z ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"class Program { static void Main ( string [ ] args ) { var (x, y) = (1, 2); int z = {|Rename:NewMethod|}(); System . Console . WriteLine ( z ); } private static int NewMethod() { return 3; } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 0,
 parseOptions: TestOptions.Regular,
