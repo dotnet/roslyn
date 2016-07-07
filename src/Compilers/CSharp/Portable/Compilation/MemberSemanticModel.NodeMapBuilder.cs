@@ -268,15 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitForEachStatement(BoundForEachStatement node)
-            {
-                Visit(node.IterationVariableType);
-                Visit(node.Expression);
-                Visit(node.Body);
-                // don't map the deconstruction steps
-                return null;
-            }
-
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
             {
                 return false;
