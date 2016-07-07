@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
         public ITextSnapshot TriggerSnapshot { get { return _disconnectedBufferGraph.SubjectBufferSnapshot; } }
-
+        public ITextSnapshot ViewTriggerSnapshot { get { return _disconnectedBufferGraph.ViewSnapshot; } }
         public CompletionList OriginalList { get; }
         public ImmutableArray<PresentationItem> TotalItems { get; }
         public ImmutableArray<PresentationItem> FilteredItems { get; }
