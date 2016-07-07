@@ -23,8 +23,11 @@ namespace SignRoslyn
              + sizeof(Int16)  // minor version
              + sizeof(Int64); // metadata directory
 
+        internal static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+
         private readonly SignData _signData;
         private readonly ISignTool _signTool;
+        private readonly ContentUtil _contentUtil = new ContentUtil();
 
         internal RunSignUtil(ISignTool signTool, SignData signData)
         {
@@ -36,7 +39,7 @@ namespace SignRoslyn
         {
             // First validate our inputs and give a useful error message about anything that happens to be missing
             // from the binaries directory.
-            ValidateBinaries();
+            var vsixDataMap = VerifyBeforeSign();
 
             // Next remove public sign from all of the assemblies.  It can interfere with the signing process.
             RemovePublicSign();
@@ -45,7 +48,7 @@ namespace SignRoslyn
             SignAssemblies();
 
             // Last we sign the VSIX files (being careful to take into account nesting)
-            SignVsixes();
+            SignVsixes(vsixDataMap);
         }
 
         private void RemovePublicSign()
@@ -54,8 +57,7 @@ namespace SignRoslyn
             foreach (var name in _signData.AssemblyNames)
             {
                 Console.WriteLine($"\t{name}");
-                var path = Path.Combine(_signData.RootBinaryPath, name);
-                RemovePublicSign(path);
+                RemovePublicSign(name.FullPath);
             }
         }
 
@@ -67,36 +69,38 @@ namespace SignRoslyn
             Console.WriteLine("Signing assemblies");
             foreach (var name in _signData.AssemblyNames)
             {
-                Console.WriteLine($"\t{name}");
+                Console.WriteLine($"\t{name.RelativePath}");
             }
 
-            _signTool.Sign(_signData.AssemblyNames.Select(x => Path.Combine(_signData.RootBinaryPath, x)));
+            _signTool.Sign(_signData.AssemblyNames.Select(x => x.FullPath));
         }
 
         /// <summary>
         /// Sign all of the VSIX files.  It is possible for VSIX to nest other VSIX so we must consider this when 
         /// picking the order.
         /// </summary>
-        private void SignVsixes()
+        private void SignVsixes(Dictionary<BinaryName, VsixData> vsixDataMap)
         {
             var round = 0;
-            var signedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var signedSet = new HashSet<BinaryName>(_signData.AssemblyNames);
             var toSignList = _signData.VsixNames.ToList();
             do
             {
                 Console.WriteLine($"Signing VSIX round {round}");
-                var list = new List<string>();
+                var list = new List<BinaryName>();
                 var i = 0;
                 var progress = false;
                 while (i < toSignList.Count)
                 {
                     var vsixName = toSignList[i];
-                    if (AreNestedVsixSigned(vsixName, signedSet))
+                    var vsixData = vsixDataMap[vsixName];
+                    var areNestedBinariesSigned = vsixData.NestedBinaryParts.All(x => signedSet.Contains(x.BinaryName));
+                    if (areNestedBinariesSigned)
                     {
                         list.Add(vsixName);
                         toSignList.RemoveAt(i);
                         Console.WriteLine($"\tRepacking {vsixName}");
-                        Repack(vsixName);
+                        Repack(vsixData);
                         progress = true;
                     }
                     else
@@ -111,7 +115,7 @@ namespace SignRoslyn
                 }
 
                 Console.WriteLine($"\tSigning ...");
-                _signTool.Sign(list.Select(x => Path.Combine(_signData.RootBinaryPath, x)));
+                _signTool.Sign(list.Select(x => x.FullPath));
 
                 // Signing is complete so now we can update the signed set.
                 list.ForEach(x => signedSet.Add(x));
@@ -123,24 +127,20 @@ namespace SignRoslyn
         /// <summary>
         /// Repack the VSIX with the signed parts from the binaries directory.
         /// </summary>
-        private void Repack(string vsixName)
+        private void Repack(VsixData vsixData)
         {
-            var vsixPath = Path.Combine(_signData.RootBinaryPath, vsixName);
-            using (var package = Package.Open(vsixPath, FileMode.Open, FileAccess.ReadWrite))
+            using (var package = Package.Open(vsixData.Name.FullPath, FileMode.Open, FileAccess.ReadWrite))
             {
                 foreach (var part in package.GetParts())
                 {
                     var relativeName = GetPartRelativeFileName(part);
-                    var name = Path.GetFileName(relativeName);
-
-                    // Only need to repack assemblies and VSIX parts.
-                    if (!IsVsix(name) && !IsAssembly(name))
+                    var vsixPart = vsixData.GetNestedBinaryPart(relativeName);
+                    if (!vsixPart.HasValue)
                     {
                         continue;
                     }
 
-                    var signedPath = Path.Combine(_signData.RootBinaryPath, name);
-                    using (var stream = File.OpenRead(signedPath))
+                    using (var stream = File.OpenRead(vsixPart.Value.BinaryName.FullPath))
                     using (var partStream = part.GetStream(FileMode.Open, FileAccess.ReadWrite))
                     {
                         stream.CopyTo(partStream);
@@ -153,12 +153,12 @@ namespace SignRoslyn
         /// <summary>
         /// Get the name of all VSIX which are nested inside this VSIX.
         /// </summary>
-        private IEnumerable<string> GetNestedVsixRelativeNames(string vsixName)
+        private IEnumerable<string> GetNestedVsixRelativeNames(BinaryName vsixName)
         {
             return GetVsixPartRelativeNames(vsixName).Where(x => IsVsix(x));
         }
 
-        private bool AreNestedVsixSigned(string vsixName, HashSet<string> signedSet)
+        private bool AreNestedVsixSigned(BinaryName vsixName, HashSet<string> signedSet)
         {
             foreach (var relativeName in GetNestedVsixRelativeNames(vsixName))
             {
@@ -175,11 +175,10 @@ namespace SignRoslyn
         /// <summary>
         /// Return all the assembly and VSIX contents nested in the VSIX
         /// </summary>
-        private List<string> GetVsixPartRelativeNames(string vsixName)
+        private List<string> GetVsixPartRelativeNames(BinaryName vsixName)
         {
             var list = new List<string>();
-            var vsixPath = Path.Combine(_signData.RootBinaryPath, vsixName);
-            using (var package = Package.Open(vsixPath, FileMode.Open, FileAccess.Read))
+            using (var package = Package.Open(vsixName.FullPath, FileMode.Open, FileAccess.Read))
             {
                 foreach (var part in package.GetParts())
                 {
@@ -191,65 +190,108 @@ namespace SignRoslyn
             return list;
         }
 
-        private void ValidateBinaries()
+        private Dictionary<BinaryName, VsixData> VerifyBeforeSign()
         {
-            if (!ValidateBinariesExist() || !ValidateVsixContents())
+            var allGood = true;
+            var map = VerifyBinariesBeforeSign(ref allGood);
+            var vsixDataMap = VerifyVsixContentsBeforeSign(map, ref allGood);
+
+            if (!allGood)
             {
                 throw new Exception("Errors validating the state before signing");
             }
+
+            return vsixDataMap;
         }
 
-        private bool ValidateBinariesExist()
+        /// <summary>
+        /// Validate all of the binaries which are specified to be signed exist on disk.  Compute their
+        /// checksums at this time so we can use it for VSIX content validation.
+        /// </summary>
+        private Dictionary<string, BinaryName> VerifyBinariesBeforeSign(ref bool allGood)
         {
-            var allGood = true;
+            var checksumToNameMap = new Dictionary<string, BinaryName>(StringComparer.Ordinal);
             foreach (var binaryName in _signData.BinaryNames)
             {
-                var path = Path.Combine(_signData.RootBinaryPath, binaryName);
-                if (!File.Exists(path))
+                if (!File.Exists(binaryName.FullPath))
                 {
-                    Console.WriteLine($"Did not find {binaryName} at {path}");
+                    Console.WriteLine($"Did not find {binaryName} at {binaryName.FullPath}");
                     allGood = false;
                 }
+
+                var checksum = _contentUtil.GetChecksum(binaryName.FullPath);
+                checksumToNameMap[checksum] = binaryName;
             }
 
-            return allGood;
+            return checksumToNameMap;
         }
 
-        private bool ValidateVsixContents()
+        private Dictionary<BinaryName, VsixData> VerifyVsixContentsBeforeSign(Dictionary<string, BinaryName> checksumToNameMap, ref bool allGood)
         {
-            var allBinaryNames = _signData.BinaryNames.Concat(_signData.ExcludeBinaryNames);
-            var allBinarySet = new HashSet<string>(allBinaryNames, StringComparer.OrdinalIgnoreCase);
-            var allGood = true;
+            var vsixDataMap = new Dictionary<BinaryName, VsixData>();
             foreach (var vsixName in _signData.VsixNames)
             {
-                if (!ValidateVsixContents(vsixName, allBinarySet))
-                {
-                    allGood = false;
-                }
+                var data = VerifyVsixContentsBeforeSign(vsixName, checksumToNameMap, ref allGood);
+                vsixDataMap[vsixName] = data;
             }
 
-            return allGood;
+            return vsixDataMap;
         }
 
-        private bool ValidateVsixContents(string vsixName, HashSet<string> allBinarySet)
+        private VsixData VerifyVsixContentsBeforeSign(BinaryName vsixName, Dictionary<string, BinaryName> checksumToNameMap, ref bool allGood)
         {
-            var allGood = true;
-            foreach (var relativeName in GetVsixPartRelativeNames(vsixName))
+            var nestedExternalBinaries = new List<string>();
+            var nestedParts = new List<VsixPart>();
+            using (var package = Package.Open(vsixName.FullPath, FileMode.Open, FileAccess.Read))
             {
-                var name = Path.GetFileName(relativeName);
-                if (!IsVsix(name) && !IsAssembly(name))
+                foreach (var part in package.GetParts())
                 {
-                    continue;
-                }
+                    var relativeName = GetPartRelativeFileName(part);
+                    var name = Path.GetFileName(relativeName);
+                    if (!IsVsix(name) && !IsAssembly(name))
+                    {
+                        continue;
+                    }
 
-                if (!allBinarySet.Contains(name))
-                {
-                    Console.WriteLine($"Vsix {vsixName} contains assembly {name} which is not in the binary list");
-                    allGood = false;
+                    if (_signData.ExternalBinaryNames.Contains(name))
+                    {
+                        nestedExternalBinaries.Add(name);
+                        continue;
+                    }
+
+                    if (!_signData.BinaryNames.Any(x => FilePathComparer.Equals(x.Name, name)))
+                    {
+                        allGood = false;
+                        Console.WriteLine($"VSIX {vsixName} has part {name} which is not listed in the sign or external list");
+                        continue;
+                    }
+
+                    // This represents a binary that we need to sign.  Ensure the content in the VSIX is the same as the 
+                    // content in the binaries directory by doing a chekcsum match.
+                    using (var stream = part.GetStream())
+                    {
+                        string checksum = _contentUtil.GetChecksum(stream);
+                        BinaryName checksumName;
+                        if (!checksumToNameMap.TryGetValue(checksum, out checksumName))
+                        {
+                            allGood = false;
+                            Console.WriteLine($"{vsixName} has part {name} which does not match the content in the binaries directory");
+                            continue;
+                        }
+
+                        if (!FilePathComparer.Equals(checksumName.Name, name))
+                        {
+                            allGood = false;
+                            Console.WriteLine($"{vsixName} has part {name} with a different name in the binaries directory: {checksumName}");
+                            continue;
+                        }
+
+                        nestedParts.Add(new VsixPart(relativeName, checksumName));
+                    }
                 }
             }
 
-            return allGood;
+            return new VsixData(vsixName, nestedParts.ToImmutableArray(), nestedExternalBinaries.ToImmutableArray());
         }
 
         private static string GetPartRelativeFileName(PackagePart part)
@@ -299,6 +341,5 @@ namespace SignRoslyn
                 writer.Write((UInt32)(peReader.PEHeaders.CorHeader.Flags | CorFlags.StrongNameSigned));
             }
         }
-
     }
 }
