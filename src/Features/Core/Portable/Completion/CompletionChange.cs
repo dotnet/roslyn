@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -23,16 +22,17 @@ namespace Microsoft.CodeAnalysis.Completion
         public int? NewPosition { get; }
 
         /// <summary>
-        /// True if the changes include the typed character that caused the <see cref="CompletionItem"/> to be committed.
-        /// If false the completion host will determine if and where the commit character is inserted into the document.
+        /// True if the changes include the typed character that caused the <see cref="CompletionItem"/>
+        /// to be committed.  If false the completion host will determine if and where the commit 
+        /// character is inserted into the document.
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
-        private CompletionChange(ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommit)
+        private CompletionChange(ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
         {
-            this.TextChanges = textChanges.IsDefault ? ImmutableArray<TextChange>.Empty : textChanges;
-            this.NewPosition = newPosition;
-            this.IncludesCommitCharacter = includesCommit;
+            TextChanges = textChanges;
+            NewPosition = newPosition;
+            IncludesCommitCharacter = includesCommitCharacter;
         }
 
         /// <summary>
@@ -44,9 +44,20 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="includesCommitCharacter">True if the changes include the typed character that caused the <see cref="CompletionItem"/> to be committed.
         /// If false, the completion host will determine if and where the commit character is inserted into the document.</param>
         /// <returns></returns>
-        public static CompletionChange Create(ImmutableArray<TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false)
+        public static CompletionChange Create(
+            ImmutableArray<TextChange> textChanges,
+            int? newPosition = null,
+            bool includesCommitCharacter = false)
         {
             return new CompletionChange(textChanges, newPosition, includesCommitCharacter);
+        }
+
+        internal static CompletionChange Create(
+            TextChange textChange,
+            int? newPosition = null,
+            bool includesCommitCharacter = false)
+        {
+            return Create(ImmutableArray.Create(textChange), newPosition, includesCommitCharacter);
         }
 
         /// <summary>

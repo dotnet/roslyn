@@ -88,13 +88,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared s_importDirectiveRules As CompletionItemRules =
             CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
-            If context.IsInImportsDirective Then
-                Return s_importDirectiveRules
-            Else
-                Return CompletionItemRules.Default
-            End If
-        End Function
+        ' '(' should not filter the completion list, even though it's in generic items like IList(Of...)
+        Private Shared ReadOnly s_itemRules As CompletionItemRules = CompletionItemRules.Default.
+            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)).
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, "("c))
 
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+            Return If(context.IsInImportsDirective,
+                      s_importDirectiveRules,
+                      s_itemRules)
+        End Function
     End Class
 End Namespace

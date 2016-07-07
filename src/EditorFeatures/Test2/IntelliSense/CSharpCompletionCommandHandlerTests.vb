@@ -1586,9 +1586,6 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
                 state.AssertMatchesTextStartingAtLine(6, "        doodle;")
                 state.SendUndo()
                 Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertMatchesTextStartingAtLine(6, "doodle;")
-                state.SendUndo()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(6, "doo;")
             End Using
         End Function

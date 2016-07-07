@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -57,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            return CompletionChange.Create(ImmutableArray.CreateRange(changes), newPosition, includesCommitCharacter: true);
+
+            return CompletionChange.Create(changes.AsImmutable(), newPosition, includesCommitCharacter: true);
         }
 
         private async Task<Document> DetermineNewDocumentAsync(CompletionItem completionItem, SourceText sourceText, CancellationToken cancellationToken)
         {
             // The span we're going to replace
             var line = sourceText.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
-            //var line = textSnapshot.GetLineFromLineNumber(MemberInsertionCompletionItem.GetLine(completionItem));
 
             //var sourceText = textSnapshot.AsText();
             var document = sourceText.GetOpenDocumentInCurrentContextWithChanges();
@@ -210,17 +211,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '('));
 
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = ImmutableArray.Create(
+            CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '('));
+
         private static readonly CompletionItemRules s_defaultRules =
-            CompletionItemRules.Create(commitCharacterRules: s_commitRules, enterKeyRule: EnterKeyRule.Never);
+            CompletionItemRules.Create(
+                commitCharacterRules: s_commitRules, 
+                filterCharacterRules: s_filterRules,
+                enterKeyRule: EnterKeyRule.Never);
 
         internal virtual CompletionItemRules GetRules()
         {
             return s_defaultRules;
-        }
-
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(null);
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

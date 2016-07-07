@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="cancellationToken"></param>
         public virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            return Task.FromResult(CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText))));
+            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
 
         /// <summary>

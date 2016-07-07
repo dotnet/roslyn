@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -102,16 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static CompletionItemRules s_importDirectiveRules =
             CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
 
+        // '<' should not filter the completion list, even though it's in generic items like IList<>
+        private static readonly CompletionItemRules s_itemRules = CompletionItemRules.Default.
+            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
+
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
         {
-            if (context.IsInImportsDirective)
-            {
-                return s_importDirectiveRules;
-            }
-            else
-            {
-                return CompletionItemRules.Default;
-            }
+            return context.IsInImportsDirective
+                ? s_importDirectiveRules
+                : s_itemRules;
         }
     }
 }

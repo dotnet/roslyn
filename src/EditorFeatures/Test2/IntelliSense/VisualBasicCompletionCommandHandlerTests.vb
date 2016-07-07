@@ -28,7 +28,7 @@ End Class
                 Await state.AssertSelectedCompletionItem("On Error GoTo", description:=String.Format(FeaturesResources.Keyword, "On Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("Error GoTo", description:=String.Format(FeaturesResources.Keyword, "Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
+                Await state.AssertSelectedCompletionItem("On Error GoTo", description:=String.Format(FeaturesResources.Keyword, "On Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
             End Using
         End Function
 

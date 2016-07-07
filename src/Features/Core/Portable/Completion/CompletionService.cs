@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This API uses SourceText instead of Document so implementations can only be based on text, not syntax or semantics.
         /// </remarks>
         public virtual bool ShouldTriggerCompletion(
-            SourceText text, 
-            int caretPosition, 
-            CompletionTrigger trigger, 
-            ImmutableHashSet<string> roles = null, 
+            SourceText text,
+            int caretPosition,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string> roles = null,
             OptionSet options = null)
         {
             return false;
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
         public virtual Task<CompletionDescription> GetDescriptionAsync(
-            Document document, 
-            CompletionItem item, 
+            Document document,
+            CompletionItem item,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return Task.FromResult(CompletionDescription.Empty);
@@ -103,19 +103,19 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the change to be applied when the item is committed.
         /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="document">The document when completion was initially requested.</param>
         /// <param name="item">The item to get the change for.</param>
         /// <param name="commitCharacter">The typed character that caused the item to be committed. 
         /// This character may be used as part of the change. 
         /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
         /// <param name="cancellationToken"></param>
         public virtual Task<CompletionChange> GetChangeAsync(
-            Document document, 
-            CompletionItem item, 
-            char? commitCharacter = null, 
+            Document document,
+            CompletionItem item,
+            char? commitCharacter = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Task.FromResult(CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText))));
+            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
     }
 }

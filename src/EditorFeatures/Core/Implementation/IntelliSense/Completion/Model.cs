@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
         public ITextSnapshot TriggerSnapshot { get { return _disconnectedBufferGraph.SubjectBufferSnapshot; } }
 
+        public Document TriggerDocument { get; }
+
         public CompletionList OriginalList { get; }
         public ImmutableArray<PresentationItem> TotalItems { get; }
         public ImmutableArray<PresentationItem> FilteredItems { get; }
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public bool DismissIfEmpty { get; }
 
         private Model(
+            Document triggerDocument,
             DisconnectedBufferGraph disconnectedBufferGraph,
             CompletionList originalList,
             ImmutableArray<PresentationItem> totalItems,
@@ -64,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             Contract.ThrowIfFalse(totalItems.Length != 0, "Must have at least one item.");
 
+            this.TriggerDocument = triggerDocument;
             _disconnectedBufferGraph = disconnectedBufferGraph;
             this.OriginalList = originalList;
             this.TotalItems = totalItems;
@@ -83,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         public static Model CreateModel(
+            Document triggerDocument,
             DisconnectedBufferGraph disconnectedBufferGraph,
             CompletionList originalList,
             CompletionItem selectedItem,
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // By default we do not filter anything out.
             ImmutableDictionary<CompletionItemFilter, bool> filterState = null;
-             
+
             if (completionService != null &&
                 workspace != null &&
                 workspace.Kind != WorkspaceKind.Interactive && // TODO (https://github.com/dotnet/roslyn/issues/5107): support in interactive
@@ -152,9 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var selectedPresentationItem = totalItems.FirstOrDefault(it => it.Item == selectedItem);
 
-            var completionItemToFilterText= new Dictionary<CompletionItem, string>();
+            var completionItemToFilterText = new Dictionary<CompletionItem, string>();
 
             return new Model(
+                triggerDocument,
                 disconnectedBufferGraph,
                 originalList,
                 totalItems,
@@ -196,86 +202,90 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
+        private Model With(
+            Optional<ImmutableArray<PresentationItem>> filteredItems = default(Optional<ImmutableArray<PresentationItem>>),
+            Optional<PresentationItem> selectedItem = default(Optional<PresentationItem>),
+            Optional<ImmutableDictionary<CompletionItemFilter, bool>> filterState = default(Optional<ImmutableDictionary<CompletionItemFilter, bool>>),
+            Optional<IReadOnlyDictionary<CompletionItem, string>> completionItemToFilterText = default(Optional<IReadOnlyDictionary<CompletionItem, string>>),
+            Optional<bool> isHardSelection = default(Optional<bool>),
+            Optional<bool> isUnique = default(Optional<bool>),
+            Optional<bool> useSuggestionMode = default(Optional<bool>),
+            Optional<PresentationItem> suggestionModeItem = default(Optional<PresentationItem>),
+            Optional<ITrackingPoint> commitTrackingSpanEndPoint = default(Optional<ITrackingPoint>))
+        {
+            var newFilteredItems = filteredItems.HasValue ? filteredItems.Value : FilteredItems;
+            var newSelectedItem = selectedItem.HasValue ? selectedItem.Value : SelectedItem;
+            var newFilterState = filterState.HasValue ? filterState.Value : FilterState;
+            var newCompletionItemToFilterText = completionItemToFilterText.HasValue ? completionItemToFilterText.Value : CompletionItemToFilterText;
+            var newIsHardSelection = isHardSelection.HasValue ? isHardSelection.Value : IsHardSelection;
+            var newIsUnique = isUnique.HasValue ? isUnique.Value : IsUnique;
+            var newUseSuggestionMode = useSuggestionMode.HasValue ? useSuggestionMode.Value : UseSuggestionMode;
+            var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
+            var newCommitTrackingSpanEndPoint = commitTrackingSpanEndPoint.HasValue ? commitTrackingSpanEndPoint.Value : CommitTrackingSpanEndPoint;
+
+            if (newFilteredItems == FilteredItems &&
+                newSelectedItem == SelectedItem &&
+                newFilterState == FilterState &&
+                newCompletionItemToFilterText == CompletionItemToFilterText &&
+                newIsHardSelection == IsHardSelection &&
+                newIsUnique == IsUnique &&
+                newUseSuggestionMode == UseSuggestionMode &&
+                newSuggestionModeItem == SuggestionModeItem &&
+                newCommitTrackingSpanEndPoint == CommitTrackingSpanEndPoint)
+            {
+                return this;
+            }
+
+            return new Model(
+                TriggerDocument, _disconnectedBufferGraph, OriginalList, TotalItems, newFilteredItems,
+                newSelectedItem, CompletionItemFilters, newFilterState, newCompletionItemToFilterText,
+                newIsHardSelection, newIsUnique, newUseSuggestionMode, newSuggestionModeItem,
+                DefaultSuggestionModeItem, Trigger, newCommitTrackingSpanEndPoint, DismissIfEmpty);
+        }
+
         public Model WithFilteredItems(ImmutableArray<PresentationItem> filteredItems)
         {
-            return new Model(_disconnectedBufferGraph, OriginalList, TotalItems, filteredItems,
-                filteredItems.FirstOrDefault(), CompletionItemFilters, FilterState, CompletionItemToFilterText, IsHardSelection, 
-                IsUnique, UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, 
-                Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(filteredItems: filteredItems, selectedItem: filteredItems.FirstOrDefault());
         }
 
         public Model WithSelectedItem(PresentationItem selectedItem)
         {
-            return selectedItem == this.SelectedItem
-                ? this
-                : new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                     selectedItem, CompletionItemFilters, FilterState, CompletionItemToFilterText, IsHardSelection, IsUnique, 
-                     UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger, 
-                     CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(selectedItem: selectedItem);
         }
 
         public Model WithHardSelection(bool isHardSelection)
         {
-            return isHardSelection == this.IsHardSelection
-                ? this
-                : new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                    SelectedItem, CompletionItemFilters, FilterState, CompletionItemToFilterText, isHardSelection, IsUnique,
-                    UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                    CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(isHardSelection: isHardSelection);
         }
 
         public Model WithIsUnique(bool isUnique)
         {
-            return isUnique == this.IsUnique
-                ? this
-                : new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                    SelectedItem, CompletionItemFilters, FilterState, CompletionItemToFilterText, IsHardSelection, isUnique,
-                    UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                    CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(isUnique: isUnique);
         }
 
         public Model WithSuggestionModeItem(PresentationItem suggestionModeItem)
         {
-            return suggestionModeItem == this.SuggestionModeItem
-                ? this
-                 : new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                    SelectedItem, CompletionItemFilters, FilterState, CompletionItemToFilterText, IsHardSelection, IsUnique, 
-                    UseSuggestionMode, suggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                    CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(suggestionModeItem: suggestionModeItem);
         }
 
-        public Model WithUseSuggestionCompletionMode(bool useSuggestionCompletionMode)
+        public Model WithUseSuggestionMode(bool useSuggestionMode)
         {
-            return useSuggestionCompletionMode == this.UseSuggestionMode
-                ? this
-                : new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                    SelectedItem, CompletionItemFilters, FilterState, CompletionItemToFilterText, IsHardSelection, IsUnique,
-                    useSuggestionCompletionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                    CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(useSuggestionMode: useSuggestionMode);
         }
 
         internal Model WithTrackingSpanEnd(ITrackingPoint trackingSpanEnd)
         {
-            return new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                SelectedItem, CompletionItemFilters, FilterState, CompletionItemToFilterText, IsHardSelection, IsUnique, 
-                UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                trackingSpanEnd, DismissIfEmpty);
+            return With(commitTrackingSpanEndPoint: new Optional<ITrackingPoint>(trackingSpanEnd));
         }
 
         internal Model WithFilterState(ImmutableDictionary<CompletionItemFilter, bool> filterState)
         {
-            return new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                SelectedItem, CompletionItemFilters, filterState, CompletionItemToFilterText, IsHardSelection, IsUnique,
-                UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(filterState: filterState);
         }
 
         internal Model WithCompletionItemToFilterText(IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
         {
-            return new Model(_disconnectedBufferGraph, OriginalList, TotalItems, FilteredItems,
-                SelectedItem, CompletionItemFilters, FilterState, completionItemToFilterText, IsHardSelection, IsUnique,
-                UseSuggestionMode, SuggestionModeItem, DefaultSuggestionModeItem, Trigger,
-                CommitTrackingSpanEndPoint, DismissIfEmpty);
+            return With(completionItemToFilterText: new Optional<IReadOnlyDictionary<CompletionItem, string>>(completionItemToFilterText));
         }
 
         internal SnapshotSpan GetCurrentSpanInSnapshot(ViewTextSpan originalSpan, ITextSnapshot textSnapshot)
