@@ -92,7 +92,7 @@ namespace RunTests
                     running.Add(task);
                 }
 
-                Console.WriteLine("  {0} running, {1} queued, {2} completed", running.Count, waiting.Count, completed.Count);
+                Console.WriteLine($  {running.Count} running, {waiting.Count} queued, {completed.Count} completed");
                 Task.WaitAny(running.ToArray());
             } while (running.Count > 0);
 
@@ -114,7 +114,7 @@ namespace RunTests
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                var message = string.Format("{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
+                var message = $"{testResult.DisplayName,-75} {(testResult.Succeeded ? "PASSED" : "FAILED")} {testResult.Elapsed}{(testResult.IsResultFromCache ? "*" : "")}";
                 ConsoleUtil.WriteLine(color, message);
                 Logger.Log(message);
             }
