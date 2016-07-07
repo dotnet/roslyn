@@ -1387,11 +1387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
 
-        // replace/original errors
-        ERR_NoOriginalMember = 8944,
-        ERR_DuplicateReplace = 8945,
-        ERR_PartialReplace = 8946,
-
         // tuple related errors
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,

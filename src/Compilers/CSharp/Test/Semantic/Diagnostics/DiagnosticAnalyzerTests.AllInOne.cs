@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // AllInOneCSharpCode has no deconstruction.
             syntaxKindsPatterns.Add(SyntaxKind.VariableDeconstructionDeclarator);
 
-            // AllInOneCSharpCode has no replace/original.
-            syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
-
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();

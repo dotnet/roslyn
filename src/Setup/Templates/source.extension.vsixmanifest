@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="3a012d4e-6057-4e7c-8123-6d4be1d4723c" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>.NET Compiler Platform SDK</DisplayName>
+    <Description xml:space="preserve">The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers with rich code analysis APIs. You can build code analysis tools with the same APIs that Microsoft is using to implement Visual Studio! Also includes the Syntax Visualizer, a Visual Studio extension that allows you to inspect and explore the syntax trees you'll use as you build applications and VS extensions atop the .NET Compiler Platform ("Roslyn").</Description>
+    <License>EULA.rtf</License>
+    <Tags>roslyn,template,SDK</Tags>
+  </Metadata>
+  <Installation InstalledByMsi="false">
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,)" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0]" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="CSharpConsoleApplication"/>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="CSharpDiagnostic"/>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="CSRef"/>
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="CSharpAnalyzer"/>
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="CSharpCodeFix"/>
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="CSharpRefactoring"/>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="VBRef"/>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="VBConsoleApplication"/>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="VBDiagnostic"/>
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="VBAnalyzer"/>
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="VBCodeFix"/>
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="VBRefactoring"/>
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" AssemblyName="|%CurrentProject%;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="SyntaxVisualizerExtension" Path="|SyntaxVisualizerExtension;PkgdefProjectOutputGroup|" />
+  </Assets>
+</PackageManifest>

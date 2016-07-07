@@ -8401,5 +8401,102 @@ class D
             Assert.Equal("void D.M(System.Int32 i)", candidates[0].ToTestDisplayString());
             Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
         }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness01()
+        {
+            string source = @"
+delegate Del1 Del1();
+delegate Del2 Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness02()
+        {
+            string source = @"
+delegate Del2 Del1();
+delegate Del1 Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness03()
+        {
+            string source = @"
+delegate Del2<Del1<T>> Del1<T>();
+delegate Del1<Del2<T>> Del2<T>();
+
+class Program
+{
+    static void Method(Del1<string> del1) { }
+    static void Method(Del2<string> del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1<string>)' and 'Program.Method(Del2<string>)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1<string>)", "Program.Method(Del2<string>)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness04()
+        {
+            string source = @"
+using System.Threading.Tasks;
+delegate Task<Del2> Del1();
+delegate Task<Del1> Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(12, 9)
+                );
+        }
     }
 }

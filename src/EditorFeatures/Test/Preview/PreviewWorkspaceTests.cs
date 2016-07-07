@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider())))
             {
                 var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-                Assert.True(service is PreviewSolutionCrawlerRegistrationService);
+                Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
 
                 var persistentService = previewWorkspace.Services.GetService<IPersistentStorageService>();
                 Assert.NotNull(persistentService);
@@ -230,48 +231,49 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var newDocument = oldDocument.WithText(oldText.WithChanges(new TextChange(new TextSpan(0, oldText.Length), "class C { }")));
 
                 // create a diff view
-                WpfTestCase.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(IWpfDifferenceViewer)}");
+                WpfTestCase.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                var diffView = (IWpfDifferenceViewer)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None));
-
-                var foregroundService = workspace.GetService<IForegroundNotificationService>();
-                var optionsService = workspace.Services.GetService<IOptionService>();
-
-                var waiter = new ErrorSquiggleWaiter();
-                var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
-
-                // set up tagger for both buffers
-                var leftBuffer = diffView.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-                var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
-                using (var leftDisposable = leftTagger as IDisposable)
+                using (var diffView = (DifferenceViewerPreview)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None)))
                 {
-                    var rightBuffer = diffView.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-                    var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
-                    using (var rightDisposable = rightTagger as IDisposable)
+                    var foregroundService = workspace.GetService<IForegroundNotificationService>();
+                    var optionsService = workspace.Services.GetService<IOptionService>();
+
+                    var waiter = new ErrorSquiggleWaiter();
+                    var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
+
+                    // set up tagger for both buffers
+                    var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
+                    var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
+                    using (var leftDisposable = leftTagger as IDisposable)
                     {
-                        // wait up to 20 seconds for diagnostics
-                        taskSource.Task.Wait(20000);
-                        if (!taskSource.Task.IsCompleted)
+                        var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
+                        var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
+                        using (var rightDisposable = rightTagger as IDisposable)
                         {
-                            // something is wrong
-                            FatalError.Report(new System.Exception("not finished after 20 seconds"));
+                            // wait up to 20 seconds for diagnostics
+                            taskSource.Task.Wait(20000);
+                            if (!taskSource.Task.IsCompleted)
+                            {
+                                // something is wrong
+                                FatalError.Report(new System.Exception("not finished after 20 seconds"));
+                            }
+
+                            // wait taggers
+                            await waiter.CreateWaitTask();
+
+                            // check left buffer
+                            var leftSnapshot = leftBuffer.CurrentSnapshot;
+                            var leftSpans = leftTagger.GetTags(leftSnapshot.GetSnapshotSpanCollection()).ToList();
+                            Assert.Equal(1, leftSpans.Count);
+
+                            // check right buffer
+                            var rightSnapshot = rightBuffer.CurrentSnapshot;
+                            var rightSpans = rightTagger.GetTags(rightSnapshot.GetSnapshotSpanCollection()).ToList();
+                            Assert.Equal(0, rightSpans.Count);
                         }
-
-                        // wait taggers
-                        await waiter.CreateWaitTask();
-
-                        // check left buffer
-                        var leftSnapshot = leftBuffer.CurrentSnapshot;
-                        var leftSpans = leftTagger.GetTags(leftSnapshot.GetSnapshotSpanCollection()).ToList();
-                        Assert.Equal(1, leftSpans.Count);
-
-                        // check right buffer
-                        var rightSnapshot = rightBuffer.CurrentSnapshot;
-                        var rightSpans = rightTagger.GetTags(rightSnapshot.GetSnapshotSpanCollection()).ToList();
-                        Assert.Equal(0, rightSpans.Count);
                     }
                 }
             }
