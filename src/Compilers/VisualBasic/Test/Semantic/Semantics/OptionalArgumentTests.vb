@@ -2131,7 +2131,7 @@ y: 15
         End Sub
 
         <Fact()>
-        Public Sub CallerInfo7()
+        Public Sub CallerInfo7_A()
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
 using System.Runtime.CompilerServices;
 public delegate void D(object o = null, [CallerLineNumber]int line = 0);
@@ -2170,6 +2170,45 @@ End Class
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub CallerInfo7_B()
+            Dim compilation1 = CreateCSharpCompilation(<![CDATA[
+using System.Runtime.CompilerServices;
+public delegate void D(object o = null, [CallerLineNumber]int line = 0);
+]]>.Value,
+                assemblyName:="1",
+                referencedAssemblies:=New MetadataReference() {MscorlibRef_v4_0_30316_17626})
+            compilation1.VerifyDiagnostics()
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
+            Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Shared Sub M(Optional o As Object, <CallerLineNumber> Optional line As Integer)
+        Console.WriteLine(line)
+    End Sub
+    Shared Sub Main()
+        Dim d As New D(AddressOf M)
+        d(
+            1
+          )
+        d
+    End Sub
+End Class
+	]]>
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe.WithParseOptions(MyParseOptions),
+                additionalRefs:={reference1})
+            CompileAndVerify(compilation2, expectedOutput:=
+            <![CDATA[
+9
+12
+]]>)
+        End Sub
         <Fact>
         Public Sub TestCallerFilePath1()
             Dim source1 = "
@@ -2231,8 +2270,9 @@ End Module
 ")
         End Sub
 
+        ' TODO:
         <Fact>
-        Public Sub TestCallerFilePath2()
+        Public Sub TestCallerFilePath2_A()
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2315,7 +2355,90 @@ End Module
 5: '     '
 ")
         End Sub
+        <Fact>
+        Public Sub TestCallerFilePath2_B()
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+Imports System
 
+Partial Module A
+    Dim i As Integer
+
+    Sub Log(<CallerFilePath> Optional filePath As String)
+        i = i + 1
+        Console.WriteLine(""{0}: '{1}'"", i, filePath)
+    End Sub
+
+    Sub Main()
+        Log()
+        Main2()
+        Main3()
+        Main4()
+        Main5()
+    End Sub
+End Module"
+            Dim source2 = "
+Partial Module A 
+    Sub Main2() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source3 = "
+#ExternalSource(""make_hidden"", 30)
+#End ExternalSource
+
+Partial Module A 
+    Sub Main3() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source4 = "
+#ExternalSource(""abc"", 30)
+
+Partial Module A 
+    Sub Main4() 
+        Log()
+    End Sub
+End Module
+
+#End ExternalSource
+"
+            Dim source5 = "
+#ExternalSource(""     "", 30)
+
+Partial Module A 
+    Sub Main5() 
+        Log()
+    End Sub
+End Module
+
+#End ExternalSource
+"
+
+            Dim compilation = CreateCompilationWithReferences(
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
+                },
+                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                 options:=TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
+                    searchPaths:=ImmutableArray(Of String).Empty,
+                    baseDirectory:="C:\A\B",
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(MyParseOptions))
+
+            CompileAndVerify(compilation, expectedOutput:="
+1: '/X/filename'
+2: '/X/A/B/a/c/d.vb'
+3: '*'
+4: '/X/abc'
+5: '     '
+")
+        End Sub
         <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
         <Fact()>
         Public Sub Bug_619347_623122()
@@ -2358,7 +2481,7 @@ a
         End Sub
 
 
-
+        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct()
@@ -2472,6 +2595,7 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
+        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct()
@@ -2559,6 +2683,7 @@ End Structure
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
+        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_String()
@@ -2672,6 +2797,7 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
+        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_Decimal()
@@ -2837,6 +2963,8 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
+
+        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime()
