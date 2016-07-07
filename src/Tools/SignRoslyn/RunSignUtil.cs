@@ -40,6 +40,9 @@ namespace SignRoslyn
 
             // Last we sign the VSIX files (being careful to take into account nesting)
             SignVsixes(vsixDataMap);
+
+            // Validate the signing worked and produced actual signed binaries in all locations.
+            VerifyAfterSign(vsixDataMap);
         }
 
         private void RemovePublicSign()
@@ -295,5 +298,63 @@ namespace SignRoslyn
 
             return path;
         }
+
+        private void VerifyAfterSign(Dictionary<BinaryName, VsixData> vsixData)
+        {
+            if (!VerifyAssembliesAfterSign() || !VerifyVsixContentsAfterSign(vsixData))
+            {
+                throw new Exception("Verification of signed binaries failed");
+            }
+        }
+
+        private bool VerifyAssembliesAfterSign()
+        {
+            var allGood = true;
+            foreach (var name in _signData.AssemblyNames)
+            {
+                using (var stream = File.OpenRead(name.FullPath))
+                {
+                    if (!_signTool.VerifySignedAssembly(stream))
+                    {
+                        allGood = false;
+                        Console.WriteLine($"Assembly {name.RelativePath} is not signed properly");
+                    }
+                }
+            }
+
+            return allGood;
+        }
+
+        private bool VerifyVsixContentsAfterSign(Dictionary<BinaryName, VsixData> vsixDataMap)
+        {
+            var allGood = true;
+            foreach (var vsixName in _signData.VsixNames)
+            {
+                var vsixData = vsixDataMap[vsixName];
+                using (var package = Package.Open(vsixName.FullPath, FileMode.Open, FileAccess.Read))
+                {
+                    foreach (var part in package.GetParts())
+                    {
+                        var relativeName = GetPartRelativeFileName(part);
+                        var vsixPart = vsixData.GetNestedBinaryPart(relativeName);
+                        if (!vsixPart.HasValue)
+                        {
+                            continue;
+                        }
+
+                        using (var stream = part.GetStream())
+                        {
+                            if (!_signTool.VerifySignedAssembly(stream))
+                            {
+                                allGood = false;
+                                Console.WriteLine($"Vsix {vsixName.RelativePath} has part {relativeName} which is not signed.");
+                            }
+                        }
+                    }
+                }
+            }
+            return allGood;
+        }
+
     }
 }

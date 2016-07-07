@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,11 @@ namespace SignRoslyn
         internal override void RemovePublicSign(string assemblyPath)
         {
 
+        }
+
+        internal override bool VerifySignedAssembly(Stream assemblyStream)
+        {
+            return true;
         }
 
         protected override int RunMSBuild(ProcessStartInfo startInfo)
