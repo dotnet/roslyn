@@ -879,10 +879,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // find that one, we can map back to the open buffer and set its active context to
             // the appropriate project.
 
+            // Note that if there is a single head project and it's in the process of being unloaded
+            // there might not be a host project.
             var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
-            if (hostProject.Hierarchy == sharedHierarchy)
+            if (hostProject?.Hierarchy == sharedHierarchy)
             {
-                // How?
                 return;
             }
 
