@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _constructedFrom;
 
         private TypeSymbol _lazyReturnType;
+        private TypeSymbol _lazyReceiverType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -153,6 +154,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var method = OriginalDefinition.ReducedFrom;
                 return ((object)method == null) ? null : method.Construct(this.TypeArguments);
+            }
+        }
+
+        public override TypeSymbol ReceiverType
+        {
+            get
+            {
+                var receiverType = _lazyReceiverType;
+                if ((object)receiverType == null)
+                {
+                    Interlocked.CompareExchange(ref _lazyReceiverType, Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReceiverType).Type, null);
+                }
+                return _lazyReceiverType;
             }
         }
 

@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// An extension method with the "this" parameter removed.
-    /// Used for the public binding API only, not for compilation.
     /// </summary>
     internal sealed class ReducedExtensionMethodSymbol : MethodSymbol
     {
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _reducedFrom.Parameters[0].Type;
+                return _typeMap.SubstituteType(_reducedFrom.Parameters[0].Type).Type;
             }
         }
 
