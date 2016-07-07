@@ -92,7 +92,7 @@ namespace RunTests
                     running.Add(task);
                 }
 
-                Console.WriteLine($  {running.Count} running, {waiting.Count} queued, {completed.Count} completed");
+                Console.WriteLine($"  { running.Count} running, { waiting.Count} queued, { completed.Count} completed");
                 Task.WaitAny(running.ToArray());
             } while (running.Count > 0);
 
