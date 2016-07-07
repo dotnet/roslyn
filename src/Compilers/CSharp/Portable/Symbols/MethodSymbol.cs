@@ -655,9 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(receiverType));
             }
 
-            Debug.Assert(!this.IsUnreducedExtensionMember);
+            var unreducedFrom = this.GetConstructedUnreducedFrom();
+            if (unreducedFrom != null)
+            {
+                // PROTOTYPE: We're ignoring `receiverType`, which is probably wrong
+                return unreducedFrom;
+            }
 
-            if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension)
+            if (!this.IsUnreducedExtensionMember)
             {
                 return null;
             }
