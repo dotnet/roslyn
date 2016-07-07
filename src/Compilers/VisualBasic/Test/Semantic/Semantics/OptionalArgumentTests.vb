@@ -247,7 +247,7 @@ End Module
 
         <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
         <Fact()>
-        Public Sub TestEventWithOptionalInteger()
+        Public Sub TestEventWithOptionalInteger_1()
             Dim source =
 <compilation name="TestEventWithOptionalInteger">
     <file name="a.vb">
@@ -268,6 +268,33 @@ End Module
     </file>
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
+        End Sub
+
+        <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
+        <Fact()>
+        Public Sub TestEventWithOptionalInteger_2()
+            Dim source =
+<compilation name="TestEventWithOptionalInteger">
+    <file name="a.vb">
+        <![CDATA[
+Class A
+    Event E(Optional I As Integer)
+
+    Public Sub Do_E()
+        RaiseEvent E()
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
         End Sub
@@ -718,11 +745,12 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>).VerifyDiagnostics()
         End Sub
 
+        Dim MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant_2()
-            Dim opts = VisualBasicParseOptions.Default.With_MY_FEATURE_
-            Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(opts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+            Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(MyParseOptions, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " required for this test.")
 
             Dim libSource =
@@ -770,7 +798,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=opts)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=MyParseOptions)
 
             Dim source =
 <compilation>
@@ -794,7 +822,7 @@ End Module
 
             Dim compilationRef As MetadataReference = libComp.ToMetadataReference()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef}, parseOptions:=opts)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef}, parseOptions:=MyParseOptions)
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
@@ -803,7 +831,7 @@ End Module
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=opts, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
 System.Reflection.Missing
 System.Reflection.Missing
 System.Runtime.InteropServices.DispatchWrapper
@@ -815,12 +843,9 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>).VerifyDiagnostics()
         End Sub
 
-
-
-
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
-        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString()
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_1()
 
             Dim libSource =
 <compilation>
@@ -868,6 +893,61 @@ End Module
             Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+1
+2
+]]>).VerifyDiagnostics()
+        End Sub
+        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact()>
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_2()
+            Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(MyParseOptions, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+                        $"Requies Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)}")
+            Dim libSource =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+
+Namespace SpecialOptionalLib
+
+Public Class C
+
+    Public Shared Sub M1(<IDispatchConstant> Optional x As string)
+        Console.WriteLine(If(x, 1))
+    End Sub
+
+    Public Shared Sub M2(<IUnknownConstant> Optional x As string)
+        Console.WriteLine(If(x, 2))
+    End Sub
+
+End Class
+
+End Namespace
+    ]]></file>
+</compilation>
+
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=MyParseOptions)
+
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports SpecialOptionalLib.C
+
+Module Module1
+
+    Sub Main()
+        M1()
+        M2()
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
+
+            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 1
 2
 ]]>).VerifyDiagnostics()
