@@ -1287,6 +1287,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     ' locals above.  We assert that we are seeing the latter.
                     Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
+
+                    If variableKind = DisplayClassVariableKind.Parameter AndAlso instance.Type.Name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                        displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
+                    End If
+
                 Else
                     displayClassVariableNamesInOrder.Add(variableName)
                     displayClassVariablesBuilder.Add(variableName, instance.ToVariable(variableName, variableKind, field))
