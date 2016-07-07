@@ -203,7 +203,6 @@
   <!-- Verify some build flags are correct -->
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);VerifyBuildFlags</PrepareForBuildDependsOn>
-    <RealSignBuild>false</RealSignBuild>
   </PropertyGroup>
 
   <Target Name="VerifyBuildFlags">
@@ -404,9 +403,4 @@
   <PropertyGroup>
 	<ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
   </PropertyGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)Signing.targets"
-          Condition="'$(NonShipping)' != 'true' and
-                     '$(ShouldSignBuild)' == 'true' and
-                     '$(RunningInMicroBuild)' == 'true'" />
- </Project>
+</Project>
