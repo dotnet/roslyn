@@ -37,8 +37,7 @@
 
     <!-- Dependencies -->
     <!-- <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" /> -->
-    <MSBuild Projects="..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.nuget.proj" />
-
+    
     <!-- Microsoft.NetFX20 -->
     <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
 

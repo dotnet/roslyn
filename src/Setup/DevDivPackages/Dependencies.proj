@@ -20,10 +20,6 @@
       <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</Version>
       <External>false</External>
     </NuSpec>
-    <NuSpec Include="Microsoft.DiaSymReader.PortablePdb">
-      <Version>$(MicrosoftDiaSymReaderPortablePdbVersion)</Version>
-      <External>false</External>
-    </NuSpec>
     <NuSpec Include="System.Collections.Immutable">
       <Version>$(SystemCollectionsImmutableVersion)</Version>
       <External>true</External>
@@ -46,7 +42,8 @@
       Packages that exist on NuGet and already have structure compatible with DevDiv. 
     -->		
     <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\$(MicrosoftDiaSymReaderVersion)\*.nupkg" />		
-    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Elfie\$(MicrosoftCodeAnalysisElfieVersion)\*.nupkg" />		
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Elfie\$(MicrosoftCodeAnalysisElfieVersion)\*.nupkg" />
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.PortablePdb\$(MicrosoftDiaSymReaderPortablePdbVersion)\*.nupkg" />
   </ItemGroup>
   <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec->$(PackagesOutDir)\VS.ExternalAPIs.%(NuSpec.Identity).%(Version).nupkg">
     <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
