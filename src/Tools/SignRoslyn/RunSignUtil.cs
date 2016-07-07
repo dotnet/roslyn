@@ -337,7 +337,7 @@ namespace SignRoslyn
                     {
                         var relativeName = GetPartRelativeFileName(part);
                         var vsixPart = vsixData.GetNestedBinaryPart(relativeName);
-                        if (!vsixPart.HasValue)
+                        if (!vsixPart.HasValue || !vsixPart.Value.BinaryName.IsAssembly)
                         {
                             continue;
                         }
