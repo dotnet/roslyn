@@ -41,15 +41,12 @@ var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
 // Read preceding variables from MSBuild file
-var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/VSL.Versions.targets"));
+var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Dependencies.props"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
-string SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCollectionsImmutableVersion)).Single().Value;
-string SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
-string CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
-string CoreFXVersionSuffix = doc.Descendants(ns + nameof(CoreFXVersionSuffix)).Single().Value;
 
-string MicrosoftDiaSymReaderVersion = GetExistingPackageVersion("Microsoft.DiaSymReader");
-string MicrosoftDiaSymReaderPortablePdbVersion = GetExistingPackageVersion("Microsoft.DiaSymReader.PortablePdb");
+var dependencyVersions = from e in doc.Root.Descendants()
+                         where e.Name.LocalName.EndsWith("Version")
+                         select new { VariableName = e.Name.LocalName, Value=e.Value };
 
 string GetExistingPackageVersion(string name)
 {
@@ -124,26 +121,37 @@ var emptyDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 var dirInfo = Directory.CreateDirectory(emptyDir);
 File.Create(Path.Combine(emptyDir, "_._")).Close();
 
+var errors = new List<string>();
+
+void ReportError(string message)
+{
+    errors.Add(message);
+
+    var color = Console.ForegroundColor;
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.Error.WriteLine(message);
+    Console.ForegroundColor = color;
+}
+
 int PackFiles(string[] nuspecFiles, string licenseUrl)
 {
+    string commonArgs =
+        $"-BasePath \"{BinDir}\" " +
+        $"-OutputDirectory \"{OutDir}\" " +
+        $"-prop licenseUrl=\"{licenseUrl}\" " +
+        $"-prop version=\"{BuildVersion}\" " +
+        $"-prop authors={Authors} " +
+        $"-prop projectURL=\"{ProjectURL}\" " +
+        $"-prop tags=\"{Tags}\" " +
+        $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
+        $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
+        $"-prop emptyDirPath=\"{emptyDir}\" " +
+        string.Join(" ", dependencyVersions.Select(d => $"-prop {d.VariableName}=\"{d.Value}\""));
+
     int exit = 0;
     foreach (var file in nuspecFiles)
     {
-        var nugetArgs = $@"pack {file} " +
-            $"-BasePath \"{BinDir}\" " +
-            $"-OutputDirectory \"{OutDir}\" " +
-            $"-prop licenseUrl=\"{licenseUrl}\" " +
-            $"-prop version=\"{BuildVersion}\" " +
-            $"-prop authors={Authors} " +
-            $"-prop projectURL=\"{ProjectURL}\" " +
-            $"-prop tags=\"{Tags}\" " +
-            $"-prop systemCollectionsImmutableVersion=\"{SystemCollectionsImmutableVersion}\" " +
-            $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
-            $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
-            $"-prop coreFXVersionSuffix=\"{CoreFXVersionSuffix}\" " +
-            $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
-            $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
-            $"-prop emptyDirPath=\"{emptyDir}\"";
+        var nugetArgs = $@"pack {file} {commonArgs}";
 
         var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
         var p = new Process();
@@ -167,15 +175,16 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
                 // If we are building release nugets and if any packages have dependencies on prerelease packages  
                 // then we want to ignore the error and allow the build to succeed.
                 currentExit = 0;
-                message = $"{Environment.NewLine}{file}: {stdErr}";
+                message = $"{file}: {stdErr}";
+                Console.WriteLine(message);
             }
             else
             {
-                message = $"{Environment.NewLine}{file}: error: {stdErr}";
+                message = $"{file}: error: {stdErr}";
+                ReportError(message);
             }
 
-            Console.WriteLine(message);
-            File.AppendAllText(ErrorLogFile, message);
+            File.AppendAllText(ErrorLogFile, Environment.NewLine + message);
         }
 
         // We want to try and generate all nugets and log any errors encountered along the way.
@@ -214,23 +223,9 @@ void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
     doc.Save(Path.Combine(OutDir, fileName));
 }
 
-// Currently we publish some of the Roslyn dependencies. Remove this once they are moved to a separate repo.
-IEnumerable<XElement> MakePackageElementsForPublishedDependencies()
-{
-    if (MicrosoftDiaSymReaderVersion != null && BuildingReleaseNugets == IsReleaseVersion(MicrosoftDiaSymReaderVersion))
-    {
-        yield return MakePackageElement("Microsoft.DiaSymReader", MicrosoftDiaSymReaderVersion);
-    }
-
-    if (MicrosoftDiaSymReaderPortablePdbVersion != null && BuildingReleaseNugets == IsReleaseVersion(MicrosoftDiaSymReaderPortablePdbVersion))
-    {
-        yield return MakePackageElement("Microsoft.DiaSymReader.PortablePdb", MicrosoftDiaSymReaderPortablePdbVersion);
-    }
-}
-
 void GeneratePublishingConfig(string[] roslynPackageNames)
 {
-    var packages = MakeRoslynPackageElements(roslynPackageNames).Concat(MakePackageElementsForPublishedDependencies());
+    var packages = MakeRoslynPackageElements(roslynPackageNames);
     if (BuildingReleaseNugets)
     {
         // nuget:
@@ -267,6 +262,11 @@ try
 catch
 {
     // Ignore errors
+}
+
+foreach (var error in errors)
+{
+    ReportError(error);
 }
 
 Environment.Exit(exit);
