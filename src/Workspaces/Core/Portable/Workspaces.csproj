@@ -711,7 +711,6 @@
     <Compile Include="Options\OptionKey.cs" />
     <Compile Include="Options\OptionService.cs" />
     <Compile Include="Options\WorkspaceOptionSet.cs" />
-    <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />

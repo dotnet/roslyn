@@ -4,160 +4,80 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    [Export(typeof(IOptionService))]
-    [Shared]
-    internal class OptionService : IOptionService
+    [ExportWorkspaceServiceFactory(typeof(IOptionService)), Shared]
+    internal class OptionServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly Lazy<HashSet<IOption>> _options;
-        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>> _featureNameToOptionSerializers =
-            ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
-
-        private readonly object _gate = new object();
-        private ImmutableDictionary<OptionKey, object> _currentValues;
+        private readonly IEnumerable<Lazy<IOptionProvider>> _optionProviders;
+        private readonly IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> _optionSerializers;
 
         [ImportingConstructor]
-        public OptionService(
+        public OptionServiceFactory(
             [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
         {
-            _options = new Lazy<HashSet<IOption>>(() =>
-            {
-                var options = new HashSet<IOption>();
-
-                foreach (var provider in optionProviders)
-                {
-                    options.AddRange(provider.Value.GetOptions());
-                }
-
-                return options;
-            });
-
-            foreach (var optionSerializerAndMetadata in optionSerializers)
-            {
-                foreach (var featureName in optionSerializerAndMetadata.Metadata.Features)
-                {
-                    ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> existingSerializers;
-                    if (!_featureNameToOptionSerializers.TryGetValue(featureName, out existingSerializers))
-                    {
-                        existingSerializers = ImmutableArray.Create<Lazy<IOptionSerializer, OptionSerializerMetadata>>();
-                    }
-
-                    _featureNameToOptionSerializers = _featureNameToOptionSerializers.SetItem(featureName, existingSerializers.Add(optionSerializerAndMetadata));
-                }
-            }
-
-            _currentValues = ImmutableDictionary.Create<OptionKey, object>();
+            _optionProviders = optionProviders;
+            _optionSerializers = optionSerializers;
         }
 
-        private object LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            lock (_gate)
+            return new OptionService(_optionProviders, _optionSerializers);
+        }
+
+        // Internal for testing purposes only.
+        internal class OptionService : IOptionService
+        {
+            private readonly Lazy<HashSet<IOption>> _options;
+            private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>> _featureNameToOptionSerializers =
+                ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
+
+            private readonly object _gate = new object();
+            private ImmutableDictionary<OptionKey, object> _currentValues;
+
+            public OptionService(
+                IEnumerable<Lazy<IOptionProvider>> optionProviders,
+                IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
             {
-                ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
-                if (_featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
+                _options = new Lazy<HashSet<IOption>>(() =>
                 {
-                    foreach (var serializer in optionSerializers)
+                    var options = new HashSet<IOption>();
+
+                    foreach (var provider in optionProviders)
                     {
-                        // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
-                        // feature's serializer should exist in only that language.
-                        if (!SupportedSerializer(optionKey, serializer.Metadata))
+                        options.AddRange(provider.Value.GetOptions());
+                    }
+
+                    return options;
+                });
+
+                foreach (var optionSerializerAndMetadata in optionSerializers)
+                {
+                    foreach (var featureName in optionSerializerAndMetadata.Metadata.Features)
+                    {
+                        ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> existingSerializers;
+                        if (!_featureNameToOptionSerializers.TryGetValue(featureName, out existingSerializers))
                         {
-                            continue;
+                            existingSerializers = ImmutableArray.Create<Lazy<IOptionSerializer, OptionSerializerMetadata>>();
                         }
 
-                        // We have a deserializer, so deserialize and use that value.
-                        object deserializedValue;
-                        if (serializer.Value.TryFetch(optionKey, out deserializedValue))
-                        {
-                            return deserializedValue;
-                        }
+                        _featureNameToOptionSerializers = _featureNameToOptionSerializers.SetItem(featureName, existingSerializers.Add(optionSerializerAndMetadata));
                     }
                 }
 
-                // Just use the default. We will still cache this so we aren't trying to deserialize
-                // over and over.
-                return optionKey.Option.DefaultValue;
+                _currentValues = ImmutableDictionary.Create<OptionKey, object>();
             }
-        }
 
-        public IEnumerable<IOption> GetRegisteredOptions()
-        {
-            return _options.Value;
-        }
-
-        public OptionSet GetOptions()
-        {
-            return new WorkspaceOptionSet(this);
-        }
-
-        public T GetOption<T>(Option<T> option)
-        {
-            return (T)GetOption(new OptionKey(option, language: null));
-        }
-
-        public T GetOption<T>(PerLanguageOption<T> option, string language)
-        {
-            return (T)GetOption(new OptionKey(option, language));
-        }
-
-        public object GetOption(OptionKey optionKey)
-        {
-            lock (_gate)
+            private object LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
             {
-                object value;
-
-                if (_currentValues.TryGetValue(optionKey, out value))
+                lock (_gate)
                 {
-                    return value;
-                }
-
-                value = LoadOptionFromSerializerOrGetDefault(optionKey);
-
-                _currentValues = _currentValues.Add(optionKey, value);
-
-                return value;
-            }
-        }
-
-        public void SetOptions(OptionSet optionSet)
-        {
-            if (optionSet == null)
-            {
-                throw new ArgumentNullException(nameof(optionSet));
-            }
-
-            var workspaceOptionSet = optionSet as WorkspaceOptionSet;
-
-            if (workspaceOptionSet == null)
-            {
-                throw new ArgumentException(WorkspacesResources.OptionsDidNotComeFromWorkspace, paramName: nameof(optionSet));
-            }
-
-            var changedOptions = new List<OptionChangedEventArgs>();
-
-            lock (_gate)
-            {
-                foreach (var optionKey in workspaceOptionSet.GetAccessedOptions())
-                {
-                    var setValue = optionSet.GetOption(optionKey);
-                    object currentValue = this.GetOption(optionKey);
-
-                    if (object.Equals(currentValue, setValue))
-                    {
-                        // Identical, so nothing is changing
-                        continue;
-                    }
-
-                    // The value is actually changing, so update
-                    changedOptions.Add(new OptionChangedEventArgs(optionKey, setValue));
-
-                    _currentValues = _currentValues.SetItem(optionKey, setValue);
-
                     ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
                     if (_featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
                     {
@@ -170,31 +90,132 @@ namespace Microsoft.CodeAnalysis.Options
                                 continue;
                             }
 
-                            if (serializer.Value.TryPersist(optionKey, setValue))
+                            // We have a deserializer, so deserialize and use that value.
+                            object deserializedValue;
+                            if (serializer.Value.TryFetch(optionKey, out deserializedValue))
                             {
-                                break;
+                                return deserializedValue;
+                            }
+                        }
+                    }
+
+                    // Just use the default. We will still cache this so we aren't trying to deserialize
+                    // over and over.
+                    return optionKey.Option.DefaultValue;
+                }
+            }
+
+            public IEnumerable<IOption> GetRegisteredOptions()
+            {
+                return _options.Value;
+            }
+
+            public OptionSet GetOptions()
+            {
+                return new WorkspaceOptionSet(this);
+            }
+
+            public T GetOption<T>(Option<T> option)
+            {
+                return (T)GetOption(new OptionKey(option, language: null));
+            }
+
+            public T GetOption<T>(PerLanguageOption<T> option, string language)
+            {
+                return (T)GetOption(new OptionKey(option, language));
+            }
+
+            public object GetOption(OptionKey optionKey)
+            {
+                lock (_gate)
+                {
+                    object value;
+
+                    if (_currentValues.TryGetValue(optionKey, out value))
+                    {
+                        return value;
+                    }
+
+                    value = LoadOptionFromSerializerOrGetDefault(optionKey);
+
+                    _currentValues = _currentValues.Add(optionKey, value);
+
+                    return value;
+                }
+            }
+
+            public void SetOptions(OptionSet optionSet)
+            {
+                if (optionSet == null)
+                {
+                    throw new ArgumentNullException(nameof(optionSet));
+                }
+
+                var workspaceOptionSet = optionSet as WorkspaceOptionSet;
+
+                if (workspaceOptionSet == null)
+                {
+                    throw new ArgumentException(WorkspacesResources.OptionsDidNotComeFromWorkspace, paramName: nameof(optionSet));
+                }
+
+                var changedOptions = new List<OptionChangedEventArgs>();
+
+                lock (_gate)
+                {
+                    foreach (var optionKey in workspaceOptionSet.GetAccessedOptions())
+                    {
+                        var setValue = optionSet.GetOption(optionKey);
+                        object currentValue = this.GetOption(optionKey);
+
+                        if (object.Equals(currentValue, setValue))
+                        {
+                            // Identical, so nothing is changing
+                            continue;
+                        }
+
+                        // The value is actually changing, so update
+                        changedOptions.Add(new OptionChangedEventArgs(optionKey, setValue));
+
+                        _currentValues = _currentValues.SetItem(optionKey, setValue);
+
+                        ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
+                        if (_featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
+                        {
+                            foreach (var serializer in optionSerializers)
+                            {
+                                // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
+                                // feature's serializer should exist in only that language.
+                                if (!SupportedSerializer(optionKey, serializer.Metadata))
+                                {
+                                    continue;
+                                }
+
+                                if (serializer.Value.TryPersist(optionKey, setValue))
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Outside of the lock, raise events
-            var optionChanged = OptionChanged;
-            if (optionChanged != null)
-            {
-                foreach (var changedOption in changedOptions)
+                // Outside of the lock, raise events
+                var optionChanged = OptionChanged;
+                if (optionChanged != null)
                 {
-                    optionChanged(this, changedOption);
+                    foreach (var changedOption in changedOptions)
+                    {
+                        optionChanged(this, changedOption);
+                    }
                 }
             }
-        }
 
-        private static bool SupportedSerializer(OptionKey optionKey, OptionSerializerMetadata metadata)
-        {
-            return optionKey.Language == null || optionKey.Language == metadata.Language;
-        }
+            private static bool SupportedSerializer(OptionKey optionKey, OptionSerializerMetadata metadata)
+            {
+                return optionKey.Language == null || optionKey.Language == metadata.Language;
+            }
 
-        public event EventHandler<OptionChangedEventArgs> OptionChanged;
+            public event EventHandler<OptionChangedEventArgs> OptionChanged;
+        }
     }
 }
