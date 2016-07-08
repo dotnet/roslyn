@@ -61,14 +61,16 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Use Create overload that only takes a single TextChange")]
         public static CompletionChange Create(
             ImmutableArray<TextChange> textChanges,
-            int? newPosition,
-            bool includesCommitCharacter)
+            int? newPosition = null,
+            bool includesCommitCharacter = false)
         {
             return new CompletionChange(textChanges, newPosition, includesCommitCharacter);
         }
 
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static CompletionChange Create(
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 #pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
             TextChange textChange,
             int? newPosition = null,
