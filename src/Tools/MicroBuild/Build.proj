@@ -6,7 +6,7 @@
     <UploadNugets Condition="'$(UploadNuGets)' == ''">true</UploadNugets>
     <UploadVsixes Condition="'$(UploadVsixes)' == ''">true</UploadVsixes>
     <UploadCoreXTPackages Condition="'$(UploadCoreXTPackages)' == ''">true</UploadCoreXTPackages>
-    <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</BranchName>
+    <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
   </PropertyGroup>
 
   <!-- Non-official builds / local testing have different defaults -->
@@ -35,7 +35,7 @@
 
     <!-- Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
          and ready to be inserted -->
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1 -binariesPath &quot;$(ProjectDir)Binaries\$(Configuration)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)stop-compiler-server.ps1" />
 
