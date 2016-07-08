@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var features = new Dictionary<string, object>();
             features.Add("Features", new List<string>(new[] { "Test Features" }));
-            return new OptionServiceFactory.OptionService(new[]
+            return new OptionServiceFactory.OptionService(null, new[]
                 {
                     new Lazy<IOptionProvider>(() => new TestOptionsProvider())
                 },
