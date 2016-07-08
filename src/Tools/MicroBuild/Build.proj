@@ -31,7 +31,7 @@
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
 
-    <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" />
+    <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' == ''" />
 
     <!-- Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
          and ready to be inserted -->
