@@ -8,19 +8,21 @@ If true, upload NuGets to MyGet.
 .PARAMETER UploadVsixes
 If true, upload Vsixes to MyGet.
 
-.PARAMETER BinariesDirectory
+.PARAMETER binariesPath
 The root directory where the build outputs are written.
 
-.PARAMETER BranchName
+.PARAMETER branchName
 The name of the branch that is being built.
+
+.PARAMETER test
+Whether or not to just test this script vs. actually publish
 
 #>
 Param(
-    [boolean]$UploadNuGets=$true,
-    [boolean]$UploadVsixes=$true,
-    [boolean]$UploadCoreXTPackages=$true,
-    [string]$BinariesDirectory,
-    [string]$BranchName
+    [string]$binariesPath,
+    [string]$branchName,
+    [switch]$test
+
 )
 set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
@@ -38,15 +40,15 @@ try
 
     $exitCode = 0
 
-    if ($UploadCoreXTPackages)
+    Write-Host "Uploading CoreXT packages..."
+
+    try
     {
-        Write-Host "Uploading CoreXT packages..."
+        $packagesDropDir = (Join-Path $binariesPath "DevDivPackages")
+        $coreXTRoot = "\\cpvsbuild\drops\dd\NuGet"
 
-        try
+        if (-not $test) 
         {
-            $packagesDropDir = (Join-Path $BinariesDirectory "DevDivPackages")
-            $coreXTRoot = "\\cpvsbuild\drops\dd\NuGet"
-
             <# Do not overwrite existing packages. #>
             robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "VS.ExternalAPIs.Roslyn.*.nupkg"
 
@@ -54,36 +56,36 @@ try
             robocopy /xo /xn /xc (Join-Path $packagesDropDir "Dependencies") $coreXTRoot "VS.ExternalAPIs.*.nupkg"
             robocopy /xo /xn /xc (Join-Path $packagesDropDir "Dependencies") (Join-Path $coreXTRoot "nugetorg") "Microsoft.*.nupkg" "System.*.nupkg" "ManagedEsent.*.nupkg"
         }
-        catch [exception]
-        {
-            Write-Error -Exception $_.Exception
-            $exitCode = 5
-        }
+    }
+    catch [exception]
+    {
+        write-host $_.Exception
+        $exitCode = 5
     }
 
     # We need to remove 'refs/heads/' from the beginning of the string
-    $BranchName = $BranchName -Replace "^refs/heads/"
+    $branchName = $branchName -Replace "^refs/heads/"
     
     # We also need to replace all instances of '/' with '_'
-    $BranchName = $BranchName.Replace("/", "_")
+    $branchName = $branchName.Replace("/", "_")
 
-    if ($UploadNuGets)
+    Write-Host "Uploading NuGet packages..."
+
+    $nugetPath = Join-Path $binariesPath "NuGet\PerBuildPreRelease"
+
+    [xml]$packages = Get-Content "$nugetPath\myget_org-packages.config"
+    $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
+
+    $sourceUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/api/v2/package" -f $branchName)
+    
+    pushd $nugetPath
+    foreach ($package in $packages.packages.package)
     {
-        Write-Host "Uploading NuGet packages..."
+        $nupkg = $package.id + "." + $package.version + ".nupkg"
+        Write-Host "  Uploading '$nupkg' to '$sourceUrl'"
 
-        $nugetPath = Join-Path $BinariesDirectory "NuGet\PerBuildPreRelease"
-
-        [xml]$packages = Get-Content "$nugetPath\myget_org-packages.config"
-        $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
-
-        $sourceUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/api/v2/package" -f $BranchName)
-        
-        pushd $nugetPath
-        foreach ($package in $packages.packages.package)
+        if (-not $test) 
         {
-            $nupkg = $package.id + "." + $package.version + ".nupkg"
-            Write-Host "  Uploading '$nupkg' to '$sourceUrl'"
-
             & "$NuGetExe" push "$nupkg" `
                 -Source $sourceUrl `
                 -ApiKey $apiKey `
@@ -95,26 +97,26 @@ try
                 $exitCode = 3
             }
         }
-        popd
     }
+    popd
 
-    if ($UploadVsixes)
+    Write-Host "Uploading VSIX extensions..."
+
+    $vsixPath = $binariesPath
+
+    [xml]$extensions = Get-Content "$vsixPath\myget_org-extensions.config"
+    $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
+
+    pushd $vsixPath
+    foreach ($extension in $extensions.extensions.extension)
     {
-        Write-Host "Uploading VSIX extensions..."
+        $vsix = $extension.id + ".vsix"
+        $requestUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/vsix/upload" -f $branchName)
+        
+        Write-Host "  Uploading '$vsix' to '$requestUrl'"
 
-        $vsixPath = $BinariesDirectory
-
-        [xml]$extensions = Get-Content "$vsixPath\myget_org-extensions.config"
-        $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
-
-        pushd $vsixPath
-        foreach ($extension in $extensions.extensions.extension)
-        {
-            $vsix = $extension.id + ".vsix"
-            $requestUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/vsix/upload" -f $BranchName)
-            
-            Write-Host "  Uploading '$vsix' to '$requestUrl'"
-
+        if (-not $test)
+        { 
             $response = Invoke-WebRequest -Uri $requestUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
             if ($response.StatusCode -ne 201)
             {
@@ -122,8 +124,8 @@ try
                 $exitCode = 4
             }
         }
-        popd
     }
+    popd
 
     Write-Host "Completed PostTest script with an exit code of '$exitCode'"
 
@@ -131,6 +133,6 @@ try
 }
 catch [exception]
 {
-    Write-Error -Exception $_.Exception
+    write-host $_.Exception
     exit -1
 }
