@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             (object)this.Method != null &&
             this.ReceiverOpt != null &&
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
-            (object)this.Method.ReplacedBy == null &&
             !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
@@ -205,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
         {
-            int argumentIndex = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
+            int argumentIndex = ArgumentIndexMatchingParameter(argumentsToParameters, targetMethod, parameter);
             if (argumentIndex >= 0)
             {
                 return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static int ArgumentIndexMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ISymbol targetMethod, IParameterSymbol parameter)
+        private static int ArgumentIndexMatchingParameter(ImmutableArray<int> argumentsToParameters, ISymbol targetMethod, IParameterSymbol parameter)
         {
             if (parameter.ContainingSymbol == targetMethod)
             {
@@ -443,7 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IMethodBindingExpression.IsVirtual =>
             (object)this.MethodOpt != null &&
             (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
-            (object)this.MethodOpt.ReplacedBy == null &&
             !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
@@ -751,7 +749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = this.SymbolOpt;
                 return (object)method != null &&
                     (method.IsAbstract || method.IsOverride || method.IsVirtual) &&
-                    (object)method.ReplacedBy == null &&
                     !this.SuppressVirtualCalls;
             }
         }

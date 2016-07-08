@@ -2687,7 +2687,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<TypeSymbol> InferTypeArgumentsFromFirstArgument(
             ConversionsBase conversions,
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

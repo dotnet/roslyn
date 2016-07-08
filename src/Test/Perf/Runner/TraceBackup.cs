@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using static Roslyn.Test.Performance.Runner.Tools;
-using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using System.IO;
 
@@ -10,7 +9,6 @@ namespace Roslyn.Test.Performance.Runner
 {
     public static class TraceBackup
     {
-
         public static void UploadTraces(string sourceFolderPath, string destinationFolderPath)
         {
             if (Directory.Exists(sourceFolderPath))

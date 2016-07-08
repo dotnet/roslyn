@@ -1356,6 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // gap here; available 8122-8199
 
         #region tuple diagnostics introduced in C# 7
+        // tuple related errors
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleReservedMemberNameAnyPosition = 8202,

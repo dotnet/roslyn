@@ -425,9 +425,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Currently projects can always be removed, but this method still exists because it's protected and we don't
+        /// want to break people who may have derived from <see cref="Workspace"/> and either called it, or overridden it.
+        /// </summary>
         protected virtual void CheckProjectCanBeRemoved(ProjectId projectId)
         {
-            CheckProjectDoesNotContainOpenDocuments(projectId);
         }
 
         /// <summary>
@@ -615,45 +618,6 @@ namespace Microsoft.CodeAnalysis
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
-        }
-
-        /// <summary>
-        /// Call this method when generated documents may have changed in a project in the host environment.
-        /// </summary>
-        protected internal void UpdateGeneratedDocumentsIfNecessary(ProjectId projectId)
-        {
-            ImmutableArray<DocumentInfo> documentsRemoved;
-            ImmutableArray<DocumentInfo> documentsAdded;
-
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var solution = this.CurrentSolution;
-                var projectInfo = solution.GetProjectState(projectId).ProjectInfo;
-                var oldDocuments = projectInfo.Documents.Where(d => d.IsGenerated).ToImmutableArray();
-                var newDocuments = solution.GetGeneratedDocuments(projectId);
-                var oldDocumentPaths = GetFilePaths(oldDocuments);
-                var newDocumentPaths = GetFilePaths(newDocuments);
-
-                documentsRemoved = oldDocuments.WhereAsArray(d => !newDocumentPaths.Contains(d.FilePath));
-                documentsAdded = newDocuments.WhereAsArray(d => !oldDocumentPaths.Contains(d.FilePath));
-
-                foreach (var info in documentsRemoved)
-                {
-                    OnDocumentRemoved_NoLock(info.Id);
-                }
-                foreach (var info in documentsAdded)
-                {
-                    OnDocumentAdded_NoLock(info);
-                }
-            }
-
-            UpdateGeneratedDocuments(projectId, documentsRemoved, documentsAdded);
-        }
-
-        protected virtual void UpdateGeneratedDocuments(ProjectId projectId, ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
-        {
         }
 
         private static ImmutableHashSet<string> GetFilePaths(ImmutableArray<DocumentInfo> documents)
