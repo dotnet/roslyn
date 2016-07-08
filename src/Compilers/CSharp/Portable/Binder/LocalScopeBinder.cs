@@ -233,7 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new LocalFunctionSymbol(
                 this,
-                this.ContainingType,
                 this.ContainingMemberOrLambda,
                 declaration);
         }

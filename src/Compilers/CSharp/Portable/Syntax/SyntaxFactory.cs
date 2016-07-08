@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(string name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
         {
-            return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, textTokens);
+            return XmlTextAttribute(XmlName(name), quoteKind, textTokens);
         }
 
         /// <summary>

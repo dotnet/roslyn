@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Stand-Alone Code Analysis Tool</Name>
+    <Description>Create a code analysis command-line application</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType></ProjectSubType>
+    <SortOrder>950</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>ConsoleApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>CodeAnalysisConsole.ico</Icon>
+    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ConsoleApplication.csproj" TargetFileName="$projectname$.csproj" ReplaceParameters="true">
+      <Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem ReplaceParameters="true" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Program.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+    <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension"
+              repositoryId="3a012d4e-6057-4e7c-8123-6d4be1d4723c">
+      <package id="Microsoft.CodeAnalysis.Analyzers" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Common" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.CSharp" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Workspaces.Common" version="0.7.0-beta" skipAssemblyReferences="false" />
+      <package id="System.Collections.Immutable" version="1.1.34-rc" skipAssemblyReferences="false" />
+      <package id="System.Reflection.Metadata" version="1.0.19-rc" skipAssemblyReferences="false" />
+      <package id="Microsoft.Composition" version="1.0.27" skipAssemblyReferences="false" />
+    </packages>
+  </WizardData>
+</VSTemplate>

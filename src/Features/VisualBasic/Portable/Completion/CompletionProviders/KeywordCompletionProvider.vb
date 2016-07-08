@@ -171,5 +171,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
             }.ToImmutableArray()
         End Function
+
+        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
+            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
+        End Function
     End Class
 End Namespace

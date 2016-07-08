@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Allows underscores in integers, except at beginning and end
-        private void ScanNumericLiteralSingleInteger(StringBuilder builder, ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
+        private void ScanNumericLiteralSingleInteger(ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
         {
             if (TextWindow.PeekChar() == '_')
             {
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
+                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
                 {
@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
 
                 if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
                 {
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
 
-                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                     }
                     else if (_builder.Length == 0)
                     {
@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                     }
                 }
 

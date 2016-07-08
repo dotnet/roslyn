@@ -108,5 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
         }
+
+        internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);
     }
 }
