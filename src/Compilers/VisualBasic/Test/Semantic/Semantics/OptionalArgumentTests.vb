@@ -1267,7 +1267,7 @@ End Interface
 
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         <Fact()>
-        Public Sub Bug578129()
+        Public Sub Bug578129_A()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1323,6 +1323,61 @@ BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
 ]]></expected>)
+        End Sub
+        <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
+        <Fact()>
+        Public Sub Bug578129_B()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Partial Class PC2 ' attributes on implementation
+    Partial Private Sub VerifyCallerInfo(
+            expectedPath As String,
+            expectedLine As String,
+            expectedMember As String,
+            Optional f A String = "",
+            Optional l As Integer = -1,
+            Optional m As String )
+    End Sub
+End Class
+Partial Class PC2
+    Private Sub VerifyCallerInfo(
+            expectedPath As String,
+            expectedLine As String,
+            expectedMember As String,
+            <CallerFilePath> Optional f As String = "",
+            <CallerLineNumber> Optional l As Integer = -1,
+            <CallerMemberName> Optional m As String)
+        Console.WriteLine("callerinfo: ({0}, {1}, {2})", "[...]", l, m)
+    End Sub
+ 
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll.WithParseOptions(MyParseOptions))
+
+            AssertTheseDiagnostics(comp,
+"BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
+            Optional f A String = """",
+                     ~
+BC30213: Comma or ')' expected.
+            Optional f A String = """",
+                       ~
+BC30002: Type 'CallerFilePath' is not defined.
+            <CallerFilePath> Optional f As String = """",
+             ~~~~~~~~~~~~~~
+BC30002: Type 'CallerLineNumber' is not defined.
+            <CallerLineNumber> Optional l As Integer = -1,
+             ~~~~~~~~~~~~~~~~
+BC30002: Type 'CallerMemberName' is not defined.
+            <CallerMemberName> Optional m As String)
+             ~~~~~~~~~~~~~~~~"
+)
         End Sub
 
         <Fact()>
@@ -2037,7 +2092,7 @@ Void Main() - 10, Main, a.vb
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
-        Public Sub CallerInfo5()
+        Public Sub CallerInfo5_A()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2095,9 +2150,69 @@ End Class
 ]]>)
         End Sub
 
+        'TODO: FIX
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
-        Public Sub CallerInfo6()
+        Public Sub CallerInfo5_B()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    ReadOnly Property P As C
+        Get
+            Return Me
+        End Get
+    End Property
+    Default ReadOnly Property Q(index As Integer, <CallerLineNumber> Optional line As Integer) As C
+        Get
+            Console.WriteLine("{0}: {1}", index, line)
+            Return Me
+        End Get
+    End Property
+    Function F(Optional id As Integer = 0, <CallerLineNumber> Optional line As Integer) As C
+        Console.WriteLine("{0}: {1}", id, line)
+        Return Me
+    End Function
+    Shared Sub Main()
+        Dim c = New C()
+        c.F(1).
+          F
+        c = c(
+           2
+          )(3)
+        c = c.
+          F(
+           4
+          ).
+          P(5)
+        Dim o As Object = c
+        o =
+          DirectCast(o, C)(
+           6
+          )
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithParseOptions(MyParseOptions))
+            CompileAndVerify(compilation,
+            <![CDATA[
+1: 21
+0: 22
+2: 23
+3: 23
+4: 27
+5: 30
+6: 33
+]]>)
+        End Sub
+        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
+        <Fact()>
+        Public Sub CallerInfo6_A()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2130,6 +2245,40 @@ y: 15
 ]]>)
         End Sub
 
+        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
+        <Fact()>
+        Public Sub CallerInfo6_B()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Function F() As C
+        Return Me
+    End Function
+    Default ReadOnly Property P(s As String, <CallerLineNumber> Optional line As Integer = 0) As C
+        Get
+            Console.WriteLine("{0}: {1}", s, line)
+            Return Me
+        End Get
+    End Property
+    Shared Sub Main()
+        Dim c = (New C())!x.
+            F()!y
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithParseOptions(MyParseOptions))
+            CompileAndVerify(compilation,
+            <![CDATA[
+x: 14
+y: 15
+]]>)
+        End Sub
         <Fact()>
         Public Sub CallerInfo7_A()
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
@@ -2180,6 +2329,7 @@ public delegate void D(object o = null, [CallerLineNumber]int line = 0);
                 referencedAssemblies:=New MetadataReference() {MscorlibRef_v4_0_30316_17626})
             compilation1.VerifyDiagnostics()
             Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
+
             Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
@@ -2202,6 +2352,7 @@ End Class
                     </file>
                 </compilation>,
                 options:=TestOptions.ReleaseExe.WithParseOptions(MyParseOptions),
+                parseOptions:=MyParseOptions,
                 additionalRefs:={reference1})
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -2209,8 +2360,9 @@ End Class
 12
 ]]>)
         End Sub
+
         <Fact>
-        Public Sub TestCallerFilePath1()
+        Public Sub TestCallerFilePath1_A()
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2261,6 +2413,68 @@ End Module
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default))
+
+            CompileAndVerify(compilation, expectedOutput:="
+1: 'C:\filename'
+2: 'a\b\..\c\d'
+3: '*'
+4: '       '
+")
+        End Sub
+
+        ' TODO: FIX
+        <Fact>
+        Public Sub TestCallerFilePath1_B()
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+Imports System
+
+Partial Module A
+    Dim i As Integer
+
+    Sub Log(<CallerFilePath> Optional filePath As String)
+        i = i + 1
+        Console.WriteLine(""{0}: '{1}'"", i, filePath)
+    End Sub
+
+    Sub Main()
+        Log()
+        Main2()
+        Main3()
+        Main4()
+    End Sub
+End Module"
+
+            Dim source2 = "
+Partial Module A 
+    Sub Main2() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source3 = "
+Partial Module A 
+    Sub Main3() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source4 = "
+Partial Module A 
+    Sub Main4() 
+        Log()
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilationWithReferences(
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
+                },
+                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(MyParseOptions))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: 'C:\filename'
@@ -2345,7 +2559,7 @@ End Module
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
                     searchPaths:=ImmutableArray(Of String).Empty,
                     baseDirectory:="C:\A\B",
-                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))))
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(MyParseOptions))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: '/X/filename'
@@ -2355,6 +2569,8 @@ End Module
 5: '     '
 ")
         End Sub
+
+        ' TODO: Figure out the correct incantation for the overload to work.
         <Fact>
         Public Sub TestCallerFilePath2_B()
             Dim source1 = "
@@ -2424,8 +2640,8 @@ End Module
                     SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
                     SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
                     SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
-                },
-                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                }.AsEnumerable,
+                {MscorlibRef_v4_0_30316_17626, MsvbRef}.AsEnumerable,
                  options:=TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
                     searchPaths:=ImmutableArray(Of String).Empty,
                     baseDirectory:="C:\A\B",

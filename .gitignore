@@ -177,3 +177,4 @@ $RECYCLE.BIN/
 .vscode/
 /ErrorReporter.exe
 /errors.txt
+/Roslyn-ErrorReport.exe

@@ -9,9 +9,11 @@ Imports Roslyn.Test.Utilities
 Public Class ParseMethods
     Inherits BasicTestBase
 
+    Private MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+
     <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseSub()
+    Public Sub ParseSub_A()
         ParseAndVerify(<![CDATA[
             class c1
                 public Sub Foo()
@@ -37,7 +39,35 @@ Public Class ParseMethods
 
     <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseFunction()
+    Public Sub ParseSub_B()
+        ParseAndVerify(<![CDATA[
+            class c1
+                public Sub Foo()
+                end sub
+            end class
+            Module Module1
+                Sub Foo()
+                end sub
+                Sub Foo (i as integer)
+                end sub
+                Sub Foo (byval i as Integer, byval s as string)
+                end sub
+                Sub Foo (byref i as long, optional j as integer = 0)
+                end sub
+               Sub Foo (byref i as long, optional j as integer)
+                end sub
+                Sub Foo (s as string, paramarray t as integer())
+                end sub
+                Sub Foo(of T1, T2, T3)(a as T1, b as T2, c as T3)
+                end sub
+            End Module
+        ]]>, MyParseOptions).
+        TraverseAllNodes()
+    End Sub
+
+    <WorkItem(917272, "DevDiv/Personal")>
+    <Fact>
+    Public Sub ParseFunction_A()
         ParseAndVerify(<![CDATA[
                 Module Module1
                     Function Foo() as integer
@@ -56,9 +86,31 @@ Public Class ParseMethods
         ]]>).
         TraverseAllNodes()
     End Sub
-
+    <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseProperty()
+    Public Sub ParseFunction_B()
+        ParseAndVerify(<![CDATA[
+                Module Module1
+                    Function Foo() as integer
+                    end function
+                    Function Foo (i as integer) as integer
+                    end function
+                    Function Foo (byval i as Integer, byval s as string) as integer
+                    end function
+                    Function Foo (byref i as long, optional j as integer = 0) as integer
+                    end function
+                    Function Foo (byref i as long, optional j as integer = 0) as integer
+                    end function
+                    Function Foo (s as string, paramarray t as integer()) as integer
+                    end function
+                    Function Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
+                    end function
+                End Module
+        ]]>, MyParseOptions).
+        TraverseAllNodes()
+    End Sub
+    <Fact>
+    Public Sub ParseProperty_A()
         ParseAndVerify(<![CDATA[
             Module Module1
                 Property Foo As Integer
@@ -86,6 +138,29 @@ Public Class ParseMethods
         'End Property
         'Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
         'End Property
+    End Sub
+    <Fact>
+    Public Sub ParseProperty_B()
+        ParseAndVerify(<![CDATA[
+            Module Module1
+                Property Foo As Integer
+                    Get 
+                    End Get
+                    Set(ByVal value As Integer)
+                    End Set
+                End Property
+                Property Foo (i as integer) as integer
+                End Property
+                Property Foo(ByVal i As Integer, ByVal s As String) As Integer
+                End Property
+                Property Foo(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
+                End Property
+                 Property Foo(ByRef i As Long, Optional ByVal j As Integer) As Integer
+                End Property
+                Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
+                End Property
+            End Module
+        ]]>, MyParseOptions)
     End Sub
 
     <Fact>
@@ -122,7 +197,7 @@ Public Class ParseMethods
     End Sub
 
     <Fact>
-    Public Sub ParseOperator()
+    Public Sub ParseOperator_A()
         ParseAndVerify(<![CDATA[
             Module Module1
                 Class c1
@@ -137,6 +212,25 @@ Public Class ParseMethods
                 End Class
             End Module
         ]]>)
+    End Sub
+    <Fact>
+    Public Sub ParseOperator_B()
+        ParseAndVerify(<![CDATA[
+            Module Module1
+                Class c1
+                    Operator +(ByVal a As Integer, ByVal b As Integer) As Integer
+                    End Operator
+                    Operator +(ByVal i As Integer, ByVal s As String) As Integer
+                    End Operator
+                    Operator +(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
+                    End Operator
+                    Operator +(ByRef i As Long, Optional ByVal j As Integer) As Integer
+                    End Operator
+                    Operator +(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
+                    End Operator
+                End Class
+            End Module
+        ]]>, MyParseOptions)
     End Sub
 
     <Fact>
