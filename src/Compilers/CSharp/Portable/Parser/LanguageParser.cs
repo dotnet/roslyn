@@ -8558,7 +8558,6 @@ tryAgain:
         /// <summary>
         /// Check ahead for a deconstruction declaration. This requires at least one good-looking variable and the presence of an equals sign.
         /// Doesn't move the cursor.
-        /// PROTOTYPE(tuples) Can this be done without allocations?
         /// </summary>
         private bool IsPossibleDeconstructionDeclaration()
         {

@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var variable in variables)
             {
-                // PROTOTYPE(tuples) should the dynamic flag always be false?
                 lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: false));
             }
 

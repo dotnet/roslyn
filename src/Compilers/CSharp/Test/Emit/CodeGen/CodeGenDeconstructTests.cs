@@ -2484,7 +2484,8 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12400")]
+        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
             string source = @"
@@ -2513,7 +2514,8 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples) we expect "2 hello" instead, which means the evaluation order is wrong
+            // https://github.com/dotnet/roslyn/issues/12400
+            // we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
