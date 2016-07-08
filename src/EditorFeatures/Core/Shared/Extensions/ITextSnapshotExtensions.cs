@@ -14,33 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextSnapshotExtensions
     {
-#if false
-        /// <summary>
-        /// get Document corresponding to the snapshot
-        /// </summary>
-        public static bool TryGetDocument(this ITextSnapshot snapshot, out Document document)
-        {
-            document = snapshot.AsText().GetRelatedDocumentsWithChanges().FirstOrDefault();
-            return document != null;
-        }
-#endif
-
-        /// <summary>
-        /// format given snapshot and apply text changes to buffer
-        /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, CancellationToken cancellationToken)
-        {
-            snapshot.FormatAndApplyToBuffer(new TextSpan(0, snapshot.Length), rules: null, cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// format given snapshot and apply text changes to buffer
-        /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
-        {
-            snapshot.FormatAndApplyToBuffer(new TextSpan(0, snapshot.Length), rules, cancellationToken);
-        }
-
         /// <summary>
         /// format given snapshot and apply text changes to buffer
         /// </summary>
@@ -63,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             rules = GetFormattingRules(document, rules, span);
 
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(span), document.Project.Solution.Workspace, options: null, rules: rules, cancellationToken: cancellationToken);
+            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(span), document.Project.Solution.Workspace, document.Options, rules, cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {

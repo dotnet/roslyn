@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (!_bestResultState.HasValue())
-                {
-                    _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
-                }
+                EnsureBestResultLoaded();
 
                 return _bestResultState == ThreeState.True && _bestResult.Result.IsValid;
             }
@@ -61,8 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 Debug.Assert(_bestResultState == ThreeState.True && _bestResult.Result.IsValid);
                 return _bestResult;
+            }
+        }
+
+        private void EnsureBestResultLoaded()
+        {
+            if (!_bestResultState.HasValue())
+            {
+                _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
             }
         }
 
@@ -76,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 Debug.Assert(_bestResultState == ThreeState.True);
                 return _bestResult;
             }
@@ -85,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 return _bestResultState.Value();
             }
         }
@@ -193,6 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion = false) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
+
+            // Each argument must have non-null Display in case it is used in a diagnostic.
+            Debug.Assert(arguments.Arguments.All(a => a.Display != null));
 
             // This kind is only used for default(MemberResolutionResult<T>), so we should never see it in
             // the candidate list.
@@ -910,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".
-            if (!argument.HasExpressionType())
+            if (!argument.HasExpressionType() && argument.Kind != BoundKind.OutVarLocalPendingInference)
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -957,6 +971,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(argument.Kind != BoundKind.OutVarLocalPendingInference);
+
                 TypeSymbol argType = argument.Display as TypeSymbol;
                 Debug.Assert((object)argType != null);
 

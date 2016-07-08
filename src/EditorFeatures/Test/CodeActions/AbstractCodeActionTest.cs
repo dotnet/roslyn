@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,13 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -23,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public abstract class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
-        protected abstract object CreateCodeRefactoringProvider(Workspace workspace);
+        protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace);
 
         protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData)
@@ -40,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             var provider = CreateCodeRefactoringProvider(workspace);
             return SpecializedCollections.SingletonEnumerable(
-                await GetCodeRefactoringAsync((CodeRefactoringProvider)provider, workspace));
+                await GetCodeRefactoringAsync(provider, workspace));
         }
 
         private async Task<CodeRefactoring> GetCodeRefactoringAsync(
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            applyChangesOperation.Apply(workspace, CancellationToken.None);
+            applyChangesOperation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {
@@ -92,10 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
                 var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
-                var diffView = content as IWpfDifferenceViewer;
-                Assert.NotNull(diffView);
-                var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                diffView.Close();
+                var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
+                var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
+                diffView.Dispose();
 
                 Assert.Equal(expectedPreviewContents, previewContents);
             }

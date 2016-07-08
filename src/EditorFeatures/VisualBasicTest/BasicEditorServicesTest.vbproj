@@ -28,6 +28,10 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Moq.net\Moq.net.csproj">
+      <Project>{a32eab7f-691c-4d00-98c4-f50c37bb4754}</Project>
+      <Name>Moq.net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
       <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
       <Name>InteractiveEditorFeatures</Name>
@@ -87,27 +91,6 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -143,16 +126,19 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
+    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.vb" />
+    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
     <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
     <Compile Include="CodeActions\Preview\PreviewTests.vb" />
+    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
+    <Compile Include="Completion\CompletionServiceTests.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
@@ -202,6 +188,8 @@
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
@@ -517,10 +505,10 @@
     <None Include="PerfTests\BasicPerfGoldilocksTyping.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\BasicPerfGoldilocksTypingDiagnostics.xml">
+    <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnostics.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\BasicPerfGoldilocksTypingDiagnosticsMultipliedDelay.xml">
+    <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsMultipliedDelay.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PerfTests\BasicPerfNavigateTo.xml" />
@@ -599,14 +587,11 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PerfTests\BasicPerfGoldilocksTypingAnalyzers.xml">
+    <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\BasicPerfDiagnosticInsideMethodBody.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\BasicPerfDiagnosticTopLevel.xml">
+    <None Include="PerfTests\BasicPerfFullSolutionDiagnostics.xml">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -614,6 +599,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.vb" />
+    <None Include="PerfTests\BasicPerfFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PerfTests\BasicPerfBuildWithThirdPartyAnalyzers.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

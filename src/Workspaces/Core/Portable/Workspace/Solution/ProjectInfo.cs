@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var constructorSyntaxes = GetConstructorNodes(field.ContainingType).ToSet();
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
-                    solution = await Renamer.RenameSymbolAsync(solution, field, finalFieldName, solution.Workspace.Options,
+                    solution = await Renamer.RenameSymbolAsync(solution, field, finalFieldName, solution.Options,
                         location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
                     document = solution.GetDocument(document.Id);
 
@@ -248,13 +249,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Workspace.Options,
+                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options,
                     location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Just rename everything.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -331,8 +332,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         protected IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
         {
+            var value = !field.IsStatic
+                ? factory.MemberAccessExpression(
+                    factory.ThisExpression(),
+                    factory.IdentifierName(originalFieldName))
+                : factory.IdentifierName(originalFieldName);
+
             var body = factory.ReturnStatement(
-                factory.IdentifierName(originalFieldName));
+                value.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(),
                 Accessibility.NotApplicable,
@@ -360,9 +367,11 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             // Make the first character upper case using the "en-US" culture.  See discussion at
             // https://github.com/dotnet/roslyn/issues/5524.
-            var firstCharacter = CompletionRules.EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
+            var firstCharacter = EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
             return firstCharacter.ToString() + baseName.Substring(1);
         }
+
+        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);

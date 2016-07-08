@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using VisualStudioIndicator = Microsoft.VisualStudio.Language.Intellisense.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -27,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             _waitContext = waitContext;
         }
 
-        IWaitContext IWaitIndicator.StartWait(string title, string message, bool allowCancel)
+        IWaitContext IWaitIndicator.StartWait(string title, string message, bool allowCancel, bool showProgress)
         {
             return _waitContext;
         }
 
-        WaitIndicatorResult IWaitIndicator.Wait(string title, string message, bool allowCancel, Action<IWaitContext> action)
+        WaitIndicatorResult IWaitIndicator.Wait(string title, string message, bool allowCancel, bool showProgress, Action<IWaitContext> action)
         {
             try
             {
@@ -71,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             {
                 get { return CancellationToken.None; }
             }
+
+            public IProgressTracker ProgressTracker { get; } = new ProgressTracker();
 
             public void UpdateProgress()
             {

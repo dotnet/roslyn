@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 commonReferences ? new XAttribute(CommonReferencesAttributeName, true) : null,
                 parseOptions == null ? null : CreateLanguageVersionAttribute(parseOptions),
                 parseOptions == null ? null : CreateDocumentationModeAttribute(parseOptions),
+                parseOptions == null ? null : CreateFeaturesAttribute(parseOptions),
                 compilationOptions == null ? null : CreateCompilationOptionsElement(compilationOptions),
                 elements);
         }
@@ -48,6 +49,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 return null;
             }
+        }
+
+        private static XAttribute CreateFeaturesAttribute(ParseOptions parseOptions)
+        {
+            if (parseOptions.Features == null || parseOptions.Features.Count == 0)
+            {
+                return null;
+            }
+
+            var value = string.Join(";", parseOptions.Features.Select(p => $"{p.Key}={p.Value}"));
+            return new XAttribute(FeaturesAttributeName, value);
         }
 
         private static XAttribute CreateDocumentationModeAttribute(ParseOptions parseOptions)

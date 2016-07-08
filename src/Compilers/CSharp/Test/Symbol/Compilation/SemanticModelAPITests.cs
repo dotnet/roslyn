@@ -1550,7 +1550,7 @@ class C
             Assert.Equal(SymbolKind.Local, info2.Symbol.Kind);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8778")]
         public void TestGetSpeculativeSemanticModelForStatement_DeclaredLocal()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1754,7 +1754,7 @@ foreach(short ele in a)
     int X { get; } = 1;
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
             var tree = comp.SyntaxTrees.Single();
 
             var model = comp.GetSemanticModel(tree);
@@ -1980,7 +1980,7 @@ class C
             Assert.Throws<InvalidOperationException>(() => speculativeModel.TryGetSpeculativeSemanticModel(speculatedStatement.SpanStart, newSpeculatedStatement, out newModel));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8778")]
         public void TestGetSpeculativeSemanticModelInsideUnsafeCode()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -2099,6 +2099,32 @@ class C
             Assert.NotNull(speculativeModel);
 
             VerifySpeculativeSemanticModelForMethodBody(blockStatement, speculativeModel);
+        }
+
+        [Fact()]
+        [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
+        public void GetDependenceChainRegression_10211_working()
+        {
+            var compilation = CreateCompilation(@"
+class Parent {}
+class Child : Parent {}
+");
+            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            // Ensure that we don't crash here.
+            semanticModel.GetMethodBodyDiagnostics();
+        }
+
+        [Fact()]
+        [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
+        public void GetDependenceChainRegression_10211()
+        {
+            var compilation = CreateCompilation(@"
+class Child : Parent {}
+class Parent {}
+");
+            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            // Ensure that we don't crash here.
+            semanticModel.GetMethodBodyDiagnostics();
         }
 
         private static void VerifySpeculativeSemanticModelForMethodBody(BlockSyntax blockStatement, SemanticModel speculativeModel)

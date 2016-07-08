@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 responseFile,
                 workingDirectory ?? AppContext.BaseDirectory,
                 null,
+                AppContext.BaseDirectory,
                 args ?? s_defaultArgs,
                 new NotImplementedAnalyzerLoader());
 
@@ -79,6 +80,10 @@ Type ""#help"" for more information.
 . select x * x
 Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                @"(1,19): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.",
+                runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -185,6 +190,11 @@ Type ""#help"" for more information.
   + Submission#0.div(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
+
+            Assert.Equal(
+$@"{new System.DivideByZeroException().Message}
+  + Submission#0.div(int, int)
+", runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -211,6 +221,11 @@ Type ""#help"" for more information.
   + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
+
+            Assert.Equal(
+$@"{new System.DivideByZeroException().Message}
+  + Submission#0.C<T>.div<U>(int, int)
+", runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -241,9 +256,9 @@ Type ""#help"" for more information.
 
             runner.RunInteractive();
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"error CS2001: Source file '{Path.Combine(AppContext.BaseDirectory, "@arg1")}' could not be found.",
-                runner.Console.Out.ToString());
+            var error = $@"error CS2001: Source file '{Path.Combine(AppContext.BaseDirectory, "@arg1")}' could not be found.";
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -389,9 +404,9 @@ $@"""@arg1""
 
             Assert.Equal(1, runner.RunInteractive());
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-error CS2001: Source file '{Path.Combine(AppContext.BaseDirectory, "a + b")}' could not be found.
-", runner.Console.Out.ToString());
+            var error = $@"error CS2001: Source file '{Path.Combine(AppContext.BaseDirectory, "a + b")}' could not be found.";
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -431,9 +446,9 @@ Options:
 
             Assert.Equal(1, runner.RunInteractive());
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
-error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
-", runner.Console.Out.ToString());
+            const string error = @"error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)";
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -453,6 +468,10 @@ Type ""#help"" for more information.
 (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
 «Gray»
 > ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)",
+                runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -574,6 +593,10 @@ SearchPaths {{ }}
 1
 > 
 ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                @"(1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.",
+                runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -609,6 +632,10 @@ SearchPaths {{ }}
 C {{ }}
 > 
 ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                @"(1,1): error CS0006: Metadata file 'C.dll' could not be found",
+                runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -689,6 +716,10 @@ int X = 1;
 C {{ }}
 > 
 ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $@"{init.Path}(2,3): error CS1002: ; expected",
+                runner.Console.Error.ToString());
         }
 
         [Fact]
@@ -789,6 +820,36 @@ Type ""#help"" for more information.
 Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBase1.Path}'. A different assembly with the same name and version can't be loaded: '{fileBase2.Path}'.
 «Gray»
 > ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        public void PreservingDeclarationsOnException()
+        {
+            var runner = CreateRunner(input:
+@"int i = 100;
+int j = 20; throw new System.Exception(""Bang!""); int k = 3;
+i + j + k
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> int i = 100;
+> int j = 20; throw new System.Exception(""Bang!""); int k = 3;
+«Red»
+Bang!
+«Gray»
+> i + j + k
+120
+> ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                @"Bang!",
+                runner.Console.Error.ToString());
         }
     }
 }

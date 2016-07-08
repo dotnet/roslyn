@@ -21,12 +21,15 @@ Supported Platforms:
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <serviceable>true</serviceable>
   </metadata>
   <files>
     <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.dll" target="lib\portable-net45+win8" />
     <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.xml" target="lib\portable-net45+win8" />
     <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.dll" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.xml" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.dll" target="lib\netstandard1.3" />
+    <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

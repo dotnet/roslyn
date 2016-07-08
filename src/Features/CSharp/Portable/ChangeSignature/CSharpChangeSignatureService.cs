@@ -23,9 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
-        public override ISymbol GetInvocationSymbol(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
+        public override async Task<ISymbol> GetInvocationSymbolAsync(
+            Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
             var ancestorDeclarationKinds = restrictToDeclarations ? _invokableAncestorKinds.Add(SyntaxKind.Block) : _invokableAncestorKinds;
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         .WithLeadingTrivia(lambda.Parameter.GetLeadingTrivia())
                         .WithTrailingTrivia(lambda.Parameter.GetTrailingTrivia());
 
-                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.Body);
+                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.RefKeyword, lambda.Body);
                 }
             }
 

@@ -5,10 +5,12 @@ using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
 using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Emit
         protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
         protected abstract ITypeSymbol TryGetStateMachineType(EntityHandle methodHandle);
 
-        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method, IMethodSymbol topLevelMethod)
+        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             // Top-level methods are always included in the semantic edit list. Lambda methods are not.
             MappedMethod mappedMethod;
@@ -224,7 +226,22 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var debugInfo = baseline.DebugInformationProvider(previousHandle);
+                EditAndContinueMethodDebugInformation debugInfo;
+                try
+                {
+                    debugInfo = baseline.DebugInformationProvider(previousHandle);
+                }
+                catch (InvalidDataException)
+                {
+                    // TODO: localize message & use better error code (https://github.com/dotnet/roslyn/issues/11512): 
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(
+                        MessageProvider.ERR_ModuleEmitFailure,
+                        method.Locations.First(),
+                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " + 
+                        $"from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
+
+                    return null;
+                }
 
                 methodId = new DebugId(debugInfo.MethodOrdinal, 0);
 
@@ -249,6 +266,31 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 else
                 {
+                    // If the current method is async/iterator then either the previous method wasn't declared as async/iterator and it's updated to be one,
+                    // or it was but is not marked by the corresponding state machine attribute because it was missing in the compilation. 
+                    // In the later case we need to report an error since we don't known how to map to the previous state machine.
+
+                    // The IDE already checked that the attribute type is present in the base compilation, but didn't validate that it is well-formed.
+                    // We don't have the base compilation to directly query for the attribute, only the source compilation. 
+                    // But since constructor signatures can't be updated during EnC we can just check the current compilation.
+
+                    if (method.IsAsync)
+                    {
+                        if (compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor) == null)
+                        {
+                            ReportMissingStateMachineAttribute(diagnostics, method, AttributeDescription.AsyncStateMachineAttribute.FullName);
+                            return null;
+                        }
+                    }
+                    else if (method.IsIterator)
+                    {
+                        if (compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor) == null)
+                        {
+                            ReportMissingStateMachineAttribute(diagnostics, method, AttributeDescription.IteratorStateMachineAttribute.FullName);
+                            return null;
+                        }
+                    }
+
                     previousLocals = TryGetLocalSlotMapFromMetadata(previousHandle, debugInfo);
                     if (previousLocals.IsDefault)
                     {
@@ -261,7 +303,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EncVariableSlotAllocator(
-                MessageProvider,
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,
@@ -274,6 +315,15 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalMap,
                 awaiterSlotCount,
                 awaiterMap);
+        }
+
+        private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
+        {
+            diagnostics.Add(MessageProvider.CreateDiagnostic(
+                MessageProvider.ERR_EncUpdateFailedMissingAttribute,
+                method.Locations.First(), 
+                MessageProvider.GetErrorDisplayString(method),
+                stateMachineAttributeFullName));
         }
 
         private static void MakeLambdaAndClosureMaps(

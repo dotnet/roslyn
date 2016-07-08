@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private ReadOnlyCollection<DescriptionItem> CreateDescriptionItems()
             {
                 var document = _searchResult.NavigableItem.Document;
+                if (document == null)
+                {
+                    return new List<DescriptionItem>().AsReadOnly();
+                }
+
                 var sourceText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
                 var items = new List<DescriptionItem>
@@ -117,6 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public void NavigateTo()
             {
                 var document = _searchResult.NavigableItem.Document;
+                if (document == null)
+                {
+                    return;
+                }
+
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
@@ -129,6 +139,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public int GetProvisionalViewingStatus()
             {
                 var document = _searchResult.NavigableItem.Document;
+                if (document == null)
+                {
+                    return 0;
+                }
+
                 var workspace = document.Project.Solution.Workspace;
                 var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 
@@ -138,6 +153,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public void PreviewItem()
             {
                 var document = _searchResult.NavigableItem.Document;
+                if (document == null)
+                {
+                    return;
+                }
+
                 var workspace = document.Project.Solution.Workspace;
                 var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 

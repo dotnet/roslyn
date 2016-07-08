@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <ProjectGuid>{E5A55C16-A5B9-4874-9043-A5266DC02F58}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
+    <AssemblyName>Roslyn.VisualStudio.IntegrationTests</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <Nonshipping>true</Nonshipping>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
+    <Compile Include="CSharp\CSharpBuild.cs" />
+    <Compile Include="CSharp\CSharpIntelliSense.cs" />
+    <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
+    <Compile Include="AbstractEditorTests.cs" />
+    <Compile Include="SharedIntegrationHostFixture.cs" />
+    <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
+    <Compile Include="VisualBasic\BasicBuild.cs" />
+    <Compile Include="VisualBasic\BasicIntelliSense.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestUtilities\VisualStudioTestUtilities.csproj">
+      <Project>{3BED15FD-D608-4573-B432-1569C1026F6D}</Project>
+      <Name>VisualStudioTestUtilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
+</Project>

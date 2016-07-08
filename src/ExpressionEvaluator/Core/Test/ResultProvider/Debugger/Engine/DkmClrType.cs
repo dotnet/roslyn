@@ -299,7 +299,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 else
                 {
                     debuggeeSideVisualizerTypeName = "Microsoft.VisualStudio.DebuggerVisualizers.VisualizerObjectSource";
-                    debuggeeSideVisualizerAssemblyName = "Microsoft.VisualStudio.DebuggerVisualizers, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+                    var vsVersion = System.Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+                    debuggeeSideVisualizerAssemblyName = $"Microsoft.VisualStudio.DebuggerVisualizers, Version={vsVersion}.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
                 }
 
                 string visualizerDescription = uiSideVisualizerTypeName;

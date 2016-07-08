@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
-        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
+        private static ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
             BoundStatementList statementList = statement as BoundStatementList;
             if (statementList != null)
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
             new ConditionalWeakTable<BoundSwitchStatement, object>();
 
-        IOperation ISwitchStatement.Value => this.BoundExpression;
+        IOperation ISwitchStatement.Value => this.Expression;
 
         ImmutableArray<ISwitchCase> ISwitchStatement.Cases
         {
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public SwitchSection(BoundSwitchSection boundNode)
             {
                 this.Body = boundNode.Statements.As<IOperation>();
-                this.Clauses = boundNode.BoundSwitchLabels.As<ICaseClause>();
+                this.Clauses = boundNode.SwitchLabels.As<ICaseClause>();
                 this.IsInvalid = boundNode.HasErrors;
                 this.Syntax = boundNode.Syntax;
             }
@@ -445,7 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IOperation ICatchClause.Filter => this.ExceptionFilterOpt;
 
-        ILocalSymbol ICatchClause.ExceptionLocal => this.LocalOpt;
+        ILocalSymbol ICatchClause.ExceptionLocal
+        {
+            get
+            {
+                var local = this.Locals.FirstOrDefault();
+                return local?.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
+            }
+        }
 
         OperationKind IOperation.Kind => OperationKind.CatchClause;
 
@@ -602,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (ImmutableArray<IVariableDeclaration>) s_variablesMappings.GetValue(this, 
+                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
@@ -631,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
-                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
+                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
                             (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
@@ -791,6 +798,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    partial class BoundLocalFunctionStatement
+    {
+        protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLocalFunctionStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalFunctionStatement(this, argument);
+        }
+    }
+
+    partial class BoundPatternSwitchStatement
+    {
+        // TODO: this may need its own OperationKind.
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
             return visitor.VisitNoneOperation(this, argument);
         }
     }

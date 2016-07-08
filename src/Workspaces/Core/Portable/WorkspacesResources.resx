@@ -198,9 +198,6 @@
   <data name="DocumentVersionIsDifferent" xml:space="preserve">
     <value>The specified document is not a version of this document.</value>
   </data>
-  <data name="DocumentNotInProject" xml:space="preserve">
-    <value>The project does not contain the specified document.</value>
-  </data>
   <data name="UnsupportedLanguage" xml:space="preserve">
     <value>The language '{0}' is not supported.</value>
   </data>
@@ -467,5 +464,11 @@
   </data>
   <data name="PopulateSwitch" xml:space="preserve">
     <value>Populate switch</value>
+  </data>
+  <data name="MemberAccessShouldBeQualified" xml:space="preserve">
+    <value>Member access should be qualified.</value>
+  </data>
+  <data name="AddBraces" xml:space="preserve">
+    <value>Add braces to '{0}' statement.</value>
   </data>
 </root>

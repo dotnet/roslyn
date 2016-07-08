@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1567,7 +1571,7 @@ namespace Foo
 
             var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
-            var refIdentity = ((AssemblyMetadata)ref1.GetMetadata()).GetAssembly().Identity.ToString();
+            var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '04f2260a-2ee6-4e74-938a-c47b6dc61d9c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return null; } }
@@ -1608,7 +1612,7 @@ namespace Foo
 
             var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
-            var refIdentity = ((AssemblyMetadata)ref1.GetMetadata()).GetAssembly().Identity.ToString();
+            var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
@@ -1646,7 +1650,7 @@ namespace Foo
 
             var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
-            var refIdentity = ((AssemblyMetadata)ref1.GetMetadata()).GetAssembly().Identity.ToString();
+            var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '499975c2-0b0d-4d9b-8f1f-4d91133627db, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return null; } }
@@ -1687,7 +1691,7 @@ namespace Foo
 
             var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
-            var refIdentity = ((AssemblyMetadata)ref1.GetMetadata()).GetAssembly().Identity.ToString();
+            var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in 'cb07e894-1bb8-4db2-93ba-747f45e89f22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
@@ -1727,6 +1731,89 @@ class X
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var analyzer = new ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer();
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll)
+                .VerifyAnalyzerOccurrenceCount(new[] { analyzer }, 0);
+
+            Assert.True(analyzer.ActionFired);
+        }
+
+        class ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer : DiagnosticAnalyzer
+        {
+            public bool ActionFired { get; private set; }
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(HandleMemberAccessExpression, SyntaxKind.SimpleMemberAccessExpression);
+            }
+
+            private void HandleMemberAccessExpression(SyntaxNodeAnalysisContext context)
+            {
+                ActionFired = true;
+
+                var memberAccessExpression = context.Node as MemberAccessExpressionSyntax;
+
+                var actualSymbol = context.SemanticModel.GetSymbolInfo(memberAccessExpression.Expression);
+
+                Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+            }
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_2()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxRoot = syntaxTree.GetRoot();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+
+            var memberAccess = syntaxRoot.DescendantNodes().Single(node => node.IsKind(SyntaxKind.SimpleMemberAccessExpression)) as MemberAccessExpressionSyntax;
+            Assert.Equal("Lifetime", memberAccess.Expression.ToString());
+            Assert.Equal("Lifetime.Persistent", memberAccess.ToString());
+
+            var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression);
+
+            Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
         }
 
         #endregion Regression cases

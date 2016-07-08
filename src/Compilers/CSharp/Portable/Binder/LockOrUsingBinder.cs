@@ -35,6 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (targetExpressionSyntax != null)
                     {
+                        // We rely on this in the GetBinder call below.
+                        Debug.Assert(targetExpressionSyntax.Parent.Kind() == SyntaxKind.LockStatement ||
+                                     targetExpressionSyntax.Parent.Kind() == SyntaxKind.UsingStatement);
+
                         // For some reason, dev11 only warnings about locals and parameters.  If you do the same thing
                         // with a field of a local or parameter (e.g. lock(p.x)), there's no warning when you modify
                         // the local/parameter or its field.  We're going to take advantage of this restriction to break
@@ -44,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // that require lvalue checks.
                         if (targetExpressionSyntax.Kind() == SyntaxKind.IdentifierName)
                         {
-                            BoundExpression expression = BindTargetExpression(diagnostics: null); // Diagnostics reported by BindUsingStatementParts.
+                            BoundExpression expression = BindTargetExpression(diagnostics: null, // Diagnostics reported by BindUsingStatementParts.
+                                                                              originalBinder: GetBinder(targetExpressionSyntax.Parent));
+
                             switch (expression.Kind)
                             {
                                 case BoundKind.Local:
@@ -64,13 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression BindTargetExpression(DiagnosticBag diagnostics)
+        protected BoundExpression BindTargetExpression(DiagnosticBag diagnostics, Binder originalBinder)
         {
             if (_lazyExpressionAndDiagnostics == null)
             {
                 // Filter out method group in conversion.
                 DiagnosticBag expressionDiagnostics = DiagnosticBag.GetInstance();
-                BoundExpression boundExpression = this.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
+                BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
                 Interlocked.CompareExchange(ref _lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);
             }
             Debug.Assert(_lazyExpressionAndDiagnostics != null);

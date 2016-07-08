@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -74,35 +75,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-
             // If the selected item is the builder, dismiss
-            if (selectedItem.IsBuilder)
+            if (model.SelectedItem.IsSuggestionModeItem)
             {
                 sendThrough = false;
                 committed = false;
                 return;
             }
 
-            var completionRules = GetCompletionRules();
-
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
-                var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+                var viewSpan = model.GetViewBufferSpan(model.SelectedItem.Item.Span);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
-                var options = GetOptions();
-                if (options != null)
-                {
-                    sendThrough = completionRules.SendEnterThroughToEditor(selectedItem, textTypedSoFar, options);
-                }
+                var service = GetCompletionService();
+                sendThrough = SendEnterThroughToEditor(
+                     service.GetRules(), model.SelectedItem.Item, textTypedSoFar);
             }
 
-            var textChange = completionRules.GetTextChange(selectedItem);
-            this.Commit(selectedItem, textChange, model, null);
+            this.Commit(model.SelectedItem, model, commitChar: null);
             committed = true;
+        }
+
+        /// <summary>
+        /// Internal for testing purposes only.
+        /// </summary>
+        internal static bool SendEnterThroughToEditor(CompletionRules rules, CompletionItem item, string textTypedSoFar)
+        {
+            var rule = item.Rules.EnterKeyRule;
+            if (rule == EnterKeyRule.Default)
+            {
+                rule = rules.DefaultEnterKeyRule;
+            }
+
+            switch (rule)
+            {
+                default:
+                case EnterKeyRule.Default:
+                case EnterKeyRule.Never:
+                    return false;
+                case EnterKeyRule.Always:
+                    return true;
+                case EnterKeyRule.AfterFullyTypedWord:
+                    return item.DisplayText == textTypedSoFar;
+            }
         }
     }
 }

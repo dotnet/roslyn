@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -371,8 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(CS_Modifiers3_M4.IsOverrides)
 
             Dim byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType(Of MethodSymbol)().Single()
-            Assert.Equal(TypeKind.Error, byrefReturnMethod.ReturnType.TypeKind)
-            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(byrefReturnMethod.ReturnType)
+            Assert.True(byrefReturnMethod.ReturnsByRef)
         End Sub
 
         <Fact>
@@ -925,5 +924,44 @@ BC30657: 'VT' has a return type that is not supported or parameter types that ar
                             ~~
 ]]>)
         End Sub
+
+        <Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")>
+        Public Sub LoadingMethodWithPublicAndPrivateAccessibility()
+            Dim source =
+         <compilation>
+             <file>
+Class D
+   Shared Sub Main()
+      Dim test = new C()
+      test.M()
+      System.Console.WriteLine(test.F)
+
+      Dim test2 = new C.C2()
+      test2.M2()
+   End Sub
+End Class
+    </file>
+         </compilation>
+
+            Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
+
+            Dim comp = CreateCompilationWithMscorlib(source, references:=references)
+            comp.AssertTheseDiagnostics(
+                <expected><![CDATA[
+BC30390: 'C.Private Overloads Sub M()' is not accessible in this context because it is 'Private'.
+      test.M()
+      ~~~~~~
+BC30389: 'C.F' is not accessible in this context because it is 'Private'.
+      System.Console.WriteLine(test.F)
+                               ~~~~~~
+BC30389: 'C.C2' is not accessible in this context because it is 'Protected Friend'.
+      Dim test2 = new C.C2()
+                      ~~~~
+BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context because it is 'Private'.
+      test2.M2()
+      ~~~~~~~~
+]]></expected>)
+        End Sub
+
     End Class
 End Namespace

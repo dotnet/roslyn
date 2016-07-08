@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpParseOptions(
-            LanguageVersion languageVersion = LanguageVersion.CSharp6,
+            LanguageVersion languageVersion = LanguageVersion.CSharp7,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             languageVersion: other.LanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
-            preprocessorSymbols: other.PreprocessorSymbols)
+            preprocessorSymbols: other.PreprocessorSymbols,
+            features: other.Features.ToImmutableDictionary())
         {
         }
 

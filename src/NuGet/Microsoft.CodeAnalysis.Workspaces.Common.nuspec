@@ -13,7 +13,7 @@ Supported Platforms:
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-      <dependency id="Microsoft.Composition" version="1.0.27" />
+      <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
     </dependencies>
 
     <language>en-US</language>
@@ -24,6 +24,7 @@ Supported Platforms:
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <serviceable>true</serviceable>
   </metadata>
   <files>
     <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\portable-net45+win8" />
@@ -32,6 +33,8 @@ Supported Platforms:
     <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

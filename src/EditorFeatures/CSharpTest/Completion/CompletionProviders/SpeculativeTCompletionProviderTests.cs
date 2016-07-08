@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new SpeculativeTCompletionProvider();
         }
@@ -47,8 +47,9 @@ class C
     $$
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

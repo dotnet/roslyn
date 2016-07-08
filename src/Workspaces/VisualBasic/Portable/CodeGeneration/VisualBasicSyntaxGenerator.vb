@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.OrElseExpression(Parenthesize(left), Parenthesize(right))
         End Function
 
-        Public Overrides Function MemberAccessExpression(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
+        Friend Overrides Function MemberAccessExpressionWorker(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(
                 ParenthesizeLeft(expression),
                 SyntaxFactory.Token(SyntaxKind.DotToken),
@@ -1232,25 +1232,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function AsInterfaceMember(node As SyntaxNode) As StatementSyntax
-            Select Case node.Kind
-                Case SyntaxKind.FunctionBlock,
+        Friend Overrides Function AsInterfaceMember(node As SyntaxNode) As SyntaxNode
+            If node IsNot Nothing Then
+                Select Case node.Kind
+                    Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
-                    Return AsInterfaceMember(DirectCast(node, MethodBlockSyntax).BlockStatement)
-                Case SyntaxKind.FunctionStatement,
+                        Return AsInterfaceMember(DirectCast(node, MethodBlockSyntax).BlockStatement)
+                    Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
-                    Return DirectCast(node, MethodStatementSyntax).WithModifiers(Nothing)
-                Case SyntaxKind.PropertyBlock
-                    Return AsInterfaceMember(DirectCast(node, PropertyBlockSyntax).PropertyStatement)
-                Case SyntaxKind.PropertyStatement
-                    Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
-                    Dim mods = SyntaxFactory.TokenList(propertyStatement.Modifiers.Where(Function(tk) tk.IsKind(SyntaxKind.ReadOnlyKeyword) Or tk.IsKind(SyntaxKind.DefaultKeyword)))
-                    Return propertyStatement.WithModifiers(mods)
-                Case SyntaxKind.EventBlock
-                    Return AsInterfaceMember(DirectCast(node, EventBlockSyntax).EventStatement)
-                Case SyntaxKind.EventStatement
-                    Return DirectCast(node, EventStatementSyntax).WithModifiers(Nothing).WithCustomKeyword(Nothing)
-            End Select
+                        Return DirectCast(node, MethodStatementSyntax).WithModifiers(Nothing)
+                    Case SyntaxKind.PropertyBlock
+                        Return AsInterfaceMember(DirectCast(node, PropertyBlockSyntax).PropertyStatement)
+                    Case SyntaxKind.PropertyStatement
+                        Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
+                        Dim mods = SyntaxFactory.TokenList(propertyStatement.Modifiers.Where(Function(tk) tk.IsKind(SyntaxKind.ReadOnlyKeyword) Or tk.IsKind(SyntaxKind.DefaultKeyword)))
+                        Return propertyStatement.WithModifiers(mods)
+                    Case SyntaxKind.EventBlock
+                        Return AsInterfaceMember(DirectCast(node, EventBlockSyntax).EventStatement)
+                    Case SyntaxKind.EventStatement
+                        Return DirectCast(node, EventStatementSyntax).WithModifiers(Nothing).WithCustomKeyword(Nothing)
+                End Select
+            End If
+
             Return Nothing
         End Function
 
@@ -2826,6 +2829,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
+        Public Overrides Function GetSwitchSections(switchStatement As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Dim statement = TryCast(switchStatement, SelectBlockSyntax)
+            If statement Is Nothing Then
+                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
+            End If
+
+            Return statement.CaseBlocks
+        End Function
+
+        Public Overrides Function InsertSwitchSections(switchStatement As SyntaxNode, index As Integer, switchSections As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim statement = TryCast(switchStatement, SelectBlockSyntax)
+            If statement Is Nothing Then
+                Return switchStatement
+            End If
+
+            Return statement.WithCaseBlocks(
+                statement.CaseBlocks.InsertRange(index, switchSections.Cast(Of CaseBlockSyntax)))
+        End Function
+
         Private Function GetParameterList(declaration As SyntaxNode) As ParameterListSyntax
             Select Case declaration.Kind
                 Case SyntaxKind.SubBlock,
@@ -3836,6 +3858,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             ' do it the normal way
             Return root.RemoveNode(node, options)
+        End Function
+
+        Friend Overrides Function IdentifierName(identifier As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.IdentifierName(identifier)
+        End Function
+
+        Friend Overrides Function Identifier(text As String) As SyntaxToken
+            Return SyntaxFactory.Identifier(text)
+        End Function
+
+        Friend Overrides Function NamedAnonymousObjectMemberDeclarator(identifier As SyntaxNode, expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NamedFieldInitializer(
+                DirectCast(identifier, IdentifierNameSyntax),
+                DirectCast(expression, ExpressionSyntax))
+
         End Function
 #End Region
 

@@ -186,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression result;
                         if ((object)enumField != null)
                         {
-                            result = binder.BindEnumConstantInitializer(enumField, equalsValue.Value, diagnostics);
+                            result = binder.BindEnumConstantInitializer(enumField, equalsValue, diagnostics);
                         }
                         else
                         {
-                            result = binder.BindVariableOrAutoPropInitializer(equalsValue, field.GetFieldType(binder.FieldsBeingBound), diagnostics);
+                            result = binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, field.GetFieldType(binder.FieldsBeingBound), diagnostics);
                         }
                         if (result != null)
                         {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     {
                         var property = (PropertySymbol)this.MemberSymbol;
-                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, property.Type, diagnostics);
+                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, property.Type, diagnostics);
                         if (result != null)
                         {
                             return new BoundPropertyEqualsValue(equalsValue, property, result);
@@ -274,6 +274,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 speculativeModel = null;
                 return false;
+            }
+
+            switch (initializer.Kind())
+            {
+                case SyntaxKind.EqualsValueClause:
+                    binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
+                    break;
+
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                    ArgumentListSyntax argList = ((ConstructorInitializerSyntax)initializer).ArgumentList;
+                    if (argList != null)
+                    {
+                        binder = new ExecutableCodeBinder(argList, binder.ContainingMemberOrLambda, binder);
+                    }
+                    break;
             }
 
             speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, position);

@@ -1,14 +1,14 @@
 ﻿Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.PopulateSwitch
+Imports Microsoft.CodeAnalysis.PopulateSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
     Partial Public Class PopulateSwitchTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPopulateSwitchDiagnosticAnalyzer(), New VisualBasicPopulateSwitchCodeFixProvider())
+            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
+                New PopulateSwitchDiagnosticAnalyzer(), New PopulateSwitchCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -88,7 +88,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -137,7 +137,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -237,7 +237,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -255,7 +255,7 @@ Class Foo
         Select Case [|e|]
             Case MyEnum.Fizz
                 Exit Select
-            Case MyEnum.Buzz
+            Case MyEnum.Buzz ' not legal.  VB does not allow fallthrough.
             Case Else
                 Exit Select
         End Select
@@ -276,9 +276,9 @@ Class Foo
         Select Case e
             Case MyEnum.Fizz
                 Exit Select
+            Case MyEnum.Buzz ' not legal.  VB does not allow fallthrough.
             Case MyEnum.FizzBuzz
                 Exit Select
-            Case MyEnum.Buzz
             Case Else
                 Exit Select
         End Select
@@ -331,7 +331,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -451,11 +451,11 @@ Class Foo
                 Exit Select
             Case Open
                 Exit Select
-            Case System.IO.FileMode.OpenOrCreate
+            Case OpenOrCreate
                 Exit Select
-            Case System.IO.FileMode.Truncate
+            Case Truncate
                 Exit Select
-            Case System.IO.FileMode.Append
+            Case Append
                 Exit Select
             Case Else
                 Exit Select
@@ -499,17 +499,17 @@ Class Foo
     Sub Bar()
         Dim e = CreateNew
         Select Case e
-            Case System.IO.FileMode.CreateNew
+            Case CreateNew
                 Exit Select
-            Case System.IO.FileMode.Create
+            Case Create
                 Exit Select
-            Case System.IO.FileMode.Open
+            Case Open
                 Exit Select
-            Case System.IO.FileMode.OpenOrCreate
+            Case OpenOrCreate
                 Exit Select
-            Case System.IO.FileMode.Truncate
+            Case Truncate
                 Exit Select
-            Case System.IO.FileMode.Append
+            Case Append
                 Exit Select
             Case Else
                 Exit Select
@@ -518,113 +518,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
-        Public Async Function NotAllMembersExist_EnumIsFlags() As Task
-            Dim markup =
-<File>
-Imports System
-&lt;Flags&gt;
-Enum MyEnum
-    Fizz
-    Buzz
-    FizzBuzz
-End Enum
-Class Foo
-    Sub Bar()
-        Dim e = MyEnum.Fizz
-        Select Case [|e|]
-            Case MyEnum.Fizz
-                Exit Select
-            Case MyEnum.Buzz
-                Exit Select
-        End Select
-    End Sub
-End Class
-</File>
-
-            Await TestMissingAsync(markup)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
-        Public Async Function NotAllMembersExist_EnumIsFlagsAttribute() As Task
-            Dim markup =
-<File>
-Imports System
-&lt;FlagsAttribute&gt;
-Enum MyEnum
-    Fizz
-    Buzz
-    FizzBuzz
-End Enum
-Class Foo
-    Sub Bar()
-        Dim e = MyEnum.Fizz
-        Select Case [|e|]
-            Case MyEnum.Fizz
-                Exit Select
-            Case MyEnum.Buzz
-                Exit Select
-        End Select
-    End Sub
-End Class
-</File>
-
-            Await TestMissingAsync(markup)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
-        Public Async Function NotAllMembersExist_EnumIsFullyQualifiedSystemFlags() As Task
-            Dim markup =
-<File>
-&lt;System.Flags&gt;
-Enum MyEnum
-    Fizz
-    Buzz
-    FizzBuzz
-End Enum
-Class Foo
-    Sub Bar()
-        Dim e = MyEnum.Fizz
-        Select Case [|e|]
-            Case MyEnum.Fizz
-                Exit Select
-            Case MyEnum.Buzz
-                Exit Select
-        End Select
-    End Sub
-End Class
-</File>
-
-            Await TestMissingAsync(markup)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
-        Public Async Function NotAllMembersExist_EnumIsFullyQualifiedSystemFlagsAttribute() As Task
-            Dim markup =
-<File>
-&lt;System.FlagsAttribute&gt;
-Enum MyEnum
-    Fizz
-    Buzz
-    FizzBuzz
-End Enum
-Class Foo
-    Sub Bar()
-        Dim e = MyEnum.Fizz
-        Select Case [|e|]
-            Case MyEnum.Fizz
-                Exit Select
-            Case MyEnum.Buzz
-                Exit Select
-        End Select
-    End Sub
-End Class
-</File>
-
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -675,7 +569,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -724,7 +618,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -737,14 +631,30 @@ Class Foo
         Select Case [|e|]
             Case "Fizz"
                 Exit Select
-            Case Test"
+            Case "Test"
+                Exit Select
+        End Select
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Class Foo
+    Sub Bar()
+        Dim e = "Test"
+        Select Case e
+            Case "Fizz"
+                Exit Select
+            Case "Test"
+                Exit Select
+            Case Else
                 Exit Select
         End Select
     End Sub
 End Class
 </File>
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, expected)
         End Function
     End Class
 End Namespace

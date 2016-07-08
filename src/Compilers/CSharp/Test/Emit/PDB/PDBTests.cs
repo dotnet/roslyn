@@ -140,7 +140,6 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
-                    getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -172,7 +171,6 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
-                    getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new object() });
 
                 result.Diagnostics.Verify(
@@ -204,7 +202,6 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
-                    getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -2843,7 +2840,7 @@ public class C
 public class C
 {
     int P { get; } = [|int.Parse(""42"")|];
-}", TestOptions.DebugDll, TestOptions.ExperimentalParseOptions);
+}", TestOptions.DebugDll, TestOptions.Regular);
         }
 
         #endregion
@@ -4798,7 +4795,7 @@ namespace N
         [Fact]
         public void ExpressionBodiedProperty()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P => M();
@@ -4836,7 +4833,7 @@ class C
         [Fact]
         public void ExpressionBodiedIndexer()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C
@@ -4880,7 +4877,7 @@ class C
         [Fact]
         public void ExpressionBodiedMethod()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C
@@ -4912,7 +4909,7 @@ class C
         [Fact]
         public void ExpressionBodiedOperator()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public static C operator ++(C c) => c;
@@ -4939,7 +4936,7 @@ class C
         [Fact]
         public void ExpressionBodiedConversion()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C

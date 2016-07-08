@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to namespace declaration..
+        /// </summary>
+        internal static string AutoselectDisabledDueToNamespaceDeclaration {
+            get {
+                return ResourceManager.GetString("AutoselectDisabledDueToNamespaceDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
         internal static string AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation {
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to can&apos;t determine valid range of statements to extract out.
+        ///   Looks up a localized string similar to Can&apos;t determine valid range of statements to extract.
         /// </summary>
         internal static string CantDetermineValidRangeOfStatements {
             get {
@@ -566,6 +575,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;namespace name&gt;.
+        /// </summary>
+        internal static string NamespaceName {
+            get {
+                return ResourceManager.GetString("NamespaceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No common root node for extraction..
         /// </summary>
         internal static string NoCommonRootNodeForExtraction {
@@ -593,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to no valid statement range to extract out.
+        ///   Looks up a localized string similar to No valid statement range to extract.
         /// </summary>
         internal static string NoValidStatementRangeToExtractOut {
             get {
@@ -634,6 +652,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string OverrideAFinalizerTodo {
             get {
                 return ResourceManager.GetString("OverrideAFinalizerTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Properties.
+        /// </summary>
+        internal static string Properties {
+            get {
+                return ResourceManager.GetString("Properties", resourceCulture);
             }
         }
         
@@ -679,6 +706,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string RemoveAndSortUsingsWithAccelerator {
             get {
                 return ResourceManager.GetString("RemoveAndSortUsingsWithAccelerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
+        /// </summary>
+        internal static string RemoveThisQualification {
+            get {
+                return ResourceManager.GetString("RemoveThisQualification", resourceCulture);
             }
         }
         
@@ -755,6 +791,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Selection can not contain a pattern expression..
+        /// </summary>
+        internal static string SelectionCanNotContainPattern {
+            get {
+                return ResourceManager.GetString("SelectionCanNotContainPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selection can not contain throw statement..
         /// </summary>
         internal static string SelectionCanNotContainThrowStatement {
@@ -827,15 +872,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
-        /// </summary>
-        internal static string SimplifyThisQualification {
-            get {
-                return ResourceManager.GetString("SimplifyThisQualification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &amp;Sort Usings.
         /// </summary>
         internal static string SortUsingsWithAccelerator {
@@ -863,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to the selection contains syntactic errors.
+        ///   Looks up a localized string similar to The selection contains syntactic errors.
         /// </summary>
         internal static string TheSelectionContainsSyntacticErrors {
             get {
@@ -904,6 +940,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string UncommentTheFollowingIfFinalizerOverriddenTodo {
             get {
                 return ResourceManager.GetString("UncommentTheFollowingIfFinalizerOverriddenTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
+        /// </summary>
+        internal static string UseExplicitType {
+            get {
+                return ResourceManager.GetString("UseExplicitType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicit type.
+        /// </summary>
+        internal static string UseExplicitTypeDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("UseExplicitTypeDiagnosticTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
+        /// </summary>
+        internal static string UseImplicitType {
+            get {
+                return ResourceManager.GetString("UseImplicitType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use implicit type.
+        /// </summary>
+        internal static string UseImplicitTypeDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeDiagnosticTitle", resourceCulture);
             }
         }
         

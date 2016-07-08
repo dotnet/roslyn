@@ -1,20 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -145,6 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (result == null)
                 {
                     Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
+                    var slotConstraints = _method.RefKind == RefKind.None
+                        ? LocalSlotConstraints.None
+                        : LocalSlotConstraints.ByRef;
+
 
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
@@ -159,14 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             kind: localSymbol.SynthesizedKind,
                             id: new LocalDebugId(syntaxOffset, ordinal: 0),
                             pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
-                            constraints: LocalSlotConstraints.None,
+                            constraints: slotConstraints,
                             isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
                             isSlotReusable: false);
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax);
+                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;

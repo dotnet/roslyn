@@ -2232,7 +2232,7 @@ public class MyClass {
         return 1;
     }
 
-}")
+}", parseOptions: TestOptions.Regular6)
                 .VerifyDiagnostics(
                 // (7,22): error CS0118: 'myTest' is a 'variable' but is used like a 'type'
                 Diagnostic(ErrorCode.ERR_BadSKknown, "myTest").WithArguments("myTest", "variable", "type"));
@@ -4038,7 +4038,9 @@ public class iii
       }
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
+            DiagnosticsUtils.VerifyErrorCodes(
+                comp,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
         }
 
@@ -7160,6 +7162,56 @@ public class MyList<T>
         [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
         public void CS0201ERR_IllegalStatement2()
         {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        (a) => a;
+        (a, b) =>
+        {
+        };
+        int x = 0; int y = 0;
+        x + y; x == 1;
+    }
+}";
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+    // (7,16): error CS1001: Identifier expected
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
+    // (7,16): error CS1003: Syntax error, ',' expected
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
+    // (7,18): error CS1002: ; expected
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a) => a;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+    // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
+    // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
+    // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
+    // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
+    // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
+    // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+    //     public static int Main()
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+    );
+        }
+
+        [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
+        public void CS0201ERR_IllegalStatement2WithCSharp6()
+        {
             var test = @"
 class A
 {
@@ -7173,17 +7225,45 @@ class A
         x + y; x == 1;
     }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 6, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 7, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 16 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ReturnExpected, Line = 4, Column = 23 }
-                });
+            var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) }, new MetadataReference[] { });
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(a, b)").WithArguments("tuples", "7").WithLocation(7, 9),
+                // (7,16): error CS1001: Identifier expected
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
+                // (7,16): error CS1003: Syntax error, ',' expected
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
+                // (7,18): error CS1002: ; expected
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         (a) => a;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+                // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
+                // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
+                // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (a, b) =>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
+                // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         x + y; x == 1;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
+                // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         x + y; x == 1;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
+                // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+                //     public static int Main()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+                );
         }
 
-        [Fact()]
+        [Fact]
         public void CS0202ERR_BadGetEnumerator()
         {
             var text = @"
@@ -14637,8 +14717,10 @@ class D
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (21,15): error CS1649: Members of readonly field 'Outer.inner' cannot be passed ref or out (except in a constructor)
-                Diagnostic(ErrorCode.ERR_RefReadonly2, "outer.inner.i").WithArguments("Outer.inner"));
+    // (21,15): error CS1649: Members of readonly field 'Outer.inner' cannot be used as a ref or out value (except in a constructor)
+    //         f(ref outer.inner.i);  // CS1649
+    Diagnostic(ErrorCode.ERR_RefReadonly2, "outer.inner.i").WithArguments("Outer.inner").WithLocation(21, 15)
+);
         }
 
         [Fact]
@@ -14867,8 +14949,10 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (12,19): error CS1657: Cannot pass 'a' as a ref or out argument because it is a 'foreach iteration variable'
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "a").WithArguments("a", "foreach iteration variable"));
+    // (12,19): error CS1657: Cannot use 'a' as a ref or out value because it is a 'foreach iteration variable'
+    //             F(ref a); //CS1657
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "a").WithArguments("a", "foreach iteration variable").WithLocation(12, 19)
+                );
         }
 
         [Fact]
@@ -22419,9 +22503,10 @@ class Program
 ";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (11,58): error CS0199: A static readonly field cannot be passed ref or out (except in a static constructor)
-                //         static readonly Program Field3 = new Program(ref Program.Field2);
-                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "Program.Field2"));
+    // (11,58): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+    //         static readonly Program Field3 = new Program(ref Program.Field2);
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "Program.Field2").WithLocation(11, 58)
+);
         }
 
         [Fact]
@@ -22667,7 +22752,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
     //         var x = 123 ?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
@@ -22736,7 +22821,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
     //         var x1 = p.P1 ?.ToString;
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
@@ -22774,7 +22859,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -22817,7 +22902,7 @@ class Program
 }
 
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
     // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
     //         var p = intPtr?.ToPointer();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
@@ -23039,7 +23124,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),

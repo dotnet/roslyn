@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -534,8 +535,6 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-
-
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -900,6 +899,34 @@ class Program
         {
             case 1:    break;
             default:     break;
+        }
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(9097, "https://github.com/dotnet/roslyn/issues/9097")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ColonInPatternSwitchCase01()
+        {
+            var code = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+                          case  int  i            :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+            case int i:    break;
         }
     }
 }";
@@ -1375,6 +1402,18 @@ class C : Attribute
     }
 }";
             await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(11642, "https://github.com/dotnet/roslyn/issues/11642")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatArbitraryNodeParenthesizedLambdaExpression()
+        {
+            // code equivalent to an expression synthesized like so:
+            // ParenthesizedExpression(ParenthesizedLambdaExpression(ParameterList(), Block()))
+            var code = @"(()=>{})";
+            var node = SyntaxFactory.ParseExpression(code);
+            var expected = @"(() => { })";
+            await AssertFormatOnArbitraryNodeAsync(node, expected);
         }
 
         private static async Task AssertFormatAfterTypeCharAsync(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)

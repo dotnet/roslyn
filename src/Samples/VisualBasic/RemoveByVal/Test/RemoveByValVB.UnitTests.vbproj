@@ -42,6 +42,10 @@
       <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
       <Name>UnitTestFramework</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Impl\RemoveByValVB.vbproj">
       <Project>{4900921D-C548-4FBB-9681-BAF88E09DB3C}</Project>
       <Name>RemoveByValVB</Name>
@@ -51,14 +55,14 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <NoWarn>41999,42016,42030,42104,42108,42109</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
     <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42030,42104,42108,42109</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
     <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
@@ -85,4 +89,4 @@
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
- </Project>
+</Project>

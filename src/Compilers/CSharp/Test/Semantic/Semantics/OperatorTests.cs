@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 
@@ -6405,7 +6404,7 @@ struct TestStr
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
             var binder = model.GetEnclosingBinder(methodBody.SpanStart);
             var diagnostics = DiagnosticBag.GetInstance();
-            var block = binder.BindBlock(methodBody, diagnostics);
+            var block = binder.BindEmbeddedBlock(methodBody, diagnostics);
             diagnostics.Free();
 
             // Rewriter should use Equals.

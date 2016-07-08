@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new IntroduceVariableCodeRefactoringProvider();
         }
@@ -123,7 +124,7 @@ class C
     {
         for (int i = 0; i < 10; i++)
         {
-            var {|Rename:v|} = i + 1;
+            int {|Rename:v|} = i + 1;
             Console.WriteLine(v);
         }
     }

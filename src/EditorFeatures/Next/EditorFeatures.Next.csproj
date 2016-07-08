@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectLanguage>CSharp</ProjectLanguage>
+  </PropertyGroup>
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Next</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
+      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Text\TextEditorFeatures.csproj">
+      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
+      <Name>TextEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
+      <Name>InteractiveWindow</Name>
+      <Aliases>InteractiveWindow</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

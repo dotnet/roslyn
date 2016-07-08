@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -29,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         Unsafe = 1 << 14,
         Fixed = 1 << 15,
         Virtual = 1 << 16, // used for method binding
-        Override = 1 << 17, // "
+        Override = 1 << 17, // used for method binding
 
         Indexer = 1 << 18, // not a real modifier, but used to record that indexer syntax was used. 
 
         Async = 1 << 19,
 
-        All = (Async | (Async - 1)), // all modifiers
+        All = (1 << 20) - 1, // all modifiers
         Unset = 1 << 20, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = Private | Protected | Internal | ProtectedInternal | Public,

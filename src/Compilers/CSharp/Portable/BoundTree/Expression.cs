@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -43,7 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IOperation IInvocationExpression.Instance => ((object)this.Method == null || this.Method.IsStatic) ? null : this.ReceiverOpt;
 
-        bool IInvocationExpression.IsVirtual => (object)this.Method != null && this.ReceiverOpt != null && (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
+        bool IInvocationExpression.IsVirtual =>
+            (object)this.Method != null &&
+            this.ReceiverOpt != null &&
+            (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
+            !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new Argument(ArgumentKind.Named, parameter, argument);
                 });
         }
-        
+
         private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
         {
             if (parameter.Type.TypeKind == TypeKind.Array)
@@ -439,7 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IMethodBindingExpression.IsVirtual => (object)this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+        bool IMethodBindingExpression.IsVirtual =>
+            (object)this.MethodOpt != null &&
+            (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
+            !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
 
@@ -492,6 +495,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLiteralExpression(this, argument);
+        }
+    }
+
+    internal partial class BoundTupleExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -690,6 +708,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
+                    case CSharp.ConversionKind.ImplicitTupleLiteral:
+                    case CSharp.ConversionKind.ImplicitTuple:
+                    case CSharp.ConversionKind.ExplicitTuple:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:
                     case CSharp.ConversionKind.ExplicitNumeric:
@@ -719,14 +740,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
         protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodBindingExpression : OperationKind.ConversionExpression;
 
-        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt as IMethodSymbol : null;
+        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt : null;
 
         bool IMethodBindingExpression.IsVirtual
         {
             get
             {
-                IMethodSymbol method = ((IMethodBindingExpression)this).Method;
-                return (object)method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+                var method = this.SymbolOpt;
+                return (object)method != null &&
+                    (method.IsAbstract || method.IsOverride || method.IsVirtual) &&
+                    !this.SuppressVirtualCalls;
             }
         }
 
@@ -1253,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundImplicitReceiver : IInstanceReferenceExpression
     {
         InstanceReferenceKind IInstanceReferenceExpression.InstanceReferenceKind => InstanceReferenceKind.Implicit;
-        
+
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
         public override void Accept(OperationVisitor visitor)
@@ -1882,7 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundDynamicCollectionElementInitializer
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -2755,5 +2778,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return BinaryOperationKind.Invalid;
         }
+    }
+
+    partial class BoundIsPatternExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+        protected override OperationKind ExpressionKind => OperationKind.None;
+    }
+
+    /// <summary>
+    /// Providing iplementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// </summary>
+    internal partial class OutVarLocalPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
     }
 }

@@ -489,17 +489,23 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
+            Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
                         Continue For
                 End Select
 
@@ -509,7 +515,7 @@ End Namespace
             Next
 
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CallType,
                          WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators,
@@ -526,8 +532,12 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_Interaction
                         ' Not embedded, so not available.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
                         Continue For
                 End Select
 
@@ -548,7 +558,8 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())

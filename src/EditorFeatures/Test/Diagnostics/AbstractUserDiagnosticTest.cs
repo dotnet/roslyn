@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -22,6 +23,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -142,7 +144,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await fixer.RegisterCodeFixesAsync(context);
                     if (fixes.Any())
                     {
-                        var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
+                        var codeFix = new CodeFixCollection(
+                            fixer, diagnostic.Location.SourceSpan, fixes,
+                            fixAllState: null, supportedScopes: null, firstDiagnostic: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -153,7 +157,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixAllProvider = fixer.GetFixAllProvider();
                 Assert.NotNull(fixAllProvider);
 
-                var fixAllContext = GetFixAllContext(diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
+                var fixAllState = GetFixAllState(fixAllProvider, diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
+                var fixAllContext = fixAllState.CreateFixAllContext(new ProgressTracker(), CancellationToken.None);
                 var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
                 if (fixAllFix != null)
                 {
@@ -161,7 +166,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     foreach (var diagnostic in diagnostics)
                     {
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
-                        var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)));
+                        var codeFix = new CodeFixCollection(
+                            fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)),
+                            fixAllState: null, supportedScopes: null, firstDiagnostic: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -170,7 +177,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return result;
         }
 
-        private static FixAllContext GetFixAllContext(
+        private static FixAllState GetFixAllState(
+            FixAllProvider fixAllProvider,
             IEnumerable<Diagnostic> diagnostics,
             DiagnosticAnalyzer provider,
             CodeFixProvider fixer,
@@ -185,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // Bulk fixing diagnostics in selected scope.                    
                 var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, diagnostics.ToImmutableArray())));
-                return FixMultipleContext.Create(diagnosticsToFix, fixer, fixAllActionId, CancellationToken.None);
+                return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, fixAllActionId);
             }
 
             var diagnostic = diagnostics.First();
@@ -209,10 +217,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 };
 
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-            var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            var fixAllDiagnosticProvider = new FixAllState.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
             return diagnostic.Location.IsInSource
-                ? new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None)
-                : new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
+                ? new FixAllState(fixAllProvider, document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider)
+                : new FixAllState(fixAllProvider, document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider);
         }
 
         protected async Task TestEquivalenceKeyAsync(string initialMarkup, string equivalenceKey)
@@ -367,9 +375,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
                 var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
-                var diffView = content as IWpfDifferenceViewer;
-                Assert.NotNull(diffView);
-                diffView.Close();
+                var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
+                diffView.Dispose();
             }
             else
             {
@@ -383,11 +391,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         if (preview != null)
                         {
-                            var diffView = preview as IWpfDifferenceViewer;
-                            if (diffView != null)
+                            var diffView = preview as DifferenceViewerPreview;
+                            if (diffView?.Viewer != null)
                             {
                                 hasPreview = true;
-                                diffView.Close();
+                                diffView.Dispose();
                                 break;
                             }
                         }

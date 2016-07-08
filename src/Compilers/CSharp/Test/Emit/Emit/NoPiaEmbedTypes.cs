@@ -1464,7 +1464,7 @@ class UsePia4
 
                     SignatureHeader signatureHeader;
                     BadImageFormatException mrEx;
-                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx);
+                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx, allowByRefReturn: true);
                     Assert.Null(mrEx);
                     Assert.Equal((byte)SignatureCallingConvention.Default | (byte)SignatureAttributes.Instance, signatureHeader.RawValue);
                     Assert.Equal(1, paramInfo.Length);

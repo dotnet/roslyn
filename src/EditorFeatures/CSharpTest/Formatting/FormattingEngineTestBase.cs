@@ -225,10 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
                 if (isPaste)
                 {
-                    optionService.SetOptions(optionService.GetOptions().WithChangedOption(FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp, true));
                     var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, null, null);
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { });
@@ -268,6 +266,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 code,
             new List<TextSpan> { span },
             baseIndentation: baseIndentation);
+        }
+
+        /// <summary>
+        /// Asserts formatting on an arbitrary <see cref="SyntaxNode"/> that is not part of a <see cref="SyntaxTree"/> 
+        /// </summary>
+        /// <param name="node">the <see cref="SyntaxNode"/> to format.</param>
+        /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>
+        protected async Task AssertFormatOnArbitraryNodeAsync(SyntaxNode node, string expected)
+        {
+            var result = await Formatter.FormatAsync(node, new AdhocWorkspace());
+            var actual = result.GetText().ToString();
+
+            Assert.Equal(expected, actual);
         }
     }
 }

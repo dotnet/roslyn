@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -17,16 +18,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
-        public override Task AnalyzeSemanticsAsync(Document document, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            return Task.FromResult(true);
+            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }
 
-        public override Task AnalyzeSyntaxAsync(Document document, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            addDiagnostic(Diagnostic.Create(Descriptor,
-                Location.Create(document.FilePath, default(TextSpan), default(LinePositionSpan))));
-            return Task.FromResult(true);
+            return Task.FromResult(ImmutableArray.Create(
+                Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default(TextSpan), default(LinePositionSpan)))));
         }
     }
 }

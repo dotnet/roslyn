@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
             //
             // s = isMetadataVirtualLocked. 1 bit.
-            //
-            // 2 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int DeclarationModifiersOffset = 5;

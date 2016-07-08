@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -17,11 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
     {
         private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
             new Lazy<List<string>>(() => GlobalAssemblyCache.Instance.GetAssemblySimpleNames().ToList());
-        private readonly CompletionListProvider _completionProvider;
+        private readonly CompletionProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
         private readonly CompletionItemRules _itemRules;
 
-        public GlobalAssemblyCacheCompletionHelper(CompletionListProvider completionProvider, TextSpan textChangeSpan, CompletionItemRules itemRules = null)
+        public GlobalAssemblyCacheCompletionHelper(
+            CompletionProvider completionProvider, 
+            TextSpan textChangeSpan, 
+            CompletionItemRules itemRules = null)
         {
             _completionProvider = completionProvider;
             _textChangeSpan = textChangeSpan;
@@ -47,15 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 var path = pathSoFar.Substring(0, comma);
                 return from identity in GetAssemblyIdentities(path)
                        let text = identity.GetDisplayName()
-                       select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: Glyph.Assembly, rules: _itemRules);
+                       select CommonCompletionItem.Create(text, _textChangeSpan, glyph: Glyph.Assembly, rules: _itemRules);
             }
             else
             {
                 return from displayName in s_lazyAssemblySimpleNames.Value
-                       select new CompletionItem(
-                           _completionProvider,
+                       select CommonCompletionItem.Create(
                            displayName, _textChangeSpan,
-                           descriptionFactory: c => Task.FromResult(GlobalAssemblyCache.Instance.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts()),
+                           description: GlobalAssemblyCache.Instance.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts(),
                            glyph: Glyph.Assembly,
                            rules: _itemRules);
             }

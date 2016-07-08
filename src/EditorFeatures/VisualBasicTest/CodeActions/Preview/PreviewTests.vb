@@ -5,12 +5,15 @@ Imports System.Threading.Tasks
 Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Preview
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text.Differencing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-    Public Class PreviewTests : Inherits AbstractVisualBasicCodeActionTest
+    Public Class PreviewTests
+        Inherits AbstractVisualBasicCodeActionTest
+
         Private Const s_addedDocumentName As String = "AddedDocument"
         Private Const s_addedDocumentText As String = "Class C1 : End Class"
         Private Shared s_removedMetadataReferenceDisplayName As String = ""
@@ -18,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
         Private Const s_changedDocumentText As String = "Class C : End Class"
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
         End Function
 
@@ -66,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
         Private Sub GetMainDocumentAndPreviews(workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
             document = GetDocument(workspace)
-            Dim provider = DirectCast(CreateCodeRefactoringProvider(workspace), CodeRefactoringProvider)
+            Dim provider = CreateCodeRefactoringProvider(workspace)
             Dim span = document.GetSyntaxRootAsync().Result.Span
             Dim refactorings = New List(Of CodeAction)()
             Dim context = New CodeRefactoringContext(document, span, Sub(a) refactorings.Add(a), CancellationToken.None)
@@ -87,11 +90,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 Dim previewObjects = Await previews.GetPreviewsAsync()
                 Dim preview = previewObjects(0)
                 Assert.NotNull(preview)
-                Assert.True(TypeOf preview Is IWpfDifferenceViewer)
-                Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
-                Dim text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
+                Assert.True(TypeOf preview Is DifferenceViewerPreview)
+                Dim diffView = DirectCast(preview, DifferenceViewerPreview)
+                Dim text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
                 Assert.Equal(s_changedDocumentText, text)
-                diffView.Close()
+                diffView.Dispose()
 
                 ' Then comes the removed metadata reference.
                 preview = previewObjects(1)

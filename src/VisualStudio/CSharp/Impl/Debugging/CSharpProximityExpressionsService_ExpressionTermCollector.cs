@@ -396,10 +396,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             {
                 var flags = ExpressionType.Invalid;
 
-                AddSubExpressionTerms(arg.Expression, terms, ref flags);
-                if (IsValidTerm(flags))
+                if (arg.Expression != null)
                 {
-                    terms.Add(ConvertToString(arg.Expression));
+                    AddSubExpressionTerms(arg.Expression, terms, ref flags);
+                    if (IsValidTerm(flags))
+                    {
+                        terms.Add(ConvertToString(arg.Expression));
+                    }
                 }
 
                 validExpr &= IsValidExpression(flags);

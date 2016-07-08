@@ -71,7 +71,7 @@ namespace N1.N2
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
@@ -101,7 +101,7 @@ public void Method()
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [Fact]
@@ -127,8 +127,8 @@ namespace NS
             var implementation = definition.PartialImplementationPart;
 
             // Assert that both the definition and implementation resolve back to themselves
-            Assert.Equal(definition, ResolveSymbol(definition, comp, comp, SymbolKeyComparison.None));
-            Assert.Equal(implementation, ResolveSymbol(implementation, comp, comp, SymbolKeyComparison.None));
+            Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+            Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
         [Fact]
@@ -170,10 +170,10 @@ class C<T> : I<T>, I
             var indexer1 = type.GetMembers().Where(m => m.MetadataName == "I.Item").Single() as IPropertySymbol;
             var indexer2 = type.GetMembers().Where(m => m.MetadataName == "I<T>.Item").Single() as IPropertySymbol;
 
-            AssertSymbolKeysEqual(indexer1, compilation, indexer2, compilation, SymbolKeyComparison.None, expectEqual: false);
+            AssertSymbolKeysEqual(indexer1, indexer2, SymbolKeyComparison.None, expectEqual: false);
 
-            Assert.Equal(indexer1, ResolveSymbol(indexer1, compilation, compilation, SymbolKeyComparison.None));
-            Assert.Equal(indexer2, ResolveSymbol(indexer2, compilation, compilation, SymbolKeyComparison.None));
+            Assert.Equal(indexer1, ResolveSymbol(indexer1, compilation, SymbolKeyComparison.None));
+            Assert.Equal(indexer2, ResolveSymbol(indexer2, compilation, SymbolKeyComparison.None));
         }
 
         #endregion
@@ -234,7 +234,7 @@ namespace N1.N2
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [Fact]
@@ -275,10 +275,10 @@ namespace NS
             var typeSym02 = namespace2.GetTypeMembers("C2").Single() as NamedTypeSymbol;
 
             // new C1 resolve to old C1
-            ResolveAndVerifySymbol(typeSym01, comp2, typeSym00, comp1);
+            ResolveAndVerifySymbol(typeSym01, typeSym00, comp1);
 
             // old C1 (new C2) NOT resolve to old C1
-            var symkey = SymbolKey.Create(typeSym02, comp1, CancellationToken.None);
+            var symkey = SymbolKey.Create(typeSym02, CancellationToken.None);
             var syminfo = symkey.Resolve(comp1);
             Assert.Null(syminfo.Symbol);
         }
@@ -320,7 +320,7 @@ public class Test
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.NonTypeMember | SymbolCategory.Parameter)
                                  .Where(s => !s.IsAccessor()).OrderBy(s => s.Name);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
@@ -353,8 +353,8 @@ public class Test
             var typeSym2 = comp2.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
             var newSymbols = typeSym2.GetMembers(WellKnownMemberNames.Indexer);
 
-            ResolveAndVerifySymbol(newSymbols.First(), comp2, originalSymbols.First(), comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(newSymbols.Last(), comp2, originalSymbols.Last(), comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(newSymbols.First(), originalSymbols.First(), comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(newSymbols.Last(), originalSymbols.Last(), comp1, SymbolKeyComparison.None);
         }
 
         [Fact]
@@ -379,10 +379,10 @@ namespace NS
             var typeSym02 = namespace2.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
 
             // new C1 resolves to old C1 if we ignore assembly and module ids
-            ResolveAndVerifySymbol(typeSym02, comp2, typeSym01, comp1, SymbolKeyComparison.CaseSensitive | SymbolKeyComparison.IgnoreAssemblyIds);
+            ResolveAndVerifySymbol(typeSym02, typeSym01, comp1, SymbolKeyComparison.IgnoreAssemblyIds);
 
             // new C1 DOES NOT resolve to old C1 if we don't ignore assembly and module ids
-            Assert.Null(ResolveSymbol(typeSym02, comp2, comp1, SymbolKeyComparison.CaseSensitive));
+            Assert.Null(ResolveSymbol(typeSym02,  comp1, SymbolKeyComparison.None));
         }
 
         [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
@@ -398,19 +398,19 @@ namespace NS
             Symbol sym2 = comp2.Assembly;
 
             // Not ignoreAssemblyAndModules
-            ResolveAndVerifySymbol(sym1, comp2, sym2, comp2);
+            ResolveAndVerifySymbol(sym1, sym2, comp2);
 
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.IgnoreAssemblyIds, true);
-            Assert.NotNull(ResolveSymbol(sym1, comp1, comp2, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(sym1, sym2, SymbolKeyComparison.IgnoreAssemblyIds, true);
+            Assert.NotNull(ResolveSymbol(sym1, comp2, SymbolKeyComparison.IgnoreAssemblyIds));
 
             // Module
             sym1 = comp1.Assembly.Modules[0];
             sym2 = comp2.Assembly.Modules[0];
 
-            ResolveAndVerifySymbol(sym1, comp1, sym2, comp2);
+            ResolveAndVerifySymbol(sym1, sym2, comp2);
 
-            AssertSymbolKeysEqual(sym2, comp2, sym1, comp1, SymbolKeyComparison.IgnoreAssemblyIds, true);
-            Assert.NotNull(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(sym2, sym1, SymbolKeyComparison.IgnoreAssemblyIds, true);
+            Assert.NotNull(ResolveSymbol(sym2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
         [Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
@@ -427,25 +427,25 @@ namespace NS
             ISymbol assembly2 = compilation2.Assembly;
 
             // different
-            AssertSymbolKeysEqual(assembly2, compilation2, assembly1, compilation1, SymbolKeyComparison.CaseSensitive, expectEqual: false);
-            Assert.Null(ResolveSymbol(assembly2, compilation2, compilation1, SymbolKeyComparison.CaseSensitive));
+            AssertSymbolKeysEqual(assembly2, assembly1, SymbolKeyComparison.None, expectEqual: false);
+            Assert.Null(ResolveSymbol(assembly2, compilation1, SymbolKeyComparison.None));
 
             // ignore means ALL assembly/module symbols have same ID
-            AssertSymbolKeysEqual(assembly2, compilation2, assembly1, compilation1, SymbolKeyComparison.IgnoreAssemblyIds, expectEqual: true);
+            AssertSymbolKeysEqual(assembly2, assembly1, SymbolKeyComparison.IgnoreAssemblyIds, expectEqual: true);
 
             // But can NOT be resolved
-            Assert.Null(ResolveSymbol(assembly2, compilation2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
+            Assert.Null(ResolveSymbol(assembly2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
 
             // Module
             var module1 = compilation1.Assembly.Modules[0];
             var module2 = compilation2.Assembly.Modules[0];
 
             // different
-            AssertSymbolKeysEqual(module1, compilation1, module2, compilation2, SymbolKeyComparison.CaseSensitive, expectEqual: false);
-            Assert.Null(ResolveSymbol(module1, compilation1, compilation2, SymbolKeyComparison.CaseSensitive));
+            AssertSymbolKeysEqual(module1, module2, SymbolKeyComparison.None, expectEqual: false);
+            Assert.Null(ResolveSymbol(module1, compilation2, SymbolKeyComparison.None));
 
-            AssertSymbolKeysEqual(module2, compilation2, module1, compilation1, SymbolKeyComparison.IgnoreAssemblyIds);
-            Assert.Null(ResolveSymbol(module2, compilation2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(module2, module1, SymbolKeyComparison.IgnoreAssemblyIds);
+            Assert.Null(ResolveSymbol(module2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
         [Fact, WorkItem(546254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
@@ -471,12 +471,12 @@ public class C {}
             Symbol sym2 = comp2.Assembly;
 
             // comment is changed to compare Name ONLY
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.CaseSensitive, expectEqual: true);
-            var resolved = ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.CaseSensitive);
+            AssertSymbolKeysEqual(sym1, sym2, SymbolKeyComparison.None, expectEqual: true);
+            var resolved = ResolveSymbol(sym2, comp1, SymbolKeyComparison.None);
             Assert.Equal(sym1, resolved);
 
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.IgnoreAssemblyIds);
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(sym1, sym2, SymbolKeyComparison.IgnoreAssemblyIds);
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
         #endregion

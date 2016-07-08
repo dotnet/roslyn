@@ -231,7 +231,7 @@
   <data name="SimplifyMemberAccess" xml:space="preserve">
     <value>Simplify member access '{0}'</value>
   </data>
-  <data name="SimplifyMeQualification" xml:space="preserve">
+  <data name="RemoveMeQualification" xml:space="preserve">
     <value>Remove 'Me' qualification</value>
   </data>
   <data name="NameCanBeSimplified" xml:space="preserve">
@@ -1200,5 +1200,14 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="ReferenceKeywordTooltip" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="NamespaceName" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
+  <data name="TypeANameHereToDeclareANamespace" xml:space="preserve">
+    <value>Type a name here to declare a namespace.</value>
   </data>
 </root>

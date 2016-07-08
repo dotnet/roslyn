@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
                 EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                _testData = ((IInternalRuntimeEnvironment) testEnvironment).GetCompilationTestData();
+                _testData = ((IInternalRuntimeEnvironment)testEnvironment).GetCompilationTestData();
 
                 return _compilation.Assembly.Identity.GetDisplayName();
             }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return this;
             }
 
-            public ISymUnmanagedReader CreateSymReader()
+            public ISymUnmanagedReader3 CreateSymReader()
             {
                 var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
                 return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
             }
 
-            private string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints, bool useRefEmitter)
+            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, bool useRefEmitter = false)
             {
                 Dictionary<int, string> markers = null;
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
             {
-                Assert.Equal(expected, _testData.Methods.ContainsKey(methodName));
+                Assert.Equal(expected, _testData.GetMethodsByName().ContainsKey(methodName));
                 return this;
             }
 
@@ -332,6 +332,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     return AssemblyMetadata.Create(moduleMetadata).GetReference(display: display);
                 }
+            }
+
+            public void VerifyOperationTree(string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            {
+                _compilation.VerifyOperationTree(expectedOperationTree, skipImplicitlyDeclaredSymbols);
+            }
+
+            public void VerifyOperationTree(string symbolToVerify, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            {
+                _compilation.VerifyOperationTree(symbolToVerify, expectedOperationTree, skipImplicitlyDeclaredSymbols);
             }
         }
     }

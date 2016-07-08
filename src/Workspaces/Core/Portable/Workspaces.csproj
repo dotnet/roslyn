@@ -17,11 +17,16 @@
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{a57ddfe5-ab0e-4371-98e5-11b9218df11c}</Project>
+      <Name>Composition</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
@@ -37,14 +42,23 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
+      <Link>Utilities\CompilerUtilities\OrderPreservingMultiDictionary.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
       <Link>InternalUtilities\CorLightup.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>InternalUtilities\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs">
+      <Link>InternalUtilities\AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
       <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
@@ -261,7 +275,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
@@ -273,14 +289,20 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -306,10 +328,13 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.DiagnosticProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllLogger.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.DiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.cs" />
+    <Compile Include="CodeFixes\Supression\ISuppressionFixProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\WellKnownFixAllProviders.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchFixAllProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.cs" />
@@ -326,9 +351,21 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="CodeStyle\CodeStyleOptions.cs" />
+    <Compile Include="CodeStyle\NotificationOption.cs" />
+    <Compile Include="CodeStyle\CodeStyleOption.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
+    <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
+    <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
+    <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
+    <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
+    <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
+    <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Editing\DeclarationKind.cs" />
@@ -386,11 +423,40 @@
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Metadata.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
+    <Compile Include="Options\DocumentOptionSet.cs" />
+    <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
-    <Compile Include="Packaging\IPackageSearchService.cs" />
+    <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
+    <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.MethodSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.BodyLevelSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.NamedTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AliasSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.EventSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.NamespaceSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.PointerTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ParameterSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ModuleSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AssemblySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyWriter.cs" />
+    <Compile Include="SymbolId\SymbolKey.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
+    <Compile Include="Shared\Utilities\IProgressTracker.cs" />
+    <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
+    <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
@@ -428,9 +494,13 @@
     <Compile Include="Utilities\BKTree.Edge.cs" />
     <Compile Include="Utilities\BKTree.Node.cs" />
     <Compile Include="Utilities\BKTree.Serialization.cs" />
+    <Compile Include="Utilities\CompilerUtilities\CompilerPathUtilities.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\IReadOnlyListExtensions.cs" />
+    <Compile Include="Utilities\ParameterName.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
+    <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
@@ -640,7 +710,7 @@
     <Compile Include="Options\OptionChangedEventArgs.cs" />
     <Compile Include="Options\OptionKey.cs" />
     <Compile Include="Options\OptionService.cs" />
-    <Compile Include="Options\OptionSet.cs" />
+    <Compile Include="Options\WorkspaceOptionSet.cs" />
     <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
@@ -776,32 +846,10 @@
     <Compile Include="Simplification\AliasAnnotation.cs" />
     <Compile Include="Simplification\ISimplificationService.cs" />
     <Compile Include="Simplification\SimplificationHelpers.cs" />
-    <Compile Include="Simplification\SimplificationOption.cs" />
+    <Compile Include="Simplification\SimplificationOptions.cs" />
     <Compile Include="Simplification\Simplifier.cs" />
     <Compile Include="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="Simplification\SymbolAnnotation.cs" />
-    <Compile Include="SymbolId\SymbolKey.AbstractSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.AssemblySymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.BodyLevelSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
-    <Compile Include="SymbolId\SymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.EventSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.MethodSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.MethodTypeParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ModuleSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NamedTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NamespaceSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NullSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.PointerTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
-    <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.Visitor.cs" />
     <Compile Include="SymbolId\SymbolKeyExtensions.cs" />
     <Compile Include="SymbolId\SymbolKeyResolution.cs" />
     <Compile Include="SymbolId\SymbolKeyResolutionExtensions.cs" />
@@ -964,6 +1012,7 @@
       </SubType>
     </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyReader.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

@@ -107,7 +107,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAdditionalFile(string additionalFilePath)
         {
-            var document = this.DocumentProvider.TryGetDocumentForFile(this, (uint)VSConstants.VSITEMID.Nil, filePath: additionalFilePath, sourceCodeKind: SourceCodeKind.Regular, canUseTextBuffer: (b) => true);
+            var document = this.DocumentProvider.TryGetDocumentForFile(
+                this,
+                (uint)VSConstants.VSITEMID.Nil,
+                filePath: additionalFilePath,
+                sourceCodeKind: SourceCodeKind.Regular,
+                canUseTextBuffer: _ => true);
 
             if (document == null)
             {
@@ -115,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             AddAdditionalDocument(document,
-                isCurrentContext: document.Project.Hierarchy == LinkedFileUtilities.GetContextHierarchy(document, RunningDocumentTable));
+                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
         }
 
         public void RemoveAdditionalFile(string additionalFilePath)

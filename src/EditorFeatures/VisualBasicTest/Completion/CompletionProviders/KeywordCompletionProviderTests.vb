@@ -13,29 +13,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New KeywordCompletionProvider()
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
-            Await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar:="")
+        Public Async Function IsCommitCharacterTest() As Task
+            Await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar:="C")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsTextualTriggerCharacterTest() As Threading.Tasks.Task
+        Public Async Function IsTextualTriggerCharacterTest() As Task
             Await TestCommonIsTextualTriggerCharacterAsync()
 
             Await VerifyTextualTriggerCharacterAsync("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
+        Public Async Function SendEnterThroughToEditorTest() As Task
             Await VerifySendEnterThroughToEditorAsync("$$", "Class", expected:=True)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InEmptyFile() As Threading.Tasks.Task
+        Public Async Function InEmptyFile() As Task
 
             Dim markup = "$$"
             Await VerifyAnyItemExistsAsync(markup)
@@ -182,7 +182,7 @@ End Class
 
         <WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterSub() As Threading.Tasks.Task
+        Public Async Function ImplementsAfterSub() As Task
             Dim code = "
 Interface I
 End Interface

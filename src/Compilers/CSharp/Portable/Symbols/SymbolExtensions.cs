@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 using static System.Linq.ImmutableArrayExtensions;
 
@@ -124,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while ((object)containingMember != null && containingMember.Kind == SymbolKind.Method)
             {
                 MethodSymbol method = (MethodSymbol)containingMember;
-                if (method.MethodKind != MethodKind.AnonymousFunction) break;
+                if (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction) break;
                 containingMember = containingMember.ContainingSymbol;
             }
 
@@ -144,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MethodSymbol method = (MethodSymbol)symbol;
 
                         // skip lambdas:
-                        if (method.MethodKind == MethodKind.AnonymousFunction)
+                        if (method.MethodKind == MethodKind.AnonymousFunction || method.MethodKind == MethodKind.LocalFunction)
                         {
                             symbol = method.ContainingSymbol;
                             continue;

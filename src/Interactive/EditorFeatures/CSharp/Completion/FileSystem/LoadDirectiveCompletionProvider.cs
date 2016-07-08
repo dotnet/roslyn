@@ -13,30 +13,29 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
-    [ExportCompletionProvider("LoadDirectiveCompletionProvider", LanguageNames.CSharp)]
+    [ExportCompletionProviderMef1("LoadDirectiveCompletionProvider", LanguageNames.CSharp)]
     // Using TextViewRole here is a temporary work-around to prevent this component from being loaded in
     // regular C# contexts.  We will need to remove this and implement a new "CSharp Script" Content type
     // in order to fix #load completion in .csx files (https://github.com/dotnet/roslyn/issues/5325).
     [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
-    internal partial class LoadDirectiveCompletionProvider : CompletionListProvider
+    internal partial class LoadDirectiveCompletionProvider : CommonCompletionProvider
     {
         private const string NetworkPath = "\\\\";
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules =
+            ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '"', '\\', ','));
+
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(commitCharacterRules: s_commitRules);
+
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var triggerInfo = context.TriggerInfo;
-            var cancellationToken = context.CancellationToken;
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetItems(text, context.Document, position, triggerInfo, cancellationToken);
-
+            var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var items = GetItems(text, context.Document, context.Position, context.Trigger, context.CancellationToken);
             context.AddItems(items);
         }
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
         }
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             return text.Lines.GetLineFromPosition(position).Start + quotedPathGroup.Index;
         }
 
-        private ImmutableArray<CompletionItem> GetItems(SourceText text, Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(SourceText text, Document document, int position, CompletionTrigger triggerInfo, CancellationToken cancellationToken)
         {
             var line = text.Lines.GetLineFromPosition(position);
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, position));
@@ -104,11 +103,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 Glyph.CSharpFile,
                 searchPaths: searchPaths,
                 allowableExtensions: new[] { ".csx" },
-                itemRules: ItemRules.Instance);
+                itemRules: s_rules);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);
 
             return helper.GetItems(pathThroughLastSlash, documentPath: null);
+        }
+
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            // When we commit "\\" when the user types \ we have to adjust for the fact that the
+            // controller will automatically append \ after we commit.  Because of that, we don't
+            // want to actually commit "\\" as we'll end up with "\\\".  So instead we just commit
+            // "\" and know that controller will append "\" and give us "\\".
+            if (selectedItem.DisplayText == NetworkPath && ch == '\\')
+            {
+                return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, "\\"));
+            }
+
+            return base.GetTextChangeAsync(document, selectedItem, ch, cancellationToken);
         }
     }
 }

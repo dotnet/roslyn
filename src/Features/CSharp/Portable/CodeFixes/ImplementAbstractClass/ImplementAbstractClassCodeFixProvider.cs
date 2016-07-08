@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
                     var id = GetCodeActionId(abstractType.ContainingAssembly.Name, abstractType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
                     context.RegisterCodeFix(
                         new MyCodeAction(title,
-                            (c) => ImplementAbstractClassAsync(context.Document, node, c),
+                            c => ImplementAbstractClassAsync(context.Document, node, c),
                             id),
                         context.Diagnostics);
                     return;

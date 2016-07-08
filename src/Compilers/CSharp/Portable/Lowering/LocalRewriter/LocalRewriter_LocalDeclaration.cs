@@ -3,8 +3,7 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -62,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         localSymbol.Type
                     ),
                     rewrittenInitializer,
-                    localSymbol.Type),
+                    localSymbol.Type,
+                    localSymbol.RefKind),
                 hasErrors);
 
             return AddLocalDeclarationSequencePointIfNecessary(syntax, localSymbol, rewrittenLocalDeclaration, wasCompilerGenerated);
@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewrittenLocalDeclaration;
+        }
+
+        public override sealed BoundNode VisitOutVarLocalPendingInference(OutVarLocalPendingInference node)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

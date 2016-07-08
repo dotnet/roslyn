@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         internal CompilationVerifier CompileAndVerifyExperimental(
             string source,
+            MessageID feature,
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -126,11 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<PEAssembly> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
+            CSharpCompilationOptions options = null,
             bool verify = true)
         {
-            var options = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            options = options ??
+                ((expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
 
-            var compilation = CreateExperimentalCompilationWithMscorlib45(source, additionalRefs, options);
+            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, additionalRefs, options);
 
             return CompileAndVerify(
                 compilation: compilation,
@@ -327,6 +330,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
+            string source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib46(
+                new[] { source },
+                references,
+                options,
+                parseOptions,
+                sourceFileName,
+                assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib46(
             string[] sources,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
@@ -386,8 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName: assemblyName);
         }
 
-        public static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
             string text,
+            MessageID feature,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "",
@@ -399,7 +420,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 refs.AddRange(references);
             }
             refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions) }, refs, options, assemblyName);
+            return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.Regular.WithExperimental(feature)) }, refs, options, assemblyName);
+        }
+
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+            string[] texts,
+            MessageID feature,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "",
+            string sourceFileName = "")
+        {
+            var refs = new List<MetadataReference>();
+            if (references != null)
+            {
+                refs.AddRange(references);
+            }
+            refs.Add(MscorlibRef_v4_0_30316_17626);
+            return CreateCompilation((from text in texts select Parse(text, sourceFileName, TestOptions.Regular.WithExperimental(feature))).ToArray(), refs, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(

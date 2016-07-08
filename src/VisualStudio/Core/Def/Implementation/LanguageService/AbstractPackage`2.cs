@@ -4,21 +4,27 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Package
+    internal abstract partial class AbstractPackage<TPackage, TLanguageService> : AbstractPackage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private ForegroundThreadAffinitizedObject _foregroundObject;
         private TLanguageService _languageService;
         private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
+
+        private PackageInstallerService _packageInstallerService;
+        private SymbolSearchService _symbolSearchService;
 
         public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
@@ -29,10 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override void Initialize()
         {
             base.Initialize();
-            // Assume that we are being initialized on the UI thread at this point.
-            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
-            _foregroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
 
             foreach (var editorFactory in CreateEditorFactories())
             {
@@ -76,6 +78,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // Ensure services that must be created on the UI thread have been.
             HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
+
+            LoadComponentsInUIContextOnceSolutionFullyLoaded();
+        }
+
+        protected override void LoadComponentsInUIContext()
+        {
+            ForegroundObject.AssertIsForeground();
+
+            // Ensure the nuget package services are initialized after we've loaded
+            // the solution.
+            _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
+
+            _packageInstallerService?.Connect(this.RoslynLanguageName);
+            _symbolSearchService?.Connect(this.RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
@@ -84,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                _foregroundObject.AssertIsForeground();
+                ForegroundObject.AssertIsForeground();
 
                 return (IComponentModel)GetService(typeof(SComponentModel));
             }
@@ -108,6 +125,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
+            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
+            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
+
             if (_miscellaneousFilesWorkspace != null)
             {
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();

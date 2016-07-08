@@ -51,10 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model.IsUnique)
             {
                 // We had a unique item in the list.  Commit it and dismiss this session.
-
-                var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-                var textChange = GetCompletionRules().GetTextChange(selectedItem);
-                this.Commit(selectedItem, textChange, model, null);
+                this.Commit(model.SelectedItem, model, commitChar: null);
             }
         }
     }

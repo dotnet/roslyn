@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         None,
 
         /// <summary>
-        /// User defined local variable declared by <see cref="LocalDeclarationStatementSyntax"/>.
+        /// User defined local variable declared by <see cref="LocalDeclarationStatementSyntax"/> or by "out var" argument.
         /// </summary>
         RegularVariable,
 
@@ -49,5 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// User defined local variable declared by <see cref="ForEachStatementSyntax"/>.
         /// </summary>
         ForEachIterationVariable,
+
+        /// <summary>
+        /// The variable that captures the result of a pattern matching operation like "i" in "expr is int i"
+        /// </summary>
+        PatternVariable,
     }
 }

@@ -1,0 +1,32 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- The inclusion of this file will cause the resulting .exe.config to contain redirects for our core compiler assemblies,
+       which is needed for things like analyzers to load. -->
+
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The version 0.0.0.0 in these references doesn't actually matter; the generated versions will always generate from 0.0.0.0-->
+    <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(AssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis.CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(AssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis.VisualBasic, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
+      <MaxVersion>$(AssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <!-- System.Collections.Immutable and System.Reflection.Metadata have a package version that is only three parts instead
+         of the normal four (such as 1.2.0 instead of 1.2.0.0). Binding redirects that do not have exactly four version parts
+         are ignored and as such, we need the special handling below to ensure we end up with four parts to the build version. -->
+    <!-- Please note that this will break if the package version is ever changed from 3 parts. A better, but much more complicated
+         fix would be to check the number of version parts detected and adjust appropriately. -->
+    <SuggestedBindingRedirects Include="System.Collections.Immutable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(SystemCollectionsImmutableVersion.Split('-')[0]).0</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="System.Reflection.Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(SystemReflectionMetadataVersion.Split('-')[0]).0</MaxVersion>
+    </SuggestedBindingRedirects>
+  </ItemGroup>
+</Project>

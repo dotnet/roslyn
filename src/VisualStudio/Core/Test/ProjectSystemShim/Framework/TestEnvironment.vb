@@ -177,7 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Class
 
         Private Class WorkspaceHost
-            Implements IVisualStudioWorkspaceHost
+            Implements IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2
 
             Private _workspace As TestWorkspace
 
@@ -238,6 +238,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Sub
 
             Public Sub OnDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentTextUpdatedOnDisk
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub OnHasAllInformation(projectId As ProjectId, hasAllInformation As Boolean) Implements IVisualStudioWorkspaceHost2.OnHasAllInformation
                 Throw New NotImplementedException()
             End Sub
 

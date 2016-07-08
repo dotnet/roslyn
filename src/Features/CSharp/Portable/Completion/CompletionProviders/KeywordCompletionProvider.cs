@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -155,12 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }.ToImmutableArray();
         }
 
-        protected override TextSpan GetTextChangeSpan(SourceText text, int position)
-        {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -172,15 +168,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan filterSpan)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
         {
-            return new CompletionItem(
-                this,
+            return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                filterSpan: filterSpan,
-                descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
+                span: span,
+                description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
+        }
+
+        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
+        {
+            return CompletionUtilities.GetCompletionItemSpan(text, span.End);
         }
     }
 }

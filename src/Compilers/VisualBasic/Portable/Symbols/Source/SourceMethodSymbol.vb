@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
@@ -277,20 +278,20 @@ lReportErrorOnTwoTokens:
             Return New SourceDeclareMethodSymbol(container, name, flags, binder, syntax, importData)
         End Function
 
-        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As PInvokeAttributes
-            Dim result As PInvokeAttributes
+        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As MethodImportAttributes
+            Dim result As MethodImportAttributes
             Select Case syntax.CharsetKeyword.Kind
                 Case SyntaxKind.None, SyntaxKind.AnsiKeyword
-                    result = PInvokeAttributes.CharSetAnsi Or PInvokeAttributes.NoMangle
+                    result = MethodImportAttributes.CharSetAnsi Or MethodImportAttributes.ExactSpelling
 
                 Case SyntaxKind.UnicodeKeyword
-                    result = PInvokeAttributes.CharSetUnicode Or PInvokeAttributes.NoMangle
+                    result = MethodImportAttributes.CharSetUnicode Or MethodImportAttributes.ExactSpelling
 
                 Case SyntaxKind.AutoKeyword
-                    result = PInvokeAttributes.CharSetAuto
+                    result = MethodImportAttributes.CharSetAuto
             End Select
 
-            Return result Or PInvokeAttributes.CallConvWinapi Or PInvokeAttributes.SupportsLastError
+            Return result Or MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError
         End Function
 
         Friend Shared Function CreateOperator(
@@ -1257,6 +1258,13 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                ' It is not possible to define ref-returning methods in source.
+                Return False
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
                 Debug.Assert(Me.MethodKind <> MethodKind.EventAdd,
@@ -2080,9 +2088,10 @@ lReportErrorOnTwoTokens:
                                                                             Me.CallingConvention,
                                                                             fakeTypeParameters,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
-                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
-                                                                            ImmutableArray(Of CustomModifier).Empty,
-                                                                            ImmutableArray(Of MethodSymbol).Empty,
+                                                                            returnsByRef:=False,
+                                                                            returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
+                                                                            returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
 
@@ -2249,7 +2258,7 @@ lReportErrorOnTwoTokens:
                             SyntaxKind.DeclareSubStatement
 
                             Debug.Assert(Me.IsSub)
-                            binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
+                            Binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
                             retType = binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag)
                             errorLocation = methodStatement.DeclarationKeyword
 

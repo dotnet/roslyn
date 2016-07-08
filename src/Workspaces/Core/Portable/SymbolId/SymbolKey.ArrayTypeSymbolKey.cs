@@ -1,44 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class ArrayTypeSymbolKey : AbstractSymbolKey<ArrayTypeSymbolKey>
+        private static class ArrayTypeSymbolKey
         {
-            private readonly SymbolKey _elementKey;
-            private readonly int _rank;
-
-            internal ArrayTypeSymbolKey(IArrayTypeSymbol symbol, Visitor visitor)
+            public static void Create(IArrayTypeSymbol symbol, SymbolKeyWriter visitor)
             {
-                _elementKey = GetOrCreate(symbol.ElementType, visitor);
-                _rank = symbol.Rank;
+                visitor.WriteSymbolKey(symbol.ElementType);
+                visitor.WriteInteger(symbol.Rank);
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var elementInfo = _elementKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementInfo).Select(s => compilation.CreateArrayTypeSymbol(s, _rank)));
+                var elementTypeResolution = reader.ReadSymbolKey();
+                var rank = reader.ReadInteger();
+
+                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementTypeResolution)
+                            .Select(s => reader.Compilation.CreateArrayTypeSymbol(s, rank)));
             }
 
-            internal override bool Equals(ArrayTypeSymbolKey other, ComparisonOptions options)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                return
-                    other._rank == _rank &&
-                    other._elementKey.Equals(_elementKey, options);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                return Hash.Combine(
-                    _rank,
-                    _elementKey.GetHashCode(options));
+                return Hash.Combine(reader.ReadSymbolKey(), reader.ReadInteger());
             }
         }
     }

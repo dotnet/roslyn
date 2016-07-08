@@ -1135,7 +1135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return namespaces
         End Function
 
-        Private Function AddXmlAttributeIfNotDuplicate(
+        Private Shared Function AddXmlAttributeIfNotDuplicate(
                                                       syntax As XmlNodeSyntax,
                                                       name As XmlName,
                                                       attribute As BoundXmlAttribute,
@@ -1673,6 +1673,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _originalDefinition.ReturnsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return _originalDefinition.Type
@@ -1906,6 +1912,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ImmutableInterlocked.InterlockedInitialize(_lazyParameters, ReducedAccessorParameterSymbol.MakeParameters(Me, _originalDefinition.Parameters))
                     End If
                     Return _lazyParameters
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                Get
+                    Return _originalDefinition.ReturnsByRef
                 End Get
             End Property
 

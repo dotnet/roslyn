@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        private readonly bool _generateDebugInfo;
-        private readonly CSharpCompilation _compilation;
         private readonly SyntheticBoundNodeFactory _F;
         private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
@@ -29,12 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
-            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
-            _generateDebugInfo = containingMethod.GenerateDebugInfo;
-            _compilation = compilation;
             _F = factory;
             _F.CurrentMethod = containingMethod;
             Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
@@ -126,9 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            var compilation = containingType.DeclaringCompilation;
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, compilation, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, diagnostics, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;
@@ -290,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // handle proxy labels if have any
             var proxiedLabels = frame.proxiedLabels;
-            var proxyLabels = frame.proxyLabels;
 
             // skip 0 - it means we took no explicit branches
             int i = 1;
@@ -322,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (returnLabel == null)
                 {
-                    unpendReturn = new BoundReturnStatement(_F.Syntax, pendingValue);
+                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue);
                 }
                 else
                 {
@@ -541,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      catchNo = X;
             //  }
             BoundCatchBlock catchAndPend;
-            var handlerLocals = ImmutableArray<LocalSymbol>.Empty;
+            ImmutableArray<LocalSymbol> handlerLocals;
 
             var filterOpt = node.ExceptionFilterOpt;
             if (filterOpt == null)
@@ -549,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
-                    catchTemp,
+                    ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: null,
@@ -560,18 +553,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isSynthesizedAsyncCatchAll: node.IsSynthesizedAsyncCatchAll);
 
                 // catch locals live on the synthetic catch handler block
-                if ((object)node.LocalOpt != null)
-                {
-                    handlerLocals = ImmutableArray.Create(node.LocalOpt);
-                }
+                handlerLocals = node.Locals;
             }
             else
             {
+                handlerLocals = ImmutableArray<LocalSymbol>.Empty;
+
                 // catch locals move up into hoisted locals
                 // since we might need to access them from both the filter and the catch
-                if ((object)node.LocalOpt != null)
+                foreach (var local in node.Locals)
                 {
-                    currentAwaitCatchFrame.HoistLocal(node.LocalOpt, _F);
+                    currentAwaitCatchFrame.HoistLocal(local, _F);
                 }
 
                 // store pending exception 
@@ -588,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     rewrittenFilter);
 
                 catchAndPend = node.Update(
-                    catchTemp,
+                    ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: newFilter,
@@ -671,6 +663,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
             var result = base.VisitLambda(node);
+
+            _F.CurrentMethod = oldContainingSymbol;
+            _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
+
+            return result;
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            var oldContainingSymbol = _F.CurrentMethod;
+            var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+
+            _F.CurrentMethod = node.Symbol;
+            _currentAwaitFinallyFrame = new AwaitFinallyFrame();
+
+            var result = base.VisitLocalFunctionStatement(node);
 
             _F.CurrentMethod = oldContainingSymbol;
             _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
@@ -825,6 +833,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _seenAwait = false;
 
                 base.VisitLambda(node);
+
+                this.currentLabels = origLabels;
+                _seenAwait = origSeenAwait;
+
+                return null;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                var origLabels = this.currentLabels;
+                var origSeenAwait = _seenAwait;
+
+                this.currentLabels = null;
+                _seenAwait = false;
+
+                base.VisitLocalFunctionStatement(node);
 
                 this.currentLabels = origLabels;
                 _seenAwait = origSeenAwait;

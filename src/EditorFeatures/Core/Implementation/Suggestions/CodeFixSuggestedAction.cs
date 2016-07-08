@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -45,14 +45,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal static SuggestedActionSet GetFixAllSuggestedActionSet(
             CodeAction action,
             int actionCount,
-            FixAllCodeActionContext fixAllCodeActionContext,
+            FixAllState fixAllState,
+            IEnumerable<FixAllScope> supportedScopes,
+            Diagnostic firstDiagnostic,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             IAsynchronousOperationListener operationListener)
         {
-            if (fixAllCodeActionContext == null)
+            if (fixAllState == null)
             {
                 return null;
             }
@@ -63,13 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
-            foreach (var scope in fixAllCodeActionContext.SupportedScopes)
+            foreach (var scope in supportedScopes)
             {
-                var fixAllContext = fixAllCodeActionContext.GetContextForScopeAndActionId(scope, action.EquivalenceKey);
-                var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider, showPreviewChangesDialog: true);
+                var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                var fixAllAction = new FixAllCodeAction(fixAllStateForScope, showPreviewChangesDialog: true);
                 var fixAllSuggestedAction = new FixAllSuggestedAction(
-                    workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction, fixAllCodeActionContext.FixAllProvider,
-                    fixAllCodeActionContext.OriginalDiagnostics.First(), operationListener);
+                    workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
+                    fixAllStateForScope.FixAllProvider, firstDiagnostic, operationListener);
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 

@@ -3,19 +3,25 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     Partial Friend Class VisualBasicIndentationService
         Private Class Indenter
             Inherits AbstractIndenter
 
-            Public Sub New(document As SyntacticDocument, rules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, line As ITextSnapshotLine, cancellationToken As CancellationToken)
-                MyBase.New(document, rules, optionSet, line, cancellationToken)
+            Public Sub New(syntaxFacts As ISyntaxFactsService,
+                           syntaxTree As SyntaxTree,
+                           rules As IEnumerable(Of IFormattingRule),
+                           optionSet As OptionSet,
+                           line As TextLine,
+                           cancellationToken As CancellationToken)
+                MyBase.New(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             End Sub
 
             Public Overrides Function GetDesiredIndentation() As IndentationResult?
@@ -31,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                     Return IndentFromStartOfLine(0)
                 End If
 
-                Dim lastNonWhitespacePosition = previousLine.GetLastNonWhitespacePosition()
+                Dim lastNonWhitespacePosition = previousLine.Value.GetLastNonWhitespacePosition()
                 If Not lastNonWhitespacePosition.HasValue Then
                     Return Nothing
                 End If
@@ -40,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 If token.Kind = SyntaxKind.None OrElse
                     indentStyle = FormattingOptions.IndentStyle.Block Then
 
-                    Return GetIndentationOfLine(previousLine)
+                    Return GetIndentationOfLine(previousLine.Value)
                 End If
 
                 If token.Span.End = lastNonWhitespacePosition.Value + 1 Then
@@ -52,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
                     ' preserve the indentation of the comment trivia before a case statement
                     If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                        Return GetIndentationOfLine(previousLine)
+                        Return GetIndentationOfLine(previousLine.Value)
                     End If
 
                     If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse trivia.Kind = SyntaxKind.CommentTrivia Then
@@ -65,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                     End If
 
                     ' okay, now check whether the trivia is at the beginning of the line
-                    Dim firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition()
+                    Dim firstNonWhitespacePosition = previousLine.Value.GetFirstNonWhitespacePosition()
                     If Not firstNonWhitespacePosition.HasValue Then
                         Return IndentFromStartOfLine(0)
                     End If
@@ -76,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return GetIndentationBasedOnToken(firstTokenOnLine)
                     End If
 
-                    Return GetIndentationOfLine(previousLine)
+                    Return GetIndentationOfLine(previousLine.Value)
                 End If
             End Function
 
@@ -89,10 +95,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 Return token.GetPreviousToken()
             End Function
 
-            Protected Overrides Function HasPreprocessorCharacter(currentLine As ITextSnapshotLine) As Boolean
-                ThrowIfNull(currentLine)
-
-                Dim text = currentLine.GetText()
+            Protected Overrides Function HasPreprocessorCharacter(currentLine As TextLine) As Boolean
+                Dim text = currentLine.ToString()
                 Contract.Assert(String.IsNullOrWhiteSpace(text) = False)
 
                 Dim trimmedText = text.Trim()
@@ -102,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             End Function
 
             Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult?
-                Dim snapshot = LineToBeIndented.Snapshot
+                Dim sourceText = LineToBeIndented.Text
 
                 Dim position = GetCurrentPositionNotBelongToEndOfFileToken(LineToBeIndented.Start)
 
@@ -239,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 ' based on current indentation level.
                 If token.Kind = SyntaxKind.XmlTextLiteralToken OrElse
                    token.Kind = SyntaxKind.XmlEntityLiteralToken Then
-                    Return GetIndentationOfLine(LineToBeIndented.Snapshot.GetLineFromPosition(token.SpanStart))
+                    Return GetIndentationOfLine(LineToBeIndented.Text.Lines.GetLineFromPosition(token.SpanStart))
                 End If
 
                 ' check alignment token indentation
@@ -252,28 +256,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             End Function
 
             Private Function GetIndentationFromTokenLineAfterLineContinuation(token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
-                Dim snapshot = LineToBeIndented.Snapshot
-                Dim position = LineToBeIndented.Start.Position
+                Dim sourceText = LineToBeIndented.Text
+                Dim position = LineToBeIndented.Start
 
                 position = GetCurrentPositionNotBelongToEndOfFileToken(position)
 
-                Dim currentTokenLine = snapshot.GetLineFromPosition(token.SpanStart)
+                Dim currentTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart)
 
                 ' error case where the line continuation belongs to a meaningless token such as empty token for skipped text
                 If token.Kind = SyntaxKind.EmptyToken Then
-                    Dim baseLine = snapshot.GetLineFromPosition(trivia.SpanStart)
+                    Dim baseLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart)
                     Return GetIndentationOfLine(baseLine)
                 End If
 
                 Dim xmlEmbeddedExpression = token.GetAncestor(Of XmlEmbeddedExpressionSyntax)()
                 If xmlEmbeddedExpression IsNot Nothing Then
-                    Dim firstExpressionLine = snapshot.GetLineFromPosition(xmlEmbeddedExpression.GetFirstToken(includeZeroWidth:=True).SpanStart)
+                    Dim firstExpressionLine = sourceText.Lines.GetLineFromPosition(xmlEmbeddedExpression.GetFirstToken(includeZeroWidth:=True).SpanStart)
                     Return GetIndentationFromTwoLines(firstExpressionLine, currentTokenLine, token, position)
                 End If
 
                 If FormattingHelpers.IsGreaterThanInAttribute(token) Then
                     Dim attribute = token.GetAncestor(Of AttributeListSyntax)()
-                    Dim baseLine = snapshot.GetLineFromPosition(attribute.GetFirstToken(includeZeroWidth:=True).SpanStart)
+                    Dim baseLine = sourceText.Lines.GetLineFromPosition(attribute.GetFirstToken(includeZeroWidth:=True).SpanStart)
                     Return GetIndentationOfLine(baseLine)
                 End If
 
@@ -288,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 ' this can happen if only token in the file is End Of File Token
                 If statement Is Nothing Then
                     If trivia.Kind <> SyntaxKind.None Then
-                        Dim triviaLine = snapshot.GetLineFromPosition(trivia.SpanStart)
+                        Dim triviaLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart)
                         Return GetIndentationOfLine(triviaLine, Me.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
                     End If
 
@@ -297,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 End If
 
                 ' find line where first token of statement is starting on
-                Dim firstTokenLine = snapshot.GetLineFromPosition(statement.GetFirstToken(includeZeroWidth:=True).SpanStart)
+                Dim firstTokenLine = sourceText.Lines.GetLineFromPosition(statement.GetFirstToken(includeZeroWidth:=True).SpanStart)
                 Return GetIndentationFromTwoLines(firstTokenLine, currentTokenLine, token, position)
             End Function
 
@@ -308,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                      TypeOf token.Parent Is TypeParameterListSyntax)
             End Function
 
-            Private Function GetIndentationFromTwoLines(firstLine As ITextSnapshotLine, secondLine As ITextSnapshotLine, token As SyntaxToken, position As Integer) As IndentationResult
+            Private Function GetIndentationFromTwoLines(firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
                 If firstLine.LineNumber = secondLine.LineNumber Then
                     ' things are on same line, put the indentation size
                     Return GetIndentationOfCurrentPosition(token, position, Me.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))

@@ -328,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OmittedArraySizeExpression = 8654,
         InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
+        IsPatternExpression = 8657,
 
         // binary expressions
         AddExpression = 8668,
@@ -468,6 +469,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         CatchFilterClause = 8828,
         FinallyClause = 8829,
 
+        // statements that didn't fit above
+        LocalFunctionStatement = 8830,
+
         // declarations
         CompilationUnit = 8840,
         GlobalStatement = 8841,
@@ -532,5 +536,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
+        // Changes after C# 6
+		// tuples
+        TupleType = 8925,
+        TupleElement = 8926,
+        TupleExpression = 8927,
+
+        // patterns (for pattern-matching)
+        DeclarationPattern = 9000,
+        ConstantPattern = 9002,
+        CasePatternSwitchLabel = 9009,
+        WhenClause = 9013,
+        // Kinds between 9000 and 9039 are "reserved" for pattern matching.
+        // Please start with 9040 if you add more kinds below.
+
     }
 }

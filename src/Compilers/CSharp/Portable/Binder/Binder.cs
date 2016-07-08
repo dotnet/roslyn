@@ -153,11 +153,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get locals declared immediately in scope represented by the node.
+        /// Get locals declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalsForScope(node);
+            return this.Next.GetDeclaredLocalsForScope(scopeDesignator);
+        }
+
+        /// <summary>
+        /// Get local functions declared immediately in scope designated by the node.
+        /// </summary>
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+        }
+
+        /// <summary>
+        /// If this binder owns a scope for locals, return syntax node that is used
+        /// as the scope designator. Otherwise, null.
+        /// </summary>
+        internal virtual SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        internal virtual bool IsLocalFunctionsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal virtual bool IsLabelsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -581,44 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ThreeState.True;
         }
 
-        internal void ResolveOverloads<TMember>(
-            ImmutableArray<TMember> members,
-            ImmutableArray<TypeSymbol> typeArguments,
-            ImmutableArray<ArgumentSyntax> arguments,
-            OverloadResolutionResult<TMember> result,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool allowRefOmittedArguments)
-            where TMember : Symbol
-        {
-            var methodsBuilder = ArrayBuilder<TMember>.GetInstance(members.Length);
-            methodsBuilder.AddRange(members);
-
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(typeArguments.Length);
-            typeArgumentsBuilder.AddRange(typeArguments);
-
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            var unusedDiagnostics = DiagnosticBag.GetInstance();
-            foreach (var argumentSyntax in arguments)
-            {
-                BindArgumentAndName(analyzedArguments, unusedDiagnostics, false, argumentSyntax, allowArglist: false);
-            }
-
-            OverloadResolution.MethodOrPropertyOverloadResolution(
-                methodsBuilder,
-                typeArgumentsBuilder,
-                analyzedArguments,
-                result,
-                isMethodGroupConversion: false,
-                allowRefOmittedArguments: allowRefOmittedArguments,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-
-            methodsBuilder.Free();
-            typeArgumentsBuilder.Free();
-            analyzedArguments.Free();
-            unusedDiagnostics.Free();
-        }
-
-        internal bool IsSymbolAccessibleConditional(
+        internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -691,9 +690,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundAssignment,
 
             /// <summary>
-            /// Expression is an out parameter.
+            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            OutParameter,
+            RefOrOut,
 
             /// <summary>
             /// Expression is the operand of an address-of operation (&amp;).
@@ -704,6 +703,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is the receiver of a fixed buffer field access
             /// </summary>
             FixedReceiver,
+
+            /// <summary>
+            /// Expression is assigned by reference.
+            /// </summary>
+            RefAssign,
+            
+            /// <summary>
+            /// Expression is returned by reference.
+            /// </summary>
+            RefReturn,
         }
 
         /// <summary>
@@ -737,6 +746,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
+        
+        internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            return (locals.IsEmpty)
+                ? expression
+                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+        }
 
+        internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            if (locals.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals,
+                                  ImmutableArray<LocalFunctionSymbol>.Empty,
+                                  ImmutableArray.Create(statement))
+                        { WasCompilerGenerated = true };
+        }
     }
 }

@@ -203,6 +203,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsLeftSideOfDot(expression As ExpressionSyntax) As Boolean
+            If expression Is Nothing Then
+                Return False
+            End If
+
             Return _
                 (expression.IsParentKind(SyntaxKind.QualifiedName) AndAlso DirectCast(expression.Parent, QualifiedNameSyntax).Left Is expression) OrElse
                 (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso DirectCast(expression.Parent, MemberAccessExpressionSyntax).Expression Is expression)
@@ -949,8 +953,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
-                 memberAccess.Expression.Kind() = SyntaxKind.MeExpression Then
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
+                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
                 Return False
             End If
 
