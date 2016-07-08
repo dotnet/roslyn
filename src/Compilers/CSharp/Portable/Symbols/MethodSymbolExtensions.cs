@@ -54,19 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var paramCount = method.ParameterCount;
             var arguments = new BoundExpression[paramCount];
-            var argumentTypes = new TypeSymbol[paramCount];
             for (int i = 0; i < paramCount; i++)
             {
                 var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
                 arguments[i] = argument;
-                argumentTypes[i] = argument.Type;
             }
 
             var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
                 conversions,
                 method,
-                argumentTypes.AsImmutableOrNull(),
-                arguments.AsImmutableOrNull(),
+                arguments.AsImmutable(),
                 ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)

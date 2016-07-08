@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if (localSymbol == null)
             {
-                localSymbol = new LocalFunctionSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
+                localSymbol = new LocalFunctionSymbol(this, this.ContainingMemberOrLambda, node);
             }
             else
             {
@@ -2689,7 +2689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) && 
                     targetElementTypes.Length == tuple.Arguments.Length)
                 {
-                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, syntax, tuple.Arguments, targetElementTypes);
+                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
                     return;
                 }
 
@@ -2760,7 +2760,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
             DiagnosticBag diagnostics, 
-            CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> tupleArguments, 
             ImmutableArray<TypeSymbol> targetElementTypes)
         {

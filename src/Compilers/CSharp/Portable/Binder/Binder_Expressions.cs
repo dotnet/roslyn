@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindMemberBindingExpression((MemberBindingExpressionSyntax)node, invoked, indexed, diagnostics);
 
                 case SyntaxKind.ElementBindingExpression:
-                    return BindElementBindingExpression((ElementBindingExpressionSyntax)node, invoked, indexed, diagnostics);
+                    return BindElementBindingExpression((ElementBindingExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.IsExpression:
                     return BindIsOperator((BinaryExpressionSyntax)node, diagnostics);
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
                     targetElementTypes.Length == tuple.Arguments.Length)
                 {
-                    GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, syntax, tuple.Arguments, targetElementTypes);
+                    GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
                     return;
                 }
 
@@ -1858,7 +1858,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateExplicitConversionErrorsForTupleLiteralArguments(
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> tupleArguments,
             ImmutableArray<TypeSymbol> targetElementTypes)
         {            
@@ -6822,7 +6821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberAccess;
         }
 
-        private BoundExpression BindElementBindingExpression(ElementBindingExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
+        private BoundExpression BindElementBindingExpression(ElementBindingExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression receiver = GetReceiverForConditionalBinding(node, diagnostics);
 

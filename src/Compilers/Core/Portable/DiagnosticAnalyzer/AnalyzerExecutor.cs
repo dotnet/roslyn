@@ -108,12 +108,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
-        /// <param name="logExecutionTime">Flag indicating whether we need to log analyzer execution time.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             AnalyzerManager analyzerManager,
-            bool logExecutionTime = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return new AnalyzerExecutor(
