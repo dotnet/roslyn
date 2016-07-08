@@ -103,7 +103,7 @@ set TMP=%TEMP%
 
       def triggerPhraseOnly = configuration == 'release'   
       def triggerPhraseExtra = ""
-                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-update3')
+                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -160,7 +160,7 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-update3')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -177,6 +177,6 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-update3')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
