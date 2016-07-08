@@ -3,10 +3,8 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\..\</ProjectDir>
-    <UploadNugets Condition="'$(UploadNuGets)' == ''">true</UploadNugets>
-    <UploadVsixes Condition="'$(UploadVsixes)' == ''">true</UploadVsixes>
-    <UploadCoreXTPackages Condition="'$(UploadCoreXTPackages)' == ''">true</UploadCoreXTPackages>
-    <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</BranchName>
+    <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
+    <BinariesPath>$(ProjectDir)Binaries\$(Configuration)</BinariesPath>
   </PropertyGroup>
 
   <!-- Non-official builds / local testing have different defaults -->
@@ -16,6 +14,7 @@
     <UploadCoreXTPackages>false</UploadCoreXTPackages>
     <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
     <SignRoslynArgs>-test</SignRoslynArgs>
+    <PublishAssetsArgs>-test</PublishAssetsArgs>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -26,7 +25,7 @@
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
 
     <!-- TODO: pass arguments -->
-    <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(ProjectDir)Binaries\$(Configuration)&quot;" WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
@@ -35,12 +34,11 @@
 
     <!-- Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
          and ready to be inserted -->
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1 -binariesPath &quot;$(BinariesPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)stop-compiler-server.ps1" />
 
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)publish-assets.ps1 -BinariesDirectory &quot;Binaries\$(Configuration)&quot; -BranchName $(BranchName) -UploadNugets $(UploadNuGets) -UploadVsixes $(UploadVsixes) -UploadCoreXTPackages $(UploadCoreXTPackages)" />
-
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)publish-assets.ps1 -binariesPath &quot;$(BinariesPath)&quot; -branchName $(BranchName) $(PublishAssetsArgs)" />
   </Target>
 
 </Project>
