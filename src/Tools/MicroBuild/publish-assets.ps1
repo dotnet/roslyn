@@ -19,8 +19,9 @@ Whether or not to just test this script vs. actually publish
 
 #>
 Param(
-    [string]$binariesPath,
-    [string]$branchName,
+    [string]$binariesPath = $null,
+    [string]$branchName = $null,
+    [string]$apiKey = $null,
     [switch]$test
 
 )
@@ -74,11 +75,6 @@ try
     $nugetPath = Join-Path $binariesPath "NuGet\PerBuildPreRelease"
 
     [xml]$packages = Get-Content "$nugetPath\myget_org-packages.config"
-    $apiKey = $null;
-    if (-not test)
-    {
-        $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
-    }
 
     $sourceUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/api/v2/package" -f $branchName)
     
@@ -109,7 +105,6 @@ try
     $vsixPath = $binariesPath
 
     [xml]$extensions = Get-Content "$vsixPath\myget_org-extensions.config"
-    $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
 
     pushd $vsixPath
     foreach ($extension in $extensions.extensions.extension)
