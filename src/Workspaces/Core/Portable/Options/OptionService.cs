@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new OptionService(_optionProviders, _optionSerializers);
+            return new OptionService(workspaceServices, _optionProviders, _optionSerializers);
         }
 
         // Internal for testing purposes only.
@@ -39,12 +39,18 @@ namespace Microsoft.CodeAnalysis.Options
                 ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
 
             private readonly object _gate = new object();
+            private readonly IWorkspaceTaskScheduler _taskQueue;
+
             private ImmutableDictionary<OptionKey, object> _currentValues;
 
             public OptionService(
+                HostWorkspaceServices workspaceServices,
                 IEnumerable<Lazy<IOptionProvider>> optionProviders,
                 IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
             {
+                var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
+                _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
+
                 _options = new Lazy<HashSet<IOption>>(() =>
                 {
                     var options = new HashSet<IOption>();
@@ -199,7 +205,15 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
-                // Outside of the lock, raise events
+                // Outside of the lock, raise the events on our task queue.
+                _taskQueue.ScheduleTask(() =>
+                {
+                    RaiseEvents(changedOptions);
+                }, "OptionsService.SetOptions");
+            }
+
+            private void RaiseEvents(List<OptionChangedEventArgs> changedOptions)
+            {
                 var optionChanged = OptionChanged;
                 if (optionChanged != null)
                 {
