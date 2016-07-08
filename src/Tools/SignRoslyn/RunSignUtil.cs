@@ -211,6 +211,7 @@ namespace SignRoslyn
                 {
                     Console.WriteLine($"Did not find {binaryName} at {binaryName.FullPath}");
                     allGood = false;
+                    continue;
                 }
 
                 var checksum = _contentUtil.GetChecksum(binaryName.FullPath);

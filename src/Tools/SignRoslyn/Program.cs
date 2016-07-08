@@ -46,8 +46,8 @@ namespace SignRoslyn
             out string sourcePath,
             out bool test)
         {
-            binariesPath = Path.GetDirectoryName(AppContext.BaseDirectory);
-            sourcePath = Path.GetDirectoryName(Path.GetDirectoryName(binariesPath));
+            binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory));
+            sourcePath = null;
             test = false;
 
             var i = 0;
@@ -76,6 +76,7 @@ namespace SignRoslyn
                 }
             }
 
+            sourcePath = Path.GetDirectoryName(Path.GetDirectoryName(binariesPath));
             return true;
         }
     }
