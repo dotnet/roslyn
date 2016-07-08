@@ -74,7 +74,11 @@ try
     $nugetPath = Join-Path $binariesPath "NuGet\PerBuildPreRelease"
 
     [xml]$packages = Get-Content "$nugetPath\myget_org-packages.config"
-    $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
+    $apiKey = $null;
+    if (-not test)
+    {
+        $apiKey = (Get-Content "\\mlangfs1\public\RoslynNuGetInfrastructure\mygetApiKey-dotnet.txt").Trim()
+    }
 
     $sourceUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/api/v2/package" -f $branchName)
     
