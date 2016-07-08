@@ -242,6 +242,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterpolatedStringExpression
                     Return BindInterpolatedStringExpression(DirectCast(node, InterpolatedStringExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.TupleExpression
+                    'PROTOTYPE: tuple binding
+                    ' bind the first argument for now just to not crash
+                    Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
+                    Return BindExpression(tupleExpr.Arguments(0).Expression, isInvocationOrAddressOf, isOperandOfConditionalBranch, eventContext, diagnostics)
+
                 Case Else
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
