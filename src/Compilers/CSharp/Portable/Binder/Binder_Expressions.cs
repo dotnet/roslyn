@@ -447,8 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindThis((ThisExpressionSyntax)node, diagnostics);
                 case SyntaxKind.BaseExpression:
                     return BindBase((BaseExpressionSyntax)node, diagnostics);
-                case SyntaxKind.OriginalExpression:
-                    return BindOriginal((OriginalExpressionSyntax)node, diagnostics);
                 case SyntaxKind.InvocationExpression:
                     return BindInvocationExpression((InvocationExpressionSyntax)node, diagnostics);
                 case SyntaxKind.ArrayInitializerExpression:
@@ -1886,77 +1884,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindOriginal(OriginalExpressionSyntax syntax, DiagnosticBag diagnostics)
-        {
-            var containingMethod = (MethodSymbol)this.ContainingMember();
-            var symbol = containingMethod.AssociatedSymbol ?? containingMethod; // property, event, or non-accessor method
-            var receiver = symbol.IsStatic ? null : ThisReference(syntax, symbol.ContainingType, wasCompilerGenerated: true);
-            var replaced = symbol.Replaced;
-
-            if ((object)replaced == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_NoOriginalMember, syntax, symbol);
-                return BadExpression(syntax, LookupResultKind.Empty, ImmutableArray.Create(symbol));
-            }
-
-            Debug.Assert(replaced.Kind == symbol.Kind);
-
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Method:
-                    {
-                        var replacedMethod = (MethodSymbol)replaced;
-                        var replacedByMethod = (MethodSymbol)symbol;
-                        return new BoundMethodGroup(
-                            syntax,
-                            replacedByMethod.TypeArguments,
-                            replacedMethod.Name,
-                            ImmutableArray.Create(replacedMethod),
-                            lookupSymbolOpt: replacedMethod,
-                            lookupError: null,
-                            flags: BoundMethodGroupFlags.None,
-                            receiverOpt: receiver,
-                            resultKind: LookupResultKind.Viable);
-                    }
-                case SymbolKind.Property:
-                    {
-                        var replacedProperty = (PropertySymbol)replaced;
-                        Debug.Assert((object)replacedProperty != null);
-                        if (replacedProperty.IsIndexer || replacedProperty.IsIndexedProperty) 
-                        {
-                            return new BoundPropertyGroup(
-                                syntax,
-                                ImmutableArray.Create(replacedProperty),
-                                receiver,
-                                LookupResultKind.Viable);
-                        }
-                        else
-                        {
-                            return new BoundPropertyAccess(
-                                syntax,
-                                receiver,
-                                replacedProperty,
-                                LookupResultKind.Viable,
-                                replacedProperty.Type);
-                        }
-                    }
-                case SymbolKind.Event:
-                    {
-                        var replacedEvent = (EventSymbol)replaced;
-                        Debug.Assert((object)replacedEvent != null);
-                        return new BoundEventAccess(
-                            syntax,
-                            receiver,
-                            replacedEvent,
-                            replacedEvent.HasAssociatedField,
-                            LookupResultKind.Viable,
-                            replacedEvent.Type);
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-            }
-        }
-
         /// <summary>
         /// This implements the casting behavior described in section 6.2.3 of the spec:
         /// 
@@ -2200,18 +2127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SourceLocalSymbol localSymbol = this.LookupLocal(argumentSyntax.Identifier);
 
-            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
-            // This occurs through the semantic model.  In that case concoct a plausible result.
             if ((object)localSymbol == null)
             {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                    ContainingMemberOrLambda,
-                    this,
-                    RefKind.None,
-                    typeSyntax,
-                    argumentSyntax.Identifier,
-                    LocalDeclarationKind.RegularVariable,
-                    initializer: null);
+                // We should have the right binder in the chain, cannot continue otherwise.
+                throw ExceptionUtilities.Unreachable;
             }
             else
             {

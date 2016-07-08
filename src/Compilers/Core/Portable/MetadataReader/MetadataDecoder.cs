@@ -496,8 +496,11 @@ namespace Microsoft.CodeAnalysis
             // The resolution scope should be either a type ref, an assembly or a module.
             if (tokenType == HandleKind.TypeReference)
             {
+                if (tokenResolutionScope.IsNil)
+                {
+                    throw new BadImageFormatException();
+                }
                 TypeSymbol psymContainer = GetTypeOfToken(tokenResolutionScope);
-
                 Debug.Assert(fullName.NamespaceName.Length == 0);
                 isNoPiaLocalType = false;
                 return LookupNestedTypeDefSymbol(psymContainer, ref fullName);
@@ -516,8 +519,13 @@ namespace Microsoft.CodeAnalysis
 
             if (tokenType == HandleKind.ModuleReference)
             {
+                var moduleRef = (ModuleReferenceHandle)tokenResolutionScope;
+                if (moduleRef.IsNil)
+                {
+                    throw new BadImageFormatException();
+                }
                 return LookupTopLevelTypeDefSymbol(
-                    Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)tokenResolutionScope),
+                    Module.GetModuleRefNameOrThrow(moduleRef),
                     ref fullName,
                     out isNoPiaLocalType);
             }

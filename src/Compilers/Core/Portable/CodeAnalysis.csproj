@@ -94,7 +94,6 @@
     <Compile Include="PEWriter\NativeResourceWriter.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorExtensions.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
@@ -533,9 +532,6 @@
     <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
-    <Compile Include="SourceGenerator\SourceGenerator.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorAttribute.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorContext.cs" />
     <Compile Include="SpecialMember.cs" />
     <Compile Include="SpecialMembers.cs" />
     <Compile Include="SpecialType.cs" />

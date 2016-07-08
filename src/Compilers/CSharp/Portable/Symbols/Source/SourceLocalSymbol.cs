@@ -425,7 +425,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                var newBinder = new ImplicitlyTypedLocalBinder(this.binder, this);
+                // Since initializer might use Out Variable Declarations and Pattern Variable Declarations, we need to find 
+                // the right binder to use for the initializer.
+                // Climb up the syntax tree looking for a first binder that we can find, but stop at the first statement syntax.
+                CSharpSyntaxNode currentNode = _initializer;
+                Binder initializerBinder;
+
+                do
+                {
+                    initializerBinder = this.binder.GetBinder(currentNode);
+
+                    if (initializerBinder != null || currentNode is StatementSyntax)
+                    {
+                        break;
+                    }
+
+                    currentNode = currentNode.Parent;   
+                }
+                while (currentNode != null);
+
+#if DEBUG
+                Binder parentBinder = initializerBinder;
+
+                while (parentBinder != null)
+                {
+                    if (parentBinder == this.binder)
+                    {
+                        break;
+                    }
+
+                    parentBinder = parentBinder.Next;
+                }
+
+                Debug.Assert(parentBinder != null);
+#endif 
+
+                var newBinder = new ImplicitlyTypedLocalBinder(initializerBinder ?? this.binder, this);
                 var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 if (initializerOpt != null)
                 {
