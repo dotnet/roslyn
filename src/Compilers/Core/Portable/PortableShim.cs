@@ -495,11 +495,14 @@ namespace Roslyn.Utilities
 
         internal static class MemoryStream
         {
+            internal delegate bool TryGetBufferDelegate(System.IO.MemoryStream stream, out ArraySegment<byte> buffer);
+
             internal static readonly Type Type = typeof(System.IO.MemoryStream);
 
-            internal static readonly MethodInfo GetBuffer = Type
+            internal static readonly TryGetBufferDelegate TryGetBuffer = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(GetBuffer));
+                .GetDeclaredMethod(nameof(TryGetBuffer))
+                .CreateDelegate<TryGetBufferDelegate>();
         }
 
         internal static class XPath
