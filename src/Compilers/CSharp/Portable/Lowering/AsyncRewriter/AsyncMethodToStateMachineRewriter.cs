@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversion(
+            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversionFromType(
                 loweredAwaiterType,
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 ref useSiteDiagnostics).IsImplicit;

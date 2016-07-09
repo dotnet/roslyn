@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = _compilation.Conversions.ClassifyConversion(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
             _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
 
             if (!conversion.IsValid)
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeImplicitConversion(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = _compilation.Conversions.ClassifyConversion(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
             _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
             if (!conversion.IsImplicit)
             {
@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion MakeConversion(CSharpSyntaxNode syntax, TypeSymbol fromType, TypeSymbol toType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var result = MakeConversion(syntax, _compilation.Conversions.ClassifyConversion(fromType, toType, ref useSiteDiagnostics), fromType, toType);
+            var result = MakeConversion(syntax, _compilation.Conversions.ClassifyConversionFromType(fromType, toType, ref useSiteDiagnostics), fromType, toType);
             _diagnostics.Add(syntax, useSiteDiagnostics);
             return result;
         }

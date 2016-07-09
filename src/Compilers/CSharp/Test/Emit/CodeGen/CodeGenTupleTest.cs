@@ -4504,6 +4504,63 @@ class C
         }
 
         [Fact]
+        public void TupleExplicitConversionFail01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) x;
+
+        x = ((int, int))(null, null, null);
+        x = ((int, int))(1, 1, 1);
+        x = ((int, int))(1, ""string"");
+        x = ((int, int))(1, 1, garbage);
+        x = ((int, int))(1, 1, );
+        x = ((int, int))(null, null);
+        x = ((int, int))(1, null);
+        x = ((int, int))(1, (t)=>t);
+        x = ((int, int))null;
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+                // (12,32): error CS1525: Invalid expression term ')'
+                //         x = ((int, int))(1, 1, );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 32),
+                // (8,13): error CS8206: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                //         x = ((int, int))(null, null, null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((int, int))(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
+                // (9,13): error CS0030: Cannot convert type '(int, int, int)' to '(int, int)'
+                //         x = ((int, int))(1, 1, 1);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "((int, int))(1, 1, 1)").WithArguments("(int, int, int)", "(int, int)").WithLocation(9, 13),
+                // (10,29): error CS0030: Cannot convert type 'string' to 'int'
+                //         x = ((int, int))(1, "string");
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""string""").WithArguments("string", "int").WithLocation(10, 29),
+                // (11,32): error CS0103: The name 'garbage' does not exist in the current context
+                //         x = ((int, int))(1, 1, garbage);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "garbage").WithArguments("garbage").WithLocation(11, 32),
+                // (13,26): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((int, int))(null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 26),
+                // (13,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((int, int))(null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 32),
+                // (14,29): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((int, int))(1, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 29),
+                // (15,29): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         x = ((int, int))(1, (t)=>t);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 29),
+                // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //         x = ((int, int))null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "((int, int))null").WithArguments("(int, int)").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
         [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
         public void TupleImplicitConversionFail02()
         {
@@ -4809,6 +4866,55 @@ class C
                 //         (string, Func<(string, string)>) x1 = (null, ()=>(null, 1.1));  // actual error, should be the same as above.
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(null, 1.1)").WithArguments("lambda expression").WithLocation(14, 58)
 
+            );
+        }
+
+        [Fact]
+        public void TupleExplicitConversionFail06()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Func<string> l = (Func<string>)(()=>1); // reference
+
+        (string, Func<string>) x = ((string, Func<string>))(null, () => 1);  // actual error, should be the same as above.
+
+        Func<(string, string)> l1 = (Func<(string, string)>)(()=>(null, 1.1)); // reference
+
+        (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+                // (8,45): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         Func<string> l = (Func<string>)(()=>1); // reference
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(8, 45),
+                // (8,45): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<string> l = (Func<string>)(()=>1); // reference
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(8, 45),
+                // (10,73): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         (string, Func<string>) x = ((string, Func<string>))(null, () => 1);  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(10, 73),
+                // (10,73): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         (string, Func<string>) x = ((string, Func<string>))(null, () => 1);  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(10, 73),
+                // (12,73): error CS0029: Cannot implicitly convert type 'double' to 'string'
+                //         Func<(string, string)> l1 = (Func<(string, string)>)(()=>(null, 1.1)); // reference
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1.1").WithArguments("double", "string").WithLocation(12, 73),
+                // (12,66): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<(string, string)> l1 = (Func<(string, string)>)(()=>(null, 1.1)); // reference
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(null, 1.1)").WithArguments("lambda expression").WithLocation(12, 66),
+                // (14,101): error CS0029: Cannot implicitly convert type 'double' to 'string'
+                //         (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1.1").WithArguments("double", "string").WithLocation(14, 101),
+                // (14,94): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(null, 1.1)").WithArguments("lambda expression").WithLocation(14, 94)
             );
         }
 

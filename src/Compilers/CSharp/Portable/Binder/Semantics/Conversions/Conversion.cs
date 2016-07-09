@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return uncommonData._conversionMethod;
                     }
 
-                    var conversionResult = _uncommonData._conversionResult;
+                    var conversionResult = uncommonData._conversionResult;
                     if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
                     {
                         UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];

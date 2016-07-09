@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversions = new TypeConversions(_factory.CurrentMethod.ContainingAssembly.CorLibrary);
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var isImplicit = conversions.ClassifyImplicitConversion(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
+                var isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
                 _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
 
                 if (isImplicit)
