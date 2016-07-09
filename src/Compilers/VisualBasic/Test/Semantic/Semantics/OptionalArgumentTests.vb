@@ -2899,7 +2899,6 @@ End Structure
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
-        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_String()
@@ -3013,10 +3012,9 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
-        ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        Public Sub IsOptionalVsHasDefaultValue_Decimal()
+        Public Sub IsOptionalVsHasDefaultValue_Decimal_A()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3175,12 +3173,182 @@ End Class
                         Assert.Equal(0, parameters(11).GetAttributes().Length)
                     End If
                 End Sub
-
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
+        <Fact>
+        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        Public Sub IsOptionalVsHasDefaultValue_Decimal__B()
+            Dim source =
+<compilation name="TestOptionalOnGenericMethod">
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 
-        ' TODO:
+Public Class C
+    Public Sub M0(p As Decimal)
+    End Sub
+    Public Sub M1(Optional p As Decimal = 0) ' default of type
+    End Sub
+    Public Sub M2(Optional p As Decimal = 1) ' not default of type
+    End Sub
+    Public Sub M3(<[Optional]> p As Decimal) ' no default specified (would be illegal)
+    End Sub
+    Public Sub M4(<DefaultParameterValue(0)> p As Decimal) ' default of type, not optional
+    End Sub
+    Public Sub M5(<DefaultParameterValue(1)> p As Decimal) ' not default of type, not optional
+    End Sub
+    Public Sub M6(<[Optional]> <DefaultParameterValue(0)> p As Decimal) ' default of type, optional
+    End Sub
+    Public Sub M7(<[Optional]> <DefaultParameterValue(1)> p As Decimal) ' not default of type, optional
+    End Sub
+    Public Sub M8(<DecimalConstant(0, 0, 0, 0, 0)> p As Decimal) ' default of type, not optional
+    End Sub
+    Public Sub M9(<DecimalConstant(0, 0, 0, 0, 1)> p As Decimal) ' not default of type, not optional
+    End Sub
+    Public Sub M10(<[Optional]> <DecimalConstant(0, 0, 0, 0, 0)> p As Decimal) ' default of type, optional
+    End Sub
+    Public Sub M11(<[Optional]> <DecimalConstant(0, 0, 0, 0, 1)> p As Decimal) ' not default of type, optional
+    End Sub
+    Public Sub M12(Optional p As Decimal) ' implicit default of type
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim validator As Func(Of Boolean, Action(Of ModuleSymbol)) = Function(isFromSource) _
+                Sub([module])
+                    Dim methods = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers().OfType(Of MethodSymbol)().Where(Function(m) m.MethodKind = MethodKind.Ordinary).ToArray()
+                    Assert.Equal(13, methods.Length)
+
+                    Dim parameters = methods.Select(Function(m) m.Parameters.Single()).ToArray()
+
+                    Dim decimalZero = CType(0, Decimal)
+                    Dim decimalOne = CType(1, Decimal)
+
+                    Assert.False(parameters(0).IsOptional)
+                    Assert.False(parameters(0).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(0).GetAttributes().Length)
+
+                    Assert.True(parameters(1).IsOptional)
+                    Assert.True(parameters(1).HasExplicitDefaultValue)
+                    Assert.Equal(decimalZero, parameters(1).ExplicitDefaultValue)
+                    Assert.Equal(ConstantValue.Create(decimalZero), parameters(1).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(1).GetAttributes().Length)
+
+                    Assert.True(parameters(2).IsOptional)
+                    Assert.True(parameters(2).HasExplicitDefaultValue)
+                    Assert.Equal(decimalOne, parameters(2).ExplicitDefaultValue)
+                    Assert.Equal(ConstantValue.Create(decimalOne), parameters(2).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(2).GetAttributes().Length)
+
+                    ' 3 - see below
+
+                    Assert.False(parameters(4).IsOptional)
+                    Assert.False(parameters(4).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                    Assert.Null(parameters(4).ExplicitDefaultConstantValue)
+                    Assert.Equal(1, parameters(4).GetAttributes().Length) ' DefaultParameterValue
+
+                    Assert.False(parameters(5).IsOptional)
+                    Assert.False(parameters(5).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                    Assert.Null(parameters(5).ExplicitDefaultConstantValue)
+                    Assert.Equal(1, parameters(5).GetAttributes().Length) ' DefaultParameterValue
+
+                    ' 6 - see below
+
+                    ' 7 - see below
+
+                    Assert.False(parameters(8).IsOptional)
+                    Assert.False(parameters(8).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(8).ExplicitDefaultValue)
+                    Assert.Null(parameters(8).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
+                    Assert.Equal(1, parameters(8).GetAttributes().Length) ' DecimalConstantAttribute
+
+                    Assert.False(parameters(9).IsOptional)
+                    Assert.False(parameters(9).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(9).ExplicitDefaultValue)
+                    Assert.Null(parameters(9).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
+                    Assert.Equal(1, parameters(9).GetAttributes().Length) ' DecimalConstantAttribute
+
+                    If isFromSource Then
+                        Assert.False(parameters(3).IsOptional)
+                        Assert.False(parameters(3).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultConstantValue)
+                        Assert.Equal(1, parameters(3).GetAttributes().Length)
+
+                        Assert.False(parameters(6).IsOptional)
+                        Assert.False(parameters(6).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                        Assert.Null(parameters(6).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(6).GetAttributes().Length)
+
+                        Assert.False(parameters(7).IsOptional)
+                        Assert.False(parameters(7).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(7).GetAttributes().Length)
+
+                        Assert.False(parameters(10).IsOptional)
+                        Assert.False(parameters(10).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(10).ExplicitDefaultValue)
+                        Assert.Null(parameters(10).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(10).GetAttributes().Length)
+
+                        Assert.False(parameters(11).IsOptional)
+                        Assert.False(parameters(11).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(11).ExplicitDefaultValue)
+                        Assert.Null(parameters(11).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(11).GetAttributes().Length)
+                    Else
+                        Assert.True(parameters(3).IsOptional)
+                        Assert.False(parameters(3).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultConstantValue)
+                        Assert.Equal(0, parameters(3).GetAttributes().Length)
+
+                        Assert.True(parameters(6).IsOptional)
+                        Assert.False(parameters(6).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                        Assert.Null(parameters(6).ExplicitDefaultConstantValue)
+                        Assert.Equal(1, parameters(6).GetAttributes().Length) ' DefaultParameterValue
+
+                        Assert.True(parameters(7).IsOptional)
+                        Assert.False(parameters(7).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultConstantValue)
+                        Assert.Equal(1, parameters(7).GetAttributes().Length) ' DefaultParameterValue
+
+                        Assert.True(parameters(10).IsOptional)
+                        Assert.True(parameters(10).HasExplicitDefaultValue)
+                        Assert.Equal(decimalZero, parameters(10).ExplicitDefaultValue)
+                        Assert.Equal(ConstantValue.Create(decimalZero), parameters(10).ExplicitDefaultConstantValue)
+                        Assert.Equal(0, parameters(10).GetAttributes().Length)
+
+                        Assert.True(parameters(11).IsOptional)
+                        Assert.False(parameters(11).HasExplicitDefaultValue)
+                        Assert.Equal(decimalOne, parameters(11).ExplicitDefaultValue)
+                        Assert.Equal(ConstantValue.Create(decimalOne), parameters(11).ExplicitDefaultConstantValue)
+                        Assert.Equal(0, parameters(11).GetAttributes().Length)
+                    End If
+
+                    Assert.True(parameters(12).IsOptional)
+                    Assert.False(parameters(12).HasExplicitDefaultValue)
+                    'Assert.Equal(decimalZero, parameters(12).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Create(decimalZero), parameters(12).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(12).GetAttributes().Length)
+                End Sub
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=MyParseOptions)
+        End Sub
+
+
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime_A()
