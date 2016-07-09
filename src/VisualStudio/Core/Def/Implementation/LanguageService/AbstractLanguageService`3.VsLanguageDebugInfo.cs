@@ -285,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     {
                         var point = snapshot.GetPoint(iLine, iCol);
                         var length = 0;
-                        if (pCodeSpan != null && pCodeSpan.Length > 0)
+                        if (pCodeSpan != null && pCodeSpan.Length > 0 && pCodeSpan[0].iEndLine < snapshot.LineCount)
                         {
                             // If we have a non-empty span then it means that the debugger is asking us to adjust an
                             // existing span.  In Everett we didn't do this so we had some good and some bad
