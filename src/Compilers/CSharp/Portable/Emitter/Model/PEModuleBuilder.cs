@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -1341,28 +1342,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        protected override IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
-            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
-            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
-
-            return details.GetModuleVersionId(mvidType);
-        }
-
-        internal Cci.IFieldReference GetInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
-            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
-
-            return details.GetOrAddInstrumentationPayloadRoot(analysisKind, payloadType);
-        }
-
-        private void EnsurePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
-            {
-                details.TryAddSynthesizedMethod(new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
-            }  
+            return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
     }
 }

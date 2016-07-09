@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
 
+            Dim original As BoundBlock = node
+
             ' Static locals should be removed from the list of locals,
             ' they are replaced with fields.
             If Not node.Locals.IsEmpty Then
@@ -52,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 Dim synthesizedLocal As LocalSymbol = Nothing
-                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(node, synthesizedLocal)
+                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(original, node, synthesizedLocal)
                 If prologue IsNot Nothing Then
                     builder.Insert(0, prologue)
                 End If

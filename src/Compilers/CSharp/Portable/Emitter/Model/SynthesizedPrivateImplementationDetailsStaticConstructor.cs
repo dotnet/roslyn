@@ -36,13 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // index portion of the greatest method definition token in the compilation. This guarantees that any
             // method can use the index portion of its own method definition token as an index into the payload array.
 
-            IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>> payloadRootFields = ContainingPrivateImplementationDetailsType.GetInstrumentationPayloadRoots();
-            Debug.Assert(payloadRootFields.Count > 0);
+            IOrderedEnumerable<KeyValuePair<int, InstrumentationPayloadRootField>> payloadRootFields = ContainingPrivateImplementationDetailsType.GetInstrumentationPayloadRoots();
+            int payloadRootFieldsCount = payloadRootFields.Count();
+            Debug.Assert(payloadRootFieldsCount > 0);
 
-            ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance(2 + payloadRootFields.Count);
+            ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance(2 + payloadRootFieldsCount);
             try
             {
-                foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields.OrderBy(analysis => analysis.Key))
+                foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields)
                 {
                     int analysisKind = payloadRoot.Key;
                     ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type;

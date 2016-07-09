@@ -1405,13 +1405,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
             Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
             Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
+            Dim emitDynamicAnalysisData As Boolean? = _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData
 
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    methodOrdinal,
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
-                                                   CBool(_moduleBeingBuiltOpt?.EmitOptions?.EmitDynamicAnalysisData),
+                                                   emitDynamicAnalysisData.HasValue AndAlso emitDynamicAnalysisData.Value,
                                                    dynamicAnalysisSpans,
                                                    _debugDocumentProvider,
                                                    diagnostics,

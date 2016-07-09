@@ -328,6 +328,33 @@ namespace Microsoft.CodeAnalysis.Emit
             return result.ToImmutableAndFree();
         }
 
+
+        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
+
+            return details.GetModuleVersionId(mvidType);
+        }
+
+        internal Cci.IFieldReference GetInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
+
+            return details.GetOrAddInstrumentationPayloadRoot(analysisKind, payloadType);
+        }
+
+        private void EnsurePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
+            {
+                details.TryAddSynthesizedMethod(CreatePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics));
+            }
+        }
+
+        protected abstract Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+
         #region Synthesized Members
 
         /// <summary>

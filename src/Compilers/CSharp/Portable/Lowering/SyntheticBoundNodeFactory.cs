@@ -431,21 +431,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundStatementList StatementList(ImmutableArray<BoundStatement> statements)
+        {
+            return new BoundStatementList(Syntax, statements) { WasCompilerGenerated = true };
+        }
+
         public BoundStatementList StatementList(BoundStatement first, BoundStatement second)
         {
             return new BoundStatementList(Syntax, ImmutableArray.Create(first, second)) { WasCompilerGenerated = true };
         }
-
-        public BoundStatementList StatementList(BoundStatement first, BoundStatement second, BoundStatement third)
-        {
-            return new BoundStatementList(Syntax, ImmutableArray.Create(first, second, third)) { WasCompilerGenerated = true };
-        }
-
-        public BoundStatementList StatementList(BoundStatement first, BoundStatement second, BoundStatement third, BoundStatement fourth)
-        {
-            return new BoundStatementList(Syntax, ImmutableArray.Create(first, second, third, fourth)) { WasCompilerGenerated = true };
-        }
-
+        
         public BoundReturnStatement Return(BoundExpression expression = null)
         {
             if (expression != null)

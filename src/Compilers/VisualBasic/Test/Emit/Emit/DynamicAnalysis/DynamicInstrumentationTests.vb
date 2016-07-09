@@ -432,7 +432,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestLoops()
+        Public Sub LoopsCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -580,9 +580,9 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestTryAndSelect()
+        Public Sub TryAndSelectCoverage()
             Dim testSource As XElement = <file name="c.vb">
-                                                 <![CDATA[
+                                             <![CDATA[
 Module Program
     Sub TryAndSelect()                                                      ' Method 1
         Dim y As Integer = 0
@@ -614,7 +614,7 @@ Module Program
     End Sub
 End Module
 ]]>
-                                             </file>
+                                         </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
@@ -654,7 +654,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestBranches()
+        Public Sub BranchesCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -719,6 +719,297 @@ True
 True
 True
 5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub StaticLocalsCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub TestMain()                                                          ' Method 1
+        Dim x As Integer = 1
+        Static y As Integer = 2
+        If x + y = 3 Then
+            Dim a As Integer = 10
+            Static b As Integer = 20
+            If a + b = 31 Then
+                Return
+            End If
+        End If
+    End Sub
+
+    Public Sub Main(args As String())                                       ' Method 2
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+True
+True
+False
+True
+True
+2
+True
+True
+True
+5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub OddCornersCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub TestMain()                                                              ' Method 1
+        Dim h As New HasEvents()
+        h.Stuff()
+    End Sub
+
+    Class HasEvents
+        WithEvents f As HasEvents
+        Sub New()                                                               ' Method 9
+            AddHandler Mumble, AddressOf Handler
+        End Sub
+
+        Event Mumble()
+        Event Stumble()
+        Sub Handler() Handles Me.Stumble                                        ' Method 14
+        End Sub
+
+        Sub Stuff()                                                             ' Method 15
+            f = New HasEvents()
+            RaiseEvent Mumble()
+            RaiseEvent Stumble()
+            RemoveHandler Mumble, AddressOf Handler
+            Dim meme As HasEvents = Me + Me
+        End Sub
+
+        Shared Operator +(x As HasEvents, y As HasEvents) As HasEvents          ' Method 16
+            Return x
+        End Operator
+    End Class
+
+    Public Sub Main(args As String())                                           ' Method 2
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+2
+True
+True
+True
+5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+9
+True
+True
+14
+True
+15
+True
+True
+True
+True
+True
+True
+16
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub DoubleDeclarationsCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub TestMain()                                                              ' Method 1
+        Dim x, y As Integer, z As String
+        Dim a As Integer = 10, b As Integer = 20, c as Integer = 30
+        If a = 11 Then
+            Dim aa, bb As Integer
+            Dim cc As Integer, dd As Integer
+            Return
+        End If
+        If a + b + c = 61 Then
+            x = 10
+            z = "Howdy"
+        End If
+        Dim o1 As Object, o2 As New Object(), o3 as New Object(), o4 As Object
+    End Sub
+
+    Public Sub Main(args As String())                                           ' Method 2
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+True
+False
+True
+False
+False
+True
+True
+True
+2
+True
+True
+True
+5
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub PropertiesCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Sub TestMain()                                                              ' Method 1
+       xxx = 12
+       yyy = 11
+       yyy = zzz
+    End Sub
+
+    Public Sub Main(args As String())                                           ' Method 2
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Property xxx As Integer
+        Set                                                                     ' Method 3
+        End Set
+        Get
+            Return 12
+        End Get
+    End Property
+
+    Property yyy
+
+    Property zzz As Integer
+        Set
+        End Set
+        Get                                                                     ' Method 8
+            If yyy > 10 Then
+                Return 40
+            End If
+            Return 50
+        End Get
+    End Property
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+True
+True
+True
+True
+2
+True
+True
+True
+3
+True
+8
+True
+True
+True
+False
+11
 True
 True
 False

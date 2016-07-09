@@ -26,38 +26,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
         private readonly bool _methodHasExplicitBlock;
-        private readonly SyntheticBoundNodeFactory _factory;
+        private readonly SyntheticBoundNodeFactory _methodBodyFactory;
 
-        public static DynamicAnalysisInjector TryCreate(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
+        public static DynamicAnalysisInjector TryCreate(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory methodBodyFactory, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
         {
-            MethodSymbol createPayload = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics);
-
-            // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
-            if ((object)createPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload))
+            // Do not instrument implicitly-declared methods.
+            if (!method.IsImplicitlyDeclared)
             {
-                return new DynamicAnalysisInjector(method, methodBody, factory, createPayload, diagnostics, debugDocumentProvider, previous);
+                MethodSymbol createPayload = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics);
+
+                // Do not instrument any methods if CreatePayload is not present.
+                // Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
+                // CreatePayload will fail at run time with an infinite recursion if it Is instrumented.
+                if ((object)createPayload != null && !method.Equals(createPayload))
+                {
+                    return new DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous);
+                }
             }
 
             return null;
         }
 
-        private DynamicAnalysisInjector(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory factory, MethodSymbol createPayload, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
+        private DynamicAnalysisInjector(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory methodBodyFactory, MethodSymbol createPayload, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
             : base(previous)
         {
             _createPayload = createPayload;
             _method = method;
             _methodBody = methodBody;
             _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
-            TypeSymbol payloadElementType = factory.SpecialType(SpecialType.System_Boolean);
-            _payloadType = ArrayTypeSymbol.CreateCSharpArray(factory.Compilation.Assembly, payloadElementType);
-            _methodPayload = factory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
+            TypeSymbol payloadElementType = methodBodyFactory.SpecialType(SpecialType.System_Boolean);
+            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, payloadElementType);
+            _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
             _methodHasExplicitBlock = MethodHasExplicitBlock(method);
-            _factory = factory;
+            _methodBodyFactory = methodBodyFactory;
 
             // The first point indicates entry into the method and has the span of the method definition.
-            _methodEntryInstrumentation = AddAnalysisPoint(MethodDeclarationIfAvailable(methodBody.Syntax), factory);
+            _methodEntryInstrumentation = AddAnalysisPoint(MethodDeclarationIfAvailable(methodBody.Syntax), methodBodyFactory);
         }
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
@@ -69,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In the future there will be multiple analysis kinds.
                 const int analysisKind = 0;
 
-                ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(_factory.Compilation.Assembly, _payloadType);
+                ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, _payloadType);
 
                 // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                 //
@@ -77,21 +83,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if (payload == null)
                 //     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadRootField[methodIndex], payloadLength);
 
-                BoundStatement payloadInitialization = _factory.Assignment(_factory.Local(_methodPayload), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method))));
-                BoundExpression mvid = _factory.ModuleVersionId();
-                BoundExpression methodToken = _factory.MethodDefIndex(_method);
-                BoundExpression payloadSlot = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method)));
-                BoundStatement createPayloadCall = _factory.Assignment(_factory.Local(_methodPayload), _factory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)));
+                BoundStatement payloadInitialization = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload), _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))));
+                BoundExpression mvid = _methodBodyFactory.ModuleVersionId();
+                BoundExpression methodToken = _methodBodyFactory.MethodDefIndex(_method);
+                BoundExpression payloadSlot = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)));
+                BoundStatement createPayloadCall = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload), _methodBodyFactory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)));
 
-                BoundExpression payloadNullTest = _factory.Binary(BinaryOperatorKind.ObjectEqual, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload), _factory.Null(_payloadType));
-                BoundStatement payloadIf = _factory.If(payloadNullTest, createPayloadCall);
+                BoundExpression payloadNullTest = _methodBodyFactory.Binary(BinaryOperatorKind.ObjectEqual, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload), _methodBodyFactory.Null(_payloadType));
+                BoundStatement payloadIf = _methodBodyFactory.If(payloadNullTest, createPayloadCall);
 
                 Debug.Assert(synthesizedLocal == null);
                 synthesizedLocal = _methodPayload;
 
-                return previousPrologue == null
-                     ? _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation)
-                     : _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue);
+                ArrayBuilder<BoundStatement> prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(4);
+                prologueStatements.Add(payloadInitialization);
+                prologueStatements.Add(payloadIf);
+                prologueStatements.Add(_methodEntryInstrumentation);
+                if (previousPrologue != null)
+                {
+                    prologueStatements.Add(previousPrologue);
+                }
+
+                return _methodBodyFactory.StatementList(prologueStatements.ToImmutableAndFree());
             }
 
             return previousPrologue;
@@ -129,18 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentExpressionStatement(original, rewritten);
-            CSharpSyntaxNode syntax = original.Syntax;
-
-            switch (syntax.Parent.Parent.Kind())
-            {
-                case SyntaxKind.VariableDeclarator:
-                case SyntaxKind.PropertyDeclaration:
-                    return AddDynamicAnalysis(original, rewritten);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind());
-            }
+            return AddDynamicAnalysis(original, base.InstrumentExpressionStatement(original, rewritten));
         }
 
         public override BoundStatement InstrumentGotoStatement(BoundGotoStatement original, BoundStatement rewritten)
@@ -229,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement CollectDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
-            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
+            // Instrument the statement using a factory with the same syntax as the statement, so that the instrumentation appears to be part of the statement.
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _methodBodyFactory.CompilationState, _diagnostics);
             return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten);
         }
 
@@ -240,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location = syntaxForSpan.GetLocation();
             FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
             string path = spanPosition.Path;
+            // If the path for the syntax node is empty, try the path for the entire syntax tree.
             if (path.Length == 0)
             {
                 path = syntaxForSpan.SyntaxTree.FilePath;

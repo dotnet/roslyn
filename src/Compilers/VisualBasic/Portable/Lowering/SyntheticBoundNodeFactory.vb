@@ -357,20 +357,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Block(locals, ImmutableArray.Create(Of BoundStatement)(statements))
         End Function
 
+        Public Function StatementList(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
+            Dim boundNode As New BoundStatementList(Syntax, statements)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function StatementList(first As BoundStatement, second As BoundStatement) As BoundStatementList
             Dim boundNode As New BoundStatementList(Syntax, ImmutableArray.Create(first, second))
-            boundNode.SetWasCompilerGenerated()
-            Return boundNode
-        End Function
-
-        Public Function StatementList(first As BoundStatement, second As BoundStatement, third As BoundStatement) As BoundStatementList
-            Dim boundNode As New BoundStatementList(Syntax, ImmutableArray.Create(first, second, third))
-            boundNode.SetWasCompilerGenerated()
-            Return boundNode
-        End Function
-
-        Public Function StatementList(first As BoundStatement, second As BoundStatement, third As BoundStatement, fourth As BoundStatement) As BoundStatementList
-            Dim boundNode As New BoundStatementList(Syntax, ImmutableArray.Create(first, second, third, fourth))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

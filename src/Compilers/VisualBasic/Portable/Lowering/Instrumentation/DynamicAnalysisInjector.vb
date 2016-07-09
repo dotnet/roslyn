@@ -26,15 +26,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodPayload As LocalSymbol
         Private ReadOnly _diagnostics As DiagnosticBag
         Private ReadOnly _debugDocumentProvider As DebugDocumentProvider
-        Private ReadOnly _methodHasExplicitBlock As Boolean
-        Private ReadOnly _factory As SyntheticBoundNodeFactory
+        Private ReadOnly _methodBodyFactory As SyntheticBoundNodeFactory
 
-        Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
-            Dim createPayload As MethodSymbol = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics)
+        Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
+            ' Do not instrument implicitly-declared methods.
+            If Not method.IsImplicitlyDeclared Then
+                Dim createPayload As MethodSymbol = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics)
 
-            ' Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it Is instrumented.
-            If createPayload IsNot Nothing AndAlso Not method.IsImplicitlyDeclared AndAlso Not method.Equals(createPayload) Then
-                Return New DynamicAnalysisInjector(method, methodBody, factory, createPayload, diagnostics, debugDocumentProvider, previous)
+                ' Do not instrument any methods if CreatePayload is not present.
+                ' Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
+                ' CreatePayload will fail at run time with an infinite recursion if it Is instrumented.
+                If createPayload IsNot Nothing AndAlso Not method.Equals(createPayload) Then
+                    Return New DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous)
+                End If
             End If
 
             Return Nothing
@@ -46,33 +50,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Sub New(method As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, createPayload As MethodSymbol, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter)
+        Private Sub New(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, createPayload As MethodSymbol, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter)
             MyBase.New(previous)
             _createPayload = createPayload
             _method = method
             _methodBody = methodBody
             _spansBuilder = ArrayBuilder(Of SourceSpan).GetInstance()
-            Dim payloadElementType As TypeSymbol = factory.SpecialType(SpecialType.System_Boolean)
-            _payloadType = ArrayTypeSymbol.CreateVBArray(payloadElementType, ImmutableArray(Of CustomModifier).Empty, 1, factory.Compilation.Assembly)
-            _methodPayload = factory.SynthesizedLocal(_payloadType, kind:=SynthesizedLocalKind.InstrumentationPayload, syntax:=methodBody.Syntax)
+            Dim payloadElementType As TypeSymbol = methodBodyFactory.SpecialType(SpecialType.System_Boolean)
+            _payloadType = ArrayTypeSymbol.CreateVBArray(payloadElementType, ImmutableArray(Of CustomModifier).Empty, 1, methodBodyFactory.Compilation.Assembly)
+            _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind:=SynthesizedLocalKind.InstrumentationPayload, syntax:=methodBody.Syntax)
             _diagnostics = diagnostics
             _debugDocumentProvider = debugDocumentProvider
-            _methodHasExplicitBlock = MethodHasExplicitBlock(method)
-            _factory = factory
+            _methodBodyFactory = methodBodyFactory
 
-            ' The first point indicates entry into the method And has the span of the method definition.
-            _methodEntryInstrumentation = AddAnalysisPoint(MethodDeclarationIfAvailable(methodBody.Syntax), factory)
+            ' The first point indicates entry into the method and has the span of the method definition.
+            _methodEntryInstrumentation = AddAnalysisPoint(methodBody.Syntax, methodBodyFactory)
         End Sub
 
-        Public Overrides Function CreateBlockPrologue(original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
-            Dim previousPrologue As BoundStatement = MyBase.CreateBlockPrologue(original, synthesizedLocal)
+        Public Overrides Function CreateBlockPrologue(trueOriginal As BoundBlock, original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
+            Dim previousPrologue As BoundStatement = MyBase.CreateBlockPrologue(trueOriginal, original, synthesizedLocal)
 
-            If _methodBody Is original Then
+            If _methodBody Is trueOriginal Then
                 _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree()
                 ' In the future there will be multiple analysis kinds.
                 Const analysisKind As Integer = 0
 
-                Dim modulePayloadType As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(_payloadType, ImmutableArray(Of CustomModifier).Empty, 1, _factory.Compilation.Assembly)
+                Dim modulePayloadType As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(_payloadType, ImmutableArray(Of CustomModifier).Empty, 1, _methodBodyFactory.Compilation.Assembly)
 
                 ' Synthesize the initialization of the instrumentation payload array, using concurrency-safe code
                 '
@@ -81,21 +84,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     payload = Instrumentation.CreatePayload(mvid, methodIndex, PID.PayloadRootField(methodIndex), payloadLength)
                 ' End If
 
-                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, isLValue:=True), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_factory.MethodDefIndex(_method))))
-                Dim mvid As BoundExpression = _factory.ModuleVersionId(isLValue:=False)
-                Dim methodToken As BoundExpression = _factory.MethodDefIndex(_method)
-                Dim payloadSlot As BoundExpression = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_factory.MethodDefIndex(_method)))
-                Dim createPayloadCall As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, isLValue:=True), _factory.Call(Nothing, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)))
+                Dim payloadInitialization As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))))
+                Dim mvid As BoundExpression = _methodBodyFactory.ModuleVersionId(isLValue:=False)
+                Dim methodToken As BoundExpression = _methodBodyFactory.MethodDefIndex(_method)
+                Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
+                Dim createPayloadCall As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.Call(Nothing, _createPayload, mvid, methodToken, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)))
 
-                Dim payloadNullTest As BoundExpression = _factory.Binary(BinaryOperatorKind.Equals, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload, False), _factory.Null(_payloadType))
-                Dim payloadIf As BoundStatement = _factory.If(payloadNullTest, createPayloadCall)
+                Dim payloadNullTest As BoundExpression = _methodBodyFactory.Binary(BinaryOperatorKind.Equals, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload, False), _methodBodyFactory.Null(_payloadType))
+                Dim payloadIf As BoundStatement = _methodBodyFactory.If(payloadNullTest, createPayloadCall)
 
                 Debug.Assert(synthesizedLocal Is Nothing)
                 synthesizedLocal = _methodPayload
 
-                Return If(previousPrologue Is Nothing,
-                           _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation),
-                           _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue))
+                Dim prologueStatements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(4)
+                prologueStatements.Add(payloadInitialization)
+                prologueStatements.Add(payloadIf)
+                prologueStatements.Add(_methodEntryInstrumentation)
+                If previousPrologue IsNot Nothing Then
+                    prologueStatements.Add(previousPrologue)
+                End If
+
+                Return _methodBodyFactory.StatementList(prologueStatements.ToImmutableAndFree())
             End If
 
             Return previousPrologue
@@ -182,16 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function InstrumentFieldOrPropertyInitializer(original As BoundFieldOrPropertyInitializer, rewritten As BoundStatement, symbolIndex As Integer, createTemporary As Boolean) As BoundStatement
-            rewritten = MyBase.InstrumentFieldOrPropertyInitializer(original, rewritten, symbolIndex, createTemporary)
-            Dim syntax As VisualBasicSyntaxNode = original.Syntax
-
-            Select Case syntax.Parent.Parent.Kind()
-                Case SyntaxKind.VariableDeclarator, SyntaxKind.PropertyStatement
-                    Return AddDynamicAnalysis(original, rewritten)
-
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind())
-            End Select
+            Return AddDynamicAnalysis(original, MyBase.InstrumentFieldOrPropertyInitializer(original, rewritten, symbolIndex, createTemporary))
         End Function
 
         Public Overrides Function InstrumentForEachLoopInitialization(original As BoundForEachStatement, initialization As BoundStatement) As BoundStatement
@@ -223,7 +223,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CollectDynamicAnalysis(original As BoundStatement, rewritten As BoundStatement) As BoundStatement
-            Dim statementFactory As New SyntheticBoundNodeFactory(_factory.TopLevelMethod, _method, original.Syntax, _factory.CompilationState, _diagnostics)
+            ' Instrument the statement using a factory with the same syntax as the statement, so that the instrumentation appears to be part of the statement.
+            Dim statementFactory As New SyntheticBoundNodeFactory(_methodBodyFactory.TopLevelMethod, _method, original.Syntax, _methodBodyFactory.CompilationState, _diagnostics)
             Dim analysisPoint As BoundStatement = AddAnalysisPoint(SyntaxForSpan(original), statementFactory)
             Return If(rewritten IsNot Nothing, statementFactory.StatementList(analysisPoint, rewritten), analysisPoint)
         End Function
@@ -234,6 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim location As Location = syntaxForSpan.GetLocation()
             Dim spanPosition As FileLinePositionSpan = location.GetMappedLineSpan()
             Dim path As String = spanPosition.Path
+            ' If the path for the syntax node is empty, try the path for the entire syntax tree.
             If path.Length = 0 Then
                 path = syntaxForSpan.SyntaxTree.FilePath
             End If
@@ -276,28 +278,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statement.Syntax
         End Function
 
-        Private Shared Function MethodHasExplicitBlock(method As MethodSymbol) As Boolean
-            Return TypeOf TryCast(method.OriginalDefinition, SourceMethodSymbol)?.Syntax Is MethodBlockBaseSyntax
-        End Function
-
         Private Shared Function GetCreatePayload(compilation As VisualBasicCompilation, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             Return DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, syntax, diagnostics), MethodSymbol)
-        End Function
-
-        Private Shared Function MethodDeclarationIfAvailable(body As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
-            Dim parent As VisualBasicSyntaxNode = body.Parent
-            If parent IsNot Nothing Then
-                Select Case (parent.Kind())
-                    Case SyntaxKind.FunctionBlock
-                    Case SyntaxKind.SubBlock
-                    Case SyntaxKind.PropertyBlock
-                    Case SyntaxKind.GetAccessorBlock
-                    Case SyntaxKind.SetAccessorBlock
-                        Return parent
-                End Select
-            End If
-
-            Return body
         End Function
     End Class
 End Namespace

@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim factory As New SyntheticBoundNodeFactory(Me, Me, VisualBasicSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics)
 
             ' Initialize the payload root for each kind of dynamic analysis instrumentation.
-            ' A payload root Is an array of arrays of per-method instrumentation payloads.
+            ' A payload root is an array of arrays of per-method instrumentation payloads.
             ' For each kind of instrumentation:
             '
             '     payloadRoot = New T(MaximumMethodDefIndex)() {}
@@ -71,12 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' index portion of the greatest method definition token in the compilation. This guarantees that any
             ' method can use the index portion of its own method definition token as an index into the payload array.
 
-            Dim payloadRootFields As IReadOnlyCollection(Of KeyValuePair(Of Integer, InstrumentationPayloadRootField)) = _privateImplementationType.GetInstrumentationPayloadRoots()
-            Debug.Assert(payloadRootFields.Count > 0)
+            Dim payloadRootFields As IOrderedEnumerable(Of KeyValuePair(Of Integer, InstrumentationPayloadRootField)) = _privateImplementationType.GetInstrumentationPayloadRoots()
+            Dim payloadRootFieldsCount As Integer = payloadRootFields.Count()
+            Debug.Assert(payloadRootFieldsCount > 0)
 
-            Dim body As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(2 + payloadRootFields.Count)
+            Dim body As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(2 + payloadRootFieldsCount)
 
-            For Each payloadRoot As KeyValuePair(Of Integer, InstrumentationPayloadRootField) In payloadRootFields.OrderBy(Function(analysis) analysis.Key)
+            For Each payloadRoot As KeyValuePair(Of Integer, InstrumentationPayloadRootField) In payloadRootFields
 
                 Dim analysisKind As Integer = payloadRoot.Key
                 Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type, ArrayTypeSymbol)

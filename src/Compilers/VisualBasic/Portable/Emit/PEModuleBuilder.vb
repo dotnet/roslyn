@@ -4,6 +4,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -645,24 +646,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
-        Friend Function GetModuleVersionId(mvidType As Cci.ITypeReference, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.IFieldReference
-            Dim details As PrivateImplementationDetails = GetPrivateImplClass(syntaxOpt, diagnostics)
-            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics)
-
-            Return details.GetModuleVersionId(mvidType)
+        Protected Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As IMethodDefinition
+            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics))
         End Function
-
-        Friend Function GetInstrumentationPayloadRoot(analysisKind As Integer, payloadType As Cci.ITypeReference, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.IFieldReference
-            Dim details As PrivateImplementationDetails = GetPrivateImplClass(syntaxOpt, diagnostics)
-            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics)
-
-            Return details.GetOrAddInstrumentationPayloadRoot(analysisKind, payloadType)
-        End Function
-
-        Private Sub EnsurePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
-            If details.GetMethod(WellKnownMemberNames.StaticConstructorName) Is Nothing Then
-                details.TryAddSynthesizedMethod(New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)))
-            End If
-        End Sub
     End Class
 End Namespace
