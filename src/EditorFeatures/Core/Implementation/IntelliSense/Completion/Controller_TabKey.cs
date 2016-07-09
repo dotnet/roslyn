@@ -25,13 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (sessionOpt == null)
             {
-                // The user may be trying to invoke snippets in VB
-                var helper = GetCompletionHelper();
+                // The user may be trying to invoke snippets through question-tab
                 var completionService = GetCompletionService();
 
-                if (helper != null &&
-                    completionService != null &&
-                    helper.QuestionTabInvokesSnippetCompletion &&
+                if (completionService != null &&
                     TryInvokeSnippetCompletion(args, completionService))
                 {
                     // We've taken care of the tab. Don't send it to the buffer.
@@ -67,60 +64,91 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var text = subjectBuffer.AsTextContainer().CurrentText;
 
-            // Delete the ? and invoke completion
+            // If the user types "<line start><spaces><question><tab>"
+            // then the editor takes over and shows the normal *full* snippet picker UI.
+            // i.e. the picker with all the folders and snippet organization.
+            //
+            // However, if the user instead has something like
+            //
+            //      "<line start><spaces><identifier><question><tab>"
+            //
+            // Then we take over and we show a completion list with all snippets in it
+            // in a flat list.  This enables simple browsing and filtering of all items
+            // based on what the user typed so far.
+            //
+            // If we detect this pattern, then we delete the previous character (the
+            // question mark) and we don't send the tab through to the editor.  In 
+            // essence, the <quesiton><tab> acts as the trigger, and we act as if that
+            // text never makes it into the buffer.
             Workspace workspace = null;
 
-            if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out workspace))
             {
-                var documentId = workspace.GetDocumentIdInCurrentContext(subjectBuffer.AsTextContainer());
-                if (documentId != null)
-                {
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    if (document != null)
-                    {
-                        var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-                        if (caretPoint >= 2 && text[caretPoint - 1] == '?' && QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFacts))
-                        {
-                            var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 1, caretPoint), string.Empty);
-                            workspace.ApplyTextChanges(documentId, textChange, CancellationToken.None);
-                            this.StartNewModelComputation(completionService, new CompletionTrigger(CompletionTriggerKind.Snippets), filterItems: false);
-                            return true;
-                        }
-                    }
-                }
+                return false;
             }
 
-            return false;
+            var documentId = workspace.GetDocumentIdInCurrentContext(subjectBuffer.AsTextContainer());
+            if (documentId == null)
+            {
+                return false;
+            }
+
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+            if (document == null)
+            {
+                return false;
+            }
+
+            var rules = GetCompletionService().GetRules();
+            if (rules.SnippetsRule != SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
+            {
+                return false;
+            }
+
+            var syntaxFactsOpt = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsOpt == null ||
+                caretPoint < 2 ||
+                text[caretPoint - 1] != '?' ||
+                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 1, syntaxFactsOpt))
+            {
+                return false;
+            }
+
+            // Because <question><tab> is actually a command to bring up snippets,
+            // we delete the last <question> that was typed.
+            var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 1, caretPoint), string.Empty);
+            workspace.ApplyTextChanges(documentId, textChange, CancellationToken.None);
+            this.StartNewModelComputation(completionService, new CompletionTrigger(CompletionTriggerKind.Snippets), filterItems: false);
+            return true;
         }
 
-        private bool QuestionMarkIsPrecededByIdentifierAndWhitespace(SourceText text, int p, ISyntaxFactsService syntaxFacts)
+        private bool QuestionMarkIsPrecededByIdentifierAndWhitespace(
+            SourceText text, int questionPosition, ISyntaxFactsService syntaxFacts)
         {
-            int start = text.Lines.GetLineFromPosition(p).Start;
-            bool seenIdentifier = false;
+            var startOfLine = text.Lines.GetLineFromPosition(questionPosition).Start;
 
-            while (p >= start)
+            // First, skip all the whitespace.
+            var current = startOfLine;
+            while (current < questionPosition && char.IsWhiteSpace(text[current]))
             {
-                if (!(syntaxFacts.IsIdentifierStartCharacter(text[p]) || syntaxFacts.IsIdentifierPartCharacter(text[p])))
-                {
-                    break;
-                }
-
-                seenIdentifier = true;
-                p--;
+                current++;
             }
 
-            while (p >= start)
+            if (current < questionPosition && syntaxFacts.IsIdentifierStartCharacter(text[current]))
             {
-                if (!char.IsWhiteSpace(text[p]))
-                {
-                    break;
-                }
-
-                p--;
+                current++;
+            }
+            else
+            {
+                return false;
             }
 
-            return seenIdentifier && p <= start;
+            while (current < questionPosition && syntaxFacts.IsIdentifierPartCharacter(text[current]))
+            {
+                current++;
+            }
+
+            return current == questionPosition;
         }
 
         private void CommitOnTab(out bool committed)

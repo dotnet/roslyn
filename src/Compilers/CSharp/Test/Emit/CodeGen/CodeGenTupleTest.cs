@@ -13693,5 +13693,45 @@ class C {
             Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12267")]
+        [WorkItem(12267, "https://github.com/dotnet/roslyn/issues/12267")]
+        public void ConstraintsAndNames()
+        {
+            var source1 = @"
+using System.Collections.Generic;
+
+public abstract class Base
+{
+    public abstract void M<T>(T x) where T : IEnumerable<(int a, int b)>;
+}
+";
+
+            var source2 = @"
+class Derived : Base
+{
+    public override void M<T>(T x)
+    {
+        foreach (var y in x)
+        {
+            System.Console.WriteLine(y.a);
+        }
+    }
+}";
+
+            var comp1 = CreateCompilationWithMscorlib(source1 + trivial2uple + source2);
+            comp1.VerifyDiagnostics();
+
+            var comp2 = CreateCompilationWithMscorlib45(source1 + trivial2uple);
+            comp2.VerifyDiagnostics();
+
+            // Retargeting (different version of mscorlib)
+            var comp3 = CreateCompilationWithMscorlib46(source2, references: new[] { new CSharpCompilationReference(comp2)});
+            comp3.VerifyDiagnostics();
+
+            // Metadata
+            var comp4 = CreateCompilationWithMscorlib45(source2, references: new[] { comp2.EmitToImageReference() });
+
+            comp4.VerifyDiagnostics();
+        }
     }
 }

@@ -105,9 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            TypeInfo typeInfo;
+
+            if (argument.Declaration != null)
+            {
+                typeInfo = semanticModel.GetTypeInfo(argument.Declaration.Type);
+                return typeInfo.Type?.IsErrorType() == false ? typeInfo.Type : semanticModel.Compilation.ObjectType;
+            }
+
             // If a parameter appears to have a void return type, then just use 'object'
             // instead.
-            var typeInfo = semanticModel.GetTypeInfo(argument.Expression, cancellationToken);
+            typeInfo = semanticModel.GetTypeInfo(argument.Expression, cancellationToken);
             if (typeInfo.Type != null && typeInfo.Type.SpecialType == SpecialType.System_Void)
             {
                 return semanticModel.Compilation.ObjectType;

@@ -103,19 +103,6 @@
     </When>
   </Choose>
 
-  <!-- Because https://github.com/dotnet/roslyn/issues/7812 is not yet fixed, the IDE doesn't know if we set the PublicSign
-       flag. As a result, all design-time builds will thing we're real-signing, which causes semantics to get all screwed up.
-       The workaround for now is, for design-time builds only, to pass the DelaySign flag since that's "good enough". This
-       must be done in a target versus conditioning on BuildingProject, since BuildingProject itself is correctly set in a
-       target. -->
-  <Target Name="FixPublicSignFlagForDesignTimeBuilds" BeforeTargets="CoreCompile" Condition="'$(PublicSign)' == 'true'">
-    <PropertyGroup Condition="'$(BuildingProject)' == 'false'">
-      <!-- Turn off PublicSign, because leaving both to true will make the Csc task unhappy -->
-      <PublicSign>false</PublicSign>
-      <DelaySign>true</DelaySign>
-    </PropertyGroup>
-  </Target>
-
   <!-- ====================================================================================
 
          Generation of binding redirects.
@@ -168,11 +155,6 @@
   </Choose>
 
   <Choose>
-    <When Condition="'$(ProjectLanguage)' == 'C++'">
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(VCTargetsPath)\Microsoft.Cpp.targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
       <PropertyGroup>
         <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
@@ -217,21 +199,6 @@
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <BuildDependsOn>
-      $(BuildDependsOn);
-      CopyCppOutputBackToIntDir;
-    </BuildDependsOn>
-  </PropertyGroup>
-
-  <!-- A task for C++ projects to copy their output back under obj\Debug or the like. This is slightly hacky. -->
-  <Target
-    Name="CopyCppOutputBackToIntDir" Condition="'$(ProjectLanguage)' == 'C++'">
-
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)$(TargetName).pdb')" />
-  </Target>
 
   <!-- Verify some build flags are correct -->
   <PropertyGroup>
@@ -332,6 +299,7 @@
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
            or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
+           or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'
            or '%(FileName)' == 'stdole'
            or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'
@@ -348,7 +316,6 @@
        ==================================================================================== -->
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
-  <Import Project="GenerateVersionInfoResourceFile.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
   <!-- ====================================================================================
 
@@ -436,9 +403,4 @@
   <PropertyGroup>
 	<ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
   </PropertyGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)Signing.targets"
-          Condition="'$(NonShipping)' != 'true' and
-                     '$(ShouldSignBuild)' == 'true' and
-                     '$(RunningInMicroBuild)' == 'true'" />
- </Project>
+</Project>

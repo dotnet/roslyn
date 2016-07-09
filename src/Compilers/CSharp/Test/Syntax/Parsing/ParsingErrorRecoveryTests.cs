@@ -17,6 +17,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseCompilationUnit(text, options: options);
         }
 
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("private")]
+        public void AccessibilityModifierErrorRecovery(string accessibility)
+        {
+            var file = ParseTree($@"
+class C
+{{
+    void M()
+    {{
+        // bad visibility modifier
+        {accessibility} void localFunc() {{}}
+    }}
+    void M2()
+    {{
+        typing
+        {accessibility} void localFunc() {{}}
+    }}
+    void M3()
+    {{
+    // Ambiguous between local func with bad modifier and missing closing
+    // brace on previous method. Parsing currently assumes the former,
+    // assuming the tokens are parseable as a local func.
+    {accessibility} void M4() {{}}
+}}", LocalFunctionParsingTests.LocalFuncOptions);
+
+            Assert.NotNull(file);
+            file.GetDiagnostics().Verify(
+                // (7,9): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //         {accessibility} void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(7, 9),
+                // (11,15): error CS1002: ; expected
+                //         typing
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
+                // (12,9): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //         {accessibility} void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(12, 9),
+                // (19,5): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //     {accessibility} void M4() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(19, 5),
+                // (20,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(20, 2)
+                );
+        }
+
         [Fact]
         public void TestGlobalAttributeGarbageAfterLocation()
         {

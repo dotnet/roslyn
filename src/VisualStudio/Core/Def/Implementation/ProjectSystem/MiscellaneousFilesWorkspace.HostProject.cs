@@ -114,11 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 return SpecializedCollections.EmptyReadOnlyList<string>();
             }
-
-            public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

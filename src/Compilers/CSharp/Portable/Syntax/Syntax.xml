@@ -708,21 +708,6 @@
       <summary>Creates an BaseExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="OriginalExpressionSyntax" Base="InstanceExpressionSyntax">
-    <Kind Name="OriginalExpression"/>
-    <Field Name="Token" Type="SyntaxToken">
-      <Kind Name="OriginalKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the original keyword.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents the syntax node for an original expression.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates an OriginalExpressionSyntax node.</summary>
-    </FactoryComment>
-  </Node>
   <Node Name="LiteralExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ArgListExpression"/>
     <Kind Name="NumericLiteralExpression"/>
@@ -1101,9 +1086,12 @@
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Expression" Type="ExpressionSyntax">
+    <Field Name="ExpressionOrDeclaration" Type="CSharpSyntaxNode" Internal="true">
       <PropertyComment>
-        <summary>ExpressionSyntax node representing the argument.</summary>
+        <summary>
+          ExpressionSyntax node representing the argument value, 
+          or VariableDeclarationSyntax representing out local declaration.
+        </summary>
       </PropertyComment>
     </Field>
     <TypeComment>

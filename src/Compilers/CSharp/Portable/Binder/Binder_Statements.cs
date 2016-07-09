@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if (localSymbol == null)
             {
-                localSymbol = new LocalFunctionSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
+                localSymbol = new LocalFunctionSymbol(this, this.ContainingMemberOrLambda, node);
             }
             else
             {
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
-            Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement);
+            Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement || declarationNode.Kind() == SyntaxKind.Argument);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -1809,7 +1809,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This case is reachable only through SemanticModel
                     return ((QualifiedNameSyntax)syntax).Right;
                 case SyntaxKind.IdentifierName:
-                case SyntaxKind.OriginalExpression:
                     return syntax;
                 case SyntaxKind.MemberBindingExpression:
                     return ((MemberBindingExpressionSyntax)syntax).Name;
@@ -1832,6 +1831,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyGroup:
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
                     break;
+
+                case BoundKind.Local:
+                    Debug.Assert(expr.Syntax.Kind() != SyntaxKind.Argument || valueKind == BindValueKind.RefOrOut);
+                    break;
+
+                case BoundKind.OutVarLocalPendingInference:
+                    Debug.Assert(valueKind == BindValueKind.RefOrOut);
+                    return expr;
             }
 
             bool hasResolutionErrors = false;
@@ -2682,7 +2689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) && 
                     targetElementTypes.Length == tuple.Arguments.Length)
                 {
-                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, syntax, tuple.Arguments, targetElementTypes);
+                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
                     return;
                 }
 
@@ -2753,7 +2760,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
             DiagnosticBag diagnostics, 
-            CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> tupleArguments, 
             ImmutableArray<TypeSymbol> targetElementTypes)
         {

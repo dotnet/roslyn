@@ -326,47 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return csSymbol;
         }
 
-        internal struct ReplacedMemberEnumerable
-        {
-            private readonly Symbol _symbol;
-
-            internal ReplacedMemberEnumerable(Symbol symbol)
-            {
-                _symbol = symbol;
-            }
-
-            public ReplacedMemberEnumerator GetEnumerator()
-            {
-                return new ReplacedMemberEnumerator(_symbol);
-            }
-        }
-
-        internal struct ReplacedMemberEnumerator
-        {
-            private Symbol _symbol;
-
-            internal ReplacedMemberEnumerator(Symbol symbol)
-            {
-                _symbol = symbol;
-            }
-
-            public bool MoveNext()
-            {
-                _symbol = _symbol.Replaced;
-                return (object)_symbol != null;
-            }
-
-            public Symbol Current
-            {
-                get { return _symbol; }
-            }
-        }
-
-        internal static ReplacedMemberEnumerable GetReplacedMembers(this Symbol symbol)
-        {
-            return new ReplacedMemberEnumerable(symbol);
-        }
-
         internal static ImmutableArray<TypeSymbol> ToTypes(this ImmutableArray<TypeWithModifiers> typesWithModifiers, out bool hasModifiers)
         {
             hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);

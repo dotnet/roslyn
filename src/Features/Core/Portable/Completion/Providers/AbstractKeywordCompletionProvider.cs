@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
-            if (!options.GetOption(CompletionOptions.IncludeKeywords, document.Project.Language))
-            {
-                return;
-            }
-
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
                 var keywords = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
@@ -115,8 +110,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var insertionText = item.DisplayText;
             if (ch == ' ')
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textTypedSoFar = text.GetSubText(item.Span).ToString();
+                var currentSnapshot = document.Project.Solution.Workspace.CurrentSolution.GetDocument(document.Id);
+                var text = await currentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var textTypedSoFar = text.GetSubText(GetCurrentSpan(item.Span, text)).ToString() + ch;
 
                 if (textTypedSoFar.Length > 0 && insertionText.StartsWith(textTypedSoFar, StringComparison.OrdinalIgnoreCase))
                 {
@@ -126,5 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return new TextChange(item.Span, insertionText);
         }
+
+        internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);
     }
 }
