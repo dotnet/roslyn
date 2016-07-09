@@ -56,23 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)boundRHS.Type == null)
             {
-                if (boundRHS.Kind == BoundKind.TupleLiteral)
-                {
-                    // tuple literal without type such as `(null, null)`, let's fix it up by peeking at the LHS
-                    TypeSymbol lhsAsTuple = MakeTupleTypeFromDeconstructionLHS(checkedVariables, diagnostics, Compilation);
-                    boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
-                }
-                else
-                {
-                    // expression without type such as `null`
-                    Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, right);
-                    FailRemainingInferences(checkedVariables, diagnostics);
+                // expression without natural type such as `null` or `(null, 1)`
+                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, right);
+                FailRemainingInferences(checkedVariables, diagnostics);
 
-                    return new BoundDeconstructionAssignmentOperator(
-                                node, FlattenDeconstructVariables(checkedVariables), boundRHS,
-                                ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
-                                voidType, hasErrors: true);
-                }
+                return new BoundDeconstructionAssignmentOperator(
+                            node, FlattenDeconstructVariables(checkedVariables), boundRHS,
+                            ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
+                            voidType, hasErrors: true);
             }
 
             var deconstructionSteps = ArrayBuilder<BoundDeconstructionDeconstructStep>.GetInstance(1);
@@ -279,27 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return !hasErrors;
-        }
-
-        /// <summary>
-        /// For cases where the RHS of a deconstruction-assignment has no type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
-        /// </summary>
-        private static TypeSymbol MakeTupleTypeFromDeconstructionLHS(ArrayBuilder<DeconstructionVariable> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
-        {
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Count);
-            foreach (var variable in topLevelCheckedVariables)
-            {
-                if (variable.HasNestedVariables)
-                {
-                    typesBuilder.Add(MakeTupleTypeFromDeconstructionLHS(variable.NestedVariables, diagnostics, compilation));
-                }
-                else
-                {
-                    typesBuilder.Add(variable.Single.Type);
-                }
-            }
-
-            return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
         }
 
         /// <summary>

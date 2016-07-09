@@ -2938,7 +2938,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void TypelessDeclaration()
         {
             string source = @"
@@ -2950,13 +2950,15 @@ class C
     }
 }
 ";
-            // crash
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         var (x1, x2) = (1, null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(1, null)").WithLocation(6, 24)
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void InferTypeOfTypelessDeclaration()
         {
             string source = @"
@@ -2969,9 +2971,12 @@ class C
     }
 }
 ";
-            // crash
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 ");
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,37): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (var (x1, x2), string x3) = ((1, 2), null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "((1, 2), null)").WithLocation(6, 37)
+                );
         }
 
         [Fact]
