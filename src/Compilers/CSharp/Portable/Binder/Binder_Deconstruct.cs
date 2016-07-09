@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = (TupleExpressionSyntax)node.Left;
             ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionAssignmentVariables(left.Arguments, left, diagnostics);
 
-            var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics);
+            var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics, isDeclaration: false);
             FreeDeconstructionVariables(checkedVariables);
 
             return result;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Deconstruct steps for tuples have no invocation to Deconstruct, but steps for non-tuples do.
         /// The caller is responsible for releasing all the ArrayBuilders in checkedVariables.
         /// </summary>
-        private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(CSharpSyntaxNode node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rhsPlaceholder = null)
+        private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(CSharpSyntaxNode node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics, bool isDeclaration, BoundDeconstructValuePlaceholder rhsPlaceholder = null)
         {
             TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
 
@@ -56,14 +56,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)boundRHS.Type == null)
             {
-                // expression without natural type such as `null` or `(null, 1)`
-                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, right);
-                FailRemainingInferences(checkedVariables, diagnostics);
+                if (boundRHS.Kind == BoundKind.TupleLiteral && !isDeclaration)
+                {
+                    // tuple literal without type such as `(null, null)`, let's fix it up by peeking at the LHS
+                    TypeSymbol lhsAsTuple = MakeTupleTypeFromDeconstructionLHS(checkedVariables, diagnostics, Compilation);
+                    boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
+                }
+                else
+                {
+                    // expression without type such as `null`
+                    Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, right);
+                    FailRemainingInferences(checkedVariables, diagnostics);
 
-                return new BoundDeconstructionAssignmentOperator(
-                            node, FlattenDeconstructVariables(checkedVariables), boundRHS,
-                            ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
-                            voidType, hasErrors: true);
+                    return new BoundDeconstructionAssignmentOperator(
+                                node, FlattenDeconstructVariables(checkedVariables), boundRHS,
+                                ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
+                                voidType, hasErrors: true);
+                }
             }
 
             var deconstructionSteps = ArrayBuilder<BoundDeconstructionDeconstructStep>.GetInstance(1);
@@ -273,6 +282,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// For cases where the RHS of a deconstruction-assignment has no type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
+        /// </summary>
+        private static TypeSymbol MakeTupleTypeFromDeconstructionLHS(ArrayBuilder<DeconstructionVariable> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        {
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Count);
+            foreach (var variable in topLevelCheckedVariables)
+            {
+                if (variable.HasNestedVariables)
+                {
+                    typesBuilder.Add(MakeTupleTypeFromDeconstructionLHS(variable.NestedVariables, diagnostics, compilation));
+                }
+                else
+                {
+                    typesBuilder.Add(variable.Single.Type);
+                }
+            }
+
+            return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
+        }
+
+        /// <summary>
         /// Returns a list of variables, where some may be nested variables (BoundDeconstructionVariables).
         /// Checks that all the variables are assignable to.
         /// The caller is responsible for releasing the nested ArrayBuilders.
@@ -466,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<DeconstructionVariable> locals = BindDeconstructionDeclarationLocals(declaration, declaration.Type, diagnostics);
 
-            var result = BindDeconstructionAssignment(node, right, locals, diagnostics, rightPlaceholder);
+            var result = BindDeconstructionAssignment(node, right, locals, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals);
 
             return result;
