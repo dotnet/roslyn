@@ -4070,7 +4070,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestAsync(code, expected, index: 0);
         }
     }
 }

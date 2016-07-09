@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     node = (LocalDeclarationStatementSyntax)base.VisitLocalDeclarationStatement(node);
 
                     if (node.Declaration.IsDeconstructionDeclaration)
-                    {// PROTOTYPE(tuples)
+                    {
                         return node;
                     }
 
