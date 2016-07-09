@@ -17,7 +17,7 @@
       and/or move the source for the packages to separate repos.
      -->
     <NuSpec Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</Version>
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</Version>
       <External>false</External>
     </NuSpec>
     <NuSpec Include="System.Collections.Immutable">
