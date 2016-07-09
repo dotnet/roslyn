@@ -1077,8 +1077,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
-                case SyntaxKind.ReplaceKeyword:
-                case SyntaxKind.OriginalKeyword:
                     return true;
                 default:
                     return false;
@@ -1178,10 +1176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.WhenKeyword;
                 case "nameof":
                     return SyntaxKind.NameOfKeyword;
-                case "replace":
-                    return SyntaxKind.ReplaceKeyword;
-                case "original":
-                    return SyntaxKind.OriginalKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1579,10 +1573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.ReplaceKeyword:
-                    return "replace";
-                case SyntaxKind.OriginalKeyword:
-                    return "original";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:

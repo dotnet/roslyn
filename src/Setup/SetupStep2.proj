@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="..\..\build\Targets\VSL.Settings.targets" />
+
+  <Target Name="Build">
+
+    <!-- Build the Roslyn NuGet packages -->
+    <MSBuild Projects="..\Nuget\NuGet.proj" />
+
+    <!-- Build CoreXT packages for insertion into DevDiv (order of the following actions matters) -->
+    <MSBuild Projects="DevDivPackages\Dependencies.proj" />
+    <MSBuild Projects="DevDivInsertionFiles\DevDivInsertionFiles.sln" />
+    <MSBuild Projects="DevDivPackages\Roslyn.proj" />
+    <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
+    <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
+
+    <!-- Dependencies -->
+    <!-- <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" /> -->
+    
+    <!-- Microsoft.NetFX20 -->
+    <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
+
+    <!-- VSIX Gallery -->
+    <MSBuild Projects="Vsix\Vsix.proj" />
+  </Target>
+</Project>

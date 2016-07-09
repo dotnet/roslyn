@@ -1,21 +1,18 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- This controls the version numbers of the build that we are producing -->
+
+  <Import Project="Dependencies.props" />
+  
   <PropertyGroup>
-    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == '' AND '$(UseVisualStudioVersion)' == 'true'">15.0.0</RoslynSemanticVersion>
-    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">2.0.0</RoslynSemanticVersion>
+    <!-- This the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
+    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.0.0</RoslynAssemblyVersionBase>
+    <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
+    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
+    <!-- This is the base of the NuGet versioning for prerelease packages -->
+    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta4</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
-    <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynSemanticVersion)</MicrosoftVisualStudioInteractiveWindowVersion>
-    <!-- These are the versions of dependencies we insert into VS -->
-    <SystemReflectionMetadataVersion>1.4.1-beta-24227-04</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
-    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
-    <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
-    <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
-    <CoreFXVersionSuffix></CoreFXVersionSuffix>
-    <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
-    <CoreClrVersionSuffix></CoreClrVersionSuffix>
+    <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -40,32 +37,22 @@
 
   <PropertyGroup>
     <!-- Split the build parts out from the BuildNumber which is given to us by MicroBuild in the format of yyyymmdd.nn
-         where BuildNumberPart1 is yyyymmdd (such as 20160615) and BuildNumberPart2 is nn (which represents the nth build 
-         started that day). So the first build of the day, 20160615.1, will produce something similar to BuildNumberPart1: 20160615,
-         BuildNumberPart2: 01; and the 12th build of the day, 20160615.12, will produce BuildNumberPart1: 20160615, BuildNumberPart2: 12 -->
-    <!-- Additionally, in order to match the MicroBuild v1 behavior, we will only take the last five digits of the BuildNumber, so
-         in the case of 20160615, we will set BuildNumberPart1 to 60615. This will begin failing in the 2017 as the BuildVersion only allows
+         where BuildNumberFiveDigitDateStamp is ymmdd (such as 60615) and BuildNumberBuildOfTheDay is nn (which represents the nth build 
+         started that day). So the first build of the day, 20160615.1, will produce something similar to BuildNumberFiveDigitDateStamp: 60615,
+         BuildNumberBuildOfTheDayPadded: 01; and the 12th build of the day, 20160615.12, will produce BuildNumberFiveDigitDateStamp: 60615, BuildNumberBuildOfTheDay: 12 -->
+    <!-- Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
+         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. This will begin failing in the 2017 as the BuildVersion only allows
          each part to be in the range of 0 through 65535. Issue #12038 tracks the fix that needs to happen. -->
-    <BuildNumberPart1>$(BuildNumber.Split('.')[0].Substring(3))</BuildNumberPart1>
-    <BuildNumberPart2>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberPart2>
+    <BuildNumberFiveDigitDateStamp>$(BuildNumber.Split('.')[0].Substring(3).Trim())</BuildNumberFiveDigitDateStamp>
+    <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberBuildOfTheDayPadded>
   </PropertyGroup>
   
   <Choose>
-    <When Condition="'$(BuildVersion)' != ''">
-      <!-- The user specified a build version number. In that case, we'll use their version number
-          for the file version, and force the assembly version to $(RoslynSemanticVersion).0.  That way
-          day-to-day upgrades don't break assembly references to other installed apps. -->
+    <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
       <PropertyGroup>
-        <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
-        <VsixVersion>$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())</VsixVersion>
-      </PropertyGroup>
-    </When>
-
-    <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true'">
-      <PropertyGroup>
-        <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
-        <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
-        <VsixVersion>$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())</VsixVersion>
+        <AssemblyVersion>$(RoslynAssemblyVersionBase).0</AssemblyVersion>
+        <BuildVersion>$(RoslynFileVersionBase).$(BuildNumberFiveDigitDateStamp)</BuildVersion>
+        <VsixVersion>$(RoslynFileVersionBase).$(BuildNumberFiveDigitDateStamp)$(BuildNumberBuildOfTheDayPadded)</VsixVersion>
       </PropertyGroup>
     </When>
 
@@ -87,13 +74,8 @@
 
   <!-- NuGet version -->
   <PropertyGroup>
-    <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta4</NuGetPreReleaseVersion>
-    <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
-
-    <!-- TODO: change to a fixed version once we move this component to a separate repo -->
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.1.0-beta1</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion Condition="'$(BuildNumber)' != ''">$(MicrosoftDiaSymReaderPortablePdbVersion)-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</MicrosoftDiaSymReaderPortablePdbVersion>
+    <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
+    <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
 
 </Project>

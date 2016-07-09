@@ -18,7 +18,7 @@ class HelloWorldTest : PerfTest
     }
     
     
-    public override void Setup() 
+    public override void Setup()
     {
         _pathToHelloWorld = Path.Combine(MyWorkingDirectory, "HelloWorld.cs");
         _pathToOutput = Path.Combine(TempDirectory, "HelloWorld.exe");
