@@ -2172,7 +2172,7 @@ Class C
             Return Me
         End Get
     End Property
-    Function F(Optional id As Integer = 0, <CallerLineNumber> Optional line As Integer) As C
+    Function F(Optional id As Integer, <CallerLineNumber> Optional line As Integer) As C
         Console.WriteLine("{0}: {1}", id, line)
         Return Me
     End Function
@@ -2198,8 +2198,8 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithParseOptions(MyParseOptions))
-            CompileAndVerify(compilation,
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=MyParseOptions)
+            CompileAndVerify(compilation:=compilation.With_MY_FEATURE_, expectedOutput:=
             <![CDATA[
 1: 21
 0: 22
@@ -2468,10 +2468,10 @@ End Module
 "
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8, options:=MyParseOptions)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(MyParseOptions))
@@ -2570,7 +2570,6 @@ End Module
 ")
         End Sub
 
-        ' TODO: Figure out the correct incantation for the overload to work.
         <Fact>
         Public Sub TestCallerFilePath2_B()
             Dim source1 = "
@@ -2635,11 +2634,11 @@ End Module
 
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=MyParseOptions),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=MyParseOptions)
                 }.AsEnumerable,
                 {MscorlibRef_v4_0_30316_17626, MsvbRef}.AsEnumerable,
                  options:=TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
@@ -2647,13 +2646,14 @@ End Module
                     baseDirectory:="C:\A\B",
                     pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(MyParseOptions))
 
-            CompileAndVerify(compilation, expectedOutput:="
+            CompileAndVerify(compilation:=compilation, expectedOutput:="
 1: '/X/filename'
 2: '/X/A/B/a/c/d.vb'
 3: '*'
 4: '/X/abc'
 5: '     '
 ")
+
         End Sub
         <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
         <Fact()>
@@ -3183,7 +3183,7 @@ End Class
         ' TODO:
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        Public Sub IsOptionalVsHasDefaultValue_DateTime()
+        Public Sub IsOptionalVsHasDefaultValue_DateTime_A()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3321,6 +3321,156 @@ End Class
                 End Sub
 
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
+        End Sub
+
+        <Fact>
+        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        Public Sub IsOptionalVsHasDefaultValue_DateTime_B()
+            Dim source =
+<compilation name="TestOptionalOnGenericMethod">
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Public Class C
+    Public Sub M0(p As Date)
+    End Sub
+    Public Sub M1(Optional p As Date = Nothing) ' default of type
+    End Sub
+    Public Sub M2(Optional p As Date = #12/25/1991#) ' not default of type
+    End Sub
+    Public Sub M3(<[Optional]> p As Date) ' no default specified (would be illegal)
+    End Sub
+    Public Sub M4(<DefaultParameterValue(Nothing)> p As Date) ' default of type, not optional (note: can't use a date literal here)
+    End Sub
+    Public Sub M5(<[Optional]> <DefaultParameterValue(Nothing)> p As Date) ' default of type, optional
+    End Sub
+    Public Sub M6(<DateTimeConstant(0)> p As Date) ' default of type, not optional
+    End Sub
+    Public Sub M7(<DateTimeConstant(1)> p As Date) ' not default of type, not optional
+    End Sub
+    Public Sub M8(<[Optional]> <DateTimeConstant(0)> p As Date) ' default of type, optional
+    End Sub
+    Public Sub M9(<[Optional]> <DateTimeConstant(1)> p As Date) ' not default of type, optional
+    End Sub
+    Public Sub M10(Optional p As Date) ' implicit default of type
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim validator As Func(Of Boolean, Action(Of ModuleSymbol)) = Function(isFromSource) _
+                Sub([module])
+                    Dim methods = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers().OfType(Of MethodSymbol)().Where(Function(m) m.MethodKind = MethodKind.Ordinary).ToArray()
+                    Assert.Equal(11, methods.Length)
+
+                    Dim parameters = methods.Select(Function(m) m.Parameters.Single()).ToArray()
+
+                    Dim dateTimeZero = New DateTime(0)
+                    Dim dateTimeOne = New DateTime(1)
+                    Dim dateTimeOther = #12/25/1991#
+
+                    Assert.False(parameters(0).IsOptional)
+                    Assert.False(parameters(0).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(0).GetAttributes().Length)
+
+                    Assert.True(parameters(1).IsOptional)
+                    Assert.True(parameters(1).HasExplicitDefaultValue)
+                    Assert.Equal(dateTimeZero, parameters(1).ExplicitDefaultValue)
+                    Assert.Equal(ConstantValue.Create(dateTimeZero), parameters(1).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(1).GetAttributes().Length)
+
+                    Assert.True(parameters(2).IsOptional)
+                    Assert.True(parameters(2).HasExplicitDefaultValue)
+                    Assert.Equal(dateTimeOther, parameters(2).ExplicitDefaultValue)
+                    Assert.Equal(ConstantValue.Create(dateTimeOther), parameters(2).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(2).GetAttributes().Length)
+
+                    ' 3 - see below
+
+                    Assert.False(parameters(4).IsOptional)
+                    Assert.False(parameters(4).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                    Assert.Null(parameters(4).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
+                    Assert.Equal(1, parameters(4).GetAttributes().Length) ' DefaultParameterValue
+
+                    ' 5 - see below
+
+                    Assert.False(parameters(6).IsOptional)
+                    Assert.False(parameters(6).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                    Assert.Null(parameters(6).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
+                    Assert.Equal(1, parameters(6).GetAttributes().Length) ' DateTimeConstant
+
+                    Assert.False(parameters(7).IsOptional)
+                    Assert.False(parameters(7).HasExplicitDefaultValue)
+                    Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                    Assert.Null(parameters(7).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
+                    Assert.Equal(1, parameters(7).GetAttributes().Length) ' DateTimeConstant
+
+                    If isFromSource Then
+                        Assert.False(parameters(3).IsOptional)
+                        Assert.False(parameters(3).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultConstantValue)
+                        Assert.Equal(1, parameters(3).GetAttributes().Length)
+
+                        Assert.False(parameters(5).IsOptional)
+                        Assert.False(parameters(5).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                        Assert.Null(parameters(5).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(5).GetAttributes().Length)
+
+                        Assert.False(parameters(8).IsOptional)
+                        Assert.False(parameters(8).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(8).ExplicitDefaultValue)
+                        Assert.Null(parameters(8).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(8).GetAttributes().Length)
+
+                        Assert.False(parameters(9).IsOptional)
+                        Assert.False(parameters(9).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(9).ExplicitDefaultValue)
+                        Assert.Null(parameters(9).ExplicitDefaultConstantValue)
+                        Assert.Equal(2, parameters(9).GetAttributes().Length)
+                    Else
+                        Assert.True(parameters(3).IsOptional)
+                        Assert.False(parameters(3).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultConstantValue)
+                        Assert.Equal(0, parameters(3).GetAttributes().Length)
+
+                        Assert.True(parameters(5).IsOptional)
+                        Assert.False(parameters(5).HasExplicitDefaultValue)
+                        Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                        Assert.Null(parameters(5).ExplicitDefaultConstantValue)
+                        Assert.Equal(1, parameters(5).GetAttributes().Length) ' DefaultParameterValue
+
+                        Assert.True(parameters(8).IsOptional)
+                        Assert.True(parameters(8).HasExplicitDefaultValue)
+                        Assert.Equal(dateTimeZero, parameters(8).ExplicitDefaultValue)
+                        Assert.Equal(ConstantValue.Create(dateTimeZero), parameters(8).ExplicitDefaultConstantValue)
+                        Assert.Equal(0, parameters(8).GetAttributes().Length)
+
+                        Assert.True(parameters(9).IsOptional)
+                        Assert.True(parameters(9).HasExplicitDefaultValue)
+                        Assert.Equal(dateTimeOne, parameters(9).ExplicitDefaultValue)
+                        Assert.Equal(ConstantValue.Create(dateTimeOne), parameters(9).ExplicitDefaultConstantValue)
+                        Assert.Equal(0, parameters(9).GetAttributes().Length)
+                    End If
+                    Assert.True(parameters(10).IsOptional)
+                    Assert.False(parameters(10).HasExplicitDefaultValue)
+                    'Assert.Equal(dateTimeZero, parameters(10).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Create(dateTimeZero), parameters(10).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(10).GetAttributes().Length)
+
+                End Sub
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=MyParseOptions)
+
         End Sub
 
     End Class

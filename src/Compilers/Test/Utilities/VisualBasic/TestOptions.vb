@@ -55,4 +55,8 @@ Friend Module TestOptionExtensions
     Public Function With_MY_FEATURE_(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("ImplicitDefaultValueOnOptionalParameter", "true")}))
     End Function
+    <Extension()>
+    Public Function With_MY_FEATURE_(compilation As VisualBasicCompilation) As Compilation
+        Return compilation.WithOptions(compilation.Options.WithParseOptions(compilation.Options.ParseOptions.With_MY_FEATURE_))
+    End Function
 End Module
