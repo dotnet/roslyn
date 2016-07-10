@@ -1285,6 +1285,28 @@ class C
         }
 
         [Fact]
+        public void ErrorRight()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (x, x) = undeclared;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithRefsFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0103: The name 'undeclared' does not exist in the current context
+                //         (x, x) = undeclared;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "undeclared").WithArguments("undeclared").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
         public void VoidRight()
         {
             string source = @"
