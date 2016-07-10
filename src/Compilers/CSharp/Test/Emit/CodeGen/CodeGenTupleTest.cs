@@ -4426,21 +4426,21 @@ class C
             comp.VerifyIL("C.Main()",
 @"
 {
-  // Code size       40 (0x28)
-  .maxstack  2
+  // Code size       41 (0x29)
+  .maxstack  3
   .locals init (System.ValueTuple<byte, string> V_0)
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldstr      ""hello""
-  IL_0006:  newobj     ""System.ValueTuple<byte, string>..ctor(byte, string)""
-  IL_000b:  stloc.0
-  IL_000c:  ldloc.0
-  IL_000d:  ldfld      ""byte System.ValueTuple<byte, string>.Item1""
-  IL_0012:  ldloc.0
-  IL_0013:  ldfld      ""string System.ValueTuple<byte, string>.Item2""
-  IL_0018:  newobj     ""System.ValueTuple<short, string>..ctor(short, string)""
-  IL_001d:  box        ""System.ValueTuple<short, string>""
-  IL_0022:  call       ""void System.Console.WriteLine(object)""
-  IL_0027:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldstr      ""hello""
+  IL_0008:  call       ""System.ValueTuple<byte, string>..ctor(byte, string)""
+  IL_000d:  ldloc.0
+  IL_000e:  ldfld      ""byte System.ValueTuple<byte, string>.Item1""
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""string System.ValueTuple<byte, string>.Item2""
+  IL_0019:  newobj     ""System.ValueTuple<short, string>..ctor(short, string)""
+  IL_001e:  box        ""System.ValueTuple<short, string>""
+  IL_0023:  call       ""void System.Console.WriteLine(object)""
+  IL_0028:  ret
 }
 "); ;
         }
@@ -4500,6 +4500,63 @@ class C
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        public void TupleExplicitConversionFail01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) x;
+
+        x = ((int, int))(null, null, null);
+        x = ((int, int))(1, 1, 1);
+        x = ((int, int))(1, ""string"");
+        x = ((int, int))(1, 1, garbage);
+        x = ((int, int))(1, 1, );
+        x = ((int, int))(null, null);
+        x = ((int, int))(1, null);
+        x = ((int, int))(1, (t)=>t);
+        x = ((int, int))null;
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+                // (12,32): error CS1525: Invalid expression term ')'
+                //         x = ((int, int))(1, 1, );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 32),
+                // (8,13): error CS8206: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                //         x = ((int, int))(null, null, null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((int, int))(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
+                // (9,13): error CS0030: Cannot convert type '(int, int, int)' to '(int, int)'
+                //         x = ((int, int))(1, 1, 1);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "((int, int))(1, 1, 1)").WithArguments("(int, int, int)", "(int, int)").WithLocation(9, 13),
+                // (10,29): error CS0030: Cannot convert type 'string' to 'int'
+                //         x = ((int, int))(1, "string");
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""string""").WithArguments("string", "int").WithLocation(10, 29),
+                // (11,32): error CS0103: The name 'garbage' does not exist in the current context
+                //         x = ((int, int))(1, 1, garbage);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "garbage").WithArguments("garbage").WithLocation(11, 32),
+                // (13,26): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((int, int))(null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 26),
+                // (13,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((int, int))(null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 32),
+                // (14,29): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((int, int))(1, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 29),
+                // (15,29): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         x = ((int, int))(1, (t)=>t);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 29),
+                // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //         x = ((int, int))null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "((int, int))null").WithArguments("(int, int)").WithLocation(16, 13)
                 );
         }
 
@@ -4809,6 +4866,55 @@ class C
                 //         (string, Func<(string, string)>) x1 = (null, ()=>(null, 1.1));  // actual error, should be the same as above.
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(null, 1.1)").WithArguments("lambda expression").WithLocation(14, 58)
 
+            );
+        }
+
+        [Fact]
+        public void TupleExplicitConversionFail06()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Func<string> l = (Func<string>)(()=>1); // reference
+
+        (string, Func<string>) x = ((string, Func<string>))(null, () => 1);  // actual error, should be the same as above.
+
+        Func<(string, string)> l1 = (Func<(string, string)>)(()=>(null, 1.1)); // reference
+
+        (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+                // (8,45): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         Func<string> l = (Func<string>)(()=>1); // reference
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(8, 45),
+                // (8,45): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<string> l = (Func<string>)(()=>1); // reference
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(8, 45),
+                // (10,73): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         (string, Func<string>) x = ((string, Func<string>))(null, () => 1);  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(10, 73),
+                // (10,73): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         (string, Func<string>) x = ((string, Func<string>))(null, () => 1);  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(10, 73),
+                // (12,73): error CS0029: Cannot implicitly convert type 'double' to 'string'
+                //         Func<(string, string)> l1 = (Func<(string, string)>)(()=>(null, 1.1)); // reference
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1.1").WithArguments("double", "string").WithLocation(12, 73),
+                // (12,66): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<(string, string)> l1 = (Func<(string, string)>)(()=>(null, 1.1)); // reference
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(null, 1.1)").WithArguments("lambda expression").WithLocation(12, 66),
+                // (14,101): error CS0029: Cannot implicitly convert type 'double' to 'string'
+                //         (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1.1").WithArguments("double", "string").WithLocation(14, 101),
+                // (14,94): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(null, 1.1)").WithArguments("lambda expression").WithLocation(14, 94)
             );
         }
 
@@ -5212,7 +5318,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5287,7 +5393,7 @@ class C
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("(System.Int32, System.String)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             CompileAndVerify(comp);
         }
@@ -5315,7 +5421,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5343,14 +5449,14 @@ class C
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
             Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node.Parent).Kind);
 
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -5381,7 +5487,7 @@ class C
             Assert.Equal(@"((long c, string d))(x)", node.ToString());
             Assert.Equal("(System.Int64 c, System.String d)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Object a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(node).Kind);
 
             node = nodes.OfType<ParenthesizedExpressionSyntax>().Single();
 
@@ -5415,7 +5521,7 @@ class C
             Assert.Equal(@"((long c, string d))(x)", node.ToString());
             Assert.Equal("(System.Int64 c, System.String d)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Object a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             node = nodes.OfType<ParenthesizedExpressionSyntax>().Single();
 
@@ -5448,7 +5554,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5518,7 +5624,7 @@ class C
             // ((int c, string d))(e: 1, f: ""hello"")
             Assert.Equal("(System.Int32 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node.Parent).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5605,7 +5711,7 @@ class C
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5642,8 +5748,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -5678,7 +5784,7 @@ class C
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
             Assert.Null(model.GetTypeInfo(node).Type);
             Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5715,8 +5821,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
             Assert.Null(model.GetTypeInfo(node).Type);
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -5767,7 +5873,7 @@ class C
             Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
             Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(node).Kind);
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -5813,8 +5919,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
             Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -11923,14 +12029,14 @@ class C
             Assert.Equal(@"(1, ""hello"")", n1.ToString());
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(n1).Type.ToTestDisplayString());
             Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n1).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(n1));
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n1).Kind);
 
             var n2 = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
 
             Assert.Equal(@"(2, null)", n2.ToString());
             Assert.Null(model.GetTypeInfo(n2).Type);
             Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n2).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(n2));
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n2).Kind);
 
             var n3 = nodes.OfType<LiteralExpressionSyntax>().ElementAt(4);
 
@@ -12852,10 +12958,9 @@ class C
 
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       86 (0x56)
-  .maxstack  3
-  .locals init (System.ValueTuple<int, int> V_0,
-                System.ValueTuple<long, object> V_1)
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
@@ -12869,22 +12974,14 @@ class C
   IL_0016:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
   IL_001b:  box        ""System.ValueTuple<byte, byte>""
   IL_0020:  call       ""void System.Console.WriteLine(object)""
-  IL_0025:  ldloca.s   V_1
-  IL_0027:  ldc.i4.3
-  IL_0028:  conv.i8
-  IL_0029:  ldc.i4.4
-  IL_002a:  box        ""int""
-  IL_002f:  call       ""System.ValueTuple<long, object>..ctor(long, object)""
-  IL_0034:  ldloc.1
-  IL_0035:  ldfld      ""long System.ValueTuple<long, object>.Item1""
-  IL_003a:  conv.i4
-  IL_003b:  ldloc.1
-  IL_003c:  ldfld      ""object System.ValueTuple<long, object>.Item2""
-  IL_0041:  unbox.any  ""int""
-  IL_0046:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_004b:  box        ""System.ValueTuple<int, int>""
-  IL_0050:  call       ""void System.Console.WriteLine(object)""
-  IL_0055:  ret
+  IL_0025:  ldc.i4.3
+  IL_0026:  ldc.i4.4
+  IL_0027:  box        ""int""
+  IL_002c:  unbox.any  ""int""
+  IL_0031:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0036:  box        ""System.ValueTuple<int, int>""
+  IL_003b:  call       ""void System.Console.WriteLine(object)""
+  IL_0040:  ret
 }
 "); ;
         }
@@ -12931,10 +13028,9 @@ class C
 
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       92 (0x5c)
-  .maxstack  3
-  .locals init (System.ValueTuple<int, int> V_0,
-                System.ValueTuple<object, int> V_1)
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
@@ -12948,20 +13044,13 @@ class C
   IL_001e:  newobj     ""System.ValueTuple<C.C2, C.C2>..ctor(C.C2, C.C2)""
   IL_0023:  box        ""System.ValueTuple<C.C2, C.C2>""
   IL_0028:  call       ""void System.Console.WriteLine(object)""
-  IL_002d:  ldloca.s   V_1
-  IL_002f:  ldnull
-  IL_0030:  ldc.i4.4
-  IL_0031:  call       ""System.ValueTuple<object, int>..ctor(object, int)""
-  IL_0036:  ldloc.1
-  IL_0037:  ldfld      ""object System.ValueTuple<object, int>.Item1""
-  IL_003c:  castclass  ""C.C2""
-  IL_0041:  ldloc.1
-  IL_0042:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_0047:  call       ""C.C2 C.C2.op_Explicit(int)""
-  IL_004c:  newobj     ""System.ValueTuple<C.C2, C.C2>..ctor(C.C2, C.C2)""
-  IL_0051:  box        ""System.ValueTuple<C.C2, C.C2>""
-  IL_0056:  call       ""void System.Console.WriteLine(object)""
-  IL_005b:  ret
+  IL_002d:  ldnull
+  IL_002e:  ldc.i4.4
+  IL_002f:  call       ""C.C2 C.C2.op_Explicit(int)""
+  IL_0034:  newobj     ""System.ValueTuple<C.C2, C.C2>..ctor(C.C2, C.C2)""
+  IL_0039:  box        ""System.ValueTuple<C.C2, C.C2>""
+  IL_003e:  call       ""void System.Console.WriteLine(object)""
+  IL_0043:  ret
 }
 "); ;
         }
@@ -12971,7 +13060,6 @@ class C
         public void ExplicitConversionsSimple02Expr()
         {
             var source = @"
-using System;
 class C
 {
     static void Main()
@@ -12980,8 +13068,6 @@ class C
         var y = ((C2, C2))x;        
         System.Console.WriteLine(y);
 
-        // this is likely to become legal upon resolution of https://github.com/dotnet/roslyn/issues/11804
-        // for now just check that we can handle this case.
         var z = ((C2, C2))(null, 4); 
 
         System.Console.WriteLine(z);
@@ -13006,13 +13092,37 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular, assemblyName: "ImplicitConversions06Err");
-            comp.VerifyEmitDiagnostics(
-                // (13,17): error CS0030: Cannot convert type '(<null>, int)' to '(C.C2, C.C2)'
-                //         var z = ((C2, C2))(null, 4); 
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "((C2, C2))(null, 4)").WithArguments("(<null>, int)", "(C.C2, C.C2)").WithLocation(13, 17)
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"
+{2, 3}
+{, 5}");
 
-                );
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000e:  call       ""C.C2 C.C2.op_Explicit(int)""
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0019:  call       ""C.C2 C.C2.op_Explicit(int)""
+  IL_001e:  newobj     ""System.ValueTuple<C.C2, C.C2>..ctor(C.C2, C.C2)""
+  IL_0023:  box        ""System.ValueTuple<C.C2, C.C2>""
+  IL_0028:  call       ""void System.Console.WriteLine(object)""
+  IL_002d:  ldnull
+  IL_002e:  ldc.i4.4
+  IL_002f:  call       ""C.C2 C.C2.op_Explicit(int)""
+  IL_0034:  newobj     ""System.ValueTuple<C.C2, C.C2>..ctor(C.C2, C.C2)""
+  IL_0039:  box        ""System.ValueTuple<C.C2, C.C2>""
+  IL_003e:  call       ""void System.Console.WriteLine(object)""
+  IL_0043:  ret
+}
+");
 
         }
 
@@ -13055,7 +13165,7 @@ class B
         ytyt = (((D<int>, D<int>),(D<int>, D<int>)))xtxt;   // explicit builtin downcast is preferred
         Console.WriteLine(ytyt);
 
-        (D<int>, D<int>)? ytn = ((D<int>, D<int>)?)xt;           // BUG https://github.com/dotnet/roslyn/issues/12064 explicit builtin downcast is NOT preferred (nullable)
+        (D<int>, D<int>)? ytn = ((D<int>, D<int>)?)xt;           // explicit builtin downcast is preferred (nullable)
         Console.WriteLine(ytn);
         Console.WriteLine();
 
@@ -13109,7 +13219,7 @@ explicit
 {original1, original2}
 {{original1, original2}, {original1, original2}}
 {{original1, original2}, {original1, original2}}
-{converted, converted}
+{original1, original2}
 
 implicit
 {converted, converted}

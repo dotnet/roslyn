@@ -710,6 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitTupleLiteral:
                     case CSharp.ConversionKind.ImplicitTuple:
+                    case CSharp.ConversionKind.ExplicitTupleLiteral:
                     case CSharp.ConversionKind.ExplicitTuple:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:

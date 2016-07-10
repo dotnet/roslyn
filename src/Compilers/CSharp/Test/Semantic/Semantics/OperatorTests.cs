@@ -5807,7 +5807,7 @@ class Module1
                 }
                 else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
                     leftType.IsReferenceType && rightType.IsReferenceType &&
-                    (leftType == rightType || compilation.Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics).IsReference))
+                    (leftType == rightType || compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
                 {
                     if (leftType.IsDelegateType() && rightType.IsDelegateType())
                     {
@@ -5985,7 +5985,7 @@ class Module1
                  (leftType.SpecialType == SpecialType.System_Decimal && (rightType.SpecialType == SpecialType.System_Double || rightType.SpecialType == SpecialType.System_Single)) ||
                  (rightType.SpecialType == SpecialType.System_Decimal && (leftType.SpecialType == SpecialType.System_Double || leftType.SpecialType == SpecialType.System_Single))) &&
                 (!leftType.IsReferenceType || !rightType.IsReferenceType ||
-                 !compilation.Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics).IsReference))
+                 !compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
             {
                 Assert.Null(symbol1);
                 Assert.Null(symbol2);
