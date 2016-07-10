@@ -14,6 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests
         Inherits BasicTestBase
 
+        Dim MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+
         <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
         <Fact()>
         Public Sub TestOptionalOnGenericMethod()
@@ -106,7 +108,7 @@ expectedOutput:=<![CDATA[
 
         ' Report error if the default value of overridden method is different 
         <Fact()>
-        Public Sub TestOverridingOptionalWithDifferentDefaultValue()
+        Public Sub TestOverridingOptionalWithDifferentDefaultValue_A()
             Dim source =
 <compilation name="TestOverridingOptionalWithDifferentDefaultValue">
     <file name="a.vb">
@@ -136,6 +138,41 @@ End Module
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OverrideWithDefault2, "s1").WithArguments("Public Overrides Sub s1([i As Integer = 2])", "Public MustOverride Sub s1([i As Integer = 0])"))
+        End Sub
+
+        ' Report error if the default value of overridden method is different 
+        <Fact()>
+        Public Sub TestOverridingOptionalWithDifferentDefaultValue_B()
+            Dim useOpts = MyParseOptions
+            Dim source =
+<compilation name="TestOverridingOptionalWithDifferentDefaultValue">
+    <file name="a.vb">
+        <![CDATA[
+MustInherit Class c1
+    Public MustOverride Sub s1(Optional i As Integer)
+    Public MustOverride Sub s1(s As String)
+End Class
+
+Class c2
+    Inherits c1
+
+    Overrides Sub s1(Optional i As Integer = 2)
+    End Sub
+
+    Overrides Sub s1(s As String)
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=useOpts)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OverrideWithDefault2, "s1").WithArguments("Public Overrides Sub s1([i As Integer = 2])", "Public MustOverride Sub s1([i As Integer])"))
         End Sub
 
         ' Should only report an error for guid parameter.
@@ -196,7 +233,6 @@ End Module
             comp.AssertNoDiagnostics()
         End Sub
 
-
         <WorkItem(543179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543179")>
         <Fact()>
         Public Sub TestOptionalObject()
@@ -221,7 +257,6 @@ End Module
             comp.AssertNoDiagnostics()
         End Sub
 
-
         <WorkItem(543230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543230")>
         <Fact()>
         Public Sub TestOptionalIntegerWithStringValue()
@@ -243,7 +278,6 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstConversion2, """12""").WithArguments("String", "Integer"))
         End Sub
-
 
         <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
         <Fact()>
@@ -783,7 +817,6 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>).VerifyDiagnostics()
         End Sub
 
-        Dim MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
@@ -935,6 +968,7 @@ End Module
 2
 ]]>).VerifyDiagnostics()
         End Sub
+
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_2()
@@ -993,7 +1027,11 @@ End Module
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact>
-        Public Sub OptionalWithMarshallAs()
+        Public Sub OptionalWithMarshallAs_A()
+            Dim useOpts = VisualBasicParseOptions.Default
+            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
+            End If
             Dim libSource =
             <compilation>
                 <file name="c.vb"><![CDATA[
@@ -1039,7 +1077,7 @@ End Class
     ]]></file>
             </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=useOpts)
 
             Dim source =
 <compilation>
@@ -1073,13 +1111,104 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
-            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
+            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected, parseOptions:=useOpts).VerifyDiagnostics()
         End Sub
 
+        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact>
+        Public Sub OptionalWithMarshallAs_B()
+            Dim useOpts = MyParseOptions
+            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
+            End If
+            Dim libSource =
+            <compilation>
+                <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+
+Public Class C
+
+    Public Shared Sub M1(<MarshalAs(UnmanagedType.Interface)> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 1))
+    End Sub
+
+    Public Shared Sub M2(<IDispatchConstant> <MarshalAs(UnmanagedType.Interface)> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 2))
+    End Sub
+
+    Public Shared Sub M3(<IUnknownConstant> <MarshalAs(UnmanagedType.Interface)> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 3))
+    End Sub
+
+    Public Shared Sub M4(<IUnknownConstant> <IDispatchConstant> <MarshalAs(UnmanagedType.Interface)> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 4))
+    End Sub
+
+    Public Shared Sub M5(<IUnknownConstant> <MarshalAs(UnmanagedType.Interface)> <IDispatchConstant> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 5))
+    End Sub
+
+    Public Shared Sub M6(<MarshalAs(UnmanagedType.Interface)> <IDispatchConstant> <IUnknownConstant> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 6))
+    End Sub
+
+    Public Shared Sub M7(<IUnknownConstant> <IDispatchConstant> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 7))
+    End Sub
+
+    Public Shared Sub M8(<IDispatchConstant> <IUnknownConstant> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 8))
+    End Sub
+
+End Class
+    ]]></file>
+            </compilation>
+
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=useOpts)
+
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class D
+
+    Shared Sub Main()
+        C.M1()
+        C.M2()
+        C.M3()
+        C.M4()
+        C.M5()
+        C.M6()
+        C.M7()
+        C.M8()
+    End Sub
+
+End Class
+    ]]></file>
+</compilation>
+
+            Dim expected = <![CDATA[
+1
+2
+3
+4
+5
+6
+System.Runtime.InteropServices.DispatchWrapper
+System.Runtime.InteropServices.DispatchWrapper
+]]>
+
+            Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
+            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected, parseOptions:=useOpts).VerifyDiagnostics()
+        End Sub
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
         <Fact()>
-        Public Sub OptionalWithNoDefaultValue()
-
+        Public Sub OptionalWithNoDefaultValue_A()
+            Dim useOpts = VisualBasicParseOptions.Default
+            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is present")
+            End if
             Dim libSource =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -1142,6 +1271,77 @@ System.Reflection.Missing
 nothing
 0
 ]]>).VerifyDiagnostics()
+        End Sub
+
+        <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
+        <Fact()>
+        Public Sub OptionalWithNoDefaultValue_B()
+            Dim useOpts = MyParseOptions
+            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
+            End If
+            Dim libSource =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+
+Namespace SpecialOptionalLib
+
+Public Class C
+
+    Public Shared Sub Foo1(<[Optional]> x As Object)
+        Console.WriteLine(If(x, "nothing"))
+    End Sub
+
+    Public Shared Sub Foo2(<[Optional]> x As String)
+        Console.WriteLine(If(x, "nothing"))
+    End Sub
+
+    Public Shared Sub Foo3(<[Optional]> x As Integer)
+        Console.WriteLine(x)
+    End Sub
+
+End Class
+
+End Namespace
+    ]]></file>
+</compilation>
+
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports SpecialOptionalLib.C
+
+Module Module1
+
+    Sub Main()
+        Foo1()
+        Foo2()
+        Foo3()
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+            Dim libRef As MetadataReference = libComp.ToMetadataReference()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=New MetadataReference() {libRef}, parseOptions:=useOpts)
+
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Foo1").WithArguments("x", "Public Shared Sub Foo1(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo3").WithArguments("x", "Public Shared Sub Foo3(x As Integer)"))
+
+            libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
+
+            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+System.Reflection.Missing
+nothing
+0
+]]>, parseOptions:=useOpts).VerifyDiagnostics()
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
@@ -1324,6 +1524,7 @@ BC30002: Type 'CallerMemberName' is not defined.
              ~~~~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
+
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         <Fact()>
         Public Sub Bug578129_B()
@@ -2150,9 +2351,8 @@ End Class
 ]]>)
         End Sub
 
-        'TODO: FIX
-        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
+        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         Public Sub CallerInfo5_B()
             Dim source =
 <compilation>
@@ -2210,6 +2410,7 @@ End Class
 6: 33
 ]]>)
         End Sub
+
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
         Public Sub CallerInfo6_A()
@@ -2279,6 +2480,7 @@ x: 14
 y: 15
 ]]>)
         End Sub
+
         <Fact()>
         Public Sub CallerInfo7_A()
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
@@ -2422,7 +2624,6 @@ End Module
 ")
         End Sub
 
-        ' TODO: FIX
         <Fact>
         Public Sub TestCallerFilePath1_B()
             Dim source1 = "
@@ -2484,7 +2685,6 @@ End Module
 ")
         End Sub
 
-        ' TODO:
         <Fact>
         Public Sub TestCallerFilePath2_A()
             Dim source1 = "
@@ -2655,8 +2855,9 @@ End Module
 ")
 
         End Sub
-        <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
+
         <Fact()>
+        <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
         Public Sub Bug_619347_623122()
             Dim source =
 <compilation>
@@ -2928,6 +3129,7 @@ End Class
 
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=MyParseOptions)
         End Sub
+
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct_A()
@@ -3014,7 +3216,7 @@ End Structure
 
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
-        ' TODO:
+
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct_B()
@@ -3108,6 +3310,7 @@ End Structure
 
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=MyParseOptions)
         End Sub
+
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_String()
@@ -3556,7 +3759,6 @@ End Class
                 End Sub
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=MyParseOptions)
         End Sub
-
 
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
