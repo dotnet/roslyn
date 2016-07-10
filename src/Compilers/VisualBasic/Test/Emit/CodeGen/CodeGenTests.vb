@@ -14,6 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenTests
         Inherits BasicTestBase
 
+        Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642a()
@@ -7701,7 +7703,11 @@ End Class
 
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
-        Public Sub StructConstructorWithOptionalParametersVBVB()
+        Public Sub StructConstructorWithOptionalParametersVBVB_A()
+            Dim useOpts = VisualBasicParseOptions.Default
+            If Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
+            End If
 
             Dim vbCompilationA = CreateVisualBasicCompilation("VBDllA",
             <![CDATA[
@@ -7728,6 +7734,45 @@ End Class
                             referencedCompilations:={vbCompilationA})
             Dim vbexeVerifier = CompileAndVerify(vbCompilationB,
                                                  expectedOutput:="Public Sub New(Optional ByVal x As Integer = 0)")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <Fact>
+        Public Sub StructConstructorWithOptionalParametersVBVB_B()
+            Dim useOpts = _ImplicitDefaultOptionalParameter_
+            If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
+            End If
+
+            Dim vbCompilationA = CreateVisualBasicCompilation("VBDllA",
+            <![CDATA[
+Imports System
+Public Structure STRUCT
+    Public Sub New(Optional ByVal x As Integer = 0)
+        Console.WriteLine("Public Sub New(Optional ByVal x As Integer)")
+    End Sub
+End Structure
+]]>,
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                      parseOptions:=useOpts)
+            vbCompilationA.VerifyDiagnostics()
+
+            Dim vbCompilationB = CreateVisualBasicCompilation("VBExeB",
+            <![CDATA[
+Class S
+    Shared Sub Main(args() As String)
+        Dim z1 = New STRUCT(1)
+        Dim z2 = New STRUCT()
+    End Sub
+End Class
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                                  parseOptions:=useOpts,
+                            referencedCompilations:={vbCompilationA})
+            Dim vbexeVerifier = CompileAndVerify(vbCompilationB,
+                                                 expectedOutput:="Public Sub New(Optional ByVal x As Integer)")
 
             vbexeVerifier.VerifyDiagnostics()
         End Sub
@@ -7765,9 +7810,13 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact>
-        Public Sub OverridingFunctionsOverloadedOnOptionalParameters()
 
+        <Fact>
+        Public Sub OverridingFunctionsOverloadedOnOptionalParameters_A()
+            Dim useOpts = VisualBasicParseOptions.Default
+            If Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
+            End If
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -7817,6 +7866,63 @@ DERIVED: Public Overridable Sub f(x As Integer)
 DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
 DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub OverridingFunctionsOverloadedOnOptionalParameters_B()
+            Dim useOpts = _ImplicitDefaultOptionalParameter_
+            If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
+            End If
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class base
+    Public Overridable Sub f(x As Integer)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer)")
+    End Sub
+    Public Overridable Sub f(x As Integer, Optional y As Integer)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    End Sub
+    Public Overridable Sub f(x As Integer, Optional y As String = "")
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As String = """")")
+    End Sub
+End Class
+
+Class derived
+    Inherits base
+    Public Overrides Sub f(x As Integer)
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer)")
+    End Sub
+    Public Overrides Sub f(x As Integer, Optional y As Integer)
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    End Sub
+    Public Overrides Sub f(x As Integer, Optional y As String = "")
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = """")")
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+        Test(New base)
+        Test(New derived)
+    End Sub
+    Sub Test(b As base)
+        b.f(1)
+        b.f(1, 2)
+        b.f(1, "")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+BASE: Public Overridable Sub f(x As Integer)
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)
+BASE: Public Overridable Sub f(x As Integer, Optional y As String = "")
+DERIVED: Public Overridable Sub f(x As Integer)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
+]]>, parseOptions:=useOpts)
         End Sub
 
         <Fact>
