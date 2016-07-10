@@ -483,15 +483,14 @@
   <Node Name="BoundConversion" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    
     <Field Name="Operand" Type="BoundExpression"/>
-    <Field Name="ConversionKind" Type="ConversionKind"/>
-    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="Conversion" Type="Conversion"/>
+
     <Field Name="IsBaseConversion" Type="Boolean"/>
-    <Field Name="SymbolOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="Checked" Type="Boolean"/>
     <Field Name="ExplicitCastInCode" Type="Boolean"/>
-    <Field Name="IsExtensionMethod" Type="Boolean"/>
-    <Field Name="IsArrayIndex" Type="Boolean"/>
+    
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 

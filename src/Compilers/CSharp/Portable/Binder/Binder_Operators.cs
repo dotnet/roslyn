@@ -160,10 +160,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bestSignature.Method);
             }
 
-            var leftType = left.Type;
-
-            Conversion finalConversion = Conversions.ClassifyConversionFromType(bestSignature.ReturnType, leftType, ref useSiteDiagnostics);
             BoundExpression rightConverted = CreateConversion(right, best.RightConversion, bestSignature.RightType, diagnostics);
+
+            var leftType = left.Type;
+            Conversion finalConversion = Conversions.ClassifyConversionFromExpressionType(bestSignature.ReturnType, leftType, ref useSiteDiagnostics);
 
             bool isPredefinedOperator = !bestSignature.Kind.IsUserDefined();
 
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        var conversion = this.Conversions.ClassifyConversion(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
+                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
@@ -1917,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var signature = best.Signature;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resultConversion = Conversions.ClassifyConversion(signature.ReturnType, operandType, ref useSiteDiagnostics);
+            var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             bool hasErrors = false;
@@ -2677,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             }
 
-            Conversion conversion = Conversions.ClassifyConversion(operandType, targetType, ref useSiteDiagnostics);
+            Conversion conversion = Conversions.ClassifyConversionFromType(operandType, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
@@ -3061,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = Conversions.ClassifyConversion(operandType, targetType, ref useSiteDiagnostics, builtinOnly: true);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
 
@@ -3308,7 +3308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We just store the second conversion in the bound node and insert the first conversion during rewriting
                     // the null coalescing operator. See method LocalRewriter.GetConvertedLeftForNullCoalescingOperator.
 
-                    leftConversion = Conversions.ClassifyImplicitConversion(optLeftType0, optRightType, ref useSiteDiagnostics);
+                    leftConversion = Conversions.ClassifyImplicitConversionFromType(optLeftType0, optRightType, ref useSiteDiagnostics);
                 }
                 else
                 {
@@ -3322,7 +3322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // CreateConversion here to generate diagnostics.
                         if (isLeftNullable)
                         {
-                            var strippedLeftOperand = CreateConversion(leftOperand, Conversion.ExplicitNullable, optLeftType0, diagnostics);
+                            var conversion = Conversion.MakeNullableConversion(ConversionKind.ExplicitNullable, leftConversion);
+                            var strippedLeftOperand = CreateConversion(leftOperand, conversion, optLeftType0, diagnostics);
                             leftOperand = CreateConversion(strippedLeftOperand, leftConversion, optRightType, diagnostics);
                         }
                         else
