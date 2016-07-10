@@ -222,7 +222,6 @@ End Class"))
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim node = tree.GetRoot().FindNode(span)
             Dim service = VisualBasicSyntaxFactsService.Default
-            'As New VisualBasicSyntaxFactsService()
             Return service.IsMethodLevelMember(node)
         End Function
 

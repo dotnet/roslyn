@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestSuppressionWithAttributeOnEveryNodes() As Threading.Tasks.Task
             Dim facts = VisualBasicSyntaxFactsService.Default
-            'New VisualBasicSyntaxFactsService()
 
             Await TestSuppressionWithAttributeAsync(
                 TestResource.AllInOneVisualBasicCode,

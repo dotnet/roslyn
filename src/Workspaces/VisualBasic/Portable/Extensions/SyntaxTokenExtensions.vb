@@ -240,7 +240,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
             Return VisualBasicSyntaxFactsService.Default.IsWord(token)
-            ' Return New VisualBasicSyntaxFactsService().IsWord(token)
         End Function
 
         <Extension()>
