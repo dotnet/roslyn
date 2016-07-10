@@ -221,7 +221,8 @@ End Class"))
             MarkupTestFile.GetSpan(markup, code, span)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim node = tree.GetRoot().FindNode(span)
-            Dim service As New VisualBasicSyntaxFactsService()
+            Dim service = VisualBasicSyntaxFactsService.Default
+            'As New VisualBasicSyntaxFactsService()
             Return service.IsMethodLevelMember(node)
         End Function
 

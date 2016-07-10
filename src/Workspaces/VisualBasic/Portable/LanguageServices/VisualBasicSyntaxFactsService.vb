@@ -19,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractSyntaxFactsService
         Implements ISyntaxFactsService
 
+        Public Shared ReadOnly Property [Default] As New VisualBasicSyntaxFactsService
+
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
             Return token.Kind = SyntaxKind.AwaitKeyword
         End Function
