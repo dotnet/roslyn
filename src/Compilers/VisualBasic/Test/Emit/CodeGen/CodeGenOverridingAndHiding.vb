@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenOverridingAndHiding
         Inherits BasicTestBase
 
+        Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+
         <WorkItem(540852, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540852")>
         <Fact>
         Public Sub TestSimpleMustOverride()
@@ -476,7 +478,11 @@ BC30308: 'Public Overrides Sub Format(i As Integer, j As Integer)' cannot overri
         End Sub
 
         <Fact()>
-        Public Sub OverloadingBasedOnOptionalParameters()
+        Public Sub OverloadingBasedOnOptionalParameters_A()
+            Dim useOpts = VisualBasicParseOptions.Default
+            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
+            End If
             ' NOTE: this matches Dev11 implementation, not Dev10
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -553,7 +559,88 @@ BC30345: 'Public Shared Sub f([x As Integer = 0])' and 'Public Shared Sub f(ByRe
                ~
 </errors>)
         End Sub
+        <Fact()>
+        Public Sub OverloadingBasedOnOptionalParameters_B()
+            Dim useOpts = _ImplicitDefaultOptionalParameter_
+            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
+            End If
+            ' NOTE: this matches Dev11 implementation, not Dev10
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Class C ' allowed
+    Shared Sub f(ByVal x As Integer)
+    End Sub
+    Shared Sub f(ByVal x As Integer, Optional ByVal y As Integer)
+    End Sub
+    Shared Sub f(ByVal x As Integer, Optional ByVal s As String = "")
+    End Sub
+End Class
 
+Class C2 ' allowed
+    Shared Sub f(ByVal x As Integer, Optional ByVal y As Short = 1)
+    End Sub
+    Shared Sub f(ByVal x As Integer, Optional ByVal y As Integer = 1)
+    End Sub
+End Class
+
+Class C3 ' allowed
+    Shared Sub f()
+    End Sub
+    Shared Sub f(Optional ByVal x As Integer)
+    End Sub
+End Class
+
+Class C4 ' allowed`
+    Shared Sub f(Optional ByVal x As Integer)
+    End Sub
+    Shared Sub f(ByVal ParamArray xx As Integer())
+    End Sub
+End Class
+
+Class C5 ' disallowed
+    Shared Sub f(Optional ByVal x As Integer)
+    End Sub
+    Shared Sub f(ByVal x As Integer)
+    End Sub
+End Class
+
+Class C6 ' disallowed
+    Shared Sub f(Optional ByVal x As Integer())
+    End Sub
+    Shared Sub f(ByVal ParamArray xx As Integer())
+    End Sub
+End Class
+
+Class C7 ' disallowed
+    Shared Sub f(Optional ByVal x As Integer)
+    End Sub
+    Shared Sub f(ByRef x As Integer)
+    End Sub
+End Class
+        </file>
+    </compilation>, parseOptions:=useOpts)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30300: 'Public Shared Sub f([x As Integer])' and 'Public Shared Sub f(x As Integer)' cannot overload each other because they differ only by optional parameters.
+    Shared Sub f(Optional ByVal x As Integer)
+               ~
+BC30300: 'Public Shared Sub f([x As Integer()])' and 'Public Shared Sub f(ParamArray xx As Integer())' cannot overload each other because they differ only by optional parameters.
+    Shared Sub f(Optional ByVal x As Integer())
+               ~
+BC30368: 'Public Shared Sub f([x As Integer()])' and 'Public Shared Sub f(ParamArray xx As Integer())' cannot overload each other because they differ only by parameters declared 'ParamArray'.
+    Shared Sub f(Optional ByVal x As Integer())
+               ~
+BC30300: 'Public Shared Sub f([x As Integer])' and 'Public Shared Sub f(ByRef x As Integer)' cannot overload each other because they differ only by optional parameters.
+    Shared Sub f(Optional ByVal x As Integer)
+               ~
+BC30345: 'Public Shared Sub f([x As Integer])' and 'Public Shared Sub f(ByRef x As Integer)' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
+    Shared Sub f(Optional ByVal x As Integer)
+               ~
+</errors>)
+        End Sub
         <Fact()>
         Public Sub HidingBySignatureWithOptionalParameters()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
