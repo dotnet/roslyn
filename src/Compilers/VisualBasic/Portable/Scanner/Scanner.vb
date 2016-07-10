@@ -2534,23 +2534,15 @@ baddate:
             If CheckFeatureAvailability(feature) Then
                 Return token
             End If
-            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Dim resID As ERRID = 0
+            Dim ok = feature.TryGetResourceId(resID)
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(resID))
             Return DirectCast(token.AddError(errorInfo), SyntaxToken)
         End Function
 
         Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(Me.Options, feature)
+            Return Syntax.InternalSyntax.Parser.CheckFeatureAvailability(Me.Options, feature)
         End Function
 
-        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
-            Dim required = feature.GetLanguageVersion()
-            Dim actual = parseOptions.LanguageVersion
-            Return CInt(required) <= CInt(actual)
-        End Function
     End Class
 End Namespace

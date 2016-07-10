@@ -7,6 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Supported Visual Basic language versions.
     ''' </summary>
     Public Enum LanguageVersion
+        None = 0
         VisualBasic9 = 9
         VisualBasic10 = 10
         VisualBasic11 = 11

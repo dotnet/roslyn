@@ -6069,7 +6069,9 @@ checkNullable:
         End Function
 
         Private Shared Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+            Dim errID As ERRID = 0
+            Dim ok = feature.TryGetResourceId(errID)
+            Dim featureName = ErrorFactory.ErrorInfo(errID)
             Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
         End Function
 
@@ -6090,14 +6092,17 @@ checkNullable:
         End Function
 
         Friend Shared Function CheckFeatureAvailability(opts As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Return (CInt(required) <= CInt(opts.LanguageVersion)) OrElse CheckFeatures(feature, opts)
+            Dim required As LanguageVersion
+            Dim ok = feature.TryGetLanguageVersion(required)
+            Return ok AndAlso (CInt(required) <= CInt(opts.LanguageVersion)) OrElse CheckFeatures(feature, opts)
         End Function
 
         Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag,
                                                    location As Location, opts As VisualBasicParseOptions, feature As Feature)
             If Not CheckFeatureAvailability(opts, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                Dim errID As ERRID = 0
+                Dim ok = feature.TryGetResourceId(errID)
+                Dim featureName = ErrorFactory.ErrorInfo(errID)
                 diagnostics.Add(ERRID.ERR_LanguageVersion, location, opts.LanguageVersion.GetErrorName(), featureName)
             End If
         End Sub
