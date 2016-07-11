@@ -275,6 +275,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
+        /// The full path of the project file. Null if none exists (consider Venus.)
+        /// </summary>
+        public string ProjectFilePath => _filePathOpt;
+
+        /// <summary>
         /// The public display name of the project. This name is not unique and may be shared
         /// between multiple projects, especially in cases like Venus where the intellisense
         /// projects will match the name of their logical parent project.
@@ -421,6 +426,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             return _analyzers.ContainsKey(fullPath);
         }
+
+        protected CompilationOptions CurrentCompilationOptions => _compilationOptions;
+        protected ParseOptions CurrentParseOptions => _parseOptions;
 
         /// <summary>
         /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.

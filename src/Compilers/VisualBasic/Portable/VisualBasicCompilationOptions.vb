@@ -693,6 +693,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.PublicSign = value}
         End Function
 
+        Protected Overrides Function CommonWithConcurrentBuild(concurrent As Boolean) As CompilationOptions
+            Return Me.WithConcurrentBuild(concurrent)
+        End Function
+
         Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
             Return Me.WithDeterministic(deterministic)
         End Function
