@@ -3686,6 +3686,38 @@ class C
         }
 
         [Fact]
+        public void GetTypeInfoForTupleLiteral()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x1 = (1, 2);
+        var (x2, x3) = (1, 2);
+    }
+}
+";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var literal1 = nodes.OfType<TupleExpressionSyntax>().First();
+                Assert.Equal("(int, int)", model.GetTypeInfo(literal1).Type.ToDisplayString());
+
+                var literal2 = nodes.OfType<TupleExpressionSyntax>().Skip(1).First();
+                Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, additionalRefs:  new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ForWithCircularity1()
         {
             string source = @"
