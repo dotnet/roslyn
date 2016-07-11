@@ -737,5 +737,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
         }
+
+        [Fact]
+        public void TestMergeChanges_NoMiddleMan()
+        {
+            var original = SourceText.From("Hell");
+
+            var final = GetChangesWithoutMiddle(
+                original,
+                c => c.WithChanges(new TextChange(new TextSpan(4, 0), "o ")),
+                c => c.WithChanges(new TextChange(new TextSpan(6, 0), "World")));
+
+            Assert.Equal("Hello World", final.ToString());
+
+            var changes = final.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o World", changes[0].NewText);
+        }
+
+        private SourceText GetChangesWithoutMiddle(
+            SourceText original,
+            Func<SourceText, SourceText> fnChange1,
+            Func<SourceText, SourceText> fnChange2)
+        {
+            WeakReference change1;
+            SourceText change2;
+            GetChangesWithoutMiddle_Helper(original, fnChange1, fnChange2, out change1, out change2);
+
+            while (change1.IsAlive)
+            {
+                GC.Collect(2);
+                GC.WaitForFullGCComplete();
+            }
+
+            return change2;
+        }
+
+        private void GetChangesWithoutMiddle_Helper(
+            SourceText original,
+            Func<SourceText, SourceText> fnChange1,
+            Func<SourceText, SourceText> fnChange2,
+            out WeakReference change1,
+            out SourceText change2)
+        {
+            var c1 = fnChange1(original);
+            change1 = new WeakReference(c1);
+            change2 = fnChange2(c1);
+        }
     }
 }
