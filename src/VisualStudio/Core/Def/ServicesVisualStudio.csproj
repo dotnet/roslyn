@@ -183,7 +183,6 @@
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
-    <Compile Include="Utilities\IVsSQM.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
     <Compile Include="VSPackage.Designer.cs">
@@ -558,7 +557,6 @@
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.HostProject.cs" />
     <Compile Include="Implementation\ProjectSystem\ReiteratedVersionSnapshotTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\Sqm.cs" />
     <Compile Include="Implementation\ProjectSystem\ViewEventArgs.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
