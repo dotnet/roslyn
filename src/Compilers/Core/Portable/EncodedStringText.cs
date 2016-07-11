@@ -184,9 +184,8 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (PortableShim.MemoryStream.TryGetBuffer(data, out bufferArraySegment))
                 {
-                    // since we can only return the whole array, make sure it's all used by the MemoryStream
-                    if (bufferArraySegment.Offset == 0 &&
-                        bufferArraySegment.Count == bufferArraySegment.Array.Length)
+                    // since we can't return offset, make sure MemoryStream uses the array from the start
+                    if (bufferArraySegment.Offset == 0)
                     {
                         buffer = bufferArraySegment.Array;
                         return true;
