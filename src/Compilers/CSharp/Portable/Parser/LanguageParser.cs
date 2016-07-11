@@ -8016,7 +8016,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = ParseExpressionOrPattern();
+                            var node = ParseExpressionOrPattern(whenIsKeyword: true);
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var boundSwitchLabel in section.SwitchLabels)
                     {
                         var label = boundSwitchLabel.Label;
-                        hasDefaultLabel = hasDefaultLabel || label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel;
+                        hasDefaultLabel = hasDefaultLabel || boundSwitchLabel.ConstantValueOpt == null;
                         SetState(breakState.Clone());
                         var simulatedGoto = new BoundGotoStatement(node.Syntax, label);
                         VisitGotoStatement(simulatedGoto);
@@ -171,18 +171,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Visit all the branches in the decision tree
         private void VisitDecisionTree(DecisionTree decisionTree)
         {
-            if (decisionTree == null) return;
+            if (decisionTree == null)
+            {
+                return;
+            }
+
             switch (decisionTree.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
                     {
                         var byType = (DecisionTree.ByType)decisionTree;
-                        VisitDecisionTree(byType.WhenNull);
-                        foreach (var kvp in byType.TypeAndDecision)
+                        var inputConstant = byType.Expression.ConstantValue;
+                        if (inputConstant != null)
                         {
-                            VisitDecisionTree(kvp.Value);
+                            if (inputConstant.IsNull)
+                            {
+                                VisitDecisionTree(byType.WhenNull);
+                            }
+                            else
+                            {
+                                foreach (var kvp in byType.TypeAndDecision)
+                                {
+                                    VisitDecisionTree(kvp.Value);
+                                    if (kvp.Value.MatchIsComplete)
+                                    {
+                                        return;
+                                    }
+                                }
+
+                                VisitDecisionTree(byType.Default);
+                            }
                         }
-                        VisitDecisionTree(byType.Default);
+                        else
+                        {
+                            VisitDecisionTree(byType.WhenNull);
+                            foreach (var kvp in byType.TypeAndDecision)
+                            {
+                                VisitDecisionTree(kvp.Value);
+                            }
+
+                            VisitDecisionTree(byType.Default);
+                        }
                         return;
                     }
                 case DecisionTree.DecisionKind.ByValue:
@@ -195,7 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (byValue.ValueAndDecision.TryGetValue(inputConstant.Value, out onValue))
                             {
                                 VisitDecisionTree(onValue);
-                                if (!onValue.MatchIsComplete) VisitDecisionTree(byValue.Default);
+                                if (!onValue.MatchIsComplete)
+                                {
+                                    VisitDecisionTree(byValue.Default);
+                                }
                             }
                             else
                             {
@@ -208,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 VisitDecisionTree(kvp.Value);
                             }
+
                             VisitDecisionTree(byValue.Default);
                         }
                         return;
@@ -256,20 +289,82 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private LocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
         {
-            // decide if the switch handles every input.
-            bool hasDefaultLabel = node.DecisionTree.MatchIsComplete == true;
-
             // visit switch expression
             VisitRvalue(node.Expression);
 
             // return the exit state to use if no pattern matches
-            if (hasDefaultLabel)
+            if (FullyHandlesItsInput(node.DecisionTree))
             {
                 return UnreachableState();
             }
             else
             {
                 return this.State;
+            }
+        }
+
+        private bool FullyHandlesItsInput(DecisionTree decision)
+        {
+            if (decision == null)
+            {
+                return false;
+            }
+
+            if (decision.MatchIsComplete)
+            {
+                return true;
+            }
+
+            // We check for completeness based on value. Other cases were handled in the construction of the decision tree.
+            if (decision.Expression.ConstantValue == null)
+            {
+                return false;
+            }
+
+            var value = decision.Expression.ConstantValue;
+            switch (decision.Kind)
+            {
+                case DecisionTree.DecisionKind.ByType:
+                    {
+                        var byType = (DecisionTree.ByType)decision;
+                        if (value.IsNull)
+                        {
+                            return FullyHandlesItsInput(byType.WhenNull);
+                        }
+
+                        foreach (var kv in byType.TypeAndDecision)
+                        {
+                            // the only types that should appear in the decision tree are those
+                            // that can accept the input constant. Other types should have been
+                            // removed when the decision tree was produced. This depends on the
+                            // fact that all constants are of sealed types.
+                            if (FullyHandlesItsInput(kv.Value))
+                            {
+                                return true;
+                            }
+                        }
+
+                        return FullyHandlesItsInput(byType.Default);
+                    }
+                case DecisionTree.DecisionKind.ByValue:
+                    {
+                        var byValue = (DecisionTree.ByValue)decision;
+                        if (value.IsNull)
+                        {
+                            return false;
+                        }
+
+                        DecisionTree onValue;
+                        return
+                            byValue.ValueAndDecision.TryGetValue(value.Value, out onValue) && FullyHandlesItsInput(onValue) ||
+                            byValue.Default != null && FullyHandlesItsInput(byValue.Default);
+                    }
+                case DecisionTree.DecisionKind.Guarded:
+                    {
+                        return decision.MatchIsComplete;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(decision.Kind);
             }
         }
 

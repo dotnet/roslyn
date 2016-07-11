@@ -702,6 +702,7 @@
   <Node Name="BoundSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">

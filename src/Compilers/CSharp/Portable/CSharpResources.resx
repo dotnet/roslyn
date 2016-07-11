@@ -700,7 +700,7 @@
     <value>A constant value is expected</value>
   </data>
   <data name="ERR_V6SwitchGoverningTypeValueExpected" xml:space="preserve">
-    <value>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type</value>
+    <value>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.</value>
   </data>
   <data name="ERR_IntegralTypeValueExpected" xml:space="preserve">
     <value>A value of an integral type expected</value>
