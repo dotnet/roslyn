@@ -362,6 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifyConstantValueMatches(attribute.DecodeDecimalConstantValue(), ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
+            }
         }
 
         /// <summary>
