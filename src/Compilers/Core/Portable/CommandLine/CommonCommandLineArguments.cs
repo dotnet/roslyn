@@ -246,8 +246,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal Guid SqmSessionGuid { get; set; }
-
         internal CommandLineArguments()
         {
         }
