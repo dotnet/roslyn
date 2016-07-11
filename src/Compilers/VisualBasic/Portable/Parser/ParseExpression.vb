@@ -1223,7 +1223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseParenthesizedExpressionOrTupleLiteral() As ExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
 
-            ' "(" expr ")"              'parethesized
+            ' "(" expr ")"              'parenthesized
             ' "(" Name:= ....           'parse a tuple
             ' "(" expr, ....            'parse a tuple
 

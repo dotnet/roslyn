@@ -5041,11 +5041,9 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="TupleExpressionSyntax" parent="ExpressionSyntax">
       <description>Represents a tuple literal expression.</description>
-      <spec-section>42.42.42</spec-section>
       <grammar>TupleExpression</grammar>
 
-      <node-kind name="TupleExpression">
-      </node-kind>
+      <node-kind name="TupleExpression" />
 
       <child name="OpenParenToken" kind="OpenParenToken">
         <description>The "(" token</description>
@@ -5065,7 +5063,6 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="TupleTypeSyntax" parent="TypeSyntax">
       <description>Represents a tuple type expression.</description>
-      <spec-section>42.42.42</spec-section>
       <grammar>TupleType</grammar>
 
       <node-kind name="TupleType">
@@ -5089,7 +5086,6 @@ Unify Enum declarations with other block type declarations.
       **********************-->
     <node-structure name="TupleElementSyntax" parent="VisualBasicSyntaxNode">
       <description>Represents a single declaration of a tuple element. </description>
-      <spec-section>42.42.42</spec-section>
       <grammar>TupleElement</grammar>
 
       <node-kind name="TupleElement"></node-kind>
