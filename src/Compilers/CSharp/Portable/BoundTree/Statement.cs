@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundForEachStatement : IForEachLoopStatement
     {
-        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariable;
+        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariableOpt;
 
         IOperation IForEachLoopStatement.Collection => this.Expression;
 

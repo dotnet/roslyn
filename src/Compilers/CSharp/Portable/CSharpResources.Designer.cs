@@ -2312,6 +2312,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct dynamic objects..
+        /// </summary>
+        internal static string ERR_CannotDeconstructDynamic {
+            get {
+                return ResourceManager.GetString("ERR_CannotDeconstructDynamic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {
@@ -3091,6 +3100,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DecConstError {
             get {
                 return ResourceManager.GetString("ERR_DecConstError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruction `var (...)` form disallows a specific type for &apos;var&apos;..
+        /// </summary>
+        internal static string ERR_DeconstructionVarFormDisallowsSpecificType {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructionVarFormDisallowsSpecificType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruct assignment requires an expression with a type on the right-hand-side..
+        /// </summary>
+        internal static string ERR_DeconstructRequiresExpression {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructRequiresExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruction must contain at least two variables..
+        /// </summary>
+        internal static string ERR_DeconstructTooFewElements {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructTooFewElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct a tuple of &apos;{0}&apos; elements into &apos;{1}&apos; variables..
+        /// </summary>
+        internal static string ERR_DeconstructWrongCardinality {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructWrongCardinality", resourceCulture);
             }
         }
         
@@ -5890,6 +5935,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_MissingDebugSwitch {
             get {
                 return ResourceManager.GetString("ERR_MissingDebugSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters..
+        /// </summary>
+        internal static string ERR_MissingDeconstruct {
+            get {
+                return ResourceManager.GetString("ERR_MissingDeconstruct", resourceCulture);
             }
         }
         
@@ -10472,6 +10526,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TypeArgumentCannotBeNull {
             get {
                 return ResourceManager.GetString("TypeArgumentCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type must be &apos;var&apos;..
+        /// </summary>
+        internal static string TypeMustBeVar {
+            get {
+                return ResourceManager.GetString("TypeMustBeVar", resourceCulture);
             }
         }
         

@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
             syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
+            
+            // AllInOneCSharpCode has no deconstruction.
+            syntaxKindsPatterns.Add(SyntaxKind.VariableDeconstructionDeclarator);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))

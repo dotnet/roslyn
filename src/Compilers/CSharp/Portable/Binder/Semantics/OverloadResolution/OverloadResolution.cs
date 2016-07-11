@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1231,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
-                if (argumentKind == BoundKind.OutVarLocalPendingInference)
+                if (argumentKind == BoundKind.OutVarLocalPendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
                 {
                     // If argument is an out variable that needs type inference,
                     // neither candidate is better in this argument.
@@ -2972,7 +2971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
-            if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+            if (argument.Kind == BoundKind.OutVarLocalPendingInference || argument.Kind == BoundKind.OutDeconstructVarPendingInference)
             {
                 Debug.Assert(argRefKind != RefKind.None);
 
