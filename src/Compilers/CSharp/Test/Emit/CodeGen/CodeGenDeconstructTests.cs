@@ -1285,6 +1285,28 @@ class C
         }
 
         [Fact]
+        public void ErrorRight()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (x, x) = undeclared;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithRefsFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0103: The name 'undeclared' does not exist in the current context
+                //         (x, x) = undeclared;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "undeclared").WithArguments("undeclared").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
         public void VoidRight()
         {
             string source = @"
@@ -2484,7 +2506,8 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12400")]
+        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
             string source = @"
@@ -2513,7 +2536,8 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples) we expect "2 hello" instead, which means the evaluation order is wrong
+            // https://github.com/dotnet/roslyn/issues/12400
+            // we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
@@ -2936,7 +2960,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void TypelessDeclaration()
         {
             string source = @"
@@ -2948,13 +2972,15 @@ class C
     }
 }
 ";
-            // crash
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         var (x1, x2) = (1, null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(1, null)").WithLocation(6, 24)
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void InferTypeOfTypelessDeclaration()
         {
             string source = @"
@@ -2967,9 +2993,12 @@ class C
     }
 }
 ";
-            // crash
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 ");
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,37): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (var (x1, x2), string x3) = ((1, 2), null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "((1, 2), null)").WithLocation(6, 37)
+                );
         }
 
         [Fact]

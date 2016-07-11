@@ -2650,39 +2650,3 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
     }
 }
-
-// PROTOTYPE(tuples) Move this to a better place
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
-{
-    public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSyntax
-    {
-        public EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
-        {
-            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
-        }
-    }
-
-    public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
-    {
-        public FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
-        {
-            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
-        }
-    }
-
-    public sealed partial class FixedStatementSyntax : StatementSyntax
-    {
-        public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
-        {
-            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
-        }
-    }
-
-    public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
-    {
-        public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
-        {
-            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
-        }
-    }
-}

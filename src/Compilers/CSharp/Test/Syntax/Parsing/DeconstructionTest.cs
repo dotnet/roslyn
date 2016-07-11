@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
@@ -1728,7 +1729,8 @@ class C
             Assert.True(statement.HasErrors);
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12402")]
+        [WorkItem(12402, "https://github.com/dotnet/roslyn/issues/12402")]
         public void ConfusedForWithDeconstruction()
         {
             var text = "for ((int x, var (y, z)) in foo) { }";

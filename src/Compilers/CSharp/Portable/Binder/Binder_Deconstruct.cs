@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = (TupleExpressionSyntax)node.Left;
             ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionAssignmentVariables(left.Arguments, left, diagnostics);
 
-            var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics);
+            var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics, isDeclaration: false);
             FreeDeconstructionVariables(checkedVariables);
 
             return result;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Deconstruct steps for tuples have no invocation to Deconstruct, but steps for non-tuples do.
         /// The caller is responsible for releasing all the ArrayBuilders in checkedVariables.
         /// </summary>
-        private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(CSharpSyntaxNode node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rhsPlaceholder = null)
+        private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(CSharpSyntaxNode node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics, bool isDeclaration, BoundDeconstructValuePlaceholder rhsPlaceholder = null)
         {
             TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)boundRHS.Type == null)
             {
-                if (boundRHS.Kind == BoundKind.TupleLiteral)
+                if (boundRHS.Kind == BoundKind.TupleLiteral && !isDeclaration)
                 {
                     // tuple literal without type such as `(null, null)`, let's fix it up by peeking at the LHS
                     TypeSymbol lhsAsTuple = MakeTupleTypeFromDeconstructionLHS(checkedVariables, diagnostics, Compilation);
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<DeconstructionVariable> locals = BindDeconstructionDeclarationLocals(declaration, declaration.Type, diagnostics);
 
-            var result = BindDeconstructionAssignment(node, right, locals, diagnostics, rightPlaceholder);
+            var result = BindDeconstructionAssignment(node, right, locals, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals);
 
             return result;

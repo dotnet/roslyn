@@ -761,7 +761,10 @@
     <Compile Include="Syntax\DeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
+    <Compile Include="Syntax\EventFieldDeclarationSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
+    <Compile Include="Syntax\FieldDeclarationSyntax.cs" />
+    <Compile Include="Syntax\FixedStatementSyntax.cs" />
     <Compile Include="Syntax\ForEachStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
