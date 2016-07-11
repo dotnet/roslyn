@@ -149,7 +149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Optional commandLineGeneralOption As WarningLevel = WarningLevel.WARN_Regular,
             Optional commandLineWarnAsErrors As String = "",
             Optional commandLineWarnNotAsErrors As String = "",
-            Optional commandLineNoWarns As String = "") As ConvertedVisualBasicProjectOptions
+            Optional commandLineNoWarns As String = "") As VisualBasicProjectOptionsHelper
 
             ruleSetSpecificOptions = If(ruleSetSpecificOptions Is Nothing, ImmutableDictionary(Of String, ReportDiagnostic).Empty, ruleSetSpecificOptions)
 
@@ -161,7 +161,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                                 .wszDisabledWarnings = commandLineNoWarns
                             }
             Dim compilerHost = New MockCompilerHost("C:\SDK")
-            Dim convertedOptions = New ConvertedVisualBasicProjectOptions(
+            Dim convertedOptions = New VisualBasicProjectOptionsHelper(
                                     compilerOptions,
                                     compilerHost,
                                     SpecializedCollections.EmptyEnumerable(Of GlobalImport),

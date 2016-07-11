@@ -90,6 +90,11 @@
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IIntellisenseBuildTarget.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\ProjectShimFactory.ProjectShim.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\ProjectShimFactory.ProjectShim_IProjectShim.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\ProjectShimFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\IProjectShimFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\IProjectShim.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractRoslynProject.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
@@ -263,6 +268,8 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
