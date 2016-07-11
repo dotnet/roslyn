@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(synthesizedLocal Is Nothing)
                 synthesizedLocal = _methodPayload
 
-                Dim prologueStatements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(4)
+                Dim prologueStatements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(If(previousPrologue Is Nothing, 3, 4))
                 prologueStatements.Add(payloadInitialization)
                 prologueStatements.Add(payloadIf)
                 prologueStatements.Add(_methodEntryInstrumentation)

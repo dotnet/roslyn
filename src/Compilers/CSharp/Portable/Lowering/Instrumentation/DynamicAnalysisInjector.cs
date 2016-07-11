@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(synthesizedLocal == null);
                 synthesizedLocal = _methodPayload;
 
-                ArrayBuilder<BoundStatement> prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(4);
+                ArrayBuilder<BoundStatement> prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(previousPrologue == null ? 3 : 4);
                 prologueStatements.Add(payloadInitialization);
                 prologueStatements.Add(payloadIf);
                 prologueStatements.Add(_methodEntryInstrumentation);
