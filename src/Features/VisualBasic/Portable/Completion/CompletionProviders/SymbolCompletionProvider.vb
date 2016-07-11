@@ -83,18 +83,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Shared s_importDirectiveRules As CompletionItemRules =
             CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
+        Private Shared s_importDirectiveRules_preselect As CompletionItemRules =
+            s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+        Private Shared s_preselectedCompletionItemRules As CompletionItemRules =
+            CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+
+        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As AbstractSyntaxContext, preselect As Boolean) As CompletionItemRules
+            If context.IsInImportsDirective Then
+                Return If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules)
+            Else
+                Return If(preselect, s_preselectedCompletionItemRules, CompletionItemRules.Default)
+            End If
+        End Function
 
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
-            If context.IsInImportsDirective Then
-                Return s_importDirectiveRules
-            Else
-                Return CompletionItemRules.Default
-            End If
+            ' Unused
+            Throw New NotImplementedException
         End Function
 
         Protected Overrides Function IsInstrinsic(s As ISymbol) As Boolean
             Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
         End Function
+
+        Protected Overrides ReadOnly Property PreselectedItemSelectionBehavior As CompletionItemSelectionBehavior
+            Get
+                Return CompletionItemSelectionBehavior.SoftSelection
+            End Get
+        End Property
 
     End Class
 End Namespace

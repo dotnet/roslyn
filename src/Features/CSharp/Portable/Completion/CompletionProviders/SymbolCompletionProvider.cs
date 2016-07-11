@@ -109,16 +109,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static CompletionItemRules s_importDirectiveRules =
             CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+        private static CompletionItemRules s_importDirectiveRules_Preselect = s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+        private static CompletionItemRules s_PreselectionRules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect)
         {
             if (context.IsInImportsDirective)
             {
-                return s_importDirectiveRules;
+                return preselect ? s_importDirectiveRules_Preselect : s_importDirectiveRules;
             }
             else
             {
-                return CompletionItemRules.Default;
+                return preselect ? s_PreselectionRules : CompletionItemRules.Default;
+            }
+        }
+
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
+        {
+            // Unused
+            throw new NotImplementedException();
+        }
+
+        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior
+        {
+            get
+            {
+                return CompletionItemSelectionBehavior.HardSelection;
             }
         }
     }

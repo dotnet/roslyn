@@ -2430,7 +2430,7 @@ Class Program
 End Class]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=False, isSoftSelected:=True).ConfigureAwait(True)
             End Using
         End Function
     End Class
