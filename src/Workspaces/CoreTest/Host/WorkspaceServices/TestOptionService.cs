@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var features = new Dictionary<string, object>();
             features.Add("Features", new List<string>(new[] { "Test Features" }));
-            return new OptionServiceFactory.OptionService(null, new[]
+            return new OptionServiceFactory.OptionService(new GlobalOptionService(new[]
                 {
                     new Lazy<IOptionProvider>(() => new TestOptionsProvider())
                 },
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         return new TestOptionSerializer();
                     },
                     new OptionSerializerMetadata(features))
-                });
+                }), null);
         }
 
         internal class TestOptionsProvider : IOptionProvider

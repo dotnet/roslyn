@@ -361,6 +361,9 @@
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
+    <Compile Include="Options\GlobalOptionService.cs" />
+    <Compile Include="Options\IGlobalOptionService.cs" />
+    <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />

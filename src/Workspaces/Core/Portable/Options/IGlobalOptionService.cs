@@ -2,17 +2,15 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Provides services for reading and writing options.  This will provide support for
-    /// customizations workspaces need to perform around options.  Note that global options 
-    /// will normally still be offered through implementations of this.  However, implementations
-    /// may customize things differently depending on their needs.
+    /// Provides services for reading and writing options.
+    /// This will provide support for options at the global level (i.e. shared among
+    /// all workspaces/services).
     /// </summary>
-    internal interface IOptionService : IWorkspaceService
+    internal interface IGlobalOptionService
     {
         /// <summary>
         /// Gets the current value of the specific option.
@@ -28,11 +26,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Gets the current value of the specific option.
         /// </summary>
         object GetOption(OptionKey optionKey);
-
-        /// <summary>
-        /// Fetches an immutable set of all current options.
-        /// </summary>
-        OptionSet GetOptions();
 
         /// <summary>
         /// Applies a set of options.

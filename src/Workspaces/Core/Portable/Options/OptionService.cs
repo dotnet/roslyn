@@ -6,118 +6,103 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options.Providers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     [ExportWorkspaceServiceFactory(typeof(IOptionService)), Shared]
     internal class OptionServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly IEnumerable<Lazy<IOptionProvider>> _optionProviders;
-        private readonly IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> _optionSerializers;
+        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
-        public OptionServiceFactory(
-            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
-            [ImportMany] IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
+        public OptionServiceFactory(IGlobalOptionService globalOptionService)
         {
-            _optionProviders = optionProviders;
-            _optionSerializers = optionSerializers;
+            _globalOptionService = globalOptionService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new OptionService(workspaceServices, _optionProviders, _optionSerializers);
+            return new OptionService(_globalOptionService, workspaceServices);
         }
 
-        // Internal for testing purposes only.
-        internal class OptionService : IOptionService
+        /// <summary>
+        /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
+        /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
+        /// and forwards them along using the same <see cref="IWorkspaceTaskScheduler"/> used by the
+        /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
+        /// along the underlying events, these will be enqueued onto the workspaces eventing queue.
+        /// </summary>
+        // Internal for testing purposes.
+        internal class OptionService : IWorkspaceOptionService
         {
-            private readonly Lazy<HashSet<IOption>> _options;
-            private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>> _featureNameToOptionSerializers =
-                ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
+            private readonly IGlobalOptionService _globalOptionService;
 
-            private readonly object _gate = new object();
-
-            /// <summary>
-            /// Can be null during tests.
-            /// </summary>
+            // Can be null during testing.
             private readonly IWorkspaceTaskScheduler _taskQueue;
 
-            private ImmutableDictionary<OptionKey, object> _currentValues;
+            private readonly object _gate = new object();
+            private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
+                ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
 
             public OptionService(
-                HostWorkspaceServices workspaceServices,
-                IEnumerable<Lazy<IOptionProvider>> optionProviders,
-                IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
+                IGlobalOptionService globalOptionService,
+                HostWorkspaceServices workspaceServices)
             {
+                _globalOptionService = globalOptionService;
+
                 var workspaceTaskSchedulerFactory = workspaceServices?.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
                 _taskQueue = workspaceTaskSchedulerFactory?.CreateTaskQueue();
 
-                _options = new Lazy<HashSet<IOption>>(() =>
-                {
-                    var options = new HashSet<IOption>();
-
-                    foreach (var provider in optionProviders)
-                    {
-                        options.AddRange(provider.Value.GetOptions());
-                    }
-
-                    return options;
-                });
-
-                foreach (var optionSerializerAndMetadata in optionSerializers)
-                {
-                    foreach (var featureName in optionSerializerAndMetadata.Metadata.Features)
-                    {
-                        ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> existingSerializers;
-                        if (!_featureNameToOptionSerializers.TryGetValue(featureName, out existingSerializers))
-                        {
-                            existingSerializers = ImmutableArray.Create<Lazy<IOptionSerializer, OptionSerializerMetadata>>();
-                        }
-
-                        _featureNameToOptionSerializers = _featureNameToOptionSerializers.SetItem(featureName, existingSerializers.Add(optionSerializerAndMetadata));
-                    }
-                }
-
-                _currentValues = ImmutableDictionary.Create<OptionKey, object>();
+                _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
 
-            private object LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
+            public void OnWorkspaceDisposed(Workspace workspace)
+            {
+                // Disconnect us from the underlying global service.  That way it doesn't 
+                // keep us around (and all the event handlers we're holding onto) forever.
+                _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
+            }
+
+            private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                var eventHandlers = GetEventHandlers();
+                if (eventHandlers.Length > 0)
+                {
+                    _taskQueue?.ScheduleTask(() =>
+                    {
+                        foreach (var handler in eventHandlers)
+                        {
+                            handler(this, e);
+                        }
+                    }, "OptionsService.SetOptions");
+                }
+            }
+
+            private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
             {
                 lock (_gate)
                 {
-                    ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
-                    if (_featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
-                    {
-                        foreach (var serializer in optionSerializers)
-                        {
-                            // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
-                            // feature's serializer should exist in only that language.
-                            if (!SupportedSerializer(optionKey, serializer.Metadata))
-                            {
-                                continue;
-                            }
-
-                            // We have a deserializer, so deserialize and use that value.
-                            object deserializedValue;
-                            if (serializer.Value.TryFetch(optionKey, out deserializedValue))
-                            {
-                                return deserializedValue;
-                            }
-                        }
-                    }
-
-                    // Just use the default. We will still cache this so we aren't trying to deserialize
-                    // over and over.
-                    return optionKey.Option.DefaultValue;
+                    return _eventHandlers;
                 }
             }
 
-            public IEnumerable<IOption> GetRegisteredOptions()
+            public event EventHandler<OptionChangedEventArgs> OptionChanged
             {
-                return _options.Value;
+                add
+                {
+                    lock (_gate)
+                    {
+                        _eventHandlers = _eventHandlers.Add(value);
+                    }
+                }
+
+                remove
+                {
+                    lock(_gate)
+                    {
+                        _eventHandlers = _eventHandlers.Remove(value);
+                    }
+                }
             }
 
             public OptionSet GetOptions()
@@ -125,115 +110,12 @@ namespace Microsoft.CodeAnalysis.Options
                 return new WorkspaceOptionSet(this);
             }
 
-            public T GetOption<T>(Option<T> option)
-            {
-                return (T)GetOption(new OptionKey(option, language: null));
-            }
-
-            public T GetOption<T>(PerLanguageOption<T> option, string language)
-            {
-                return (T)GetOption(new OptionKey(option, language));
-            }
-
-            public object GetOption(OptionKey optionKey)
-            {
-                lock (_gate)
-                {
-                    object value;
-
-                    if (_currentValues.TryGetValue(optionKey, out value))
-                    {
-                        return value;
-                    }
-
-                    value = LoadOptionFromSerializerOrGetDefault(optionKey);
-
-                    _currentValues = _currentValues.Add(optionKey, value);
-
-                    return value;
-                }
-            }
-
-            public void SetOptions(OptionSet optionSet)
-            {
-                if (optionSet == null)
-                {
-                    throw new ArgumentNullException(nameof(optionSet));
-                }
-
-                var workspaceOptionSet = optionSet as WorkspaceOptionSet;
-
-                if (workspaceOptionSet == null)
-                {
-                    throw new ArgumentException(WorkspacesResources.OptionsDidNotComeFromWorkspace, paramName: nameof(optionSet));
-                }
-
-                var changedOptions = new List<OptionChangedEventArgs>();
-
-                lock (_gate)
-                {
-                    foreach (var optionKey in workspaceOptionSet.GetAccessedOptions())
-                    {
-                        var setValue = optionSet.GetOption(optionKey);
-                        object currentValue = this.GetOption(optionKey);
-
-                        if (object.Equals(currentValue, setValue))
-                        {
-                            // Identical, so nothing is changing
-                            continue;
-                        }
-
-                        // The value is actually changing, so update
-                        changedOptions.Add(new OptionChangedEventArgs(optionKey, setValue));
-
-                        _currentValues = _currentValues.SetItem(optionKey, setValue);
-
-                        ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
-                        if (_featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
-                        {
-                            foreach (var serializer in optionSerializers)
-                            {
-                                // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
-                                // feature's serializer should exist in only that language.
-                                if (!SupportedSerializer(optionKey, serializer.Metadata))
-                                {
-                                    continue;
-                                }
-
-                                if (serializer.Value.TryPersist(optionKey, setValue))
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Outside of the lock, raise the events on our task queue.
-                _taskQueue?.ScheduleTask(() =>
-                {
-                    RaiseEvents(changedOptions);
-                }, "OptionsService.SetOptions");
-            }
-
-            private void RaiseEvents(List<OptionChangedEventArgs> changedOptions)
-            {
-                var optionChanged = OptionChanged;
-                if (optionChanged != null)
-                {
-                    foreach (var changedOption in changedOptions)
-                    {
-                        optionChanged(this, changedOption);
-                    }
-                }
-            }
-
-            private static bool SupportedSerializer(OptionKey optionKey, OptionSerializerMetadata metadata)
-            {
-                return optionKey.Language == null || optionKey.Language == metadata.Language;
-            }
-
-            public event EventHandler<OptionChangedEventArgs> OptionChanged;
+            // Simple forwarding functions.
+            public object GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
+            public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
+            public T GetOption<T>(PerLanguageOption<T> option, string languageName) => _globalOptionService.GetOption(option, languageName);
+            public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
+            public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
         }
     }
 }
