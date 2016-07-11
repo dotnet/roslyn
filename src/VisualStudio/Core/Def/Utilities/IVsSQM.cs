@@ -1,17 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// IVsSqm.cs : Interop definitions for interfaces defined in VsLog.idl
 //
 ///////////////////////////////////////////////////////////////////////////////
+
 #pragma warning disable 3001
+
+using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.Shell.Interop
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     [ComImport()]
     [ComVisible(false)]
     [Guid("C1F63D0C-4CAE-4907-BE74-EEB75D386ECB")]
@@ -144,15 +144,18 @@ namespace Microsoft.VisualStudio.Shell.Interop
     {
         [return: MarshalAs(UnmanagedType.VariantBool)]
         bool GetOptInStatus();
+
         void UnloadSessions(
             );
         void EndAllSessionsAndAbortUploads(
             );
+
         void BeginSession(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionType,
             [In, MarshalAs(UnmanagedType.VariantBool)] System.Boolean alwaysSend,
             [Out, MarshalAs(UnmanagedType.U4)] out System.UInt32 sessionHandle
             );
+
         void EndSession(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionHandle
             );
@@ -313,5 +316,4 @@ namespace Microsoft.VisualStudio.Shell.Interop
     internal interface SVsLog
     {
     }
-
 }

@@ -26,14 +26,6 @@ Friend Class MockVisualBasicCompiler
         _analyzers = analyzers
     End Sub
 
-    Protected Overrides Function GetSqmAppID() As UInteger
-        Return SqmServiceProvider.BASIC_APPID
-    End Function
-
-    Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
-        Throw New NotImplementedException
-    End Sub
-
     Protected Overrides Function ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
         messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
