@@ -182,14 +182,12 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 ArraySegment<byte> bufferArraySegment;
 
-                if (PortableShim.MemoryStream.TryGetBuffer(data, out bufferArraySegment))
+                // since we can't return offset, make sure MemoryStream uses the array from the start
+                if (PortableShim.MemoryStream.TryGetBuffer(data, out bufferArraySegment) &&
+                    bufferArraySegment.Offset == 0)
                 {
-                    // since we can't return offset, make sure MemoryStream uses the array from the start
-                    if (bufferArraySegment.Offset == 0)
-                    {
-                        buffer = bufferArraySegment.Array;
-                        return true;
-                    }
+                    buffer = bufferArraySegment.Array;
+                    return true;
                 }
             }
 
