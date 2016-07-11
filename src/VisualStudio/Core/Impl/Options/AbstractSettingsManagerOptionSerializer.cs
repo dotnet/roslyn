@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
 using Roslyn.Utilities;
 
@@ -147,6 +146,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var storageKey = GetStorageKeyForOption(optionKey.Option);
             value = this.Manager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
+
+            // VS's ISettingsManager has some quirks around storing enums.  Specifically,
+            // it *can* persist and retrieve enums, but only if you properly call 
+            // GetValueOrDefault<EnumType>.  This is because it actually stores enums just
+            // as ints and depends on the type parameter passed in to convert the integral
+            // value back to an enum value.  Unfortunately, we call GetValueOrDefault<object>
+            // and so we get the value back as boxed integer.
+            //
+            // Because of that, manually convert the integer to an enum here so we don't
+            // crash later trying to cast a boxed integer to an enum value.
+            if (value != null && optionKey.Option.Type.IsEnum)
+            {
+                value = Enum.ToObject(optionKey.Option.Type, value);
+            }
 
             return true;
         }
