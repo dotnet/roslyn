@@ -42,8 +42,8 @@ public unsafe class C
         {
             var c = CreateCompilationWithMscorlib("", new[] { CSharpRef, SystemCoreRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var dynamicToObject = c.Conversions.ClassifyConversion(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
-            var objectToDynamic = c.Conversions.ClassifyConversion(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
+            var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
+            var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
 
             Assert.Equal(ConversionKind.Identity, dynamicToObject.Kind);
             Assert.Equal(ConversionKind.Identity, objectToDynamic.Kind);

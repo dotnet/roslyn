@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var value = fillin.Value;
                     if (value.Type?.TypeKind == TypeKind.Dynamic)
                     {
-                        value = MakeConversion(value, _compilation.ObjectType, @checked: false);
+                        value = MakeConversionNode(value, _compilation.ObjectType, @checked: false);
                     }
 
                     expressions.Add(value); // NOTE: must still be lowered

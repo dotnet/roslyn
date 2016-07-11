@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt: null,
                         method: updateMethod,
                         arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundParameter)),
-                    kind: ConversionKind.ExplicitReference,
+                    conversion: Conversion.ExplicitReference,
                     type: delegateType);
 
                 // _event = (DelegateType)Delegate.Combine(_event, value);
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverOpt: null,
                     method: updateMethod,
                     arguments: ImmutableArray.Create<BoundExpression>(boundTmps[1], boundParameter)),
-                kind: ConversionKind.ExplicitReference,
+                conversion: Conversion.ExplicitReference,
                 type: delegateType);
 
             // tmp2 = (DelegateType)Delegate.Combine(tmp1, value);
