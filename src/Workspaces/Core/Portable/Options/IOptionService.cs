@@ -8,9 +8,10 @@ namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
     /// Provides services for reading and writing options.  This will provide support for
-    /// customizations workspaces need to perform around options.  Note that global options 
-    /// will normally still be offered through implementations of this.  However, implementations
-    /// may customize things differently depending on their needs.
+    /// customizations workspaces need to perform around options.  Note that 
+    /// <see cref="IGlobalOptionService"/> options will normally still be offered through 
+    /// implementations of this.  However, implementations may customize things differently 
+    /// depending on their needs.
     /// </summary>
     internal interface IOptionService : IWorkspaceService
     {

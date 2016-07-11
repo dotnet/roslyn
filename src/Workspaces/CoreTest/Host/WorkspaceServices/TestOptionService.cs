@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         return new TestOptionSerializer();
                     },
                     new OptionSerializerMetadata(features))
-                }), null);
+                }), workspaceServices: null);
         }
 
         internal class TestOptionsProvider : IOptionProvider
