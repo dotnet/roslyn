@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Options
     /// Provides services for reading and writing options.
     /// This will provide support for options at the global level (i.e. shared among
     /// all workspaces/services).
+    /// 
+    /// In general you should not import this type directly, and should instead get an
+    /// <see cref="IOptionService"/> from <see cref="Workspace.Services"/>
     /// </summary>
     internal interface IGlobalOptionService
     {
