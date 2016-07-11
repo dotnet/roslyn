@@ -1756,7 +1756,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 {
                                     operationsToAnalyze = GetOperationsToAnalyze(operationBlocksToAnalyze);
                                 }
-                                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex) || FatalError.ReportWithoutCrashUnlessCanceled(ex))
+                                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportWithoutCrashUnlessCanceled(ex))
                                 {
                                     // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
                                     // and no non-fatal-watson will be logged as a result.

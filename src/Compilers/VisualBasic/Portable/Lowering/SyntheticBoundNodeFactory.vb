@@ -476,14 +476,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function [New](type As NamedTypeSymbol, ParamArray args As BoundExpression()) As BoundObjectCreationExpression
+        Public Function [New](type As NamedTypeSymbol) As BoundObjectCreationExpression
             ' TODO: add diagnostics for when things fall apart
-            Dim ctor = type.InstanceConstructors.Single(Function(c) c.ParameterCount = args.Length)
-            Return [New](ctor, args)
+            Dim ctor = type.InstanceConstructors.Single(Function(c) c.ParameterCount = 0)
+            Return [New](ctor)
         End Function
 
         Public Function [New](ctor As MethodSymbol, ParamArray args As BoundExpression()) As BoundObjectCreationExpression
-            Dim boundNode = New BoundObjectCreationExpression(_syntax, ctor, ImmutableArray.Create(Of BoundExpression)(args), Nothing, ctor.ContainingType)
+            Dim boundNode = New BoundObjectCreationExpression(_syntax, ctor, ImmutableArray.Create(args), Nothing, ctor.ContainingType)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        Public Function [New](ctor As MethodSymbol) As BoundObjectCreationExpression
+            Dim boundNode = New BoundObjectCreationExpression(_syntax,
+                                                              ctor,
+                                                              ImmutableArray(Of BoundExpression).Empty,
+                                                              Nothing,
+                                                              ctor.ContainingType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var location = CreateLocation(document, diagnostic.Location);
 
             var additionalLocations = diagnostic.AdditionalLocations.Count == 0
-                ? (IReadOnlyCollection<DiagnosticDataLocation>)SpecializedCollections.EmptyArray<DiagnosticDataLocation>()
+                ? (IReadOnlyCollection<DiagnosticDataLocation>)Array.Empty<DiagnosticDataLocation>()
                 : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource)
                                                 .Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc))
                                                 .WhereNotNull()

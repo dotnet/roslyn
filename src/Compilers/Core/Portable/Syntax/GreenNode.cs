@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
             new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
 
-        private static readonly DiagnosticInfo[] s_noDiagnostics = SpecializedCollections.EmptyArray<DiagnosticInfo>();
-        private static readonly SyntaxAnnotation[] s_noAnnotations = SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+        private static readonly DiagnosticInfo[] s_noDiagnostics = Array.Empty<DiagnosticInfo>();
+        private static readonly SyntaxAnnotation[] s_noAnnotations = Array.Empty<SyntaxAnnotation>();
         private static readonly IEnumerable<SyntaxAnnotation> s_noAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
 
         protected GreenNode(ushort kind)

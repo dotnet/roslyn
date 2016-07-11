@@ -220,13 +220,15 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            var filesystem = dir.CreateFile("System.IO.FileSystem.dll").WriteAllBytes(
+                TestResources.NetFX.v4_6_1038_0.Facades.System_IO_FileSystem);
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    SystemRuntimePP7Ref,
+                    SystemRuntimeNetstandard13FacadeRef.Value,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },

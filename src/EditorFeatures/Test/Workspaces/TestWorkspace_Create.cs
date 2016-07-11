@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documentElements.Add(CreateDocumentElement(file, "test" + index++ + extension, parseOptions));
             }
 
-            metadataReferences = metadataReferences ?? SpecializedCollections.EmptyArray<string>();
+            metadataReferences = metadataReferences ?? Array.Empty<string>();
             foreach (var reference in metadataReferences)
             {
                 documentElements.Add(CreateMetadataReference(reference));
