@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SwitchBinder : LocalScopeBinder
     {
-        protected readonly SwitchStatementSyntax _switchSyntax;
-        protected readonly GeneratedLabelSymbol _breakLabel;
+        protected readonly SwitchStatementSyntax SwitchSyntax;
 
+        private readonly GeneratedLabelSymbol _breakLabel;
         private BoundExpression _switchGoverningExpression;
         private DiagnosticBag _switchGoverningDiagnostics;
 
         protected SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
         {
-            _switchSyntax = switchSyntax;
+            SwitchSyntax = switchSyntax;
             _breakLabel = new GeneratedLabelSymbol("break");
         }
 
@@ -31,9 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var parseOptions = switchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
             return
-                // in C# 6 and earlier, we use the old binder. In C# 7 and later, we use the new binder which
+                // In C# 6 and earlier, we use the old binder. In C# 7 and later, we use the new binder which
                 // is capable of binding both the old and new syntax. However, the new binder does not yet
-                // lead to a translation that fully supports edit-and-continue.
+                // lead to a translation that fully supports edit-and-continue, so it delegates to the C# 6
+                // binder when it can. The "typeswitch" feature flag forces the use of the C# 7 switch binder
+                // for all operations; we use it to enhance test coverage.
                 (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false || parseOptions?.Features.ContainsKey("typeswitch") != false)
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         protected bool PatternsEnabled =>
-            ((CSharpParseOptions)this._switchSyntax.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false;
+            ((CSharpParseOptions)SwitchSyntax.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false;
 
         protected BoundExpression SwitchGoverningExpression
         {
@@ -49,12 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_switchGoverningExpression == null)
                 {
-                    var switchGoverningDiagnostics = new DiagnosticBag();
-                    var boundSwitchExpression = BindSwitchExpression(_switchSyntax.Expression, switchGoverningDiagnostics);
-                    _switchGoverningDiagnostics = switchGoverningDiagnostics;
-                    Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
+                    EnsureSwitchGoverningExpressionAndDiagnosticsBound();
                 }
 
+                Debug.Assert(_switchGoverningExpression != null);
                 return _switchGoverningExpression;
             }
         }
@@ -65,9 +65,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var discarded = SwitchGoverningExpression;
+                EnsureSwitchGoverningExpressionAndDiagnosticsBound();
                 return _switchGoverningDiagnostics;
             }
+        }
+
+        private void EnsureSwitchGoverningExpressionAndDiagnosticsBound()
+        {
+            var switchGoverningDiagnostics = new DiagnosticBag();
+            var boundSwitchExpression = BindSwitchExpression(SwitchSyntax.Expression, switchGoverningDiagnostics);
+            _switchGoverningDiagnostics = switchGoverningDiagnostics;
+            Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
         }
 
         // Dictionary for the switch case/default labels.
@@ -102,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 object key;
                 var constantValue = label.SwitchCaseLabelConstant;
-                if (constantValue != (object)null && !constantValue.IsBad)
+                if ((object)constantValue != null && !constantValue.IsBad)
                 {
                     // Case labels with a non-null constant value are indexed on their ConstantValue.
                     key = KeyForConstant(constantValue);
@@ -118,13 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     key = label.IdentifierNodeOrToken.AsNode();
                 }
 
+                // If there is a duplicate label, ignore it. It will be reported when binding the switch label.
                 if (!map.ContainsKey(key))
                 {
                     map.Add(key, label);
-                }
-                else
-                {
-                    // If there is a duplicate label, ignore it. It will be reported when binding the switch label.
                 }
             }
 
@@ -135,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            foreach (var section in _switchSyntax.Sections)
+            foreach (var section in SwitchSyntax.Sections)
             {
                 builder.AddRange(BuildLocals(section.Statements));
             }
@@ -147,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = ArrayBuilder<LocalFunctionSymbol>.GetInstance();
 
-            foreach (var section in _switchSyntax.Sections)
+            foreach (var section in SwitchSyntax.Sections)
             {
                 builder.AddRange(BuildLocalFunctions(section.Statements));
             }
@@ -178,11 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<LabelSymbol> labels = ArrayBuilder<LabelSymbol>.GetInstance();
             DiagnosticBag tempDiagnosticBag = DiagnosticBag.GetInstance();
-            TypeSymbol switchGoverningType = this.SwitchGoverningType;
-            foreach (var section in _switchSyntax.Sections)
+            foreach (var section in SwitchSyntax.Sections)
             {
                 // add switch case/default labels
-                BuildSwitchLabels(switchGoverningType, section.Labels, GetBinder(section), labels, tempDiagnosticBag);
+                BuildSwitchLabels(section.Labels, GetBinder(section), labels, tempDiagnosticBag);
 
                 // add regular labels from the statements in the switch section
                 BuildLabels(section.Statements, ref labels);
@@ -200,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void BuildSwitchLabels(TypeSymbol switchGoverningType, SyntaxList<SwitchLabelSyntax> labelsSyntax, Binder sectionBinder, ArrayBuilder<LabelSymbol> labels, DiagnosticBag tempDiagnosticBag)
+        private void BuildSwitchLabels(SyntaxList<SwitchLabelSyntax> labelsSyntax, Binder sectionBinder, ArrayBuilder<LabelSymbol> labels, DiagnosticBag tempDiagnosticBag)
         {
             // add switch case/default labels
             foreach (var labelSyntax in labelsSyntax)
@@ -213,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
                         var boundLabelExpression = sectionBinder.BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
-                        boundLabelExpression = ConvertCaseExpression(switchGoverningType, labelSyntax, boundLabelExpression, sectionBinder, ref boundLabelConstantOpt, tempDiagnosticBag);
+                        boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, ref boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
                     default:
@@ -226,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression ConvertCaseExpression(TypeSymbol switchGoverningType, CSharpSyntaxNode node, BoundExpression caseExpression, Binder sectionBinder, ref ConstantValue constantValueOpt, DiagnosticBag diagnostics, bool isGotoCaseExpr = false)
+        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, Binder sectionBinder, ref ConstantValue constantValueOpt, DiagnosticBag diagnostics, bool isGotoCaseExpr = false)
         {
             if (isGotoCaseExpr)
             {
@@ -242,27 +246,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // instead of an error. See test "CS0469_NoImplicitConversionWarning".
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion conversion = Conversions.ClassifyConversionFromExpression(caseExpression, switchGoverningType, ref useSiteDiagnostics);
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(caseExpression, SwitchGoverningType, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 if (!conversion.IsValid)
                 {
-                    GenerateImplicitConversionError(diagnostics, node, conversion, caseExpression, switchGoverningType);
+                    GenerateImplicitConversionError(diagnostics, node, conversion, caseExpression, SwitchGoverningType);
                 }
                 else if (!conversion.IsImplicit)
                 {
-                    diagnostics.Add(ErrorCode.WRN_GotoCaseShouldConvert, node.Location, switchGoverningType);
+                    diagnostics.Add(ErrorCode.WRN_GotoCaseShouldConvert, node.Location, SwitchGoverningType);
                 }
 
-                caseExpression = CreateConversion(caseExpression, conversion, switchGoverningType, diagnostics);
+                caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
             }
 
-            return ConvertPatternExpression(switchGoverningType, node, caseExpression, ref constantValueOpt, diagnostics);
+            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, ref constantValueOpt, diagnostics);
         }
 
         private static readonly object s_nullKey = new object();
         protected static object KeyForConstant(ConstantValue constantValue)
         {
-            Debug.Assert(constantValue != (object)null);
+            Debug.Assert((object)constantValue != null);
             return constantValue.IsNull ? s_nullKey : constantValue.Value;
         }
 
@@ -273,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Invalid case labels (with null constant value) are indexed on the label syntax.
 
             object key;
-            if (constantValue != (object)null && !constantValue.IsBad)
+            if ((object)constantValue != null && !constantValue.IsBad)
             {
                 key = KeyForConstant(constantValue);
             }
@@ -303,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceLabelSymbol label;
                 if (labelsMap.TryGetValue(key, out label))
                 {
-                    Debug.Assert(label != (object)null);
+                    Debug.Assert((object)label != null);
                     return label;
                 }
             }
@@ -313,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            if (_switchSyntax == scopeDesignator)
+            if (SwitchSyntax == scopeDesignator)
             {
                 return this.Locals;
             }
@@ -323,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            if (_switchSyntax == scopeDesignator)
+            if (SwitchSyntax == scopeDesignator)
             {
                 return this.LocalFunctions;
             }
@@ -335,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _switchSyntax;
+                return SwitchSyntax;
             }
         }
 
@@ -343,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            Debug.Assert(_switchSyntax.Equals(node));
+            Debug.Assert(SwitchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type.
             var boundSwitchExpression = this.SwitchGoverningExpression;
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // The "x" in "switch(x)" refers to this.x, not the local x that is in scope inside the switch block.
 
-            Debug.Assert(node == _switchSyntax.Expression);
+            Debug.Assert(node == SwitchSyntax.Expression);
             var binder = this.GetBinder(node);
             Debug.Assert(binder != null);
 
@@ -475,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // value, that label is set as the target.
             SourceLabelSymbol labelSymbol = FindMatchingSwitchCaseLabel(constantValue, syntax);
 
-            if (labelSymbol != (object)null)
+            if ((object)labelSymbol != null)
             {
                 boundLabel = labelSymbol;
             }
@@ -485,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // switch statement and set that as the target label.
                 labelSymbol = GetDefaultLabel();
 
-                if (labelSymbol != (object)null)
+                if ((object)labelSymbol != null)
                 {
                     boundLabel = labelSymbol;
                 }
@@ -572,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                     // Bind the label case expression
                     boundLabelExpressionOpt = sectionBinder.BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
-                    boundLabelExpressionOpt = ConvertCaseExpression(switchGoverningType, caseLabelSyntax, boundLabelExpressionOpt, sectionBinder, ref labelExpressionConstant, diagnostics);
+                    boundLabelExpressionOpt = ConvertCaseExpression(caseLabelSyntax, boundLabelExpressionOpt, sectionBinder, ref labelExpressionConstant, diagnostics);
 
                     // Check for bind errors
                     hasErrors = hasErrors || boundLabelExpressionOpt.HasAnyErrors;
@@ -585,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    if (!hasErrors && labelExpressionConstant != (object)null && FindMatchingSwitchCaseLabel(labelExpressionConstant, caseLabelSyntax) != label)
+                    if (!hasErrors && (object)labelExpressionConstant != null && FindMatchingSwitchCaseLabel(labelExpressionConstant, caseLabelSyntax) != label)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, labelExpressionConstant?.GetValueToDisplay() ?? label.Name);
                         hasErrors = true;
@@ -629,7 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.HasErrors)
             {
                 ConstantValue gotoCaseExpressionConstant = null;
-                TypeSymbol switchGoverningType = SwitchGoverningType;
                 bool hasErrors = false;
                 SourceLabelSymbol matchedLabelSymbol;
 
@@ -648,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bind the goto case expression
                     gotoCaseExpressionOpt = gotoBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-                    gotoCaseExpressionOpt = ConvertCaseExpression(switchGoverningType, node, gotoCaseExpressionOpt, gotoBinder,
+                    gotoCaseExpressionOpt = ConvertCaseExpression(node, gotoCaseExpressionOpt, gotoBinder,
                         ref gotoCaseExpressionConstant, diagnostics, isGotoCaseExpr: true);
 
                     // Check for bind errors
@@ -670,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     matchedLabelSymbol = GetDefaultLabel();
                 }
 
-                if (matchedLabelSymbol == (object)null)
+                if ((object)matchedLabelSymbol == null)
                 {
                     if (!hasErrors)
                     {

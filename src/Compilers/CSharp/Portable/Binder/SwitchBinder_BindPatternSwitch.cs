@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_isPatternSwitch == null)
                 {
-                    var parseOptions = _switchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
+                    var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
                     _isPatternSwitch =
                         (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false &&
                         (parseOptions?.Features.ContainsKey("typeswitch") == true ||
-                         IsPatternSwitchSyntax(_switchSyntax) ||
+                         IsPatternSwitchSyntax(SwitchSyntax) ||
                          !SwitchGoverningType.IsValidV6SwitchGoverningType()));
                 }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
             if (!IsPatternSwitch) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
 
-            Debug.Assert(_switchSyntax.Equals(node));
+            Debug.Assert(SwitchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type.
             var boundSwitchExpression = SwitchGoverningExpression;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         bool hasErrors = pattern.HasErrors;
                         var constantValue = pattern.ConstantValue;
-                        if (!hasErrors && constantValue != (object)null && this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
+                        if (!hasErrors && (object)constantValue != null && this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;

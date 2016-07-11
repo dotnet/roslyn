@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,17 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
             var pslr = new PatternSwitchLocalRewriter(this, node);
             var expression = VisitExpression(node.Expression);
+            var result = ArrayBuilder<BoundStatement>.GetInstance();
 
             // output the decision tree part
-            pslr.LowerDecisionTree(expression, node.DecisionTree);
-            var result = ArrayBuilder<BoundStatement>.GetInstance();
-            result.AddRange(pslr.LoweredDecisionTree);
+            pslr.LowerDecisionTree(expression, node.DecisionTree, result);
 
             // if the endpoint is reachable, we exit the switch
             if (!node.DecisionTree.MatchIsComplete) result.Add(_factory.Goto(node.BreakLabel));
             // at this point the end of result is unreachable.
 
-            // output the sections of code (that were reachable)
+            // output the sections of code
             foreach (var section in node.SwitchSections)
             {
                 // Start with the part of the decision tree that is in scope of the section variables.
@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<LocalSymbol> DeclaredTempSet = new HashSet<LocalSymbol>();
             public readonly ArrayBuilder<LocalSymbol> DeclaredTemps = ArrayBuilder<LocalSymbol>.GetInstance();
             public readonly Dictionary<BoundPatternSwitchSection, ArrayBuilder<BoundStatement>> SwitchSections = new Dictionary<BoundPatternSwitchSection, ArrayBuilder<BoundStatement>>();
-            public ArrayBuilder<BoundStatement> LoweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
+
+            private ArrayBuilder<BoundStatement> _loweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
             private readonly SyntheticBoundNodeFactory _factory;
 
             public PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
@@ -76,15 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Lower the given decision tree into the given statement builder.
             /// </summary>
-            private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
+            public void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
-                var oldLoweredDecisionTree = this.LoweredDecisionTree;
-                this.LoweredDecisionTree = loweredDecisionTree;
+                var oldLoweredDecisionTree = this._loweredDecisionTree;
+                this._loweredDecisionTree = loweredDecisionTree;
                 LowerDecisionTree(expression, decisionTree);
-                this.LoweredDecisionTree = oldLoweredDecisionTree;
+                this._loweredDecisionTree = oldLoweredDecisionTree;
             }
 
-            public void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree)
+            private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree)
             {
                 if (decisionTree == null) return;
 
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the input expression into a temp
                     if (decisionTree.Expression != expression)
                     {
-                        LoweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, expression));
+                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, expression));
                     }
 
                     if (DeclaredTempSet.Add(decisionTree.Temp))
@@ -171,10 +172,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression notNull = byType.Type.IsNullableType()
                             ? LocalRewriter.RewriteNullableNullEquality(_factory.Syntax, BinaryOperatorKind.NullableNullNotEqual, byType.Expression, nullValue, _factory.SpecialType(SpecialType.System_Boolean))
                             : _factory.ObjectNotEqual(byType.Expression, nullValue);
-                        LoweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
+                        _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
                         LowerDecisionTree(byType.Expression, byType.WhenNull);
-                        if (byType.WhenNull?.MatchIsComplete != true) LoweredDecisionTree.Add(_factory.Goto(defaultLabel));
-                        LoweredDecisionTree.Add(_factory.Label(notNullLabel));
+                        if (byType.WhenNull?.MatchIsComplete != true) _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
+                        _loweredDecisionTree.Add(_factory.Label(notNullLabel));
                     }
                     else
                     {
@@ -188,13 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var decision = td.Value;
                         var failLabel = _factory.GenerateLabel("failedDecision");
                         var testAndCopy = TypeTestAndCopyToTemp(byType.Expression, decision.Expression);
-                        LoweredDecisionTree.Add(_factory.ConditionalGoto(testAndCopy, failLabel, false));
+                        _loweredDecisionTree.Add(_factory.ConditionalGoto(testAndCopy, failLabel, false));
                         LowerDecisionTree(decision.Expression, decision);
-                        LoweredDecisionTree.Add(_factory.Label(failLabel));
+                        _loweredDecisionTree.Add(_factory.Label(failLabel));
                     }
 
                     // finally, the default for when no type matches
-                    LoweredDecisionTree.Add(_factory.Label(defaultLabel));
+                    _loweredDecisionTree.Add(_factory.Label(defaultLabel));
                     LowerDecisionTree(byType.Expression, byType.Default);
                 }
             }
@@ -216,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (byValue.Expression.ConstantValue != null)
                 {
                     LowerConstantValueDecision(byValue);
+                    return;
+                }
+
+                if (byValue.ValueAndDecision.Count == 0)
+                {
+                    LowerDecisionTree(byValue.Expression, byValue.Default);
                     return;
                 }
 
@@ -268,12 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (byValue.ValueAndDecision.TryGetValue(value, out onValue))
                 {
                     LowerDecisionTree(byValue.Expression, onValue);
-                    if (!onValue.MatchIsComplete) LowerDecisionTree(byValue.Expression, byValue.Default);
+                    if (onValue.MatchIsComplete) return;
                 }
-                else
-                {
-                    LowerDecisionTree(byValue.Expression, byValue.Default);
-                }
+
+                LowerDecisionTree(byValue.Expression, byValue.Default);
             }
 
             private void LowerDecisionTree(DecisionTree.Guarded guarded)
@@ -286,13 +291,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // unconditional
                     if (guarded.Bindings.IsDefaultOrEmpty)
                     {
-                        LoweredDecisionTree.Add(_factory.Goto(targetLabel));
+                        _loweredDecisionTree.Add(_factory.Goto(targetLabel));
                     }
                     else
                     {
                         // with bindings
                         var matched = _factory.GenerateLabel("matched");
-                        LoweredDecisionTree.Add(_factory.Goto(matched));
+                        _loweredDecisionTree.Add(_factory.Goto(matched));
                         sectionBuilder.Add(_factory.Label(matched));
                         AddBindings(sectionBuilder, guarded.Bindings);
                         sectionBuilder.Add(_factory.Goto(targetLabel));
@@ -301,13 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var checkGuard = _factory.GenerateLabel("checkGuard");
-                    LoweredDecisionTree.Add(_factory.Goto(checkGuard));
+                    _loweredDecisionTree.Add(_factory.Goto(checkGuard));
                     sectionBuilder.Add(_factory.Label(checkGuard));
                     AddBindings(sectionBuilder, guarded.Bindings);
                     sectionBuilder.Add(_factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true));
                     var guardFailed = _factory.GenerateLabel("guardFailed");
                     sectionBuilder.Add(_factory.Goto(guardFailed));
-                    LoweredDecisionTree.Add(_factory.Label(guardFailed));
+                    _loweredDecisionTree.Add(_factory.Label(guardFailed));
                 }
             }
 
@@ -382,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantTarget,
                     ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty,
                     rewrittenSections, noValueMatches, stringEquality);
-                LoweredDecisionTree.Add(switchStatement);
+                _loweredDecisionTree.Add(switchStatement);
                 // The bound switch statement implicitly defines the label noValueMatches at the end, so we do not add it explicitly.
                 LowerDecisionTree(byValue.Expression, byValue.Default);
             }
@@ -393,8 +398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case 0:
                         {
-                            LowerDecisionTree(byValue.Expression, byValue.Default);
-                            break;
+                            // this should have been handled in the caller.
+                            throw ExceptionUtilities.Unreachable;
                         }
                     case 1:
                         {
@@ -403,10 +408,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!onBoolean) byValue.ValueAndDecision.TryGetValue(false, out decision);
                             Debug.Assert(decision != null);
                             var onOther = _factory.GenerateLabel("on" + !onBoolean);
-                            LoweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onOther, !onBoolean));
+                            _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onOther, !onBoolean));
                             LowerDecisionTree(byValue.Expression, decision);
                             // if we fall through here, that means the match was not complete and we invoke the default part
-                            LoweredDecisionTree.Add(_factory.Label(onOther));
+                            _loweredDecisionTree.Add(_factory.Label(onOther));
                             LowerDecisionTree(byValue.Expression, byValue.Default);
                             break;
                         }
@@ -418,12 +423,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(hasTrue && hasFalse);
                             var tryAnother = _factory.GenerateLabel("tryAnother");
                             var onFalse = _factory.GenerateLabel("onFalse");
-                            LoweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onFalse, false));
+                            _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onFalse, false));
                             LowerDecisionTree(byValue.Expression, trueDecision);
-                            LoweredDecisionTree.Add(_factory.Goto(tryAnother));
-                            LoweredDecisionTree.Add(_factory.Label(onFalse));
+                            _loweredDecisionTree.Add(_factory.Goto(tryAnother));
+                            _loweredDecisionTree.Add(_factory.Label(onFalse));
                             LowerDecisionTree(byValue.Expression, falseDecision);
-                            LoweredDecisionTree.Add(_factory.Label(tryAnother));
+                            _loweredDecisionTree.Add(_factory.Label(tryAnother));
                             // if both true and false (i.e. all values) are fully handled, there should be no default.
                             Debug.Assert(!trueDecision.MatchIsComplete || !falseDecision.MatchIsComplete || byValue.Default == null);
                             LowerDecisionTree(byValue.Expression, byValue.Default);
@@ -440,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerOtherSwitch(DecisionTree.ByValue byValue)
             {
-                // PROTOTYPE(typeswitch): we do not yet support switch on float, double, or decimal.
+                this.LocalRewriter._diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, _factory.Syntax.GetLocation(), "switch on float, double, or decimal");
                 throw new NotImplementedException();
             }
         }
