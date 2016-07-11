@@ -171,7 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Visit all the branches in the decision tree
         private void VisitDecisionTree(DecisionTree decisionTree)
         {
-            if (decisionTree == null) return;
+            if (decisionTree == null)
+            {
+                return;
+            }
+
             switch (decisionTree.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -189,8 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 foreach (var kvp in byType.TypeAndDecision)
                                 {
                                     VisitDecisionTree(kvp.Value);
-                                    if (kvp.Value.MatchIsComplete) return;
+                                    if (kvp.Value.MatchIsComplete)
+                                    {
+                                        return;
+                                    }
                                 }
+
                                 VisitDecisionTree(byType.Default);
                             }
                         }
@@ -201,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 VisitDecisionTree(kvp.Value);
                             }
+
                             VisitDecisionTree(byType.Default);
                         }
                         return;
@@ -215,7 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (byValue.ValueAndDecision.TryGetValue(inputConstant.Value, out onValue))
                             {
                                 VisitDecisionTree(onValue);
-                                if (!onValue.MatchIsComplete) VisitDecisionTree(byValue.Default);
+                                if (!onValue.MatchIsComplete)
+                                {
+                                    VisitDecisionTree(byValue.Default);
+                                }
                             }
                             else
                             {
@@ -228,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 VisitDecisionTree(kvp.Value);
                             }
+
                             VisitDecisionTree(byValue.Default);
                         }
                         return;
@@ -292,31 +305,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool FullyHandlesItsInput(DecisionTree decision)
         {
-            if (decision == null) return false;
-            if (decision.MatchIsComplete) return true;
+            if (decision == null)
+            {
+                return false;
+            }
+
+            if (decision.MatchIsComplete)
+            {
+                return true;
+            }
+
             // We check for completeness based on value. Other cases were handled in the construction of the decision tree.
-            if (decision.Expression.ConstantValue == null) return false;
+            if (decision.Expression.ConstantValue == null)
+            {
+                return false;
+            }
+
             var value = decision.Expression.ConstantValue;
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
                     {
                         var byType = (DecisionTree.ByType)decision;
-                        if (value.IsNull) return FullyHandlesItsInput(byType.WhenNull);
+                        if (value.IsNull)
+                        {
+                            return FullyHandlesItsInput(byType.WhenNull);
+                        }
+
                         foreach (var kv in byType.TypeAndDecision)
                         {
                             // the only types that should appear in the decision tree are those
                             // that can accept the input constant. Other types should have been
                             // removed when the decision tree was produced. This depends on the
                             // fact that all constants are of sealed types.
-                            if (FullyHandlesItsInput(kv.Value)) return true;
+                            if (FullyHandlesItsInput(kv.Value))
+                            {
+                                return true;
+                            }
                         }
+
                         return FullyHandlesItsInput(byType.Default);
                     }
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decision;
-                        if (value.IsNull) return false;
+                        if (value.IsNull)
+                        {
+                            return false;
+                        }
+
                         DecisionTree onValue;
                         return
                             byValue.ValueAndDecision.TryGetValue(value.Value, out onValue) && FullyHandlesItsInput(onValue) ||

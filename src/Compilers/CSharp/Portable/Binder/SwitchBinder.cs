@@ -106,7 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (SourceLabelSymbol label in labels)
             {
                 SyntaxKind labelKind = label.IdentifierNodeOrToken.Kind();
-                if (labelKind == SyntaxKind.IdentifierToken) continue;
+                if (labelKind == SyntaxKind.IdentifierToken)
+                {
+                    continue;
+                }
 
                 object key;
                 var constantValue = label.SwitchCaseLabelConstant;

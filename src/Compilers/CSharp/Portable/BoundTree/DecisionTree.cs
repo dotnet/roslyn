@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _temps, ComputeTemps(_decisionTree));
                 }
+
                 Debug.Assert(!_temps.IsDefault);
                 return _temps;
             }
@@ -66,7 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddTemps(DecisionTree decisionTree, ArrayBuilder<LocalSymbol> builder)
         {
-            if (decisionTree == null) return;
+            if (decisionTree == null)
+            {
+                return;
+            }
+
             switch (decisionTree.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -77,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AddTemps(td.Value, builder);
                         }
+
                         AddTemps(byType.Default, builder);
                         return;
                     }
@@ -87,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AddTemps(vd.Value, builder);
                         }
+
                         AddTemps(byValue.Default, builder);
                         return;
                     }
@@ -145,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal DecisionTree ComputeDecisionTree()
         {
+            Debug.Assert(_section == null);
             var expression = _switchStatement.Expression;
             if (expression.ConstantValue == null && expression.Kind != BoundKind.Local)
             {
@@ -152,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, expression.Type, SynthesizedLocalKind.PatternMatchingTemp, _switchStatement.Syntax, false, RefKind.None);
                 expression = new BoundLocal(expression.Syntax, localSymbol, null, expression.Type);
             }
+
             var result = DecisionTree.Create(_switchStatement.Expression, _switchStatement.Expression.Type, _enclosingSymbol);
             BoundPatternSwitchLabel defaultLabel = null;
             BoundPatternSwitchSection defaultSection = null;
@@ -205,7 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var pattern = label.Pattern;
             var guard = label.Guard;
-            if (guard?.ConstantValue == ConstantValue.False) return;
+            if (guard?.ConstantValue == ConstantValue.False)
+            {
+                return;
+            }
+
             switch (pattern.Kind)
             {
                 case BoundKind.ConstantPattern:
@@ -243,7 +256,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ErrorCode CheckSubsumed(BoundPattern pattern, DecisionTree decisionTree, bool inputCouldBeNull)
         {
-            if (decisionTree.MatchIsComplete) return ErrorCode.ERR_PatternIsSubsumed;
+            if (decisionTree.MatchIsComplete)
+            {
+                return ErrorCode.ERR_PatternIsSubsumed;
+            }
+
             switch (pattern.Kind)
             {
                 case BoundKind.ConstantPattern:
@@ -255,28 +272,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // as a flag to suppress errors in subsumption analysis.
                             return ErrorCode.ERR_NoImplicitConvCast;
                         }
+
                         bool isNull = constantPattern.Value.ConstantValue.IsNull;
 
                         // If null inputs have been handled by previous patterns, then
                         // the input can no longer be null. In that case a null pattern is subsumed.
-                        if (isNull && !inputCouldBeNull) return ErrorCode.ERR_PatternIsSubsumed;
+                        if (isNull && !inputCouldBeNull)
+                        {
+                            return ErrorCode.ERR_PatternIsSubsumed;
+                        }
 
                         switch (decisionTree.Kind)
                         {
                             case DecisionTree.DecisionKind.ByValue:
                                 {
                                     var byValue = (DecisionTree.ByValue)decisionTree;
-                                    if (isNull) return 0; // null must be handled at a type test
+                                    if (isNull)
+                                    {
+                                        return 0; // null must be handled at a type test
+                                    }
+
                                     DecisionTree decision;
                                     if (byValue.ValueAndDecision.TryGetValue(constantPattern.Value.ConstantValue.Value, out decision))
                                     {
                                         var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
-                                        if (error != 0) return error;
+                                        if (error != 0)
+                                        {
+                                            return error;
+                                        }
                                     }
+
                                     if (byValue.Default != null)
                                     {
                                         return CheckSubsumed(pattern, byValue.Default, inputCouldBeNull);
                                     }
+
                                     return 0;
                                 }
                             case DecisionTree.DecisionKind.ByType:
@@ -287,7 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         if (byType.WhenNull != null)
                                         {
                                             var result = CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull);
-                                            if (result != 0) return result;
+                                            if (result != 0)
+                                            {
+                                                return result;
+                                            }
                                         }
                                     }
                                     else
@@ -299,7 +332,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             if (_conversions.ExpressionOfTypeMatchesPatternType(constantPattern.Value.Type, type) == true)
                                             {
                                                 var error = CheckSubsumed(pattern, decision, false);
-                                                if (error != 0) return error;
+                                                if (error != 0)
+                                                {
+                                                    return error;
+                                                }
                                             }
                                         }
                                     }
@@ -326,19 +362,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // A declaration pattern is only subsumed by a value pattern if all of the values are accounted for.
                                     // For example, when switching on a bool, do we handle both true and false?
                                     // For now, we do not handle this case. Also, this provides compatibility with previous compilers.
-                                    if (inputCouldBeNull) return 0; // null could never be handled by a value decision
+                                    if (inputCouldBeNull)
+                                    {
+                                        return 0; // null could never be handled by a value decision
+                                    }
+
                                     var byValue = (DecisionTree.ByValue)decisionTree;
                                     if (byValue.Default != null)
                                     {
                                         return CheckSubsumed(pattern, byValue.Default, false);
                                     }
+
                                     return 0;
                                 }
                             case DecisionTree.DecisionKind.ByType:
                                 {
                                     var byType = (DecisionTree.ByType)decisionTree;
-                                    if (declarationPattern.IsVar && inputCouldBeNull && (byType.WhenNull == null || CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull) == 0) && (byType.Default == null || CheckSubsumed(pattern, byType.Default, inputCouldBeNull) == 0))
+                                    if (declarationPattern.IsVar && 
+                                        inputCouldBeNull &&
+                                        (byType.WhenNull == null || CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull) == 0) &&
+                                        (byType.Default == null || CheckSubsumed(pattern, byType.Default, inputCouldBeNull) == 0))
+                                    {
                                         return 0; // new pattern catches null if not caught by existing WhenNull or Default
+                                    }
+
                                     inputCouldBeNull = false;
                                     foreach (var td in byType.TypeAndDecision)
                                     {
@@ -347,13 +394,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         if (_conversions.ExpressionOfTypeMatchesPatternType(declarationPattern.DeclaredType.Type.TupleUnderlyingTypeOrSelf(), type) == true)
                                         {
                                             var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
-                                            if (error != 0) return error;
+                                            if (error != 0)
+                                            {
+                                                return error;
+                                            }
                                         }
                                     }
+
                                     if (byType.Default != null)
                                     {
                                         return CheckSubsumed(pattern, byType.Default, inputCouldBeNull);
                                     }
+
                                     return 0;
                                 }
                             case DecisionTree.DecisionKind.Guarded:
@@ -378,7 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (inputCouldBeNull &&
                                         (byType.WhenNull == null || CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull) == 0) &&
                                         (byType.Default == null || CheckSubsumed(pattern, byType.Default, inputCouldBeNull) == 0))
+                                    {
                                         return 0; // new pattern catches null if not caught by existing WhenNull or Default
+                                    }
+
                                     inputCouldBeNull = false;
                                     foreach (var td in byType.TypeAndDecision)
                                     {
@@ -387,13 +442,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         if (_conversions.ExpressionOfTypeMatchesPatternType(decisionTree.Type, type) == true)
                                         {
                                             var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
-                                            if (error != 0) return error;
+                                            if (error != 0)
+                                            {
+                                                return error;
+                                            }
                                         }
                                     }
+
                                     if (byType.Default != null)
                                     {
                                         return CheckSubsumed(pattern, byType.Default, inputCouldBeNull);
                                     }
+
                                     return 0;
                                 }
                             case DecisionTree.DecisionKind.Guarded:
@@ -417,7 +477,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByValue(DecisionTree decision, BoundExpression value, DecisionMaker makeDecision, bool hasErrors)
         {
-            if (decision.MatchIsComplete) return null;
+            if (decision.MatchIsComplete)
+            {
+                return null;
+            }
+
             // Even if value.ConstantValue == null, we proceed here for error recovery, so that the case label isn't
             // dropped on the floor. That is useful, for example to suppress unreachable code warnings on bad case labels.
             switch (decision.Kind)
@@ -437,7 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guarded.Default != null)
             {
-                if (guarded.Default.MatchIsComplete) return null;
+                if (guarded.Default.MatchIsComplete)
+                {
+                    return null;
+                }
             }
             else
             {
@@ -489,9 +556,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 finally
                 {
-                    if (byType.Default.MatchIsComplete) byType.MatchIsComplete = true;
+                    if (byType.Default.MatchIsComplete)
+                    {
+                        byType.MatchIsComplete = true;
+                    }
                 }
             }
+
             if (value.ConstantValue == ConstantValue.Null)
             {
                 return byType.Expression.ConstantValue?.IsNull == false
@@ -507,7 +578,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (_conversions.ExpressionOfTypeMatchesPatternType(value.Type, matchedType))
                 {
                     case true:
-                        if (decision.MatchIsComplete) return null;
+                        if (decision.MatchIsComplete)
+                        {
+                            return null;
+                        }
+
                         continue;
                     case false:
                     case null:
@@ -549,7 +624,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete || decision.Expression.ConstantValue?.IsNull == true) return null;
+            if (decision.MatchIsComplete || decision.Expression.ConstantValue?.IsNull == true)
+            {
+                return null;
+            }
+
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -560,7 +639,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (byValue.Default == null)
                         {
                             byValue.Default = makeDecision(byValue.Expression, byValue.Type);
-                            if (byValue.Default.MatchIsComplete) byValue.MatchIsComplete = true;
+                            if (byValue.Default.MatchIsComplete)
+                            {
+                                byValue.MatchIsComplete = true;
+                            }
+
                             return byValue.Default;
                         }
                         else
@@ -584,7 +667,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = AddByType(guarded.Default, type, makeDecision);
-            if (guarded.Default.MatchIsComplete) guarded.MatchIsComplete = true;
+            if (guarded.Default.MatchIsComplete)
+            {
+                guarded.MatchIsComplete = true;
+            }
+
             return result;
         }
 
@@ -598,7 +685,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 finally
                 {
-                    if (byType.Default.MatchIsComplete) byType.MatchIsComplete = true;
+                    if (byType.Default.MatchIsComplete)
+                    {
+                        byType.MatchIsComplete = true;
+                    }
                 }
             }
             foreach (var kvp in byType.TypeAndDecision)
@@ -609,7 +699,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (_conversions.ExpressionOfTypeMatchesPatternType(type, MatchedType))
                 {
                     case true:
-                        if (Decision.MatchIsComplete) return null;
+                        if (Decision.MatchIsComplete)
+                        {
+                            return null;
+                        }
+
                         continue;
                     case false:
                         continue;
@@ -624,16 +718,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result.Temp == null);
             result.Temp = localSymbol;
             byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
-            if (_conversions.ExpressionOfTypeMatchesPatternType(byType.Type, type) == true && result.MatchIsComplete && byType.WhenNull?.MatchIsComplete == true)
+            if (_conversions.ExpressionOfTypeMatchesPatternType(byType.Type, type) == true &&
+                result.MatchIsComplete &&
+                byType.WhenNull?.MatchIsComplete == true)
             {
                 byType.MatchIsComplete = true;
             }
+
             return result;
         }
 
         private DecisionTree AddByNull(DecisionTree decision, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete) return null;
+            if (decision.MatchIsComplete)
+            {
+                return null;
+            }
+
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -641,7 +742,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decision;
-                        if (byValue.MatchIsComplete) return null;
+                        if (byValue.MatchIsComplete)
+                        {
+                            return null;
+                        }
+
                         throw ExceptionUtilities.Unreachable;
                     }
                 case DecisionTree.DecisionKind.Guarded:
@@ -653,7 +758,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByNull(DecisionTree.ByType byType, DecisionMaker makeDecision)
         {
-            if (byType.WhenNull?.MatchIsComplete == true || byType.Default?.MatchIsComplete == true) return null;
+            if (byType.WhenNull?.MatchIsComplete == true || byType.Default?.MatchIsComplete == true)
+            {
+                return null;
+            }
+
             if (byType.Default != null)
             {
                 try
@@ -662,7 +771,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 finally
                 {
-                    if (byType.Default.MatchIsComplete) byType.MatchIsComplete = true;
+                    if (byType.Default.MatchIsComplete)
+                    {
+                        byType.MatchIsComplete = true;
+                    }
                 }
             }
             DecisionTree result;
@@ -674,10 +786,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = Add(byType.WhenNull, makeDecision);
             }
+
             if (byType.WhenNull.MatchIsComplete && NonNullHandled(byType))
             {
                 byType.MatchIsComplete = true;
             }
+
             return result;
         }
 
@@ -706,13 +820,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = AddByNull(guarded.Default, makeDecision);
-            if (guarded.Default.MatchIsComplete) guarded.MatchIsComplete = true;
+            if (guarded.Default.MatchIsComplete)
+            {
+                guarded.MatchIsComplete = true;
+            }
+
             return result;
         }
 
         private DecisionTree Add(DecisionTree decision, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete) return null;
+            if (decision.MatchIsComplete)
+            {
+                return null;
+            }
+
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -730,15 +852,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guarded.Default != null)
             {
-                if (guarded.Default.MatchIsComplete) return null;
+                if (guarded.Default.MatchIsComplete)
+                {
+                    return null;
+                }
+
                 var result = Add(guarded.Default, makeDecision);
-                if (guarded.Default.MatchIsComplete) guarded.MatchIsComplete = true;
+                if (guarded.Default.MatchIsComplete)
+                {
+                    guarded.MatchIsComplete = true;
+                }
+
                 return result;
             }
             else
             {
                 var result = guarded.Default = makeDecision(guarded.Expression, guarded.Type);
-                if (guarded.Default.MatchIsComplete) guarded.MatchIsComplete = true;
+                if (guarded.Default.MatchIsComplete)
+                {
+                    guarded.MatchIsComplete = true;
+                }
+
                 return result;
             }
         }
@@ -754,7 +888,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = byValue.Default = makeDecision(byValue.Expression, byValue.Type);
             }
-            if (byValue.Default.MatchIsComplete) byValue.MatchIsComplete = true;
+            if (byValue.Default.MatchIsComplete)
+            {
+                byValue.MatchIsComplete = true;
+            }
+
             return result;
         }
 
@@ -774,7 +912,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                if (byType.Default.MatchIsComplete) byType.MatchIsComplete = true;
+                if (byType.Default.MatchIsComplete)
+                {
+                    byType.MatchIsComplete = true;
+                }
             }
         }
     }
@@ -790,7 +931,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool? ExpressionOfTypeMatchesPatternType(this Conversions conversions, TypeSymbol expressionType, TypeSymbol patternType)
         {
-            if (expressionType == patternType) return true;
+            if (expressionType == patternType)
+            {
+                return true;
+            }
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = conversions.ClassifyConversion(expressionType, patternType, ref useSiteDiagnostics, builtinOnly: true);
             // This is for classification purposes only; we discard use-site diagnostics. Use-site diagnostics will
@@ -900,11 +1045,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AppendLine($"{indent}  null");
                     WhenNull.DumpInternal(builder, indent + "    ");
                 }
+
                 foreach (var kv in TypeAndDecision)
                 {
                     builder.AppendLine($"{indent}  {kv.Key}");
                     kv.Value.DumpInternal(builder, indent + "    ");
                 }
+
                 if (Default != null)
                 {
                     builder.AppendLine($"{indent}  default");
@@ -930,6 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AppendLine($"{indent}  {kv.Key}");
                     kv.Value.DumpInternal(builder, indent + "    ");
                 }
+
                 if (Default != null)
                 {
                     builder.AppendLine($"{indent}  default");
@@ -970,7 +1118,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override void DumpInternal(StringBuilder builder, string indent)
             {
                 builder.Append($"{indent}Guarded");
-                if (Guard != null) builder.Append($" guard={Guard.Syntax.ToString()}");
+                if (Guard != null)
+                {
+                    builder.Append($" guard={Guard.Syntax.ToString()}");
+                }
+
                 builder.AppendLine($" label={Label.Syntax.ToString()}");
             }
 #endif

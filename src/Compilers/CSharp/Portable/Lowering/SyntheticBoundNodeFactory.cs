@@ -453,7 +453,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void CloseMethod(BoundStatement body)
         {
             Debug.Assert((object)CurrentMethod != null);
-            if (body.Kind != BoundKind.Block) body = Block(body);
+            if (body.Kind != BoundKind.Block)
+            {
+                body = Block(body);
+            }
+
             CompilationState.AddSynthesizedMethod(CurrentMethod, body);
             CurrentMethod = null;
         }
@@ -752,7 +756,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(ex.Type.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_String); // BoundSwitchStatement.StringEquality not set
 
-            if (sections.Length == 0) return ExpressionStatement(ex);
+            if (sections.Length == 0)
+            {
+                return ExpressionStatement(ex);
+            }
+
             GeneratedLabelSymbol breakLabel = new GeneratedLabelSymbol("break");
             var s = ImmutableArray.Create<BoundSwitchSection>(sections);
             CheckSwitchSections(s);
@@ -789,7 +797,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var l in s.SwitchLabels)
                 {
-                    if (l.ConstantValueOpt == null) continue;
+                    if (l.ConstantValueOpt == null)
+                    {
+                        continue;
+                    }
+
                     var v2 = l.ConstantValueOpt.Int32Value;
                     Debug.Assert(!labels.Contains(v2));
                     labels.Add(v2);

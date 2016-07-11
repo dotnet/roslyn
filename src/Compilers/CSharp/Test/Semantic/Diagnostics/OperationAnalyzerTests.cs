@@ -211,7 +211,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8699")]
+        [Fact]
         public void SwitchCSharp()
         {
             const string source = @"
@@ -1016,7 +1016,7 @@ public class C
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int g1, g2, g3, g4 =;").WithLocation(13, 9));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8699")]
+        [Fact]
         public void CaseCSharp()
         {
             const string source = @"class C

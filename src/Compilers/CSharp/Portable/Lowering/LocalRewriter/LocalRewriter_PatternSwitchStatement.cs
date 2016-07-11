@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
-using System;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             pslr.LowerDecisionTree(expression, node.DecisionTree, result);
 
             // if the endpoint is reachable, we exit the switch
-            if (!node.DecisionTree.MatchIsComplete) result.Add(_factory.Goto(node.BreakLabel));
+            if (!node.DecisionTree.MatchIsComplete)
+            {
+                result.Add(_factory.Goto(node.BreakLabel));
+            }
             // at this point the end of result is unreachable.
 
             // output the sections of code
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._factory = localRewriter._factory;
                 foreach (var section in node.SwitchSections)
                 {
-                    SwitchSections.Add(section, new ArrayBuilder<BoundStatement>());
+                    SwitchSections.Add(section, ArrayBuilder<BoundStatement>.GetInstance());
                 }
             }
 
@@ -87,7 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree)
             {
-                if (decisionTree == null) return;
+                if (decisionTree == null)
+                {
+                    return;
+                }
 
                 // If the input expression was a constant or a simple read of a local, then that is the
                 // decision tree's expression. Otherwise it is a newly created temp, to which we must
@@ -153,8 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var kvp in byType.TypeAndDecision)
                         {
                             LowerDecisionTree(byType.Expression, kvp.Value);
-                            if (kvp.Value.MatchIsComplete) return;
+                            if (kvp.Value.MatchIsComplete)
+                            {
+                                return;
+                            }
                         }
+
                         LowerDecisionTree(byType.Expression, byType.Default);
                     }
                 }
@@ -174,7 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             : _factory.ObjectNotEqual(byType.Expression, nullValue);
                         _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
                         LowerDecisionTree(byType.Expression, byType.WhenNull);
-                        if (byType.WhenNull?.MatchIsComplete != true) _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
+                        if (byType.WhenNull?.MatchIsComplete != true)
+                        {
+                            _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
+                        }
+
                         _loweredDecisionTree.Add(_factory.Label(notNullLabel));
                     }
                     else
@@ -275,7 +285,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (byValue.ValueAndDecision.TryGetValue(value, out onValue))
                 {
                     LowerDecisionTree(byValue.Expression, onValue);
-                    if (onValue.MatchIsComplete) return;
+                    if (onValue.MatchIsComplete)
+                    {
+                        return;
+                    }
                 }
 
                 LowerDecisionTree(byValue.Expression, byValue.Default);
@@ -318,7 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>> bindings)
             {
-                if (bindings.IsDefaultOrEmpty) return;
+                if (bindings.IsDefaultOrEmpty)
+                {
+                    return;
+                }
 
                 foreach (var kv in bindings)
                 {
@@ -365,7 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchLabel = new BoundSwitchLabel(_factory.Syntax, label, constantExpression, constantValue);
                     var forValue = ArrayBuilder<BoundStatement>.GetInstance();
                     LowerDecisionTree(byValue.Expression, decision, forValue);
-                    if (!decision.MatchIsComplete) forValue.Add(_factory.Goto(noValueMatches));
+                    if (!decision.MatchIsComplete)
+                    {
+                        forValue.Add(_factory.Goto(noValueMatches));
+                    }
+
                     var section = new BoundSwitchSection(_factory.Syntax, ImmutableArray.Create(switchLabel), forValue.ToImmutableAndFree());
                     switchSections.Add(section);
                 }
@@ -405,7 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             DecisionTree decision;
                             bool onBoolean = byValue.ValueAndDecision.TryGetValue(true, out decision);
-                            if (!onBoolean) byValue.ValueAndDecision.TryGetValue(false, out decision);
+                            if (!onBoolean)
+                            {
+                                byValue.ValueAndDecision.TryGetValue(false, out decision);
+                            }
+
                             Debug.Assert(decision != null);
                             var onOther = _factory.GenerateLabel("on" + !onBoolean);
                             _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onOther, !onBoolean));

@@ -242,7 +242,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != (object)null) declType = operandType;
+            if (isVar && operandType != (object)null)
+            {
+                declType = operandType;
+            }
+
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
@@ -275,7 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalDeclarationKind.PatternVariable);
             }
 
-            if (isVar) localSymbol.SetTypeSymbol(operandType);
+            if (isVar)
+            {
+                localSymbol.SetTypeSymbol(operandType);
+            }
 
             // Check for variable declaration errors.
             hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
