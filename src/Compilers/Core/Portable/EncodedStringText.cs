@@ -189,6 +189,22 @@ namespace Microsoft.CodeAnalysis.Text
                     buffer = bufferArraySegment.Array;
                     return true;
                 }
+
+                buffer = null;
+                return false;
+            }
+
+            try
+            {
+                // on .Net 4.5, TryGetBuffer is not available
+                if (PortableShim.MemoryStream.GetBuffer != null)
+                {
+                    buffer = PortableShim.MemoryStream.GetBuffer(data);
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
             }
 
             buffer = null;

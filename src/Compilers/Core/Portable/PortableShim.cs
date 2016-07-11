@@ -499,6 +499,11 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = typeof(System.IO.MemoryStream);
 
+            internal static readonly Func<System.IO.MemoryStream, byte[]> GetBuffer = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetBuffer))
+                .CreateDelegate<Func<System.IO.MemoryStream, byte[]>>();
+
             internal static readonly TryGetBufferDelegate TryGetBuffer = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(TryGetBuffer))

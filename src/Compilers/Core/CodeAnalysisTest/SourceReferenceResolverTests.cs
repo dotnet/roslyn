@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
-        [Fact]
+        [ConditionalFact(typeof(HasMemoryStreamTryGetBuffer))]
         public void IndexCountMemoryStreamInResolver()
         {
             SourceText text = new Resolver("AB", 1, 1).ReadText("ignored");
