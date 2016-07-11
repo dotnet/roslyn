@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
