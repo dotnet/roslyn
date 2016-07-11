@@ -1395,7 +1395,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+        ERR_MissingDeconstruct = 8206,
+        ERR_DeconstructRequiresExpression = 8210,
+        ERR_DeconstructWrongCardinality = 8211,
+        ERR_CannotDeconstructDynamic = 8212,
+        ERR_DeconstructTooFewElements = 8213,
 
-        ERR_ConversionNotTupleCompatible = 8206,
+        ERR_ConversionNotTupleCompatible = 8214,
+        ERR_DeconstructionVarFormDisallowsSpecificType = 8215,
     }
 }
