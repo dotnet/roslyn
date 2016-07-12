@@ -447,8 +447,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return false;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var text = syntaxTree.GetText(cancellationToken);
             return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, cancellationToken);
         }
 
@@ -552,8 +552,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             TMemberNode targetMember = null;
             _waitIndicator.Wait("IntelliSense", allowCancel: true, action: c =>
             {
-                var text = document.GetTextAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
                 var syntaxTree = document.GetSyntaxTreeSynchronously(c.CancellationToken);
+                var text = syntaxTree.GetText(c.CancellationToken);
                 targetMember = GetTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
             });
 

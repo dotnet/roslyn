@@ -539,7 +539,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+            return _textBufferFactoryService.CreateTextBuffer(
+                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
         private ITextBuffer CreateNewPlainTextBuffer(TextDocument document, CancellationToken cancellationToken)
@@ -548,7 +549,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var contentType = _textBufferFactoryService.TextContentType;
 
-            return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+            return _textBufferFactoryService.CreateTextBuffer(
+                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
         private async Task<object> CreateNewDifferenceViewerAsync(PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,

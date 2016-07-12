@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // prepare expansive information from document
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var root = tree.GetRoot(cancellationToken);
-            var text = tree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = tree.GetText(cancellationToken);
             var semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 
             // Go through the set of owning nodes in leaf to root chain.

@@ -47,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.E_FAIL;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var text = root.SyntaxTree.GetText(cancellationToken);
 
             var ts = selections.Single();
             int start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
