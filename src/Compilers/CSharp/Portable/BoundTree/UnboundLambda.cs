@@ -63,12 +63,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool inferReturnType)
-            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
+        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol delegateType, bool inferReturnType)
+            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
         {
             if (inferReturnType)
             {
-                this._inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref this._inferredReturnTypeUseSiteDiagnostics, out this._refKind, out this._inferredFromSingleType);
+                this._inferredReturnType = InferReturnType(
+                    this.Body,
+                    this.Binder,
+                    delegateType,
+                    this.Symbol.IsAsync,
+                    ref this._inferredReturnTypeUseSiteDiagnostics,
+                    out this._refKind,
+                    out this._inferredFromSingleType);
 
 #if DEBUG
                 _hasInferredReturnType = true;
@@ -104,7 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _inferredReturnType;
         }
 
-        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out RefKind refKind, out bool inferredFromSingleType)
+        private static TypeSymbol InferReturnType(
+            BoundBlock block,
+            Binder binder,
+            TypeSymbol delegateType,
+            bool isAsync,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out RefKind refKind,
+            out bool inferredFromSingleType)
         {
             int numberOfDistinctReturns;
             var resultTypes = BlockReturns.GetReturnTypes(block, out refKind, out numberOfDistinctReturns);
@@ -132,10 +146,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Async:
 
+            NamedTypeSymbol taskType = null;
+            var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
+            if ((object)delegateReturnType != null)
+            {
+                MethodSymbol createBuilderMethod;
+                var delegateTaskBuilderType = delegateReturnType.GetAsyncMethodBuilderType(out createBuilderMethod);
+                if ((object)delegateTaskBuilderType != null)
+                {
+                    taskType = delegateReturnType;
+                }
+            }
+
             if (resultTypes.IsEmpty)
             {
-                // No return statements have expressions; inferred type Task:
-                return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                // No return statements have expressions; use delegate InvokeMethod
+                // or infer type Task if delegate type not available.
+                return (object)taskType != null && taskType.Arity == 0 ?
+                    taskType :
+                    binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
             }
 
             if ((object)bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
@@ -145,8 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // Some non-void best type T was found; infer type Task<T>:
-            return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
+            // Some non-void best type T was found; use delegate InvokeMethod
+            // or infer type Task<T> if delegate type not available.
+            var taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
+                delegateReturnType.ConstructedFrom :
+                binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            return taskTypeT.Construct(bestResultType);
         }
 
         internal sealed class BlockReturns : BoundTreeWalker
@@ -341,33 +374,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<ParameterSymbol> DelegateParameters(NamedTypeSymbol delegateType)
+        private static MethodSymbol DelegateInvokeMethod(NamedTypeSymbol delegateType)
         {
-            NamedTypeSymbol d = delegateType.GetDelegateType();
-            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : d.DelegateInvokeMethod.Parameters;
+            return delegateType.GetDelegateType()?.DelegateInvokeMethod;
         }
 
-        private static TypeSymbol DelegateReturnType(NamedTypeSymbol delegateType, out RefKind refKind)
+        private static ImmutableArray<ParameterSymbol> DelegateParameters(MethodSymbol invokeMethod)
         {
-            NamedTypeSymbol d = delegateType.GetDelegateType();
-            if ((object)d == null || (object)d.DelegateInvokeMethod == null)
+            return ((object)invokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : invokeMethod.Parameters;
+        }
+
+        private static TypeSymbol DelegateReturnType(MethodSymbol invokeMethod, out RefKind refKind)
+        {
+            if ((object)invokeMethod == null)
             {
                 refKind = Microsoft.CodeAnalysis.RefKind.None;
-                return null;
-        }
-            refKind = d.DelegateInvokeMethod.RefKind;
-            return d.DelegateInvokeMethod.ReturnType;
+                return null; // PROTOTYPE(tasklike): Return SpecialType.System_Void instead?
+            }
+            refKind = invokeMethod.RefKind;
+            return invokeMethod.ReturnType;
         }
 
-        private bool DelegateNeedsReturn(NamedTypeSymbol delegateType)
+        private bool DelegateNeedsReturn(MethodSymbol invokeMethod)
         {
-            NamedTypeSymbol d = delegateType.GetDelegateType();
-            if ((object)d == null || (object)d.DelegateInvokeMethod == null || d.DelegateInvokeMethod.ReturnsVoid)
+            if ((object)invokeMethod == null || invokeMethod.ReturnsVoid)
             {
                 return false;
             }
 
-            if (IsAsync && this.binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == d.DelegateInvokeMethod.ReturnType)
+            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.binder.Compilation))
             {
                 return false;
             }
@@ -377,8 +412,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
         {
+            var invokeMethod = DelegateInvokeMethod(delegateType);
             RefKind refKind;
-            var returnType = DelegateReturnType(delegateType, out refKind);
+            var returnType = DelegateReturnType(invokeMethod, out refKind);
 
             LambdaSymbol lambdaSymbol;
             Binder lambdaBodyBinder;
@@ -406,8 +442,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var parameters = DelegateParameters(delegateType);
-            lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, parameters, refKind, returnType);
+            var parameters = DelegateParameters(invokeMethod);
+
+            lambdaSymbol = new LambdaSymbol(
+                binder.Compilation,
+                binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameters,
+                (UnboundLambda unboundLambda, LambdaSymbol lambda, out RefKind k, out TypeSymbol t) =>
+                {
+                    k = refKind;
+                    t = returnType;
+                });
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             ValidateUnsafeParameters(diagnostics, parameters);
@@ -417,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reachableEndpoint = ControlFlowPass.Analyze(binder.Compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)
             {
-                if (DelegateNeedsReturn(delegateType))
+                if (DelegateNeedsReturn(invokeMethod))
                 {
                     // Not all code paths return a value in {0} of type '{1}'
                     diagnostics.Add(ErrorCode.ERR_AnonymousReturnExpected, lambdaSymbol.Locations[0], this.MessageID.Localize(), delegateType);
@@ -432,8 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)returnType != null && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
-                    returnType != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) &&
-                    returnType.OriginalDefinition != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                    !returnType.IsNonGenericTaskType(binder.Compilation) &&
+                    !returnType.IsGenericTaskType(binder.Compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.Locations[0], lambdaSymbol.MessageID.Localize(), delegateType);
@@ -443,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAsync)
             {
                 Debug.Assert(lambdaSymbol.IsAsync);
-                SourceMemberMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol, diagnostics, lambdaSymbol.Locations[0]);
+                SourceMemberMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol.Parameters, diagnostics, lambdaSymbol.Locations[0]);
             }
 
             var result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: false)
@@ -481,18 +527,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda ReallyInferReturnType(NamedTypeSymbol delegateType)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var parameters = DelegateParameters(delegateType);
-            var lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, parameters, refKind: Microsoft.CodeAnalysis.RefKind.None, returnType: null);
-            Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
-            var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+            var invokeMethod = DelegateInvokeMethod(delegateType);
+            var parameters = DelegateParameters(invokeMethod);
+            BoundLambda result = null;
 
-            var result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: true)
-            { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
+            var lambdaSymbol = new LambdaSymbol(
+                binder.Compilation,
+                binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameters,
+                (UnboundLambda unboundLambda, LambdaSymbol lambda, out RefKind refKind, out TypeSymbol returnType) =>
+                {
+                    Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambda, ParameterBinder(lambda, binder));
+                    var block = BindLambdaBody(lambda, lambdaBodyBinder, diagnostics);
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null; // TODO: figure out if this should be somehow merged into BoundLambda.Diagnostics.
-            TypeSymbol returnType = result.InferredReturnType(ref useSiteDiagnostics) ?? new ExtendedErrorTypeSymbol(binder.Compilation, string.Empty, 0, null);
-            lambdaSymbol.SetInferredReturnType(result.RefKind, returnType);
+                    result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: true)
+                    { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null; // TODO: figure out if this should be somehow merged into BoundLambda.Diagnostics.
+                    returnType = result.InferredReturnType(ref useSiteDiagnostics) ?? new ExtendedErrorTypeSymbol(binder.Compilation, string.Empty, 0, null);
+                    refKind = result.RefKind;
+                });
+
+            Debug.Assert(result != null);
             return result;
         }
 

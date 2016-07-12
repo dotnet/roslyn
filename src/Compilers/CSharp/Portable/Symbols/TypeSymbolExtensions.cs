@@ -1240,5 +1240,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
+
+        internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+            if (namedType.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+            MethodSymbol createBuilderMethod;
+            var builderType = namedType.GetAsyncMethodBuilderType(out createBuilderMethod);
+            return (object)builderType != null;
+        }
+
+        internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                return true;
+            }
+            MethodSymbol createBuilderMethod;
+            var builderType = namedType.GetAsyncMethodBuilderType(out createBuilderMethod);
+            return (object)builderType != null;
+        }
+
+        /// <summary>
+        /// Returns the async method builder type for generic and non-generic task-like types.
+        /// </summary>
+        internal static NamedTypeSymbol GetAsyncMethodBuilderType(this NamedTypeSymbol type, out MethodSymbol createBuilderMethod)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+
+            // Find the public static CreateAsyncMethodBuilder method.
+            // PROTOTYPE(tasklike): Look on base types.
+            var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
+            foreach (var member in members)
+            {
+                if (member.Kind != SymbolKind.Method)
+                {
+                    continue;
+                }
+                var method = (MethodSymbol)member;
+                if ((method.DeclaredAccessibility == Accessibility.Public) &&
+                    method.IsStatic &&
+                    (method.ParameterCount == 0) &&
+                    !method.IsGenericMethod)
+                {
+                    var returnType = method.ReturnType as NamedTypeSymbol;
+                    if ((object)returnType == null)
+                    {
+                        break;
+                    }
+                    createBuilderMethod = method;
+                    return returnType;
+                }
+            }
+            createBuilderMethod = null;
+            return null;
+        }
     }
 }

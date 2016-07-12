@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                var taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task); // PROTOTYPE(tasklike)
 #if DEBUG
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.IsDerivedFrom(taskType, ignoreDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics));
