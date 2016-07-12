@@ -494,10 +494,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim sourceLocations = symbol.Locations.Where(Function(l) l.IsInSource)
 
             ' First figure out the location that we want to grab considering partial types
-            Dim location = sourceLocations.FirstOrDefault(
-                Function(l)
-                    Return l.SourceTree.Equals(document.GetSyntaxTreeSynchronously(cancellationToken))
-                End Function)
+            Dim syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken)
+            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(syntaxTree))
 
             If location Is Nothing Then
                 location = sourceLocations.FirstOrDefault

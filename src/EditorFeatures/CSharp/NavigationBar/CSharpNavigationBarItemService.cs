@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 }
             }
 
-            var location = symbol.Locations.FirstOrDefault(
-                l => l.SourceTree.Equals(document.GetSyntaxTreeSynchronously(cancellationToken)));
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree.Equals(syntaxTree));
 
             if (location == null)
             {
