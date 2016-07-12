@@ -570,42 +570,42 @@ class foo
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <Document>
+        <Document><![CDATA[
 using System;
 
-class C : IEquatable&lt;C&gt;
+class C : IEquatable<C>
 {
-    bool IEquatable&lt;C&gt;.Equals(C other)
+    bool IEquatable<C>.Equals(C other)
     {
         return true;
     }
 
     public override bool Equals(object obj)
     {
-        return ((IEquatable&lt;C&gt;){|Simplify:(this)|}).Equals(obj as C);
+        return ((IEquatable<C>){|Simplify:(this)|}).Equals(obj as C);
     }
 }
-        </Document>
+        ]]></Document>
     </Project>
 </Workspace>
 
             Dim expected =
-<code>
+<code><![CDATA[
 using System;
 
-class C : IEquatable&lt;C&gt;
+class C : IEquatable<C>
 {
-    bool IEquatable&lt;C&gt;.Equals(C other)
+    bool IEquatable<C>.Equals(C other)
     {
         return true;
     }
 
     public override bool Equals(object obj)
     {
-        return ((IEquatable&lt;C&gt;)this).Equals(obj as C);
+        return ((IEquatable<C>)this).Equals(obj as C);
     }
 }
-</code>
+]]></code>
 
             Await TestAsync(input, expected)
 

@@ -65,18 +65,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            // Case: (C)(this) -> (C)this
-            if (node.IsParentKind(SyntaxKind.CastExpression) && expression.IsKind(SyntaxKind.ThisExpression))
-            {
-                return true;
-            }
-
             // Handle expression-level ambiguities
             if (RemovalMayIntroduceCastAmbiguity(node) ||
                 RemovalMayIntroduceCommaListAmbiguity(node) ||
                 RemovalMayIntroduceInterpolationAmbiguity(node))
             {
                 return false;
+            }
+
+            // Cases:
+            //   (C)(this) -> (C)this
+            if (node.IsParentKind(SyntaxKind.CastExpression) && expression.IsKind(SyntaxKind.ThisExpression))
+            {
+                return true;
             }
 
             // Cases:
