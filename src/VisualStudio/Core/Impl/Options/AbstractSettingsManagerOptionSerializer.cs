@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Roslyn.Utilities;
 
@@ -26,16 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected readonly ISettingsManager Manager;
         private readonly IOptionService _optionService;
 
-        public AbstractSettingsManagerOptionSerializer(IServiceProvider serviceProvider, IOptionService optionService)
+        public AbstractSettingsManagerOptionSerializer(VisualStudioWorkspaceImpl workspace)
             : base(assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
         {
-            Contract.ThrowIfNull(serviceProvider);
-            Contract.ThrowIfNull(optionService);
+            Contract.ThrowIfNull(workspace);
 
             _storageKeyToOptionMap = new Lazy<ImmutableDictionary<string, IOption>>(CreateStorageKeyToOptionMap, isThreadSafe: true);
 
-            this.Manager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-            _optionService = optionService;
+            this.Manager = workspace.GetVsService<SVsSettingsPersistenceManager, ISettingsManager>();
+            _optionService = workspace.Services.GetService<IOptionService>();
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
