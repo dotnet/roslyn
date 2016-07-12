@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -24,15 +25,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Await TestPragmaAsync(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Function
 
+        <Import(NameOf(VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService))>
+        Private Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService
+
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestSuppressionWithAttributeOnEveryNodes() As Threading.Tasks.Task
-            Dim facts = VisualBasicSyntaxFactsService.Default
-
             Await TestSuppressionWithAttributeAsync(
                 TestResource.AllInOneVisualBasicCode,
                 VisualBasicParseOptions.Default,
                 digInto:=Function(n)
-                             Dim member = facts.GetContainingMemberDeclaration(n, n.Span.Start)
+                             Dim member = _Facts.GetContainingMemberDeclaration(n, n.Span.Start)
                              If member Is Nothing OrElse member Is n Then
                                  Return True
                              End If

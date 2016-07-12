@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -237,9 +238,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                       token)
         End Function
 
+        <Import(NameOf(VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService))>
+        Private Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService
+
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
-            Return VisualBasicSyntaxFactsService.Default.IsWord(token)
+            Return _Facts.IsWord(token)
         End Function
 
         <Extension()>

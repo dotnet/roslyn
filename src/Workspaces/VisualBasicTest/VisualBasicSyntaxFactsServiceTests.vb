@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -221,9 +222,12 @@ End Class"))
             MarkupTestFile.GetSpan(markup, code, span)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim node = tree.GetRoot().FindNode(span)
-            Dim service = VisualBasicSyntaxFactsService.Default
+            Dim service = _Facts
             Return service.IsMethodLevelMember(node)
         End Function
+
+        <Import(GetType(Microsoft.CodeAnalysis.LanguageServices.ISyntaxFactsService))>
+        Private Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService
 
     End Class
 End Namespace
