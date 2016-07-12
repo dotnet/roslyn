@@ -187,10 +187,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return payloadRootField;
         }
 
-        internal IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>> GetInstrumentationPayloadRoots()
+        // Get the instrumentation payload roots ordered by analysis kind.
+        internal IOrderedEnumerable<KeyValuePair<int, InstrumentationPayloadRootField>> GetInstrumentationPayloadRoots()
         {
             Debug.Assert(IsFrozen);
-            return (IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>>)_instrumentationPayloadRootFields;
+            return _instrumentationPayloadRootFields.OrderBy(analysis => analysis.Key);
         }
 
         // Add a new synthesized method indexed by its name if the method isn't already present.

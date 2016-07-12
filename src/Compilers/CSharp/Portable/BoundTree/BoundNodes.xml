@@ -438,11 +438,6 @@
     <Field Name="SourceType" Type="BoundTypeExpression"/>
   </Node>
   
-  <!-- Represents Typeof(PrivateImplementationDetails), which is a special case because PrivateImplementationDetails has no language-level symbol.
-       Used in the synthesized static constructor for PrivateImplementationDetails. -->
-  <Node Name="BoundTypeOfPrivateImplementationDetails" Base="BoundTypeOf">
-  </Node>
-
    <!-- Represents the raw metadata token index value for a method definition.
         Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
   <Node Name="BoundMethodDefIndex" Base="BoundExpression">

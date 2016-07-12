@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
 
+            Dim original As BoundBlock = node
+
             ' Static locals should be removed from the list of locals,
             ' they are replaced with fields.
             If Not node.Locals.IsEmpty Then
@@ -42,21 +44,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument Then
-                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(node)
+                Dim builder = ArrayBuilder(Of BoundStatement).GetInstance()
 
+                For Each s In node.Statements
+                    Dim rewrittenStatement = TryCast(Visit(s), BoundStatement)
+                    If rewrittenStatement IsNot Nothing Then
+                        builder.Add(rewrittenStatement)
+                    End If
+                Next
+
+                Dim synthesizedLocal As LocalSymbol = Nothing
+                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(original, node, synthesizedLocal)
                 If prologue IsNot Nothing Then
-                    Dim builder = ArrayBuilder(Of BoundStatement).GetInstance()
-                    builder.Add(prologue)
-
-                    For Each s In node.Statements
-                        Dim rewrittenStatement = TryCast(Visit(s), BoundStatement)
-                        If rewrittenStatement IsNot Nothing Then
-                            builder.Add(rewrittenStatement)
-                        End If
-                    Next
-
-                    Return New BoundBlock(node.Syntax, node.StatementListSyntax, node.Locals, builder.ToImmutableAndFree())
+                    builder.Insert(0, prologue)
                 End If
+
+                Return New BoundBlock(node.Syntax, node.StatementListSyntax, If(synthesizedLocal Is Nothing, node.Locals, node.Locals.Add(synthesizedLocal)), builder.ToImmutableAndFree())
             End If
 
             Return MyBase.VisitBlock(node)

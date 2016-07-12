@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax = this.GetNonNullSyntaxNode();
             SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, syntax, compilationState, diagnostics);
             factory.CurrentMethod = this;
+            ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance();
 
-            // Initialize the payload root for for each kind of dynamic analysis instrumentation.
+            // Initialize the payload root for each kind of dynamic analysis instrumentation.
             // A payload root is an array of arrays of per-method instrumentation payloads.
             // For each kind of instrumentation:
             //
@@ -36,13 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // index portion of the greatest method definition token in the compilation. This guarantees that any
             // method can use the index portion of its own method definition token as an index into the payload array.
 
-            IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>> payloadRootFields = ContainingPrivateImplementationDetailsType.GetInstrumentationPayloadRoots();
-            Debug.Assert(payloadRootFields.Count > 0);
-
-            ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance(2 + payloadRootFields.Count);
             try
             {
-                foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields.OrderBy(analysis => analysis.Key))
+                foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in ContainingPrivateImplementationDetailsType.GetInstrumentationPayloadRoots())
                 {
                     int analysisKind = payloadRoot.Key;
                     ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type;

@@ -96,9 +96,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Return a node that is associated with an entry of the block. Ok to return Nothing.
+        ''' Return a node that is associated with an entry of the block. OK to return Nothing.
         ''' </summary>
-        Public Overridable Function CreateBlockPrologue(original As BoundBlock) As BoundStatement
+        Public Overridable Function CreateBlockPrologue(trueOriginal As BoundBlock, original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
+            synthesizedLocal = Nothing
             Return Nothing
         End Function
 
