@@ -1208,7 +1208,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
-            Write("    {0} {1} Update(", node.Fields.Any(f => IsInternal(f)) ? "internal" : "public", node.Name);
+            Write("    {0} {1} Update(", (node.Fields.Any(f => IsInternal(f)) || node.InternalFactory) ? "internal" : "public", node.Name);
 
             // parameters
             for (int f = 0; f < node.Fields.Count; f++)
@@ -1353,7 +1353,7 @@ namespace CSharpSyntaxGenerator
                 else
                 {
                     Node referencedNode = GetNode(field.Type);
-                    if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
+                    if (referencedNode != null && !referencedNode.AvoidAutoCreation && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
                     {
                         // look for list members...
                         for (int rf = 0; rf < referencedNode.Fields.Count; rf++)
@@ -1479,10 +1479,14 @@ namespace CSharpSyntaxGenerator
             {
                 var node = nodes[i];
                 this.WriteRedFactory(node);
-                this.WriteRedFactoryWithNoAutoCreatableTokens(node);
-                this.WriteRedMinimalFactory(node);
-                this.WriteRedMinimalFactory(node, withStringNames: true);
-                this.WriteKindConverters(node);
+
+                if (!node.InternalFactory)
+                {
+                    this.WriteRedFactoryWithNoAutoCreatableTokens(node);
+                    this.WriteRedMinimalFactory(node);
+                    this.WriteRedMinimalFactory(node, withStringNames: true);
+                    this.WriteKindConverters(node);
+                }
             }
 
             WriteLine("  }");
@@ -1503,7 +1507,7 @@ namespace CSharpSyntaxGenerator
         private bool IsAutoCreatableNode(Node node, Field field)
         {
             var referencedNode = GetNode(field.Type);
-            return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);
+            return (referencedNode != null && !referencedNode.AvoidAutoCreation && RequiredFactoryArgumentCount(referencedNode) == 0);
         }
 
         private bool IsRequiredFactoryField(Node node, Field field)
@@ -1563,7 +1567,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
 
-            Write("    {0} static {1} {2}(", nd.Fields.Any(f => IsInternal(f)) ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", (nd.Fields.Any(f => IsInternal(f)) || nd.InternalFactory) ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
             WriteRedFactoryParameters(nd);
 
             WriteLine(")");

@@ -2531,7 +2531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return _conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
+            return _conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteDiagnostics).Exists;
         }
 
         ////////////////////////////////////////////////////////////////////////////////

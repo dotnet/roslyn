@@ -2943,28 +2943,27 @@ void f() { if () const int i = 0; }
     }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (7,27): error CS0133: The expression being assigned to 'y1' must be constant
-    //         const string y1 = (string)(object)"y";
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"(string)(object)""y""").WithArguments("y1").WithLocation(7, 27),
-    // (9,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //         const string x2 = (object)null;
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(9, 27),
-    // (10,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //         const string y2 = (object)"y";
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""y""").WithArguments("object", "string").WithLocation(10, 27),
-    // (13,27): error CS0134: 'y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
-    //         const object y3 = "y";
-    Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""y""").WithArguments("y3", "object").WithLocation(13, 27),
-    // (19,13): error CS0150: A constant value is expected
-    //             case (string)(object)"b":
-    Diagnostic(ErrorCode.ERR_ConstantExpected, @"case (string)(object)""b"":").WithLocation(19, 13),
-    // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //             case (object)null:
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
-    // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //             case (object)"b":
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18)
-                );
+                // (7,27): error CS0133: The expression being assigned to 'y1' must be constant
+                //         const string y1 = (string)(object)"y";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"(string)(object)""y""").WithArguments("y1").WithLocation(7, 27),
+                // (9,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         const string x2 = (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(9, 27),
+                // (10,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         const string y2 = (object)"y";
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""y""").WithArguments("object", "string").WithLocation(10, 27),
+                // (13,27): error CS0134: 'y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //         const object y3 = "y";
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""y""").WithArguments("y3", "object").WithLocation(13, 27),
+                // (19,18): error CS0150: A constant value is expected
+                //             case (string)(object)"b":
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(string)(object)""b""").WithLocation(19, 18),
+                // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
+                // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case (object)"b":
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18));
         }
     }
 

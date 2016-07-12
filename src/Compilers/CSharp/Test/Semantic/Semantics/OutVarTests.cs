@@ -3805,7 +3805,7 @@ public class X
 True");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10487")]
+        [Fact]
         [WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
         public void FieldInitializers_03()
         {
