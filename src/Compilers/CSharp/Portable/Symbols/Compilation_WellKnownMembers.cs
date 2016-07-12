@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
-            Debug.Assert(type >= WellKnownType.First && type <= WellKnownType.Last && type != WellKnownType.ExtSentinel);
+            Debug.Assert(type.IsValid());
 
             int index = (int)type - (int)WellKnownType.First;
             if (_lazyWellKnownTypes == null || (object)_lazyWellKnownTypes[index] == null)
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
                 WellKnownType wellKnownId = (WellKnownType)typeId;
-                if (wellKnownId >= WellKnownType.First && wellKnownId <= WellKnownType.Last)
+                if (wellKnownId.IsWellKnownType())
                 {
                     return (type == _compilation.GetWellKnownType(wellKnownId));
                 }

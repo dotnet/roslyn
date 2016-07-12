@@ -87,7 +87,7 @@ True
 ]]>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="PROTOTYPE: tuple binding")>
         Public Sub Bug4262_2()
 
             Dim compilationDef =

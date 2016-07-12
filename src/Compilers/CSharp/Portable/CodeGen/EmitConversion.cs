@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.MethodGroup:
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:

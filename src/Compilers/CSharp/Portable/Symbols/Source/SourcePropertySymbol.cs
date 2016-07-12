@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(hasExpressionBody, notRegularProperty, location, diagnostics);
+                CheckInitializer(notRegularProperty, location, diagnostics);
             }
 
             if (notRegularProperty || hasInitializer)
@@ -380,7 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CheckInitializer(
-            bool hasExpressionBody,
             bool isAutoProperty,
             Location location,
             DiagnosticBag diagnostics)

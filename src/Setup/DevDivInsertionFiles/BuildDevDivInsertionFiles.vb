@@ -357,11 +357,16 @@ Public Module BuildDevDivInsertionFiles
             ' And now copy over all our core compiler binaries and related files
             ' Build tools setup authoring depends on these files being inserted.
             For Each fileName In CompilerFiles
-                filesToInsert.Add(New NugetFileInfo(fileName))
-                AddXmlDocumentationFile(filesToInsert, fileName)
+
+                Dim dependency As DependencyInfo = Nothing
+                If Not dependencies.TryGetValue(fileName, dependency) Then
+                    AddXmlDocumentationFile(filesToInsert, fileName)
+                    filesToInsert.Add(New NugetFileInfo(fileName))
+                End If
 
                 If NeedsLocalization(fileName) Then
-                    GenerateLocProject(fileName, Path.Combine(ExternalApisDirName, "Roslyn", fileName), locProjects)
+                    Dim relativeOutputDir = GetExternalApiDirectory(dependency)
+                    GenerateLocProject(fileName, Path.Combine(relativeOutputDir, fileName), locProjects)
                 End If
             Next
 
@@ -386,6 +391,12 @@ Public Module BuildDevDivInsertionFiles
             GenerateTestFileDependencyList(NameOf(IntegrationTestFiles), ExpandTestDependencies(IntegrationTestFiles), insertedFiles)
             GenerateTestFileDependencyList(NameOf(IntegrationTestFilesExtra), IntegrationTestFilesExtra, insertedFiles)
         End Sub
+
+        Private Shared Function GetExternalApiDirectory(Optional dependency As DependencyInfo = Nothing) As String
+            Return If(dependency Is Nothing,
+                Path.Combine(ExternalApisDirName, "Roslyn"),
+                Path.Combine(ExternalApisDirName, dependency.PackageName, dependency.Target))
+        End Function
 
         Private Class NugetFileInfo
             Implements IEquatable(Of NugetFileInfo)
@@ -448,7 +459,8 @@ Public Module BuildDevDivInsertionFiles
             "netstandard1.2",
             "netstandard1.3",
             "netstandard1.4",
-            "netstandard1.5"
+            "netstandard1.5",
+            "native"
         }
 
         Private Shared Function GetPlatformId(target As String) As String
@@ -583,11 +595,11 @@ Public Module BuildDevDivInsertionFiles
                         Dim relativeOutputDir As String
 
                         If IsLanguageServiceRegistrationFile(fileName) Then
-                            relativeOutputDir = Path.Combine(ExternalApisDirName, "Roslyn", "LanguageServiceRegistration", vsixName)
+                            relativeOutputDir = Path.Combine(GetExternalApiDirectory(), "LanguageServiceRegistration", vsixName)
                         ElseIf dependencies.TryGetValue(fileName, dependency) Then
-                            relativeOutputDir = Path.Combine(ExternalApisDirName, dependency.PackageName, dependency.Target)
+                            relativeOutputDir = GetExternalApiDirectory(dependency)
                         Else
-                            relativeOutputDir = Path.Combine(ExternalApisDirName, "Roslyn")
+                            relativeOutputDir = GetExternalApiDirectory()
                         End If
 
                         Dim relativeOutputFilePath = Path.Combine(relativeOutputDir, fileName)

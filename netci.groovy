@@ -180,3 +180,20 @@ commitPullList.each { isPr ->
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-update3')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
+
+// Microbuild
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
+  def myJob = job(jobName) {
+    description('MicroBuild test')
+    label('windows-roslyn')
+    steps {
+      batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "microbuild"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-update3')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}

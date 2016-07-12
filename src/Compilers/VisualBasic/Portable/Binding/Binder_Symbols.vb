@@ -665,6 +665,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case SyntaxKind.NullableType
                         LookupResult.SetFrom(LookupNullableType(DirectCast(typeSyntax, NullableTypeSyntax), binder, diagBag, suppressUseSiteError))
 
+                    Case SyntaxKind.TupleType
+                        'PROTOTYPE: tuple binding
+                        ' bind the first element for now to prevent crashing
+                        Dim tupleType = DirectCast(typeSyntax, TupleTypeSyntax)
+
+                        LookupTypeOrNamespaceSyntax(lookupResult,
+                                                           tupleType.TupleElements(0).Type,
+                                                           binder,
+                                                           diagBag,
+                                                           reportedAnError,
+                                                           unwrapAliases,
+                                                           suppressUseSiteError,
+                                                           inGetTypeContext,
+                                                           resolvingBaseType)
+
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind)
                 End Select
@@ -1113,6 +1128,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case typeSyntax.Kind
                     Case SyntaxKind.IdentifierName
                         Return DirectCast(typeSyntax, IdentifierNameSyntax).Identifier.ValueText
+
+                    Case SyntaxKind.TupleType
+                        'PROTOTYPE: tuples
+                        ' should we format this somehow?
+                        Return typeSyntax.ToString
 
                     Case SyntaxKind.GenericName
                         Return DirectCast(typeSyntax, GenericNameSyntax).Identifier.ValueText

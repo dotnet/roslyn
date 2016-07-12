@@ -846,14 +846,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder,
                 node.Update(
                     operand,
-                    node.ConversionKind,
-                    node.ResultKind,
+                    node.Conversion,
                     isBaseConversion: node.IsBaseConversion,
-                    symbolOpt: node.SymbolOpt,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
-                    isExtensionMethod: node.IsExtensionMethod,
-                    isArrayIndex: node.IsArrayIndex,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }
