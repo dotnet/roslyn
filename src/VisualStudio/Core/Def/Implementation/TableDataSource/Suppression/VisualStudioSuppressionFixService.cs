@@ -367,14 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             waitDialogMessage = isAddSuppression ? ServicesVSResources.ApplyingSuppressionFix : ServicesVSResources.ApplyingRemoveSuppressionFix;
             Action<IWaitContext> applyFix = context =>
             {
-                var operations = SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                _editHandlerService.Apply(
+                var operations = SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(newSolution));
+                var cancellationToken = context.CancellationToken;
+                _editHandlerService.ApplyAsync(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
                     progressTracker: context.ProgressTracker,
-                    cancellationToken: context.CancellationToken);
+                    cancellationToken: cancellationToken).Wait(cancellationToken);
             };
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);
