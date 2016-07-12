@@ -4052,6 +4052,52 @@ class C
         }
 
         [Fact]
+        public void TupleUnsupportedInUsingStatment()
+        {
+            var source = @"
+using VT2 = (int, int);
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            comp.VerifyDiagnostics(
+                // (2,13): error CS1001: Identifier expected
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
+                // (2,13): error CS1002: ; expected
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
+                // (2,22): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(2, 22),
+                // (2,23): error CS1022: Type or namespace definition, or end-of-file expected
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(2, 23),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = ").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void TupleWithVar()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, var) x = (1, 2);
+    }
+}
+" + trivial2uple;
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         (int, var) x = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
         public void Tuple2To8Members()
         {
             var source = @"
