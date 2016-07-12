@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -264,13 +265,135 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
             }
 
-            CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
+            GetCSharpDynamicLocalInfo(
                 customDebugInfoBytes,
                 methodToken,
                 methodVersion,
                 scopes,
                 out dynamicLocalMap,
                 out dynamicLocalConstantMap);
+        }
+
+        /// <exception cref="InvalidOperationException">Bad data.</exception>
+        private static void GetCSharpDynamicLocalInfo(
+            byte[] customDebugInfo,
+            int methodToken,
+            int methodVersion,
+            IEnumerable<ISymUnmanagedScope> scopes,
+            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
+        {
+            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
+            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+
+            var record = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.DynamicLocals);
+            if (record.IsDefault)
+            {
+                return;
+            }
+
+            ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
+            ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
+
+            var dynamicLocals = RemoveAmbiguousLocals(CustomDebugInfoReader.DecodeDynamicLocalsRecord(record), scopes);
+            foreach (var dynamicLocal in dynamicLocals)
+            {
+                int slot = dynamicLocal.SlotId;
+                var flags = GetFlags(dynamicLocal);
+                if (slot < 0)
+                {
+                    constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
+                    constantBuilder[dynamicLocal.Name] = flags;
+                }
+                else
+                {
+                    localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
+                    localBuilder[slot] = flags;
+                }
+            }
+
+            if (localBuilder != null)
+            {
+                dynamicLocalMap = localBuilder.ToImmutable();
+            }
+
+            if (constantBuilder != null)
+            {
+                dynamicLocalConstantMap = constantBuilder.ToImmutable();
+            }
+        }
+
+        private static ImmutableArray<bool> GetFlags(DynamicLocalInfo bucket)
+        {
+            int flagCount = bucket.FlagCount;
+            ulong flags = bucket.Flags;
+            var builder = ArrayBuilder<bool>.GetInstance(flagCount);
+            for (int i = 0; i < flagCount; i++)
+            {
+                builder.Add((flags & (1u << i)) != 0);
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Dynamic CDI encodes slot id and name for each dynamic local variable, but only name for a constant. 
+        /// Constants have slot id set to 0. As a result there is a potential for ambiguity. If a variable in a slot 0
+        /// and a constant defined anywhere in the method body have the same name we can't say which one 
+        /// the dynamic flags belong to (if there is a dynamic record for at least one of them).
+        /// 
+        /// This method removes ambiguous dynamic records.
+        /// </summary>
+        private static ImmutableArray<DynamicLocalInfo> RemoveAmbiguousLocals(
+            ImmutableArray<DynamicLocalInfo> dynamicLocals,
+            IEnumerable<ISymUnmanagedScope> scopes)
+        {
+            const byte DuplicateName = 0;
+            const byte VariableName = 1;
+            const byte ConstantName = 2;
+
+            var localNames = PooledDictionary<string, byte>.GetInstance();
+
+            var firstLocal = scopes.SelectMany(scope => scope.GetLocals()).FirstOrDefault(variable => variable.GetSlot() == 0);
+            if (firstLocal != null)
+            {
+                localNames.Add(firstLocal.GetName(), VariableName);
+            }
+
+            foreach (var scope in scopes)
+            {
+                foreach (var constant in scope.GetConstants())
+                {
+                    string name = constant.GetName();
+                    localNames[name] = localNames.ContainsKey(name) ? DuplicateName : ConstantName;
+                }
+            }
+
+            var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance();
+            foreach (var dynamicLocal in dynamicLocals)
+            {
+                int slot = dynamicLocal.SlotId;
+                var name = dynamicLocal.Name;
+                if (slot == 0)
+                {
+                    byte localOrConstant;
+                    localNames.TryGetValue(name, out localOrConstant);
+                    if (localOrConstant == DuplicateName)
+                    {
+                        continue;
+                    }
+
+                    if (localOrConstant == ConstantName)
+                    {
+                        slot = -1;
+                    }
+                }
+
+                builder.Add(new DynamicLocalInfo(dynamicLocal.FlagCount, dynamicLocal.Flags, slot, name));
+            }
+
+            var result = builder.ToImmutableAndFree();
+            localNames.Free();
+            return result;
         }
 
         private static void ReadVisualBasicImportsDebugInfo(

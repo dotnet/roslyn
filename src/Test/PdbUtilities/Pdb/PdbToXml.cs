@@ -453,12 +453,12 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("dynamicLocals");
 
-            var buckets = CDI.DecodeDynamicLocalsRecord(record.Data);
+            var dynamicLocals = CDI.DecodeDynamicLocalsRecord(record.Data);
 
-            foreach (DynamicLocalBucket bucket in buckets)
+            foreach (DynamicLocalInfo dynamicLocal in dynamicLocals)
             {
-                ulong flags = bucket.Flags;
-                int flagCount = bucket.FlagCount;
+                ulong flags = dynamicLocal.Flags;
+                int flagCount = dynamicLocal.FlagCount;
 
                 PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
                 StringBuilder flagsBuilder = pooled.Builder;
@@ -470,8 +470,8 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteStartElement("bucket");
                 _writer.WriteAttributeString("flagCount", CultureInvariantToString(flagCount));
                 _writer.WriteAttributeString("flags", pooled.ToStringAndFree());
-                _writer.WriteAttributeString("slotId", CultureInvariantToString(bucket.SlotId));
-                _writer.WriteAttributeString("localName", bucket.Name);
+                _writer.WriteAttributeString("slotId", CultureInvariantToString(dynamicLocal.SlotId));
+                _writer.WriteAttributeString("localName", dynamicLocal.Name);
                 _writer.WriteEndElement(); //bucket
             }
 
