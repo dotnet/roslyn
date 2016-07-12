@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
+            // AllInOneCSharpCode has no deconstruction.
+            syntaxKindsPatterns.Add(SyntaxKind.VariableDeconstructionDeclarator);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();

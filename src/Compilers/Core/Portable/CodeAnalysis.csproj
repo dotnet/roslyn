@@ -407,7 +407,6 @@
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
-    <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
@@ -463,7 +462,6 @@
     <Compile Include="RuleSet\RuleSetInclude.cs" />
     <Compile Include="RuleSet\RuleSetProcessor.cs" />
     <Compile Include="SourceFileResolver.cs" />
-    <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />

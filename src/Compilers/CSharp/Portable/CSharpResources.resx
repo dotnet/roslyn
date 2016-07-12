@@ -242,7 +242,7 @@
   </data>
   <data name="IDS_FeatureReplace" xml:space="preserve">
     <value>replaced members</value>
-  </data>  
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -4869,6 +4869,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="ERR_MissingDeconstruct" xml:space="preserve">
+    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters.</value>
+  </data>
+  <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
+    <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
+  </data>
   <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
     <value>Attribute '{0}' is ignored when public signing is specified.</value>
   </data>
@@ -4889,5 +4895,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable.</value>
+  </data>
+  <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
+    <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
+  </data>
+  <data name="ERR_CannotDeconstructDynamic" xml:space="preserve">
+    <value>Cannot deconstruct dynamic objects.</value>
+  </data>
+  <data name="ERR_DeconstructTooFewElements" xml:space="preserve">
+    <value>Deconstruction must contain at least two variables.</value>
+  </data>
+  <data name="TypeMustBeVar" xml:space="preserve">
+    <value>The type must be 'var'.</value>
+  </data>
+  <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
+    <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>
   </data>
 </root>
