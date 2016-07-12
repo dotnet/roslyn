@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
@@ -24,14 +23,6 @@ Friend Class MockVisualBasicCompiler
         MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
-    End Sub
-
-    Protected Overrides Function GetSqmAppID() As UInteger
-        Return SqmServiceProvider.BASIC_APPID
-    End Function
-
-    Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
-        Throw New NotImplementedException
     End Sub
 
     Protected Overrides Function ResolveAnalyzersFromArguments(

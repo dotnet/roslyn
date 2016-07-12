@@ -457,8 +457,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, 
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
+            }
+
+            if (Type.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

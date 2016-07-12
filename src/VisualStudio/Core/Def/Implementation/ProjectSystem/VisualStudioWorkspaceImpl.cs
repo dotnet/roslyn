@@ -71,15 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
-
-            var session = serviceProvider.GetService(typeof(SVsLog)) as IVsSqmMulti;
-            var profileService = serviceProvider.GetService(typeof(SVsFeedbackProfile)) as IVsFeedbackProfile;
-
-            // We have Watson hits where this came back null, so guard against it
-            if (profileService != null)
-            {
-                Sqm.LogSession(session, profileService.IsMicrosoftInternal);
-            }
         }
 
         internal static HostServices CreateHostServices(SVsServiceProvider serviceProvider)

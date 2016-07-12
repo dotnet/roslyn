@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RuntimeMembers;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
+
+        private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
 
         private LocalRewriter(
             CSharpCompilation compilation,
@@ -209,6 +213,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentMethod = oldContainingSymbol;
             }
+        }
+
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        /// <summary>
+        /// Returns substitution currently used by the rewriter for a placeholder node.
+        /// Each occurrence of the placeholder node is replaced with the node returned.
+        /// Throws if there is no substitution.
+        /// </summary>
+        private BoundExpression PlaceholderReplacement(BoundValuePlaceholderBase placeholder)
+        {
+            var value = _placeholderReplacementMapDoNotUseDirectly[placeholder];
+            AssertPlaceholderReplacement(placeholder, value);
+            return value;
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
+        {
+            Debug.Assert(value.Type.Equals(placeholder.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+        }
+
+        /// <summary>
+        /// Sets substitution used by the rewriter for a placeholder node.
+        /// Each occurrence of the placeholder node is replaced with the node returned.
+        /// Throws if there is already a substitution.
+        /// </summary>
+        private void AddPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
+        {
+            AssertPlaceholderReplacement(placeholder, value);
+
+            if ((object)_placeholderReplacementMapDoNotUseDirectly == null)
+            {
+                _placeholderReplacementMapDoNotUseDirectly = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+            }
+
+            _placeholderReplacementMapDoNotUseDirectly.Add(placeholder, value);
+        }
+
+        /// <summary>
+        /// Removes substitution currently used by the rewriter for a placeholder node.
+        /// Asserts if there isn't already a substitution.
+        /// </summary>
+        private void RemovePlaceholderReplacement(BoundValuePlaceholderBase placeholder)
+        {
+            Debug.Assert((object)placeholder != null);
+            bool removed = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder);
+
+            Debug.Assert(removed);
+        }
+
+        /// <summary>
+        /// Remove all the listed placeholders.
+        /// </summary>
+        private void RemovePlaceholderReplacements(ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        {
+            foreach (var placeholder in placeholders)
+            {
+                RemovePlaceholderReplacement(placeholder);
+            }
+        }
+
+        public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override BoundNode VisitDeconstructionLocalPendingInference(DeconstructionLocalPendingInference node)
+        {
+            // DeconstructionLocalPendingInference nodes are only used within initial binding, but don't survive past that stage
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)

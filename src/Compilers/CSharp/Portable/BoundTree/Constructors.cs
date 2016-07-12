@@ -502,14 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSwitchLabel
-    {
-        public BoundSwitchLabel(CSharpSyntaxNode syntax, LabelSymbol label, bool hasErrors = false)
-            : this(syntax, label, expressionOpt: null, hasErrors: hasErrors)
-        {
-        }
-    }
-
     internal partial class BoundBlock
     {
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, BoundStatement statement)

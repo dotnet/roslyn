@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
+        public virtual BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
+        {
+            return InstrumentStatement(original, rewritten);
+        }
+
         public virtual BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
         {
             Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(original));
@@ -145,6 +150,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(!((ForEachStatementSyntax)original.Syntax).IsDeconstructionDeclaration);
+            return iterationVarDecl;
+        }
+
+        public virtual BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
+        {
+            Debug.Assert(!original.WasCompilerGenerated);
+            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(((ForEachStatementSyntax)original.Syntax).IsDeconstructionDeclaration);
             return iterationVarDecl;
         }
 

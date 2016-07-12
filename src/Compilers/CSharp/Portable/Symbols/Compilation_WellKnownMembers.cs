@@ -491,6 +491,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal SynthesizedAttributeData SynthesizeTupleNamesAttribute(TypeSymbol type)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert(type.ContainsTuple());
+
+            var stringType = GetSpecialType(SpecialType.System_String);
+            Debug.Assert((object)stringType != null);
+            var names = TupleNamesEncoder.Encode(type, stringType);
+            var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, stringType, customModifiers: ImmutableArray<CustomModifier>.Empty);
+            var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
+        }
+
+        private static class TupleNamesEncoder
+        {
+            public static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol stringType)
+            {
+                var namesBuilder = ArrayBuilder<string>.GetInstance();
+                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
+                Debug.Assert(namesBuilder.Any());
+
+                var names = namesBuilder.SelectAsArray((name, constantType) =>
+                    new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);
+                namesBuilder.Free();
+                return names;
+            }
+
+            private static bool AddNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            {
+                if (type.IsTupleType)
+                {
+                    if (type.TupleElementNames.IsDefaultOrEmpty)
+                    {
+                        // If none of the tuple elements have names, put
+                        // null placeholders in.
+                        // TODO(https://github.com/dotnet/roslyn/issues/12347):
+                        // A possible optimization could be to emit an empty attribute
+                        // if all the names are missing, but that has to be true
+                        // recursively.
+                        namesBuilder.AddMany(null, type.TupleElementTypes.Length);
+                    }
+                    else
+                    {
+                        Debug.Assert(!type.TupleElementNames.Contains(null));
+                        namesBuilder.AddRange(type.TupleElementNames);
+                    }
+                }
+                // Always recur into nested types
+                return false;
+            }
+        }
+
         /// <summary>
         /// Used to generate the dynamic attributes for the required typesymbol.
         /// </summary>

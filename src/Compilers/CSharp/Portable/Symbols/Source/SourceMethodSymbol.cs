@@ -956,6 +956,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
             }
+
+            if (ReturnType.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(ReturnType));
+            }
         }
 
         internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)

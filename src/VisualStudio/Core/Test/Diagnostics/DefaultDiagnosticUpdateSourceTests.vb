@@ -38,13 +38,11 @@ class 123 { }
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
-                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)

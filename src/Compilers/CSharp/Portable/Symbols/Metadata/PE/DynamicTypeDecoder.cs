@@ -206,6 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
+            // Dig into tuples
+            if (namedType.IsTupleType)
+            {
+                namedType = namedType.TupleUnderlyingType;
+            }
+
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
             if (!isContaining)
             {
