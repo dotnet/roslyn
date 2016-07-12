@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return Nothing
             End If
 
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             Dim tokenToLeft = tree.FindTokenOnLeftOfPosition(caretPosition.Value, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             If tokenToLeft.Kind = SyntaxKind.None Then

@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, cancellationToken);
         }
 
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             _waitIndicator.Wait("IntelliSense", allowCancel: true, action: c =>
             {
                 var text = document.GetTextAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
-                var syntaxTree = document.GetSyntaxTreeAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
+                var syntaxTree = document.GetSyntaxTreeSynchronously(c.CancellationToken);
                 targetMember = GetTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
             });
 

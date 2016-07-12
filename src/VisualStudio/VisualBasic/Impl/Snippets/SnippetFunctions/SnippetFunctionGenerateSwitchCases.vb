@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
                 Return False
             End If
 
-            Dim syntaxTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Dim syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None)
             Dim token = syntaxTree.FindTokenOnRightOfPosition(subjectBufferFieldSpan.Start.Position, cancellationToken)
             Dim expressionNode = token.FirstAncestorOrSelf(Function(n) n.Span = subjectBufferFieldSpan.Span.ToTextSpan())
 

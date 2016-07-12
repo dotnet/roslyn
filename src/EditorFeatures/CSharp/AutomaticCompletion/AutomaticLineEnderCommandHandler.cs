@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         protected override string GetEndingString(Document document, int position, CancellationToken cancellationToken)
         {
             // prepare expansive information from document
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var root = tree.GetRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var root = tree.GetRoot(cancellationToken);
             var text = tree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 

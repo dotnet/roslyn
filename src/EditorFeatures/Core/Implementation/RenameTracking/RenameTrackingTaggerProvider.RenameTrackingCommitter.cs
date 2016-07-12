@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)
             {
-                var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
                 var fullText = syntaxTree.GetText(cancellationToken);
                 var textChange = new TextChange(new TextSpan(_snapshotSpan.Start, _snapshotSpan.Length), _stateMachine.TrackingSession.OriginalName);
 

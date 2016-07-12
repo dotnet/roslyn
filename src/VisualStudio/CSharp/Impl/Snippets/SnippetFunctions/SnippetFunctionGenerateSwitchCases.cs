@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
 
             var expressionSpan = subjectBufferFieldSpan.Span.ToTextSpan();
 
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var token = syntaxTree.FindTokenOnRightOfPosition(expressionSpan.Start, cancellationToken);
             var expressionNode = token.GetAncestor(n => n.Span == expressionSpan);
 

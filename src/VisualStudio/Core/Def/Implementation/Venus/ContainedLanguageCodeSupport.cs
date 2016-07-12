@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
             var codeModel = document.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
             var point = codeModel.GetStartPoint(typeNode, EnvDTE.vsCMPart.vsCMPartBody);
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var codeModel = targetDocument.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
             var syntaxFacts = targetDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
-            var targetSyntaxTree = targetDocument.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var targetSyntaxTree = targetDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
@@ -477,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException();
             }
 
-            var containingTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var containingTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeLocation = type.Locations.FirstOrDefault(d => d.SourceTree == containingTree);
             if (typeLocation == null)
             {
