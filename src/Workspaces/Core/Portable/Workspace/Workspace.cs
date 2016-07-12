@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis
                 var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId);
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
-                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                var currentText = newDoc.GetTextSynchronously(CancellationToken.None);
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
         }
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis
             if (!oldDoc.TryGetText(out oldText))
             {
                 // we can't get old text, there is not much we can do except replacing whole text.
-                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                var currentText = newDoc.GetTextSynchronously(CancellationToken.None);
                 this.ApplyDocumentTextChanged(documentId, currentText);
                 return;
             }
@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis
 
         private SourceText GetTextForced(TextDocument doc)
         {
-            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
+            return doc.GetTextSynchronously(CancellationToken.None);
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)

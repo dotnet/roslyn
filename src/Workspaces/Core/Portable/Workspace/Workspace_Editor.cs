@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
-                var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;

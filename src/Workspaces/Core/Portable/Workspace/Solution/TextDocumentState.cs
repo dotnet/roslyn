@@ -212,6 +212,17 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion.Text;
         }
 
+        internal SourceText GetTextSynchronously(CancellationToken cancellationToken)
+        {
+            if (sourceTextOpt != null)
+            {
+                return sourceTextOpt;
+            }
+
+            var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
+            return textAndVersion.Text;
+        }
+
         public SourceText GetText(CancellationToken cancellationToken)
         {
             var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);

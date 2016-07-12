@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
             ' We'll compute everything up front before we go mutate state
-            Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
             Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
             Dim generatedTree = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim generatedNode = generatedTree.GetAnnotatedNodes(AbstractGenerateCodeItem.GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)

@@ -107,9 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         protected override string GetEndingString(Document document, int position, CancellationToken cancellationToken)
         {
             // prepare expansive information from document
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var root = tree.GetRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var text = tree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 
             // Go through the set of owning nodes in leaf to root chain.
@@ -133,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 // so far so good. we only add semi-colon if it makes statement syntax error free
                 var textToParse = owningNode.NormalizeWhitespace().ToFullString() + semicolon;
 
+                var tree = root.SyntaxTree;
                 // currently, Parsing a field is not supported. as a workaround, wrap the field in a type and parse
                 var node = owningNode.TypeSwitch(
                     (BaseFieldDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
