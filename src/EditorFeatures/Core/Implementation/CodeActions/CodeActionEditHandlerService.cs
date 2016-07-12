@@ -227,10 +227,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     {
                         if (changedDocuments.Any())
                         {
+                            // ConfigureAwait(true) so we come back to the same thread as 
+                            // we do all application on the UI thread.
                             text = await oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
                         }
                         else if (changedAdditionalDocuments.Any())
                         {
+                            // ConfigureAwait(true) so we come back to the same thread as 
+                            // we do all application on the UI thread.
                             text = await oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
                         }
                     }
