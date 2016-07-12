@@ -824,6 +824,12 @@
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedFieldSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedMethodSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedNamedTypeSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedParameterSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedPropertySymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedTypeParameterSymbol.vb" />
     <Compile Include="Syntax\ArgumentSyntax.vb" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.vb" />
     <Compile Include="Syntax\BaseSyntaxExtensions.vb" />
