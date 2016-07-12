@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private BoundPattern BindConstantPattern(
+        private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
             BoundExpression operand,
             TypeSymbol operandType,
@@ -109,25 +109,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
         }
 
-        internal BoundPattern BindConstantPattern(
+        internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
-            BoundExpression left,
-            TypeSymbol leftType,
-            ExpressionSyntax right,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            ExpressionSyntax patternExpression,
             bool hasErrors,
             DiagnosticBag diagnostics,
             out bool wasExpression,
             bool wasSwitchCase)
         {
-            var expression = BindValue(right, diagnostics, BindValueKind.RValue);
+            var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
+            ConstantValue constantValueOpt = null;
+            expression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!node.HasErrors && expression.ConstantValue == null)
+            if (!expression.HasErrors && constantValueOpt == null)
             {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, right.Location);
+                diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;
             }
 
-            return new BoundConstantPattern(node, expression, hasErrors);
+            return new BoundConstantPattern(node, expression, constantValueOpt, hasErrors);
+        }
+
+        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
+        {
+            // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
+            // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
+            // to that effect later.
+            BoundExpression convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
+
+            if (convertedExpression.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)convertedExpression;
+                var operand = conversion.Operand;
+                if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                {
+                    // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
+                    var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
+                    convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
+                    discardedDiagnostics.Free();
+                }
+                else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
+                    && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
+                {
+                    // A boxed constant (or string converted to object) is a special case because we prefer
+                    // to compare to the pre-converted value by casting the input value to the type of the constant
+                    // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
+                    // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
+                    // input value among many constant tests.
+                    convertedExpression = operand;
+                }
+            }
+
+            constantValue = convertedExpression.ConstantValue;
+            return convertedExpression;
         }
 
         private bool CheckValidPatternType(
@@ -147,6 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
+                return true;
+            }
+            else if (patternType.IsStatic)
+            {
+                Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
                 return true;
             }
             else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
@@ -179,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //case ConversionKind.ImplicitConstant:
                     //case ConversionKind.ImplicitNumeric:
                     default:
-                        Error(diagnostics, ErrorCode.ERR_NoExplicitConv, typeSyntax, operandType, patternType);
+                        Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
                         return true;
                 }
             }
@@ -201,7 +242,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != (object)null) declType = operandType;
+            if (isVar && operandType != (object)null)
+            {
+                declType = operandType;
+            }
+
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
@@ -234,7 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalDeclarationKind.PatternVariable);
             }
 
-            if (isVar) localSymbol.SetTypeSymbol(operandType);
+            if (isVar)
+            {
+                localSymbol.SetTypeSymbol(operandType);
+            }
 
             // Check for variable declaration errors.
             hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);

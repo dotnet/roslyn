@@ -749,6 +749,7 @@
   <Node Name="BoundSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
@@ -765,16 +766,22 @@
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="PatternSwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+    
+    <!-- We store the pattern switch binder so we can perform some binding-like
+         operations during control flow analysis. -->
+    <Field Name="Binder" Type="PatternSwitchBinder"/>
   </Node>
 
   <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="PatternSwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
   </Node>
 
   <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
+    <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
   </Node>
@@ -1499,7 +1506,9 @@
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundPattern" Base="BoundNode"/>
+  <AbstractNode Name="BoundPattern" Base="BoundNode">
+    <!-- CONSIDER: we might benefit from recording the input (matched value) type in the bound pattern. -->
+  </AbstractNode>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
@@ -1509,6 +1518,7 @@
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
     <Field Name="Value" Type="BoundExpression"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="allow"/>
   </Node>
 
   <Node Name="BoundWildcardPattern" Base="BoundPattern">

@@ -8073,7 +8073,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = ParseExpressionOrPattern();
+                            var node = ParseExpressionOrPattern(whenIsKeyword: true);
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
@@ -8081,7 +8081,7 @@ tryAgain:
                             }
                             if (node is PatternSyntax)
                             {
-                                var whenClause = ParseWhenClauseOpt();
+                                var whenClause = ParseWhenClause();
                                 colon = this.EatToken(SyntaxKind.ColonToken);
                                 label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, whenClause, colon);
                                 label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
@@ -8635,7 +8635,7 @@ tryAgain:
             return false;
         }
 
-        private WhenClauseSyntax ParseWhenClauseOpt()
+        private WhenClauseSyntax ParseWhenClause()
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
             {
