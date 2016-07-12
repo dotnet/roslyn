@@ -541,6 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TupleType = 8925,
         TupleElement = 8926,
         TupleExpression = 8927,
+        VariableDeconstructionDeclarator = 8928,
 
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,

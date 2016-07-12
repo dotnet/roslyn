@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If necessary, add a conversion on the return expression.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Compilation.Conversions.ClassifyConversion(expression.Type, CurrentMethod.ReturnType, ref useSiteDiagnostics);
+                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentMethod.ReturnType, ref useSiteDiagnostics);
                 Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
             return type.IsPointerType()
-                ? BoundConversion.SynthesizedNonUserDefined(Syntax, nullLiteral, ConversionKind.NullToPointer, type)
+                ? BoundConversion.SynthesizedNonUserDefined(Syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }
 
@@ -1040,26 +1040,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };
-        }
-
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, ConversionKind conversionKind, bool isChecked = false)
-        {
-            Debug.Assert((object)type != null);
-            Debug.Assert((object)arg.Type != null);
-            return new BoundConversion(
-                Syntax,
-                arg,
-                conversionKind,
-                LookupResultKind.Viable,
-                isBaseConversion: false,
-                symbolOpt: null,
-                @checked: isChecked,
-                explicitCastInCode: true,
-                isExtensionMethod: false,
-                isArrayIndex: false,
-                constantValueOpt: null,
-                type: type)
-            { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)

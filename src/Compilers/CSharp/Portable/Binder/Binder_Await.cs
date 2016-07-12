@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var INotifyCompletion = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion, diagnostics, node);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            var conversion = this.Conversions.ClassifyImplicitConversion(awaiterType, INotifyCompletion, ref useSiteDiagnostics);
+            var conversion = this.Conversions.ClassifyImplicitConversionFromType(awaiterType, INotifyCompletion, ref useSiteDiagnostics);
             if (!conversion.IsImplicit)
             {
                 diagnostics.Add(node, useSiteDiagnostics);

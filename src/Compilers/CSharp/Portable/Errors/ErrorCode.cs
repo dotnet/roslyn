@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // gap here; available 8122-8199
 
         #region tuple diagnostics introduced in C# 7
-        // tuple related errors
+
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleReservedMemberNameAnyPosition = 8202,
@@ -1364,12 +1364,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+        ERR_MissingDeconstruct = 8206,
+        ERR_DeconstructRequiresExpression = 8210,
+        ERR_DeconstructWrongCardinality = 8211,
+        ERR_CannotDeconstructDynamic = 8212,
+        ERR_DeconstructTooFewElements = 8213,
 
-        ERR_ConversionNotTupleCompatible = 8206,
+        ERR_ConversionNotTupleCompatible = 8214,
+        ERR_DeconstructionVarFormDisallowsSpecificType = 8215,
 
         #endregion tuple diagnostics introduced in C# 7
 
-        // huge gap here; available 8207-8889
+        // huge gap here; available 8216-8889
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
         ERR_AutoPropertyCannotBeRefReturning = 8890,
@@ -1401,10 +1407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal = 8924,
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
-        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8927,
-        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8928,
 
-        // Available  = 8929,
+        // Available  = 8927-8929,
 
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
@@ -1417,13 +1421,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
-
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
-        #region diagnostics introduced for original/replace in C# 7
-        ERR_NoOriginalMember = 8944,
-        ERR_DuplicateReplace = 8945,
-        ERR_PartialReplace = 8946,
-        #endregion diagnostics introduced for original/replace in C# 7
+        #region diagnostics for out var
+        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8944,
+        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8945,
+        #endregion diagnostics for out var
     }
 }

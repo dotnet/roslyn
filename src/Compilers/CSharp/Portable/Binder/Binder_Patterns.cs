@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Conversion conversion =
                     operand != null
-                    ? this.Conversions.ClassifyConversionForCast(operand, patternType, ref useSiteDiagnostics)
-                    : this.Conversions.ClassifyConversionForCast(operandType, patternType, ref useSiteDiagnostics);
+                    ? this.Conversions.ClassifyConversionFromExpression(operand, patternType, ref useSiteDiagnostics, forCast: true)
+                    : this.Conversions.ClassifyConversionFromType(operandType, patternType, ref useSiteDiagnostics, forCast: true);
                 diagnostics.Add(typeSyntax, useSiteDiagnostics);
                 switch (conversion.Kind)
                 {

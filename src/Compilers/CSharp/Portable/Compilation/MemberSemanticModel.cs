@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (current.Kind() == SyntaxKind.VariableDeclaration &&
+                             (current.Parent as ForEachStatementSyntax)?.DeconstructionVariables == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent);
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -390,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return binder.Conversions.ClassifyConversionForCast(boundExpression, destination, ref useSiteDiagnostics);
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref useSiteDiagnostics, forCast: true);
         }
 
         /// <summary>

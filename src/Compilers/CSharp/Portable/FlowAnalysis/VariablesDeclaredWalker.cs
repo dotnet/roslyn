@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                _variablesDeclared.Add(node.IterationVariable);
+                _variablesDeclared.Add(node.IterationVariableOpt);
             }
 
             return base.VisitForEachStatement(node);

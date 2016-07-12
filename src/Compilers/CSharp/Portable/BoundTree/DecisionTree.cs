@@ -937,7 +937,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = conversions.ClassifyConversion(expressionType, patternType, ref useSiteDiagnostics, builtinOnly: true);
+            var conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
+
             // This is for classification purposes only; we discard use-site diagnostics. Use-site diagnostics will
             // be given if a conversion is actually used.
             switch (conversion.Kind)
