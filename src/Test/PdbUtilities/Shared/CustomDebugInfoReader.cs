@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// If there dynamic locals or constants with SlotId == 0, check all locals and
+        /// If there are dynamic locals or constants associated with SlotId == 0, check all locals and
         /// constants with SlotId == 0 for duplicate names and discard duplicates since we
         /// cannot determine which local or constant the dynamic info is associated with.
         /// </summary>
@@ -533,20 +533,26 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DynamicLocalBucket> locals,
             IEnumerable<ISymUnmanagedScope> scopes)
         {
-            var localsAndConstants = PooledDictionary<string, object>.GetInstance();
+            const byte DuplicateName = 0;
+            const byte VariableName = 1;
+            const byte ConstantName = 2;
+
+            var localNames = PooledDictionary<string, byte>.GetInstance();
             var firstLocal = GetFirstLocal(scopes);
             if (firstLocal != null)
             {
-                localsAndConstants.Add(firstLocal.GetName(), firstLocal);
+                localNames.Add(firstLocal.GetName(), VariableName);
             }
+
             foreach (var scope in scopes)
             {
                 foreach (var constant in scope.GetConstants())
                 {
                     var name = constant.GetName();
-                    localsAndConstants[name] = localsAndConstants.ContainsKey(name) ? null : constant;
+                    localNames[name] = localNames.ContainsKey(name) ? DuplicateName : ConstantName;
                 }
             }
+
             var builder = ArrayBuilder<DynamicLocalBucket>.GetInstance();
             foreach (var local in locals)
             {
@@ -554,23 +560,24 @@ namespace Microsoft.CodeAnalysis
                 var name = local.Name;
                 if (slot == 0)
                 {
-                    object localOrConstant;
-                    localsAndConstants.TryGetValue(name, out localOrConstant);
-                    if (localOrConstant == null)
+                    byte localOrConstant;
+                    localNames.TryGetValue(name, out localOrConstant);
+                    if (localOrConstant == DuplicateName)
                     {
-                        // Duplicate.
                         continue;
                     }
-                    if (localOrConstant != firstLocal)
+
+                    if (localOrConstant == ConstantName)
                     {
-                        // Constant.
                         slot = -1;
                     }
                 }
+
                 builder.Add(new DynamicLocalBucket(local.FlagCount, local.Flags, slot, name));
             }
+
             var result = builder.ToImmutableAndFree();
-            localsAndConstants.Free();
+            localNames.Free();
             return result;
         }
 
