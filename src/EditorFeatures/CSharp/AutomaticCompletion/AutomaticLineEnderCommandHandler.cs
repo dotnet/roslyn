@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         protected override bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var endToken = root.FindToken(position);
             if (endToken.IsMissing)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         protected override void FormatAndApply(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var endToken = root.FindToken(position);
             if (endToken.IsMissing)

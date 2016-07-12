@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         private int? GetInsertionPoint(Document document, ITextSnapshotLine line, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

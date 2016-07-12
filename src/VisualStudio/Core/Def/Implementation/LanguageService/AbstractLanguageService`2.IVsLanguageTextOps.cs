@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var ts = selections.Single();
             int start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;

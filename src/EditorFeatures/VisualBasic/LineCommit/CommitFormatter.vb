@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                              codeCleanups,
                                                              cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
-                    Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                    Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
                     Dim newRoot = Await CodeCleaner.CleanupAsync(root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken).ConfigureAwait(False)
                     If root Is newRoot Then
                         finalDocument = document

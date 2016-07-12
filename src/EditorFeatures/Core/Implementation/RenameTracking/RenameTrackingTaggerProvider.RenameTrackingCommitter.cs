@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
                     // these calls can't be cancelled and must be allowed to complete.
-                    var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootSynchronously(CancellationToken.None);
                     finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
                 }
 

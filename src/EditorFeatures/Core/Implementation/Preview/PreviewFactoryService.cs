@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             if (newDocument.SupportsSyntaxTree)
             {
-                var newRoot = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var newRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
                 var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
                 var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
                 var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
