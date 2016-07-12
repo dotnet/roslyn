@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis
             return this.GetDocumentState().GetTextAsync(cancellationToken);
         }
 
+        internal SourceText GetTextSynchronously(CancellationToken cancellationToken)
+        {
+            return this.GetDocumentState().GetTextSynchronously(cancellationToken);
+        }
+
         /// <summary>
         /// Gets the version of the document's text.
         /// </summary>
