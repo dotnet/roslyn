@@ -4622,18 +4622,25 @@ checkNullable:
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
-            If equals IsNot Nothing Then
-                If value IsNot Nothing Then
 
-                    If value.ContainsDiagnostics Then
-                        value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
-                    End If
+            If (equals IsNot Nothing) AndAlso (value IsNot Nothing) Then
 
+                If value.ContainsDiagnostics Then
+                    value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                End If
+
+                initializer = SyntaxFactory.EqualsValue(equals, value)
+            ElseIf (equals Is Nothing) AndAlso (value Is Nothing) Then
+                If CheckFeatureAvailability(_scanner.Options, Feature.ImplicitDefaultValueOnOptionalParameter) Then
+
+                    equals = New PunctuationSyntax(SyntaxKind.EqualsToken, "", Nothing, Nothing)
+                    value = SyntaxFactory.NothingLiteralExpression(SyntaxToken.Create(SyntaxKind.NothingKeyword))
                     initializer = SyntaxFactory.EqualsValue(equals, value)
+
                 End If
             End If
 
-            Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
+                Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
         End Function
 
         ' File:Parser.cpp
