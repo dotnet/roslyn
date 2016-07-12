@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 for (int j = 0; j < types.Length; ++j)
                 {
                     var kind = conversions[i, j];
-                    var result = c.ClassifyConversion(types[j], types[i], ref useSiteDiagnostics);
+                    var result = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics);
                     //Assert.Equal doesn't allow a string explanation, so provide one this way.
                     if (kind != result.Kind)
                     {
-                        var result2 = c.ClassifyConversion(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
+                        var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
                         Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
@@ -312,13 +312,13 @@ class C
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             // no custom modifiers to custom modifiers
-            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversion(typeIntArray, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
+            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArray, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
 
             // custom modifiers to no custom modifiers
-            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversion(typeIntArrayWithCustomModifiers, typeIntArray, ref useSiteDiagnostics).Kind);
+            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArray, ref useSiteDiagnostics).Kind);
 
             // custom modifiers to custom modifiers
-            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversion(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
+            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
         }
 
         [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
@@ -1109,10 +1109,13 @@ class Convertible
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (8,13): error CS0150: A constant value is expected
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "case default(Convertible):"),
+                // (8,18): error CS0150: A constant value is expected
+                //             case default(Convertible): return;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18),
                 // (8,40): warning CS0162: Unreachable code detected
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
+                //             case default(Convertible): return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(8, 40)
+                );
         }
 
         [Fact]
@@ -1139,10 +1142,13 @@ class Convertible
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,13): error CS0150: A constant value is expected
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "case c:"),
+                // (9,18): error CS0150: A constant value is expected
+                //             case c: return;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18),
                 // (9,21): warning CS0162: Unreachable code detected
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
+                //             case c: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(9, 21)
+                );
         }
 
         [Fact]

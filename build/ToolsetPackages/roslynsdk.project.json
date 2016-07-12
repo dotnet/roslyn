@@ -7,6 +7,7 @@
     "Microsoft.CodeAnalysis.Common": "1.0.0",
     "Microsoft.CodeAnalysis.CSharp": "1.0.0",
     "Microsoft.CodeAnalysis.CSharp.Workspaces": "1.0.0",
+    "Microsoft.CodeAnalysis.EditorFeatures.Text": "1.0.0",
     "Microsoft.CodeAnalysis.VisualBasic": "1.0.0",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "1.0.0",
     "Microsoft.CodeAnalysis.Workspaces.Common": "1.0.0",

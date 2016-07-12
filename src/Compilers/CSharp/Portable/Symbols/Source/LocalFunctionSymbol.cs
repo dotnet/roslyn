@@ -2,17 +2,16 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Threading;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class LocalFunctionSymbol : MethodSymbol
+    internal sealed class LocalFunctionSymbol : MethodSymbol
     {
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public LocalFunctionSymbol(
             Binder binder,
-            NamedTypeSymbol containingType,
             Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax)
         {

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -162,13 +163,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 locals = ArrayBuilder<LocalSymbol>.GetInstance();
                             }
 
-                            RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
-                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
-                            foreach (var vdecl in decl.Declaration.Variables)
+                            if (!decl.Declaration.IsDeconstructionDeclaration)
                             {
-                                var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
-                                locals.Add(localSymbol);
+                                RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
+                                LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+
+                                foreach (var vdecl in decl.Declaration.Variables)
+                                {
+                                    var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
+                                    locals.Add(localSymbol);
+                                }
+                            }
+                            else
+                            {
+                                CollectLocalsFromDeconstruction(decl.Declaration, decl.Declaration.Type, LocalDeclarationKind.RegularVariable, locals);
                             }
                         }
                         break;
@@ -181,6 +189,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalSymbol>.Empty;
         }
 
+        // When a VariableDeclaration is used in a deconstruction, there are two cases:
+        // - deconstruction is set, type may be set (for "var"), and no declarators. For instance, `var (x, ...)` or `(int x, ...)`.
+        // - deconstruction is null, type may be set, and there is one declarator holding the identifier. For instance, `int x` or `x`.
+        internal void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        {
+            if (declaration.IsDeconstructionDeclaration)
+            {
+                foreach (var variable in declaration.Deconstruction.Variables)
+                {
+                    CollectLocalsFromDeconstruction(variable, variable.Type ?? closestTypeSyntax, kind, locals);
+                }
+            }
+            else
+            {
+                Debug.Assert(declaration.Variables.Count == 1);
+                VariableDeclaratorSyntax declarator = declaration.Variables[0];
+
+                SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                            this.ContainingMemberOrLambda,
+                                                            this,
+                                                            closestTypeSyntax,
+                                                            declarator.Identifier,
+                                                            kind);
+
+                locals.Add(localSymbol);
+            }
+        }
 
         protected ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
         {
@@ -233,7 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new LocalFunctionSymbol(
                 this,
-                this.ContainingType,
                 this.ContainingMemberOrLambda,
                 declaration);
         }
