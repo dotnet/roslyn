@@ -1057,10 +1057,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            if (Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length));
+            }
+
+            if (Type.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

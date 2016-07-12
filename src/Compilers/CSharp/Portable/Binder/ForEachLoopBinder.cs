@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (SourceLocalSymbol)this.Locals[0];
+                return _syntax.IsDeconstructionDeclaration ? null : (SourceLocalSymbol)this.Locals[0];
             }
         }
 
@@ -40,14 +40,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
-                (MethodSymbol)this.ContainingMemberOrLambda,
-                this,
-                _syntax.Type,
-                _syntax.Identifier,
-                _syntax.Expression);
+            if (_syntax.IsDeconstructionDeclaration)
+            {
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+                CollectLocalsFromDeconstruction(
+                    _syntax.DeconstructionVariables,
+                    _syntax.DeconstructionVariables.Type,
+                    LocalDeclarationKind.ForEachIterationVariable,
+                    locals);
+
+                return locals.ToImmutableAndFree();
+            }
+            else
+            {
+                var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
+                    (MethodSymbol)this.ContainingMemberOrLambda,
+                    this,
+                    _syntax.Type,
+                    _syntax.Identifier,
+                    _syntax.Expression);
+
+                return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+            }
         }
 
         /// <summary>
@@ -59,10 +74,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        /// <summary>
+        /// Like BindForEachParts, but only bind the deconstruction part of the foreach, for purpose of inferring the types of the declared locals.
+        /// </summary>
+        internal override void BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        {
+            // Use the right binder to avoid seeing iteration variable
+            BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue);
+
+            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            TypeSymbol inferredType;
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
+
+            VariableDeclarationSyntax variables = _syntax.DeconstructionVariables;
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
+            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+                                                                    variables,
+                                                                    variables,
+                                                                    right: null,
+                                                                    diagnostics: diagnostics,
+                                                                    rightPlaceholder: valuePlaceholder);
+        }
+
         private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // Use the right binder to avoid seeing iteration variable
-            BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue); 
+            BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue);
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
@@ -74,33 +111,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)builder.MoveNextMethod == null ||
                 (object)builder.CurrentPropertyGetter == null;
 
-            // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
-            // binder has a local that matches!
-            var hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
-
-            // If the type in syntax is "var", then the type should be set explicitly so that the
-            // Type property doesn't fail.
-
-            TypeSyntax typeSyntax = _syntax.Type;
-
-            bool isVar;
-            AliasSymbol alias;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
-
             TypeSymbol iterationVariableType;
-            if (isVar)
+            BoundTypeExpression boundIterationVariableType;
+            bool hasNameConflicts = false;
+            BoundForEachDeconstructStep deconstructStep = null;
+            if (_syntax.IsDeconstructionDeclaration)
             {
                 iterationVariableType = inferredType ?? CreateErrorType("var");
+
+                VariableDeclarationSyntax variables = _syntax.DeconstructionVariables;
+                var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
+                BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+                                                                        variables,
+                                                                        variables,
+                                                                        right: null,
+                                                                        diagnostics: diagnostics,
+                                                                        rightPlaceholder: valuePlaceholder);
+
+                deconstructStep = new BoundForEachDeconstructStep(_syntax.DeconstructionVariables, deconstruction, valuePlaceholder);
+                boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
             }
             else
             {
-                Debug.Assert((object)declType != null);
-                iterationVariableType = declType;
+                // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
+                // binder has a local that matches!
+                hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
+
+                // If the type in syntax is "var", then the type should be set explicitly so that the
+                // Type property doesn't fail.
+
+                TypeSyntax typeSyntax = _syntax.Type;
+
+                bool isVar;
+                AliasSymbol alias;
+                TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+
+                if (isVar)
+                {
+                    iterationVariableType = inferredType ?? CreateErrorType("var");
+                }
+                else
+                {
+                    Debug.Assert((object)declType != null);
+                    iterationVariableType = declType;
+                }
+
+                boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
+                this.IterationVariable.SetTypeSymbol(iterationVariableType);
             }
-
-
-            BoundTypeExpression boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-            this.IterationVariable.SetTypeSymbol(iterationVariableType);
 
             BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
@@ -116,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundIterationVariableType,
                     this.IterationVariable,
                     collectionExpr,
+                    deconstructStep,
                     body,
                     CheckOverflowAtRuntime,
                     this.BreakLabel,
@@ -135,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but it turns out that these are equivalent (when both are available).
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion elementConversion = this.Conversions.ClassifyConversionForCast(inferredType, iterationVariableType, ref useSiteDiagnostics);
+            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(inferredType, iterationVariableType, ref useSiteDiagnostics, forCast: true);
 
             if (!elementConversion.IsValid)
             {
@@ -160,9 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
-            builder.CurrentConversion = this.Conversions.ClassifyConversion(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
+            builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
 
-            builder.EnumeratorConversion = this.Conversions.ClassifyConversion(builder.GetEnumeratorMethod.ReturnType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
+            builder.EnumeratorConversion = this.Conversions.ClassifyConversionFromType(builder.GetEnumeratorMethod.ReturnType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
 
             diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);
 
@@ -207,6 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundIterationVariableType,
                 this.IterationVariable,
                 convertedCollectionExpression,
+                deconstructStep,
                 body,
                 CheckOverflowAtRuntime,
                 this.BreakLabel,
@@ -367,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var useSiteDiagnosticBag = DiagnosticBag.GetInstance();
                     TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if (!enumeratorType.IsSealed || this.Conversions.ClassifyImplicitConversion(enumeratorType, this.Compilation.GetSpecialType(SpecialType.System_IDisposable), ref useSiteDiagnostics).IsImplicit)
+                    if (!enumeratorType.IsSealed || this.Conversions.ClassifyImplicitConversionFromType(enumeratorType, this.Compilation.GetSpecialType(SpecialType.System_IDisposable), ref useSiteDiagnostics).IsImplicit)
                     {
                         builder.NeedsDisposeMethod = true;
                         diagnostics.AddRange(useSiteDiagnosticBag);
@@ -475,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                builder.ElementType = collectionExprType.SpecialType == SpecialType.System_String?
+                builder.ElementType = collectionExprType.SpecialType == SpecialType.System_String ?
                     GetSpecialType(SpecialType.System_Char, diagnostics, _syntax) :
                     ((ArrayTypeSymbol)collectionExprType).ElementType;
             }
@@ -818,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var implementedNonGeneric = this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 if ((object)implementedNonGeneric != null)
                 {
-                    var conversion = this.Conversions.ClassifyImplicitConversion(type, implementedNonGeneric, ref useSiteDiagnostics);
+                    var conversion = this.Conversions.ClassifyImplicitConversionFromType(type, implementedNonGeneric, ref useSiteDiagnostics);
                     if (conversion.IsImplicit)
                     {
                         implementedIEnumerable = implementedNonGeneric;

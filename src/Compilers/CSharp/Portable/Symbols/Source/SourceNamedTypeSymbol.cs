@@ -1078,9 +1078,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
-            if ((object)baseType != null && baseType.ContainsDynamic())
+            if ((object)baseType != null)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
+                if (baseType.ContainsDynamic())
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
+                }
+
+                if (baseType.ContainsTuple())
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
+                }
             }
         }
 

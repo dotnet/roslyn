@@ -242,7 +242,7 @@
   </data>
   <data name="IDS_FeatureReplace" xml:space="preserve">
     <value>replaced members</value>
-  </data>  
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -699,8 +699,8 @@
   <data name="ERR_ConstantExpected" xml:space="preserve">
     <value>A constant value is expected</value>
   </data>
-  <data name="ERR_SwitchGoverningTypeValueExpected" xml:space="preserve">
-    <value>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type</value>
+  <data name="ERR_V6SwitchGoverningTypeValueExpected" xml:space="preserve">
+    <value>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.</value>
   </data>
   <data name="ERR_IntegralTypeValueExpected" xml:space="preserve">
     <value>A value of an integral type expected</value>
@@ -3839,9 +3839,6 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
-  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
-    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
-  </data>
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
@@ -4827,14 +4824,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>
   </data>
-  <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
-    <value>Cannot infer the return type of '{0}' due to differing return types.</value>
-  </data>
   <data name="ERR_DynamicLocalFunctionParamsParameter" xml:space="preserve">
     <value>Cannot pass argument with dynamic type to params parameter '{0}' of local function '{1}'.</value>
-  </data>
-  <data name="ERR_CantInferVoid" xml:space="preserve">
-    <value>Cannot infer the type of '{0}' as it does not return a value.</value>
   </data>
   <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
     <value>Syntax tree should be created from a submission.</value>
@@ -4869,6 +4860,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="ERR_MissingDeconstruct" xml:space="preserve">
+    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters.</value>
+  </data>
+  <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
+    <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
+  </data>
+  <data name="ERR_PatternValueExpected" xml:space="preserve">
+    <value>The switch expression must be a value; found {0}.</value>
+  </data>
+  <data name="ERR_PatternIsSubsumed" xml:space="preserve">
+    <value>The switch case has already been handled by a previous case.</value>
+  </data>
+  <data name="ERR_PatternWrongType" xml:space="preserve">
+    <value>An expression of type {0} cannot be handled by a pattern of type {1}.</value>
+  </data>
   <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
     <value>Attribute '{0}' is ignored when public signing is specified.</value>
   </data>
@@ -4889,5 +4895,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable.</value>
+  </data>
+  <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
+    <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
+  </data>
+  <data name="ERR_CannotDeconstructDynamic" xml:space="preserve">
+    <value>Cannot deconstruct dynamic objects.</value>
+  </data>
+  <data name="ERR_DeconstructTooFewElements" xml:space="preserve">
+    <value>Deconstruction must contain at least two variables.</value>
+  </data>
+  <data name="TypeMustBeVar" xml:space="preserve">
+    <value>The type must be 'var'.</value>
+  </data>
+  <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
+    <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>
+  </data>
+  <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
+    <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
 </root>
