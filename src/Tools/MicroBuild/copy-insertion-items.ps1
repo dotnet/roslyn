@@ -9,7 +9,6 @@ try
 {
     $items = @(
         "ExpressionEvaluatorPackage.vsix",
-        "Microsoft.VisualStudio.LanguageServices.Telemetry.vsix",
         "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
         "Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Roslyn.VisualStudio.Setup.Interactive.vsix",
