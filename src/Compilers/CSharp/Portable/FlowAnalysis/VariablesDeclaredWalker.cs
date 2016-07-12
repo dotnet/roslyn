@@ -53,14 +53,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
-        public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
+        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
-            if (IsInside)
+            base.VisitPattern(expression, pattern);
+            NoteDeclaredPatternVariables(pattern);
+        }
+
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        {
+            foreach (var label in node.SwitchLabels)
             {
-                _variablesDeclared.Add(node.LocalSymbol);
+                NoteDeclaredPatternVariables(label.Pattern);
             }
 
-            return base.VisitDeclarationPattern(node);
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        /// <summary>
+        /// Record declared variables in the pattern.
+        /// </summary>
+        private void NoteDeclaredPatternVariables(BoundPattern pattern)
+        {
+            if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
+            {
+                var decl = (BoundDeclarationPattern)pattern;
+                _variablesDeclared.Add(decl.LocalSymbol);
+            }
         }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
@@ -103,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                _variablesDeclared.Add(node.IterationVariable);
+                _variablesDeclared.Add(node.IterationVariableOpt);
             }
 
             return base.VisitForEachStatement(node);

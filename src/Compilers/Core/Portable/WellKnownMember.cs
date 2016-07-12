@@ -408,6 +408,8 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T7__ctor,
         System_ValueTuple_TRest__ctor,
 
+        System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
+
         System_String__Format_IFormatProvider,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,

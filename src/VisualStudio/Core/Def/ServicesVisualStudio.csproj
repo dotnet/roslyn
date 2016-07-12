@@ -45,7 +45,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -558,7 +557,6 @@
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.HostProject.cs" />
     <Compile Include="Implementation\ProjectSystem\ReiteratedVersionSnapshotTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\Sqm.cs" />
     <Compile Include="Implementation\ProjectSystem\ViewEventArgs.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />

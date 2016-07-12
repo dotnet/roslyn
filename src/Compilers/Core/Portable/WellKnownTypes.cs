@@ -260,6 +260,8 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
 
+        System_Runtime_CompilerServices_TupleElementNamesAttribute,
+
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
         NextAvailable,
@@ -514,6 +516,8 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple`7",
             "System.ValueTuple`8",
+
+            "System.Runtime.CompilerServices.TupleElementNamesAttribute",
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation"
         };

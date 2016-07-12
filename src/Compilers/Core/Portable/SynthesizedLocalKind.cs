@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis
     internal enum SynthesizedLocalKind
     {
         /// <summary>
+        /// Temp created for pattern matching by type.
+        /// </summary>
+        PatternMatchingTemp = -4,
+
+        /// <summary>
         /// Temp variable created by the optimizer.
         /// </summary>
         OptimizerTemp = -3,

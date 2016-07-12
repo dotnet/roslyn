@@ -4041,7 +4041,7 @@ public class iii
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
             DiagnosticsUtils.VerifyErrorCodes(
                 comp,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
         }
 
         [Fact]
@@ -4071,9 +4071,10 @@ namespace x
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
-    //             case 1:   // CS0152, two case 1 statements
-    Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13));
+                // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
+                //             case 1:   // CS0152, two case 1 statements
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13)
+                );
         }
 
         [Fact]
@@ -7204,41 +7205,24 @@ class A
     public static int Main()
     {
         (a) => a;
-        (a, b) =>
-        {
-        };
+        (a, b) => { };
         int x = 0; int y = 0;
         x + y; x == 1;
     }
 }";
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
-    // (7,16): error CS1001: Identifier expected
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
-    // (7,16): error CS1003: Syntax error, ',' expected
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
-    // (7,18): error CS1002: ; expected
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
     // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         (a) => a;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-    // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
-    // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
-    // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
-    // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a, b) => { };
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x + y; x == 1;
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
-    // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x + y; x == 1;
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
     // (4,23): error CS0161: 'A.Main()': not all code paths return a value
     //     public static int Main()
     Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
@@ -7254,49 +7238,29 @@ class A
     public static int Main()
     {
         (a) => a;
-        (a, b) =>
-        {
-        };
+        (a, b) => { };
         int x = 0; int y = 0;
         x + y; x == 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) }, new MetadataReference[] { });
+            var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
             comp.VerifyDiagnostics(
-                // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(a, b)").WithArguments("tuples", "7").WithLocation(7, 9),
-                // (7,16): error CS1001: Identifier expected
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
-                // (7,16): error CS1003: Syntax error, ',' expected
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
-                // (7,18): error CS1002: ; expected
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         (a) => a;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-                // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
-                // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
-                // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
-                // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         x + y; x == 1;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
-                // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         x + y; x == 1;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
-                // (4,23): error CS0161: 'A.Main()': not all code paths return a value
-                //     public static int Main()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
-                );
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a) => a;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a, b) => { };
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
+    // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+    //     public static int Main()
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+    );
         }
 
         [Fact]

@@ -1186,8 +1186,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLabel(BoundLabel node)
         {
-            Debug.Assert(true, "we should not have label expressions at this stage");
+            Debug.Assert(false, "we should not have label expressions at this stage");
+            return node;
+        }
 
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
+        {
+            Debug.Assert(false, "we should not have is-pattern expressions at this stage");
             return node;
         }
 

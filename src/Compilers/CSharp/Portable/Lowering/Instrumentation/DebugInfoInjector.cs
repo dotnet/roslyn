@@ -202,6 +202,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           base.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl));
         }
 
+        public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
+        {
+            ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.DeconstructionVariables.Span);
+        }
+
+        public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
+        {
+            return AddSequencePoint(base.InstrumentLocalDeconstructionDeclaration(original, rewritten));
+        }
+
         /// <summary>
         /// Add sequence point |here|:
         /// 

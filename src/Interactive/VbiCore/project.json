@@ -2,7 +2,7 @@
   "dependencies": { },
   "frameworks": {
     "NETCoreApp1.0": {
-      "imports": ["portable-net452", "dotnet"]
+      "imports": "portable-net452"
     }
   },
   "runtimes": {

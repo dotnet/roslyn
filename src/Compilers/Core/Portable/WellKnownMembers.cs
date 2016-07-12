@@ -2835,6 +2835,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeParameter, 6,
                     (byte)SignatureTypeCode.GenericTypeParameter, 7,
 
+                // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
+                (byte)MemberFlags.Constructor,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_TupleElementNamesAttribute // DeclaringTypeId
+                                                        - WellKnownType.ExtSentinel),                             
+                0,                                                                                                               // Arity
+                    1,                                                                                                           // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
                 // System_String__Format_IFormatProvider
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -3206,6 +3215,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_ValueTuple_T6__ctor
                 ".ctor",                                    // System_ValueTuple_T7__ctor
                 ".ctor",                                    // System_ValueTuple_TRest__ctor
+
+                ".ctor",                                    // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
 
                 "Format",                                   // System_String__Format_IFormatProvider
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload

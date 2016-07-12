@@ -521,7 +521,7 @@ namespace System
         }
     }
 }
-";
+" + TestResources.NetFX.ValueTuple.tupleattributes_cs;
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"{123, 124}").VerifyDiagnostics();
@@ -3805,7 +3805,7 @@ public class X
 True");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10487")]
+        [Fact]
         [WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
         public void FieldInitializers_03()
         {

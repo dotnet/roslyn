@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             string instrument = "";
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
-            var sqmSessionGuid = Guid.Empty;
             bool optionsEnded = false;
             bool interactiveMode = false;
             bool publicSign = false;
@@ -319,12 +318,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "sqmsessionguid":
+                            // The use of SQM is deprecated in the compiler but we still support the parsing of the option for
+                            // back compat reasons.
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_MissingGuidForOption, "<text>", name);
                             }
                             else
                             {
+                                Guid sqmSessionGuid;
                                 if (!Guid.TryParse(value, out sqmSessionGuid))
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidFormatForGuidForOption, value, name);
@@ -1243,7 +1245,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PrintFullPaths = printFullPaths,
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
-                SqmSessionGuid = sqmSessionGuid,
                 ReportAnalyzer = reportAnalyzer
             };
         }

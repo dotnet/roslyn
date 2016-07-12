@@ -2017,11 +2017,11 @@ class Program
     }
 }";
             var compilation = base.CreateCSharpCompilation(text);
-            // (8,13): error CS0150: A constant value is expected
-            //             case i:
-            var expected = Diagnostic(ErrorCode.ERR_ConstantExpected, "case i:");
-
-            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case i:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "i").WithLocation(8, 18)
+                );
         }
 
         [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
