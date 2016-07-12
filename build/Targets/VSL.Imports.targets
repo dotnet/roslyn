@@ -223,6 +223,10 @@
     </PropertyGroup>
   </Target>
 
+  <!-- For our projects that specify multiple targets in the project.json to work around https://github.com/dotnet/roslyn/issues/12458,
+       we need to also silence a NuGet generated warning -->
+  <Target Name="EmitMSBuildWarning"></Target>
+
   <!-- ====================================================================================
 
          Support for a IncludeInVSIXLocalOnly Content metadata
