@@ -27,6 +27,11 @@ try
         "Microsoft.CodeAnalysis.Compilers.vsix",
         "Microsoft.CodeAnalysis.Compilers.vsman")
     $baseDestPath = join-path $binariesPath "Insertion"
+    if (-not (test-path $baseDestPath))
+    {
+        mkdir $baseDestPath | out-null
+    }
+
     foreach ($item in $items) 
     {
         $sourcePath = join-path $binariesPath $item
