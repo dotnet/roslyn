@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -57,10 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Moves the enumerator and asserts that the current node is of the given kind.
         /// </summary>
         [DebuggerHidden]
-        protected SyntaxNodeOrToken N(SyntaxKind kind)
+        protected SyntaxNodeOrToken N(SyntaxKind kind, string value = null)
         {
             Assert.True(_treeEnumerator.MoveNext());
             Assert.Equal(kind, _treeEnumerator.Current.Kind());
+
+            if (value != null)
+            {
+                Assert.Equal(_treeEnumerator.Current.ToString(), value);
+            }
+
             return _treeEnumerator.Current;
         }
 
@@ -128,7 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Conditional("PARSING_TESTS_DUMP")]
         private static void Print(SyntaxNodeOrToken node)
         {
-            Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+            if (node.Kind() == SyntaxKind.IdentifierToken && !node.IsMissing)
+            {
+                Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+            }
+            else
+            {
+                Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+            }
         }
 
         [Conditional("PARSING_TESTS_DUMP")]

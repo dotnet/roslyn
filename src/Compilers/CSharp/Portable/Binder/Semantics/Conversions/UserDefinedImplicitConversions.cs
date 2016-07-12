@@ -602,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                     return true;
 
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
                     return false;
 

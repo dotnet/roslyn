@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Operand with bound implicit conversion to target type.
                     // We don't need a runtime check, generate a conversion for the operand instead.
-                    return MakeConversion(syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
+                    return MakeConversionNode(syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
                 }
             }
 

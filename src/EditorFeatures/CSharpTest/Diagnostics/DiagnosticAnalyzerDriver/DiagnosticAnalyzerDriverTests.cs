@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
 
+            // AllInOneCSharpCode has no deconstruction.
+            syntaxKindsMissing.Add(SyntaxKind.VariableDeconstructionDeclarator);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
             {

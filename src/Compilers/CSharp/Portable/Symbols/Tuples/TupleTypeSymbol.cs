@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the fields for the tuple's elements (in order and cached).
         /// </summary>
-        public ImmutableArray<FieldSymbol> TupleElementFields
+        public override ImmutableArray<FieldSymbol> TupleElementFields
         {
             get
             {
@@ -714,8 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                int index = (member as TupleFieldSymbol)?.TupleFieldId ??
-                            ((TupleErrorFieldSymbol)member).TupleFieldId;
+                int index = (member as TupleFieldSymbol)?.TupleElementIndex ??
+                            ((TupleErrorFieldSymbol)member).TupleElementIndex;
 
                 if (index >= 0)
                 {
