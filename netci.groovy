@@ -194,6 +194,6 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-update3')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }

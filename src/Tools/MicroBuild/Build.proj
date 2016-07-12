@@ -16,6 +16,7 @@
     <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
     <SignRoslynArgs>-test</SignRoslynArgs>
     <PublishAssetsArgs>-test</PublishAssetsArgs>
+    <CopyInsertionFileArgs>-test</CopyInsertionFileArgs>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -40,6 +41,8 @@
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)stop-compiler-server.ps1" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)publish-assets.ps1 -binariesPath &quot;$(BinariesPath)&quot; -branchName $(BranchName) -apiKey $(RoslynMyGetApiKey) $(PublishAssetsArgs)" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)copy-insertion-items.ps1 -binariesPath &quot;$(BinariesPath)&quot; $(CopyInsertionFileArgs)" />
   </Target>
 
 </Project>
