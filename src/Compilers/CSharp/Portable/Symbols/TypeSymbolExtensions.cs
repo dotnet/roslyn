@@ -1312,5 +1312,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             createBuilderMethod = null;
             return null;
         }
+
+        /// <summary>
+        /// Replace Task-like types with Task types.
+        /// </summary>
+        internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            NormalizeTaskTypesCore(compilation, ref type);
+            return type;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types. Returns true if there were changes.
+        /// </summary>
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref TypeSymbol type)
+        {
+            switch (type.Kind)
+            {
+                case SymbolKind.NamedType:
+                    var namedType = (NamedTypeSymbol)type;
+                    var changed = NormalizeTaskTypesCore(compilation, ref namedType);
+                    type = namedType;
+                    return changed;
+                case SymbolKind.ArrayType:
+                    // PROTOTYPE(tasklike): Use VisitType or similar to cover all cases.
+                    break;
+            }
+            return false;
+        }
+
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            var constructedFrom = type.ConstructedFrom;
+            if ((object)constructedFrom == type)
+            {
+                MethodSymbol createBuilderMethod;
+                var builderType = type.GetAsyncMethodBuilderType(out createBuilderMethod);
+                if ((object)builderType == null)
+                {
+                    return false;
+                }
+                Debug.Assert(type.Arity < 2);
+                type = compilation.GetWellKnownType(
+                    type.Arity == 1 ?
+                    WellKnownType.System_Threading_Tasks_Task_T :
+                    WellKnownType.System_Threading_Tasks_Task);
+                return true;
+            }
+            else
+            {
+                var typeArgs = type.TypeArguments;
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                bool hasChanged = false;
+                foreach (var typeArg in typeArgs)
+                {
+                    TypeSymbol typeArgNormalized = typeArg;
+                    if (NormalizeTaskTypesCore(compilation, ref typeArgNormalized))
+                    {
+                        hasChanged = true;
+                    }
+                    builder.Add(typeArgNormalized);
+                }
+                if (hasChanged)
+                {
+                    typeArgs = builder.ToImmutable();
+                }
+                builder.Free();
+                if (NormalizeTaskTypesCore(compilation, ref constructedFrom))
+                {
+                    hasChanged = true;
+                }
+                if (hasChanged)
+                {
+                    type = constructedFrom.Construct(typeArgs);
+                }
+                return hasChanged;
+            }
+        }
     }
 }

@@ -567,22 +567,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static MethodSymbol GetCacheKey(NamedTypeSymbol delegateType)
+        private MethodSymbol GetCacheKey(NamedTypeSymbol delegateType)
         {
-            delegateType = delegateType.GetDelegateType();
-
-            if (delegateType != null)
+            var invoke = DelegateInvokeMethod(delegateType);
+            if ((object)invoke != null)
             {
-                var invoke = delegateType.DelegateInvokeMethod;
-                if (invoke != null)
-                {
-                    return invoke;
-                }
+                return invoke;
             }
 
             // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
-            // in such case we would want something trivial with no parameters, like a fake static ctor
-            return new SynthesizedStaticConstructor(delegateType);
+            // in such case we would want something trivial with no parameters, like a fake static ctor.
+            // Since the containingType of the .cctor must be non-null, System.Object is used.
+            return new SynthesizedStaticConstructor(binder.Compilation.GetSpecialType(SpecialType.System_Object));
         }
 
         public TypeSymbol InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
