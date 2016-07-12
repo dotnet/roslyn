@@ -60,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             methodBodyBinder = Nothing
 
             Dim factory As New SyntheticBoundNodeFactory(Me, Me, VisualBasicSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics)
+            Dim body As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance()
 
             ' Initialize the payload root for each kind of dynamic analysis instrumentation.
             ' A payload root is an array of arrays of per-method instrumentation payloads.
@@ -71,13 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' index portion of the greatest method definition token in the compilation. This guarantees that any
             ' method can use the index portion of its own method definition token as an index into the payload array.
 
-            Dim payloadRootFields As IOrderedEnumerable(Of KeyValuePair(Of Integer, InstrumentationPayloadRootField)) = _privateImplementationType.GetInstrumentationPayloadRoots()
-            Dim payloadRootFieldsCount As Integer = payloadRootFields.Count()
-            Debug.Assert(payloadRootFieldsCount > 0)
-
-            Dim body As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(2 + payloadRootFieldsCount)
-
-            For Each payloadRoot As KeyValuePair(Of Integer, InstrumentationPayloadRootField) In payloadRootFields
+            For Each payloadRoot As KeyValuePair(Of Integer, InstrumentationPayloadRootField) In _privateImplementationType.GetInstrumentationPayloadRoots()
 
                 Dim analysisKind As Integer = payloadRoot.Key
                 Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type, ArrayTypeSymbol)
