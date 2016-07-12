@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             var compilation = method.DeclaringCompilation;
 
-            if (method.ReturnsVoid || method.IsIterator ||
-                (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
+            if (method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(compilation))
             {
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))

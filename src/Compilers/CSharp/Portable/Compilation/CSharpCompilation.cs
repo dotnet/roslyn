@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncQueue<CompilationEvent> eventQueue = null)
             : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
         {
-            _wellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
+            WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
             this.builtInOperators = new BuiltInOperators(this);

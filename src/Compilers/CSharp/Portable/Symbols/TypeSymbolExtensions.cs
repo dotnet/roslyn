@@ -1248,5 +1248,183 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
+
+        internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+            if (namedType.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+            NamedTypeSymbol builderType;
+            MethodSymbol createBuilderMethod;
+            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+        }
+
+        internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                return true;
+            }
+            NamedTypeSymbol builderType;
+            MethodSymbol createBuilderMethod;
+            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+        }
+
+        /// <summary>
+        /// Returns true if the type is generic or non-generic task-like type. If so, the async
+        /// method builder type is returned along with the method to construct that type.
+        /// </summary>
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out NamedTypeSymbol builderType, out MethodSymbol createBuilderMethod)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+
+            var arity = type.Arity;
+            if (arity < 2)
+            {
+                // Find the public static CreateAsyncMethodBuilder method.
+                var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
+                foreach (var member in members)
+                {
+                    if (member.Kind != SymbolKind.Method)
+                    {
+                        continue;
+                    }
+                    var method = (MethodSymbol)member;
+                    if ((method.DeclaredAccessibility == Accessibility.Public) &&
+                        method.IsStatic &&
+                        (method.ParameterCount == 0) &&
+                        !method.IsGenericMethod)
+                    {
+                        var returnType = method.ReturnType as NamedTypeSymbol;
+                        if ((object)returnType == null || returnType.Arity != arity)
+                        {
+                            break;
+                        }
+                        builderType = returnType;
+                        createBuilderMethod = method;
+                        return true;
+                    }
+                }
+            }
+
+            builderType = null;
+            createBuilderMethod = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types.
+        /// </summary>
+        internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            NormalizeTaskTypesCore(compilation, ref type);
+            return type;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types. Returns true if there were changes.
+        /// </summary>
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref TypeSymbol type)
+        {
+            switch (type.Kind)
+            {
+                case SymbolKind.NamedType:
+                    {
+                        var namedType = (NamedTypeSymbol)type;
+                        var changed = NormalizeTaskTypesCore(compilation, ref namedType);
+                        type = namedType;
+                        return changed;
+                    }
+                case SymbolKind.ArrayType:
+                    {
+                        var arrayType = (ArrayTypeSymbol)type;
+                        var changed = NormalizeTaskTypesCore(compilation, ref arrayType);
+                        type = arrayType;
+                        return changed;
+                    }
+            }
+            return false;
+        }
+
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            bool hasChanged = false;
+
+            if (!type.IsDefinition)
+            {
+                Debug.Assert(type.IsGenericType);
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance();
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
+                for (int i = 0; i < typeArgumentsBuilder.Count; i++)
+                {
+                    var typeArgNormalized = typeArgumentsBuilder[i].Type;
+                    if (NormalizeTaskTypesCore(compilation, ref typeArgNormalized))
+                    {
+                        hasChanged = true;
+                        // Should preserve custom modifiers (see https://github.com/dotnet/roslyn/issues/12615).
+                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized);
+                    }
+                }
+                if (hasChanged)
+                {
+                    var originalDefinition = type.OriginalDefinition;
+                    var typeParameters = originalDefinition.GetAllTypeParameters();
+                    var typeMap = new TypeMap(typeParameters, typeArgumentsBuilder.ToImmutable(), allowAlpha: true);
+                    type = typeMap.SubstituteNamedType(originalDefinition);
+                }
+                typeArgumentsBuilder.Free();
+            }
+
+            NamedTypeSymbol builderType;
+            MethodSymbol createBuilderMethod;
+            if (type.OriginalDefinition.IsCustomTaskType(out builderType, out createBuilderMethod))
+            {
+                int arity = type.Arity;
+                Debug.Assert(arity < 2);
+                var taskType = compilation.GetWellKnownType(
+                    arity == 0 ?
+                    WellKnownType.System_Threading_Tasks_Task :
+                    WellKnownType.System_Threading_Tasks_Task_T);
+                if (taskType.TypeKind == TypeKind.Error)
+                {
+                    // Skip if Task types are not available.
+                    return false;
+                }
+                type = arity == 0 ?
+                    taskType :
+                    taskType.Construct(type.TypeArgumentsNoUseSiteDiagnostics);
+                hasChanged = true;
+            }
+
+            return hasChanged;
+        }
+
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
+        {
+            var elementType = arrayType.ElementType;
+            if (!NormalizeTaskTypesCore(compilation, ref elementType))
+            {
+                return false;
+            }
+            arrayType = arrayType.WithElementType(elementType);
+            return true;
+        }
     }
 }

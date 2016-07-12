@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                && method.ReturnType.IsNonGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -285,9 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && (object)method.ReturnType != null
-                && method.ReturnType.Kind == SymbolKind.NamedType
-                && ((NamedTypeSymbol)method.ReturnType).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                && method.ReturnType.IsGenericTaskType(compilation);
         }
     }
 }
