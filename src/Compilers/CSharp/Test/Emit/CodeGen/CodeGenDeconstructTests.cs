@@ -3439,6 +3439,101 @@ class C
                 );
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12468"), CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [WorkItem(12468, "https://github.com/dotnet/roslyn/issues/12468")]
+        public void RefReturningVarInvocation2()
+        {
+            string source = @"
+class C
+{
+    static int i = 0;
+
+    static void Main()
+    {
+        int x = 0, y = 0;
+        @var(x, y) = 42; // parsed as invocation
+        System.Console.Write(i + "" "");
+        (var(x, y)) = 43; // parsed as invocation
+        System.Console.Write(i + "" "");
+        (var(x, y) = 44); // parsed as invocation
+        System.Console.Write(i);
+    }
+    static ref int var(int a, int b) { return ref i; }
+}
+";
+            // The correct expectation is for the code to compile and execute
+            //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS8213: Deconstruction must contain at least two variables.
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var(x, y)) = 43").WithLocation(11, 9),
+                // (13,20): error CS1026: ) expected
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=").WithLocation(13, 20),
+                // (13,24): error CS1002: ; expected
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(13, 24),
+                // (13,24): error CS1513: } expected
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(13, 24),
+                // (9,14): error CS0128: A local variable named 'x' is already defined in this scope
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(9, 14),
+                // (9,9): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(9, 9),
+                // (9,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(9, 14),
+                // (9,17): error CS0128: A local variable named 'y' is already defined in this scope
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(9, 17),
+                // (9,9): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(9, 9),
+                // (9,17): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(9, 17),
+                // (9,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 22),
+                // (9,22): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 22),
+                // (11,14): error CS0128: A local variable named 'x' is already defined in this scope
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(11, 14),
+                // (11,17): error CS0128: A local variable named 'y' is already defined in this scope
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(11, 17),
+                // (11,23): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "43").WithArguments("int", "Deconstruct").WithLocation(11, 23),
+                // (11,23): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "43").WithArguments("int", "1").WithLocation(11, 23),
+                // (13,14): error CS0128: A local variable named 'x' is already defined in this scope
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(13, 14),
+                // (13,17): error CS0128: A local variable named 'y' is already defined in this scope
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(13, 17),
+                // (13,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "44").WithArguments("int", "Deconstruct").WithLocation(13, 22),
+                // (13,22): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "44").WithArguments("int", "1").WithLocation(13, 22),
+                // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 0, y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
+                // (8,20): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int x = 0, y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20)
+                );
+        }
+
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
         [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningInvocation()
