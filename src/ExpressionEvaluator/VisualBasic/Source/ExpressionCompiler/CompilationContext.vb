@@ -884,19 +884,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function SelectAndInitializeCollection(Of T)(
-            scope As ImportScope,
+            scope As VBImportScopeKind,
             ByRef projectLevelCollection As T,
             ByRef fileLevelCollection As T,
             initializeCollection As Func(Of T)) As T
 
-            If scope = ImportScope.Project Then
+            If scope = VBImportScopeKind.Project Then
                 If projectLevelCollection Is Nothing Then
                     projectLevelCollection = initializeCollection()
                 End If
 
                 Return projectLevelCollection
             Else
-                Debug.Assert(scope = ImportScope.File OrElse scope = ImportScope.Unspecified)
+                Debug.Assert(scope = VBImportScopeKind.File OrElse scope = VBImportScopeKind.Unspecified)
 
                 If fileLevelCollection Is Nothing Then
                     fileLevelCollection = initializeCollection()

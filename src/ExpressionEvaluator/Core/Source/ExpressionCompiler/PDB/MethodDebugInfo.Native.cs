@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     string alias = null;
                     string target = null;
                     ImportTargetKind kind = 0;
-                    ImportScope scope = 0;
+                    VBImportScopeKind scope = 0;
 
                     if (!CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out target, out kind, out scope))
                     {
@@ -327,17 +327,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 else
                 {
                     ImportRecord importRecord;
-                    ImportScope scope = 0;
+                    VBImportScopeKind scope = 0;
 
                     if (TryCreateImportRecordFromVisualBasicImportString(importString, out importRecord, out scope))
                     {
-                        if (scope == ImportScope.Project)
+                        if (scope == VBImportScopeKind.Project)
                         {
                             projectLevelImportRecords.Add(importRecord);
                         }
                         else
                         {
-                            Debug.Assert(scope == ImportScope.File || scope == ImportScope.Unspecified);
+                            Debug.Assert(scope == VBImportScopeKind.File || scope == VBImportScopeKind.Unspecified);
                             fileLevelImportRecords.Add(importRecord);
                         }
                     }
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             defaultNamespaceName = defaultNamespaceName ?? "";
         }
 
-        private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out ImportScope scope)
+        private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out VBImportScopeKind scope)
         {
             ImportTargetKind targetKind;
             string alias;

@@ -475,7 +475,6 @@ namespace Microsoft.CodeAnalysis
             return importStrings;
         }
 
-        // TODO (https://github.com/dotnet/roslyn/issues/702): caller should depend on abstraction
         /// <exception cref="InvalidOperationException">Bad data.</exception>
         public static void GetCSharpDynamicLocalInfo(
             byte[] customDebugInfo,
@@ -769,12 +768,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="import"/> is null.</exception>
         /// <exception cref="ArgumentException">Format of <paramref name="import"/> is not valid.</exception>
-        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out ImportScope scope)
+        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out VBImportScopeKind scope)
         {
             alias = null;
             target = null;
             kind = default(ImportTargetKind);
-            scope = default(ImportScope);
+            scope = default(VBImportScopeKind);
 
             if (import == null)
             {
@@ -787,7 +786,7 @@ namespace Microsoft.CodeAnalysis
                 alias = null;
                 target = import;
                 kind = ImportTargetKind.CurrentNamespace;
-                scope = ImportScope.Unspecified;
+                scope = VBImportScopeKind.Unspecified;
                 return true;
             }
 
@@ -803,7 +802,7 @@ namespace Microsoft.CodeAnalysis
                     alias = null;
                     target = import;
                     kind = ImportTargetKind.Defunct;
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     return true;
                 case '*': // VB default namespace
                     // see PEBuilder.cpp in vb\language\CodeGen
@@ -811,7 +810,7 @@ namespace Microsoft.CodeAnalysis
                     alias = null;
                     target = import.Substring(pos);
                     kind = ImportTargetKind.DefaultNamespace;
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     return true;
                 case '@': // VB cases other than default and current namespace
                     // see PEBuilder.cpp in vb\language\CodeGen
@@ -821,15 +820,15 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     switch (import[pos])
                     {
                         case 'F':
-                            scope = ImportScope.File;
+                            scope = VBImportScopeKind.File;
                             pos++;
                             break;
                         case 'P':
-                            scope = ImportScope.Project;
+                            scope = VBImportScopeKind.Project;
                             pos++;
                             break;
                     }
@@ -911,7 +910,7 @@ namespace Microsoft.CodeAnalysis
                     alias = null;
                     target = import;
                     kind = ImportTargetKind.CurrentNamespace;
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     return true;
             }
         }
@@ -1007,7 +1006,7 @@ namespace Microsoft.CodeAnalysis
         Defunct,
     }
 
-    internal enum ImportScope
+    internal enum VBImportScopeKind
     {
         Unspecified,
         File,
@@ -1059,4 +1058,3 @@ namespace Microsoft.CodeAnalysis
         EditAndContinueLambdaMap = CDI.CdiKindEditAndContinueLambdaMap,
     }
 }
-#pragma warning restore RS0010 // Avoid using cref tags with a prefix

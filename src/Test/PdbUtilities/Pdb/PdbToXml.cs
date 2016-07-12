@@ -18,7 +18,6 @@ using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
-using ImportScope = Microsoft.CodeAnalysis.ImportScope;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 
 namespace Roslyn.Test.PdbUtilities
@@ -707,7 +706,7 @@ namespace Roslyn.Test.PdbUtilities
             string externAlias;
             string target;
             ImportTargetKind kind;
-            ImportScope scope;
+            VBImportScopeKind scope;
 
             try
             {
@@ -727,7 +726,7 @@ namespace Roslyn.Test.PdbUtilities
                         case 'Z':
                         case 'E':
                         case 'T':
-                            scope = ImportScope.Unspecified;
+                            scope = VBImportScopeKind.Unspecified;
                             if (!CDI.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
                             {
                                 throw new InvalidOperationException($"Invalid import '{rawName}'");
@@ -757,7 +756,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.CurrentNamespace:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
 
                     _writer.WriteStartElement("currentnamespace");
                     _writer.WriteAttributeString("name", target);
@@ -767,7 +766,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.DefaultNamespace:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
 
                     _writer.WriteStartElement("defaultnamespace");
                     _writer.WriteAttributeString("name", target);
@@ -777,7 +776,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.MethodToken:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
 
                     int token = Convert.ToInt32(target);
                     _writer.WriteStartElement("importsforward");
@@ -818,7 +817,7 @@ namespace Roslyn.Test.PdbUtilities
 
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "namespace");
-                        Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
+                        Debug.Assert(scope == VBImportScopeKind.Unspecified); // Only C# hits this case.
                         _writer.WriteEndElement();
                     }
                     else
@@ -840,7 +839,7 @@ namespace Roslyn.Test.PdbUtilities
                         _writer.WriteAttributeString("name", alias);
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "type");
-                        Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
+                        Debug.Assert(scope == VBImportScopeKind.Unspecified); // Only C# hits this case.
                         _writer.WriteEndElement();
                     }
                     else
@@ -856,7 +855,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.Assembly:
                     Debug.Assert(alias != null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
                     if (target == null)
                     {
                         _writer.WriteStartElement("extern");
@@ -875,7 +874,7 @@ namespace Roslyn.Test.PdbUtilities
 
                 case ImportTargetKind.Defunct:
                     Debug.Assert(alias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
                     _writer.WriteStartElement("defunct");
                     _writer.WriteAttributeString("name", rawName);
                     _writer.WriteEndElement();
@@ -890,19 +889,19 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private void WriteScopeAttribute(ImportScope scope)
+        private void WriteScopeAttribute(VBImportScopeKind scope)
         {
-            if (scope == ImportScope.File)
+            if (scope == VBImportScopeKind.File)
             {
                 _writer.WriteAttributeString("importlevel", "file");
             }
-            else if (scope == ImportScope.Project)
+            else if (scope == VBImportScopeKind.Project)
             {
                 _writer.WriteAttributeString("importlevel", "project");
             }
             else
             {
-                Debug.Assert(scope == ImportScope.Unspecified, "Unexpected scope '" + scope + "'");
+                Debug.Assert(scope == VBImportScopeKind.Unspecified, "Unexpected scope '" + scope + "'");
             }
         }
 
