@@ -1062,9 +1062,6 @@ class C
                 // (5,18): error CS1026: ) expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
-                // (5,15): error CS8207: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "()").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(5, 15),
                 // (5,15): error CS8200: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
@@ -1119,9 +1116,6 @@ class C
                 // (5,18): error CS1026: ) expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
-                // (5,15): error CS8207: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "()").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(5, 15),
                 // (5,15): error CS8200: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
