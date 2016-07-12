@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { WarningLevel = warningLevel };
         }
 
-        public CSharpCompilationOptions WithConcurrentBuild(bool concurrentBuild)
+        public new CSharpCompilationOptions WithConcurrentBuild(bool concurrentBuild)
         {
             if (concurrentBuild == this.ConcurrentBuild)
             {
