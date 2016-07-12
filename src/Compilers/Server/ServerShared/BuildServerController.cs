@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -65,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            // Run the compiler at below normal priority so that it will not interfere with other
+            // processes when it is saturating the CPU during compile tasks.
+            var thisProcess = Process.GetCurrentProcess();
+            thisProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+
             keepAlive = keepAlive ?? GetKeepAliveTimeout();
             listener = listener ?? new EmptyDiagnosticListener();
             clientConnectionHost = clientConnectionHost ?? CreateClientConnectionHost(pipeName);
