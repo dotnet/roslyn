@@ -355,10 +355,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         int moduleInfoMethodToken = DecodeForwardToModuleRecord(record.Data);
 
                         ImmutableArray<string> allModuleInfoImportStrings = getMethodImportStrings(moduleInfoMethodToken, arg);
-                        if (allModuleInfoImportStrings.IsDefault)
-                        {
-                            throw new InvalidOperationException(string.Format("Forwarded to non-existing method {0}", FormatMethodToken(moduleInfoMethodToken)));
-                        }
+                        Debug.Assert(!allModuleInfoImportStrings.IsDefault);
 
                         var externAliasBuilder = ArrayBuilder<string>.GetInstance();
 
@@ -382,10 +379,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
-            if (importStrings.IsDefault)
-            {
-                return default(ImmutableArray<ImmutableArray<string>>);
-            }
+            Debug.Assert(!importStrings.IsDefault);
 
             var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
             var groupBuilder = ArrayBuilder<string>.GetInstance();
@@ -456,7 +450,9 @@ namespace Microsoft.CodeAnalysis.Debugging
             Func<int, TArg, ImmutableArray<string>> getMethodImportStrings)
         {
             ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
-            if (importStrings.IsDefaultOrEmpty)
+            Debug.Assert(!importStrings.IsDefault);
+
+            if (importStrings.IsEmpty)
             {
                 return ImmutableArray<string>.Empty;
             }
@@ -474,10 +470,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                     if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
                     {
                         importStrings = getMethodImportStrings(tempMethodToken, arg);
-                        if (importStrings.IsDefault)
-                        {
-                            throw new InvalidOperationException(string.Format("Forwarded to non-existing method {0}", FormatMethodToken(tempMethodToken)));
-                        }
+                        Debug.Assert(!importStrings.IsDefault);
                     }
                 }
             }
