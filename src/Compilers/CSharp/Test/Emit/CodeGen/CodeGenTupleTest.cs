@@ -4194,6 +4194,45 @@ class C3
         }
 
         [Fact]
+        [WorkItem(12082, "https://github.com/dotnet/roslyn/issues/12082")]
+        public void TupleWithDynamic()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (dynamic, dynamic) t = (1, 2);
+        System.Console.WriteLine(t);
+
+        t = M();
+        System.Console.WriteLine(t);
+
+        (int, int) t2 = (3, 4);
+        t = t2;
+        System.Console.WriteLine(t);
+
+        (int, int) t3 = (5, 6);
+        t = ((dynamic, dynamic))t3;
+        System.Console.WriteLine(t);
+    }
+    static (dynamic, dynamic) M()
+    {
+        return (""hello"", ""world"");
+    }
+}
+";
+            string expectedOutput =
+@"(1, 2)
+(hello, world)
+(3, 4)
+(5, 6)
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, expectedOutput: expectedOutput);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Tuple2To8Members()
         {
             var source = @"
