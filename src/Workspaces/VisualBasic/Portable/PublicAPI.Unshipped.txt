@@ -1,3 +1,0 @@
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory.CreateLanguageService(languageServices As Microsoft.CodeAnalysis.Host.HostLanguageServices) -> Microsoft.CodeAnalysis.Host.ILanguageService
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory.New() -> Void

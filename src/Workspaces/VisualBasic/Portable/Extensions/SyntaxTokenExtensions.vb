@@ -238,11 +238,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                       token)
         End Function
 
-        Private ReadOnly Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService = VisualBasicSyntaxFactsServiceFactory.GetService
-
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
-            Return _Facts.IsWord(token)
+            Return VisualBasicSyntaxFactsServiceFactory.GetService.IsWord(token)
         End Function
 
         <Extension()>

@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
-    Public Class VisualBasicSyntaxFactsServiceFactory
+    Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
         Private Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
         Public Sub New()
