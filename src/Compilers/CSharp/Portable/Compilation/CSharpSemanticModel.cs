@@ -510,6 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
+            SyntaxNode parent;
+
             if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
             {
                 return SymbolInfo.None;
@@ -519,10 +521,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else
+            else if (IsOutVarType(expression, out parent))
             {
-                return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+                return TypeFromLocal(((ArgumentSyntax)parent).Declaration, cancellationToken);
             }
+            else if (SyntaxFacts.IsDeconstructionType(expression, out parent))
+            {
+                var declaration = (VariableDeclarationSyntax)parent;
+                if (declaration.Variables.Count != 1)
+                {
+                    return SymbolInfo.None;
+                }
+
+                return TypeFromLocal(declaration, cancellationToken);
+            }
+
+            return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a variable declaration, figure out its type by looking at the declared symbol of the corresponding local.
+        /// </summary>
+        private SymbolInfo TypeFromLocal(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
+        {
+            TypeSymbol deconstructionType = (GetDeclaredSymbol(variableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+
+            if (deconstructionType?.IsErrorType() == false)
+            {
+                return new SymbolInfo(deconstructionType);
+            }
+
+            return SymbolInfo.None;
+        }
+
+        /// <summary>
+        /// Figures out if this expression is a type in an out-var ArgumentSyntax .
+        /// Outputs the VariableDeclarationSyntax directly containing it, if that is the case.
+        /// </summary>
+        private static bool IsOutVarType(ExpressionSyntax expression, out SyntaxNode parent)
+        {
+            return (parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+                     ((VariableDeclarationSyntax)parent).Type == expression &&
+                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument &&
+                     ((ArgumentSyntax)parent).Type == expression;
         }
 
         /// <summary>
@@ -1733,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var s in symbols)
                     {
                         AddUnwrappingErrorTypes(builder, s);
-                        }
+                    }
 
                     symbols = builder.ToImmutableAndFree();
                 }
@@ -1838,18 +1879,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
+                else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
                 {
-                    Debug.Assert(highestBoundExpr == boundExpr);
-                    var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;
-                    // The bound tree always fully binds tuple literals. From the language point of
-                    // view, however, converted tuple literals represent tuple conversions
-                    // from tuple literal expressions which may or may not have types
-                    type = convertedLiteral.NaturalTypeOpt;
-                    convertedType = convertedLiteral.Type;
-                    conversion = convertedType.Equals(type, ignoreDynamic: true) ?
-                                        Conversion.Identity :
-                                        Conversion.ImplicitTupleLiteral;
+                    var tupleLiteralConversion = (BoundConversion)highestBoundExpr;
+                    var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
+                    type = convertedTuple.NaturalTypeOpt;
+                    convertedType = tupleLiteralConversion.Type;
+                    conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
@@ -2498,7 +2534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !destination.IsErrorType())
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionForCast(bnode, destination, ref useSiteDiagnostics);
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref useSiteDiagnostics, forCast: true);
                 }
             }
 

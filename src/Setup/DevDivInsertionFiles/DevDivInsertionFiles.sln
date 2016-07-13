@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22026.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DevDivInsertionFiles", "DevDivInsertionFiles.vbproj", "{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Release|Mixed Platforms = Release|Mixed Platforms
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 1
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
+		SccProjectUniqueName0 = DevDivInsertionFiles.vbproj
+		SccProjectName0 = .
+		SccAuxPath0 = http://vstfdevdiv:8080/devdiv2
+		SccLocalPath0 = .
+		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+	EndGlobalSection
+EndGlobal

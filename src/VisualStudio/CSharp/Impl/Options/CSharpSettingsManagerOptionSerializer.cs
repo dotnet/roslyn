@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal sealed class CSharpSettingsManagerOptionSerializer : AbstractSettingsManagerOptionSerializer
     {
         [ImportingConstructor]
-        public CSharpSettingsManagerOptionSerializer(SVsServiceProvider serviceProvider, IOptionService optionService)
-            : base(serviceProvider, optionService)
+        public CSharpSettingsManagerOptionSerializer(VisualStudioWorkspaceImpl workspace)
+            : base(workspace)
         {
         }
 

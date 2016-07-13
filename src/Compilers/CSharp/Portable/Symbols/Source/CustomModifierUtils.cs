@@ -63,6 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (sourceType.IsTupleType)
             {
+                // TODO(https://github.com/dotnet/roslyn/issues/12389):
+                // Need to save/restore tupleness as well
+                if (sourceType.IsTupleType)
+                {
+                    Debug.Assert(destinationType.IsTupleType);
+                    return destinationType;
+                }
+
                 ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
                 TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 

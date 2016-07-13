@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseStatement(text, offset, options);
         }
 
-        private StatementSyntax ParseStatementExperimental(string text, MessageID feature)
-        {
-            return ParseStatement(text, offset: 0, options: TestOptions.Regular.WithExperimental(feature));
-        }
-
         [Fact]
         public void TestName()
         {
@@ -209,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithTuple()
         {
             var text = "(int, int) a;";
-            var statement = this.ParseStatement(text, options: TestOptions.Regular.WithTuplesFeature());
+            var statement = this.ParseStatement(text, options: TestOptions.Regular);
 
             (text).ToString();
 
@@ -738,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatement()
         {
             var text = "ref T a;";
-            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -765,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithInitializer()
         {
             var text = "ref T a = ref b;";
-            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -798,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithMultipleInitializers()
         {
             var text = "ref T a = ref b, c = ref d;";
-            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -1639,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
-            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -2468,8 +2463,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestContextualKeywordAsLocalVariableType(SyntaxKind.PartialKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AsyncKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AwaitKeyword);
-            TestContextualKeywordAsLocalVariableType(SyntaxKind.ReplaceKeyword);
-            TestContextualKeywordAsLocalVariableType(SyntaxKind.OriginalKeyword);
         }
 
         private void TestContextualKeywordAsLocalVariableType(SyntaxKind kind)
@@ -2611,7 +2604,7 @@ class C
             var source = @"
 class C1
 {
-static void Test(int arg1, (byte, byte) arg2)
+    static void Test(int arg1, (byte, byte) arg2)
     {
         (int, int) t1 = new(int, int)();
         (int, int)? t2 = default((int a, int b));
@@ -2629,13 +2622,13 @@ static void Test(int arg1, (byte, byte) arg2)
                 from j in ""ee""
                 select (i, j);
 
-            foreach ((int, int) e in new (int, int)[10])
-            {
-            }
+        foreach ((int, int) e in new (int, int)[10])
+        {
         }
+    }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithTuplesFeature());
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
             Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
         }
 

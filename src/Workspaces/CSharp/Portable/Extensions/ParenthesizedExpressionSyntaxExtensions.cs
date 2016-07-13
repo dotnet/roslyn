@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Easy statement-level cases:
             //   var y = (x);           -> var y = x;
+            //   var (y, z) = (x);      -> var (y, z) = x;
             //   if ((x))               -> if (x)
             //   return (x);            -> return x;
             //   yield return (x);      -> yield return x;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   using ((x))            -> using (x)
             //   catch when ((x))       -> catch when (x)
             if ((node.IsParentKind(SyntaxKind.EqualsValueClause) && ((EqualsValueClauseSyntax)node.Parent).Value == node) ||
+                (node.IsParentKind(SyntaxKind.VariableDeconstructionDeclarator) && ((VariableDeconstructionDeclaratorSyntax)node.Parent).Value == node) ||
                 (node.IsParentKind(SyntaxKind.IfStatement) && ((IfStatementSyntax)node.Parent).Condition == node) ||
                 (node.IsParentKind(SyntaxKind.ReturnStatement) && ((ReturnStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.YieldReturnStatement) && ((YieldStatementSyntax)node.Parent).Expression == node) ||

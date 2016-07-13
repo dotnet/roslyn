@@ -443,9 +443,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string text,
             CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null)
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] additionalRefs = null)
         {
             var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
+            
+            if (additionalRefs != null)
+            {
+                refs.AddRange(additionalRefs);
+            }
 
             return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }

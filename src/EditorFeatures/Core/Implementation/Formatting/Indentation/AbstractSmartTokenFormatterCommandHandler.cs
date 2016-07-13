@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         /// <returns>True if any change is made.</returns>
         protected bool FormatToken(ITextView view, Document document, SyntaxToken token, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var formatter = CreateSmartTokenFormatter(document.Options, formattingRules, root);
             var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.Count == 0)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         {
             var position = view.GetCaretPoint(subjectBuffer).Value;
             var line = position.GetContainingLine().AsTextLine();
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var options = document.Options;
             if (!UseSmartTokenFormatter(root, line, formattingRules, options, cancellationToken))
             {

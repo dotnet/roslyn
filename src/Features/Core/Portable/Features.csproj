@@ -65,6 +65,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
@@ -190,6 +191,8 @@
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\Providers\MemberInsertingCompletionItem.cs" />
     <Compile Include="Completion\MatchPriority.cs" />
+    <Compile Include="Completion\Providers\AbstractRecommendationServiceBasedCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\SymbolMatchPriority.cs" />
     <Compile Include="Completion\Providers\UnionCompletionItemComparer.cs" />
     <Compile Include="Completion\Providers\AbstractKeywordCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
@@ -325,8 +328,8 @@
     <Compile Include="Completion\CompletionRules.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\IProjectDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\DocumentDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\ProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryImportsDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />

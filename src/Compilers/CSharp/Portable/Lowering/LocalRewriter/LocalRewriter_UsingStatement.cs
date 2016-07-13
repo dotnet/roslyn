@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)expressionType == null || expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
-                BoundExpression tempInit = MakeConversion(
+                BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
-                    node.IDisposableConversion.Kind,
+                    Conversion.GetTrivialConversion(node.IDisposableConversion.Kind),
                     _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localType.IsDynamic())
             {
-                BoundExpression tempInit = MakeConversion(
+                BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
                     boundLocal,
                     idisposableConversion,

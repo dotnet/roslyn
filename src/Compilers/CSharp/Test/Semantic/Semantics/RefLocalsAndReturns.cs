@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             string assemblyName = "",
             string sourceFileName = "")
         {
-            return CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns, references, options, assemblyName, sourceFileName);
+            return CreateCompilationWithMscorlib45(text);
         }
 
         [Fact]
@@ -337,12 +337,18 @@ public class Test
 }";
             var comp = CreateCompilationRef(text, references: new[] { MscorlibRef, SystemCoreRef });
             comp.VerifyDiagnostics(
-    // (16,34): error CS8913: Cannot return the range variable 'ch' by reference
-    //             select(D1)(() => ref ch);
-    Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "ch").WithArguments("ch").WithLocation(16, 34),
-    // (19,34): error CS8913: Cannot return the range variable 's' by reference
-    //             select(D1)(() => ref s.x);
-    Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "s.x").WithArguments("s").WithLocation(19, 34)
+                // (2,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                // using System.Linq;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Linq").WithArguments("Linq", "System").WithLocation(2, 14),
+                // (15,28): error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+                //         var x = from ch in "qqq"
+                Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, @"""qqq""").WithArguments("string", "Select").WithLocation(15, 28),
+                // (18,27): error CS1935: Could not find an implementation of the query pattern for source type 'Test.S1[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+                //         var y = from s in new S1[10]
+                Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "new S1[10]").WithArguments("Test.S1[]", "Select").WithLocation(18, 27),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(2, 1)
             );
         }
         
@@ -839,7 +845,7 @@ public class Test
         }
     }
 }";
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            var options = TestOptions.Regular;
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
     // (14,13): error CS8894: By-reference returns may only be used in methods that return by reference
@@ -883,7 +889,7 @@ public class Test
         char Moo3(ref char a, ref char b) => r;
     }
 }";
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            var options = TestOptions.Regular;
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
     // (9,50): error CS8894: By-reference returns may only be used in methods that return by reference

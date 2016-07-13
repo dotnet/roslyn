@@ -174,12 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (filterOpt == null)
             {
                 WarnUnusedFields(compilation, diagnostics, cancellationToken);
-            }
 
-            MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
-            if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
-            {
-                moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics);
+                MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
+                if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
+                {
+                    moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics);
+                }
             }
         }
 
@@ -378,9 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasStaticConstructor = false;
 
             var members = containingType.GetMembers();
-            // 'extendedOrdinal' is used for replaced methods, to ensure all methods
-            // defined in source in the containing type have unique ordinals.
-            int extendedOrdinal = members.Length;
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -438,18 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (method.MethodKind == MethodKind.StaticConstructor)
                             {
                                 hasStaticConstructor = true;
-                            }
-
-                            // Replaced methods are not included in GetMembers().
-                            foreach (MethodSymbol replaced in method.GetReplacedMembers())
-                            {
-                                if (replaced.IsImplicitlyDeclared &&
-                                    (replaced.MethodKind == MethodKind.EventAdd || replaced.MethodKind == MethodKind.EventRemove))
-                                {
-                                    continue;
-                                }
-                                CompileMethod(replaced, extendedOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
-                                extendedOrdinal++;
                             }
                             break;
                         }
@@ -1190,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool sawLambdas;
-            bool sawLocalFunctions;
+                bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
@@ -1203,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowOmissionOfConditionalCalls: true,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
-                sawLocalFunctions: out sawLocalFunctions,
+                    sawLocalFunctions: out sawLocalFunctions,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
@@ -1238,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;
-            if (sawLambdas || sawLocalFunctions)
+                if (sawLambdas || sawLocalFunctions)
                 {
                     bodyWithoutLambdas = LambdaRewriter.Rewrite(
                         loweredBody,
@@ -1246,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method.ThisParameter,
                         method,
                         methodOrdinal,
-                    null,
+                        null,
                         lambdaDebugInfoBuilder,
                         closureDebugInfoBuilder,
                         lazyVariableSlotAllocator,

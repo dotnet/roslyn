@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachIterationVariable(BoundForEachStatement node)
         {
-            var local = node.IterationVariable;
+            var local = node.IterationVariableOpt;
             if ((object)local != null)
             {
                 GetOrCreateSlot(local);

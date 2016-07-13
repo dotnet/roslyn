@@ -1,0 +1,16 @@
+use vs
+
+package name=Microsoft.CodeAnalysis.VisualStudio.Setup
+        version=$(Version)
+        vs.package.chip=neutral
+        vs.package.language=en-us
+        vs.package.type=vsix
+        vs.package.vsixId=0b5e8ddb-f12d-4131-a71d-77acc26a798f
+
+vs.localizedResources
+  vs.localizedResource language=en-us
+                       title="Roslyn Language Services"
+                       description="C# and VB.NET language services for Visual Studio"
+
+vs.payloads
+  vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.vsix

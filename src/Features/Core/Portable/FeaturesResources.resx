@@ -871,7 +871,7 @@ Do you want to continue?</value>
     <value>Non-invoked method cannot be replaced with property.</value>
   </data>
   <data name="OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty" xml:space="preserve">
-    <value>Only methods with a single argument can be replaced with a property.</value>
+    <value>Only methods with a single argument, which is not an out variable declaration, can be replaced with a property.</value>
   </data>
   <data name="ErrorCategory" xml:space="preserve">
     <value>Roslyn.HostError</value>
@@ -1004,14 +1004,14 @@ This version used in: {2}</value>
   <data name="Parameters" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="Add_missing_switch_cases" xml:space="preserve">
-    <value>Add missing switch cases</value>
+  <data name="Add_missing_cases" xml:space="preserve">
+    <value>Add missing cases</value>
   </data>
   <data name="Add_both" xml:space="preserve">
     <value>Add both</value>
   </data>
-  <data name="Add_default_switch_case" xml:space="preserve">
-    <value>Add default switch case</value>
+  <data name="Add_default_case" xml:space="preserve">
+    <value>Add default case</value>
   </data>
   <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>

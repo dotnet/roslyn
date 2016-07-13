@@ -435,7 +435,7 @@ namespace A.B {
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.Regular.WithTuplesFeature()) },
+                    options: TestOptions.Regular) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
@@ -509,9 +509,9 @@ namespace A.B {
                 // (1,19): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "tuples").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7").WithLocation(1, 19),
                 // (1,20): error CS1031: Type expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),

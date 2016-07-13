@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a type that violates its own constraints then the first such method is 
             // the best bad method.
 
-            if (ConstraintsCheckFailed(binder.Conversions, binder.Compilation, diagnostics, arguments, location))
+            if (ConstraintsCheckFailed(binder.Conversions, binder.Compilation, diagnostics, location))
             {
                 return;
             }
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, if there is any such method where type inference succeeded but inferred
             // an inaccessible type then the first such method found is the best bad method.
 
-            if (InaccessibleTypeArgument(diagnostics, symbols, arguments, location))
+            if (InaccessibleTypeArgument(diagnostics, symbols, location))
             {
                 return;
             }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, if there is any such method that cannot be used because it is
             // in an unreferenced assembly then the first such method is the best bad method.
 
-            if (UseSiteError(diagnostics, symbols, location))
+            if (UseSiteError())
             {
                 return;
             }
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
                             // CONSIDER: for consistency with dev12, we would goto default except in omitted ref cases.
-                            ReportMissingRequiredParameter(firstSupported, diagnostics, arguments, delegateTypeBeingInvoked, symbols, location);
+                            ReportMissingRequiredParameter(firstSupported, diagnostics, delegateTypeBeingInvoked, symbols, location);
                             return;
 
                         // NOTE: For some reason, there is no specific handling for this result kind.
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol.ReportUseSiteDiagnostic(diagInfo, diagnostics, location);
         }
 
-        private bool UseSiteError(DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
+        private bool UseSiteError()
         {
             var bad = GetFirstMemberKind(MemberResolutionKind.UseSiteError);
             if (bad.IsNull)
@@ -507,7 +507,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool InaccessibleTypeArgument(
             DiagnosticBag diagnostics,
             ImmutableArray<Symbol> symbols,
-            AnalyzedArguments arguments,
             Location location)
         {
             var inaccessible = GetFirstMemberKind(MemberResolutionKind.InaccessibleTypeArgument);
@@ -638,7 +637,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportMissingRequiredParameter(
             MemberResolutionResult<TMember> bad,
             DiagnosticBag diagnostics,
-            AnalyzedArguments arguments,
             NamedTypeSymbol delegateTypeBeingInvoked,
             ImmutableArray<Symbol> symbols,
             Location location)
@@ -718,7 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionsBase conversions,
             Compilation compilation,
             DiagnosticBag diagnostics,
-            AnalyzedArguments arguments,
             Location location)
         {
             // We know that there is at least one method that had a number of arguments
@@ -924,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".
-            if (!argument.HasExpressionType())
+            if (!argument.HasExpressionType() && argument.Kind != BoundKind.OutDeconstructVarPendingInference && argument.Kind != BoundKind.OutVarLocalPendingInference)
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -971,6 +968,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
+                Debug.Assert(argument.Kind != BoundKind.OutVarLocalPendingInference);
+
                 TypeSymbol argType = argument.Display as TypeSymbol;
                 Debug.Assert((object)argType != null);
 

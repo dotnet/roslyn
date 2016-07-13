@@ -34,8 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
                         m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).ToList()
-            result.Add(enumType)
+                End Function)
 
             Return Task.FromResult(Of IEnumerable(Of ISymbol))(result)
         End Function
