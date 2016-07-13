@@ -2998,7 +2998,7 @@ class C
             await VerifyItemExistsAsync(markup, "a");
             await VerifyItemExistsAsync(markup, "b");
             await VerifyItemExistsAsync(markup, "c");
-            await VerifyItemIsAbsentAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "Equals");
         }
 
         [WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")]
@@ -8766,6 +8766,35 @@ class Class2
         {
             await VerifyNoItemsExistAsync("#!$$", sourceCodeKind: SourceCodeKind.Script);
             await VerifyNoItemsExistAsync("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(5373, "https://github.com/dotnet/roslyn/issues/5373")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumCompletionColorColor()
+        {
+            var markup = @"
+namespace S
+{
+    class C
+    {
+        Fail Fail;
+        Pass Passes;
+
+        void M()
+        {
+            C c = new C();
+            c.Passes = Pass.A; // Completion offers ""Pass"" and then ""A"", as expected.
+            c.Fail = Fail.$$; // Completion should only offer enum Fail.A
+        }
+    }
+
+    enum Fail { A };
+    enum Pass { A };
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "TryParse");
+            await VerifyItemExistsAsync(markup, "CompareTo");
+            await VerifyItemExistsAsync(markup, "A");
         }
     }
 }
