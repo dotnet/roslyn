@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -23,11 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         [ImportingConstructor]
         public CommentTaskTokenSerializer(
-            VisualStudioWorkspaceImpl workspace)
+            SVsServiceProvider serviceProvider, IOptionService optionService)
         {
-            _optionService = workspace.Services.GetService<IOptionService>();
+            _optionService = optionService;
 
-            _taskList = workspace.GetVsService<SVsTaskList, ITaskList>();
+            _taskList = serviceProvider.GetService(typeof(SVsTaskList)) as ITaskList;
             _lastCommentTokenCache = GetTaskTokenList(_taskList);
 
             // The SVsTaskList may not be available (e.g. during "devenv /build")
