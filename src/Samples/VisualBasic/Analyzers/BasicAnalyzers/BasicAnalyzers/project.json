@@ -1,8 +1,9 @@
 {
   "dependencies": {
-
-    },
+  },
     "frameworks": {
-    ".NETPortable,Version=v4.6,Profile=Profile44": { }
+        "netstandard1.3": {
+            "imports": "portable-net452+win81"
+        }
     }
 }

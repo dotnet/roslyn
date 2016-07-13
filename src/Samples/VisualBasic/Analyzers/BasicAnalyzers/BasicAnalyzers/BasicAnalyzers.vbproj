@@ -14,8 +14,8 @@
     <OutputType>Library</OutputType>
     <AssemblyName>BasicAnalyzers</AssemblyName>
     <TargetFrameworkProfile>Profile44</TargetFrameworkProfile>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+<!--    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier> -->
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <RestorePackages>true</RestorePackages>

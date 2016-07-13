@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -598,7 +599,7 @@ namespace Roslyn.Utilities
                     return;
                 }
 
-                _completionSource.TrySetCanceled();
+                _completionSource.TrySetCanceled(_cancellationToken);
             }
         }
     }
