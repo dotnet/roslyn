@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     {
         protected class State
         {
+            private readonly TService _service;
+
             public SemanticDocument Document { get; }
             public string DocumentName { get; set; }
 
@@ -27,14 +29,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public INamedTypeSymbol TypeSymbol { get; set; } //BalajiK: This can be removed.
             public TTypeDeclarationSyntax TypeNode { get; set;}
 
-            private State(SemanticDocument document)
+            private State(TService service,SemanticDocument document)
             {
+                this._service = service;
                 this.Document = document;
             }
 
-            internal static State Generate(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken)
+            internal static State Generate(TService service, SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken)
             {
-                var state = new State(document);
+                var state = new State(service, document);
                 if (!state.TryInitialize(textSpan, cancellationToken))
                 {
                     return null;
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var root = this.Document.Root;
                 var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
-                var typeDeclaration = root.FindNode(textSpan) as TTypeDeclarationSyntax;
+                var typeDeclaration = _service.GetNodetoAnalyze(root, textSpan) as TTypeDeclarationSyntax;
                 if (typeDeclaration == null)
                 {
                     return false;
