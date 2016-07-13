@@ -185,8 +185,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private static bool IsTopLevelNamespaceOrTypeNode(SyntaxNode node)
             {
-                return (node is TNamespaceDeclarationSyntax && node.Parent is TCompilationUnitSyntax 
-                     || node is TTypeDeclarationSyntax && node.Parent is TNamespaceDeclarationSyntax);
+                return (node is TNamespaceDeclarationSyntax && node.Parent is TCompilationUnitSyntax
+                     || node is TTypeDeclarationSyntax && (node.Parent is TNamespaceDeclarationSyntax
+                                                            || node.Parent is TCompilationUnitSyntax));
             }
 
             private async Task<Solution> UpdateSourceDocumentAsync(

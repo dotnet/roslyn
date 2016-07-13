@@ -16,11 +16,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TMemberDeclarationSyntax : SyntaxNode
     {
         protected abstract bool IsPartial(TTypeDeclarationSyntax typeDeclaration);
+        protected virtual SyntaxNode GetNodetoAnalyze(SyntaxNode root, TextSpan span)
+        {
+            return root.FindNode(span);
+        }
 
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var state = State.Generate(semanticDocument, textSpan, cancellationToken);
+            var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
             if (state == null)
             {
                 return null;
@@ -48,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 if (!uiRequired)
                 {
                     actions.Add(GetSimpleCodeAction(
-                        document, state, renameFile: false, renameType:false, makeTypePartial: false, makeOuterTypePartial: true));
+                        document, state, renameFile: false, renameType: false, makeTypePartial: false, makeOuterTypePartial: true));
                 }
 
                 actions.Add(GetCodeActionWithUI(
-                    document, state, renameFile: false, renameType:false, makeTypePartial: false, makeOuterTypePartial: true));
+                    document, state, renameFile: false, renameType: false, makeTypePartial: false, makeOuterTypePartial: true));
             }
             else
             {
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     {
                         // rename file.
                         actions.Add(GetSimpleCodeAction(
-                            document, state, renameFile: true, renameType:false, makeTypePartial: false, makeOuterTypePartial: false));
+                            document, state, renameFile: true, renameType: false, makeTypePartial: false, makeOuterTypePartial: false));
 
                         // rename type.
                         actions.Add(GetSimpleCodeAction(
