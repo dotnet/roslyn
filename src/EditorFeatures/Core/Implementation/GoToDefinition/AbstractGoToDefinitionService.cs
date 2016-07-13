@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
         {
-            var syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var containingTypeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(syntaxRoot, caretPosition);
 

@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var newDocument = newSolution.GetDocument(id);
                     if (newDocument.SupportsSyntaxTree)
                     {
-                        var root = newDocument.GetSyntaxRootAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                        var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
                     }
                     else

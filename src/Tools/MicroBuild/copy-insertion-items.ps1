@@ -26,16 +26,28 @@ try
         "Microsoft.CodeAnalysis.Compilers.json",
         "Microsoft.CodeAnalysis.Compilers.vsix",
         "Microsoft.CodeAnalysis.Compilers.vsman")
-    $destPath = join-path $binariesPath "Insertion"
+    $baseDestPath = join-path $binariesPath "Insertion"
+    if (-not (test-path $baseDestPath))
+    {
+        mkdir $baseDestPath | out-null
+    }
+
     foreach ($item in $items) 
     {
         $sourcePath = join-path $binariesPath $item
+        $destPath = join-path $baseDestPath $item
 
         # Many of these files are only produced in the Official MicroBuild runs.  On test runs, which run locally,
         # we need to guard agains this.
         if ((-not (test-path $sourcePath)) -and $test)
         {
             write-host "Skip copying $sourcePath for test run"
+            continue;
+        }
+
+        if (test-path $destPath)
+        {
+            write-host "Skipping $item as it already exists in $destPath"
             continue;
         }
 
