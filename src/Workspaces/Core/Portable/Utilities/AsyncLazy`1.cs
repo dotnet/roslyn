@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -525,6 +524,8 @@ namespace Roslyn.Utilities
 
         private sealed class Request
         {
+            private readonly TaskCompletionSource<T> _completionSource = new TaskCompletionSource<T>();
+
             /// <summary>
             /// The <see cref="CancellationToken"/> associated with this request. This field will be initialized before
             /// any cancellation is observed from the token.
@@ -532,25 +533,7 @@ namespace Roslyn.Utilities
             private CancellationToken _cancellationToken;
             private CancellationTokenRegistration _cancellationTokenRegistration;
 
-            // We use a AsyncTaskMethodBuilder so we have the ability to cancel the task with a given cancellation token
-            // TODO: remove this once we're on .NET 4.6 and can move back to using TaskCompletionSource.
-            // WARNING: this is a mutable struct, and thus cannot be made readonly
-            private AsyncTaskMethodBuilder<T> _taskBuilder;
-
-            public Request()
-            {
-                // .Task on AsyncTaskMethodBuilder is lazily created in a non-synchronized way, so we must request it
-                // once before we start doing fancy stuff
-                var ignored = _taskBuilder.Task;
-            }
-
-            public Task<T> Task
-            {
-                get
-                {
-                    return _taskBuilder.Task;
-                }
-            }
+            public Task<T> Task => _completionSource.Task;
 
             public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
             {
@@ -574,31 +557,24 @@ namespace Roslyn.Utilities
                 // is already completed. The belief is that the race is somewhere between rare to impossible, and
                 // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
                 // and catch it if it fails
-                if (_taskBuilder.Task.IsCompleted)
+                if (this.Task.IsCompleted)
                 {
                     return;
                 }
 
-                try
+                // As an optimization, we'll cancel the request even we did get a value for it.
+                // That way things abort sooner.
+                if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
                 {
-                    // As an optimization, we'll cancel the request even we did get a value for it.
-                    // That way things abort sooner.
-                    if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
-                    {
-                        CancelSynchronously();
-                    }
-                    else if (task.IsFaulted)
-                    {
-                        _taskBuilder.SetException(task.Exception);
-                    }
-                    else
-                    {
-                        _taskBuilder.SetResult(task.Result);
-                    }
+                    CancelSynchronously();
                 }
-                catch (InvalidOperationException)
+                else if (task.IsFaulted)
                 {
-                    // Something else beat us to setting the state, so bail
+                    _completionSource.TrySetException(task.Exception);
+                }
+                else
+                {
+                    _completionSource.TrySetResult(task.Result);
                 }
 
                 _cancellationTokenRegistration.Dispose();
@@ -617,19 +593,12 @@ namespace Roslyn.Utilities
                 // is already completed. The belief is that the race is somewhere between rare to impossible, and
                 // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
                 // and catch it if it fails
-                if (_taskBuilder.Task.IsCompleted)
+                if (this.Task.IsCompleted)
                 {
                     return;
                 }
 
-                try
-                {
-                    _taskBuilder.SetException(new OperationCanceledException(_cancellationToken));
-                }
-                catch (InvalidOperationException)
-                {
-                    // Something else beat us to setting the state, so bail
-                }
+                _completionSource.TrySetCanceled();
             }
         }
     }
