@@ -147,6 +147,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public int CompareItems(CompletionItem item1, CompletionItem item2, string filterText)
         {
+            return IsBetterFilterMatchWorker(item1, item2, filterText, recentItems);
+        }
+
+        protected bool IsBetterFilterMatchWorker(CompletionItem item1, CompletionItem item2, string filterText, ImmutableArray<string> recentItems)
+        {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
 

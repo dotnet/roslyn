@@ -273,6 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
                     break;
 
+                case BoundKind.Void:
+                    Debug.Assert(!used);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -1381,11 +1385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                 CallKind.ConstrainedCallVirt;
 
                     tempOpt = EmitReceiverRef(receiver, isAccessConstrained: callKind == CallKind.ConstrainedCallVirt);
-                }
-
-                if (method.ReplacedBy != null)
-                {
-                    callKind = CallKind.Call;
                 }
             }
 

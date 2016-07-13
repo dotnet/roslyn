@@ -468,5 +468,137 @@ index: 1,
 parseOptions: TestOptions.Regular,
 withScriptOption: true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_1()
+        {
+            await TestAsync(
+@"class C
+{
+    // Foo
+    int [||]GetFoo()
+    {
+    }
+    // SetFoo
+    void SetFoo(out int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}",
+@"class C
+{
+    // Foo
+    int Foo
+    {
+        get
+        {
+        }
+    }
+
+    // SetFoo
+    void SetFoo(out int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}",
+index: 0,
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_2()
+        {
+            await TestAsync(
+@"class C
+{
+    // Foo
+    int [||]GetFoo()
+    {
+    }
+    // SetFoo
+    void SetFoo(int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}",
+@"class C
+{
+    // Foo
+    // SetFoo
+    int Foo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+
+    void Test()
+    {
+        {|Conflict:Foo|}(out int i);
+    }
+}",
+index: 1,
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    // Foo
+    int GetFoo()
+    {
+    }
+    // SetFoo
+    void [||]SetFoo(out int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_4()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    // Foo
+    int [||]GetFoo(out int i)
+    {
+    }
+    // SetFoo
+    void SetFoo(out int i, int j)
+    {
+    }
+
+    void Test()
+    {
+        var y = GetFoo(out int i);
+    }
+}");
+        }
     }
 }

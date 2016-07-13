@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1231,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
-                if (argumentKind == BoundKind.OutVarLocalPendingInference)
+                if (argumentKind == BoundKind.OutVarLocalPendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
                 {
                     // If argument is an out variable that needs type inference,
                     // neither candidate is better in this argument.
@@ -1254,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (r == BetterResult.Neither)
                 {
-                    if (allSame && Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    if (allSame && Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                     }
@@ -1263,12 +1262,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (!considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                if (!considerRefKinds || Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                 {
                     // If considerRefKinds is false, conversion between parameter types isn't classified by the if condition.
                     // This assert is here to verify the assumption that the conversion is never an identity in that case and
                     // we can skip classification as an optimization.
-                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
+                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
                     allSame = false;
                 }
 
@@ -1370,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
                     var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
-                    if (Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    if (Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                         break;
@@ -2015,13 +2014,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BetterResult BetterConversionTarget(TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private const int BetterConversionTargetRecursionLimit = 100;
+
+        private BetterResult BetterConversionTarget(
+            TypeSymbol type1,
+            TypeSymbol type2,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool okToDowngradeToNeither;
-            return BetterConversionTarget(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither);
+            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
         }
 
-        private BetterResult BetterConversionTarget(BoundExpression node, TypeSymbol type1, Conversion conv1, TypeSymbol type2, Conversion conv2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool okToDowngradeToNeither)
+        private BetterResult BetterConversionTargetCore(
+            TypeSymbol type1,
+            TypeSymbol type2,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            int betterConversionTargetRecursionLimit)
+        {
+            if (betterConversionTargetRecursionLimit < 0)
+            {
+                return BetterResult.Neither;
+            }
+
+            bool okToDowngradeToNeither;
+            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither, betterConversionTargetRecursionLimit - 1);
+        }
+
+        private BetterResult BetterConversionTarget(
+            BoundExpression node,
+            TypeSymbol type1,
+            Conversion conv1,
+            TypeSymbol type2,
+            Conversion conv2,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out bool okToDowngradeToNeither)
+        {
+            return BetterConversionTargetCore(node, type1, conv1, type2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
+        }
+
+        private BetterResult BetterConversionTargetCore(
+            BoundExpression node,
+            TypeSymbol type1,
+            Conversion conv1,
+            TypeSymbol type2,
+            Conversion conv2,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out bool okToDowngradeToNeither,
+            int betterConversionTargetRecursionLimit)
         {
             okToDowngradeToNeither = false;
 
@@ -2033,8 +2072,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists, 
             // and at least one of the following holds:
-            bool type1ToType2 = Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).IsImplicit;
-            bool type2ToType1 = Conversions.ClassifyImplicitConversion(type2, type1, ref useSiteDiagnostics).IsImplicit;
+            bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).IsImplicit;
+            bool type2ToType1 = Conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).IsImplicit;
             UnboundLambda lambdaOpt = node as UnboundLambda;
 
             if (type1ToType2)
@@ -2065,9 +2104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type2.OriginalDefinition == task_T)
                     {
                         // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
-                        return BetterConversionTarget(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ref useSiteDiagnostics);
+                        return BetterConversionTargetCore(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                          ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                          ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
                     }
 
                     // A shortcut, Task<T> type cannot satisfy other rules.
@@ -2117,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (delegateResult == BetterResult.Neither)
                         {
                             //  - D2 has a return type S2, and S1 is a better conversion target than S2
-                            delegateResult = BetterConversionTarget(r1, r2, ref useSiteDiagnostics);
+                            delegateResult = BetterConversionTargetCore(r1, r2, ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
                         }
 
                         // Downgrade result to Neither if conversion used by the winner isn't actually valid method group conversion.
@@ -2789,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (arguments.IsExtensionMethodInvocation)
             {
-                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(_binder.Conversions, method, originalEffectiveParameters.ParameterTypes, args, ref useSiteDiagnostics);
+                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(_binder.Conversions, method, args, ref useSiteDiagnostics);
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
@@ -2932,7 +2971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
-            if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+            if (argument.Kind == BoundKind.OutVarLocalPendingInference || argument.Kind == BoundKind.OutDeconstructVarPendingInference)
             {
                 Debug.Assert(argRefKind != RefKind.None);
 

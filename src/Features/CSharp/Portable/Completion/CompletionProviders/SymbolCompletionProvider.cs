@@ -16,14 +16,22 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class SymbolCompletionProvider : AbstractSymbolCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
         protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
+        }
+
+        protected override bool IsInstrinsic(ISymbol s)
+        {
+            var ts = s as ITypeSymbol;
+            return ts != null && ts.IsIntrinsicType();
         }
 
         protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
@@ -101,16 +109,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static CompletionItemRules s_importDirectiveRules =
             CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+        private static CompletionItemRules s_importDirectiveRules_Preselect = s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+        private static CompletionItemRules s_PreselectionRules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect)
         {
             if (context.IsInImportsDirective)
             {
-                return s_importDirectiveRules;
+                return preselect ? s_importDirectiveRules_Preselect : s_importDirectiveRules;
             }
             else
             {
-                return CompletionItemRules.Default;
+                return preselect ? s_PreselectionRules : CompletionItemRules.Default;
+            }
+        }
+
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
+        {
+            // Unused
+            throw new NotImplementedException();
+        }
+
+        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior
+        {
+            get
+            {
+                return CompletionItemSelectionBehavior.HardSelection;
             }
         }
     }

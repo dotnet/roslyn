@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     continue;
                 }
 
-                var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
                 var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)
                                          .Where(s => s.IsToken)
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     var pathToRenameToken = new SyntaxPath(renameTokenOpt.Value);
                     var latestDocument = workspace.CurrentSolution.GetDocument(documentId);
-                    var latestRoot = latestDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var latestRoot = latestDocument.GetSyntaxRootSynchronously(cancellationToken);
 
                     SyntaxNodeOrToken resolvedRenameToken;
                     if (pathToRenameToken.TryResolve(latestRoot, out resolvedRenameToken) &&
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span))
                         {
                             var openDocument = workspace.CurrentSolution.GetDocument(documentId);
-                            var openRoot = openDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var openRoot = openDocument.GetSyntaxRootSynchronously(cancellationToken);
 
                             // NOTE: We need to resolve the syntax path again in case VB line commit kicked in
                             // due to the navigation.

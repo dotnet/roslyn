@@ -521,7 +521,7 @@ namespace System
         }
     }
 }
-";
+" + TestResources.NetFX.ValueTuple.tupleattributes_cs;
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"{123, 124}").VerifyDiagnostics();
@@ -3805,7 +3805,7 @@ public class X
 True");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10487")]
+        [Fact]
         [WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
         public void FieldInitializers_03()
         {
@@ -13087,6 +13087,206 @@ public class Cls
             }
 
             Assert.False(true, "Expected exception is not thrown.");
+        }
+
+        [Fact]
+        [WorkItem(12058, "https://github.com/dotnet/roslyn/issues/12058")]
+        public void MissingArgumentAndNamedOutVarArgument()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        if (M(s: out var s))
+        {
+            string s2 = s;
+        }
+    }
+    public static bool M(int i, out string s)
+    {
+        s = i.ToString();
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Program.M(int, out string)'
+                //         if (M(s: out var s))
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("i", "Program.M(int, out string)").WithLocation(5, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        public void LocalVariableTypeInferenceAndOutVar_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var y = Test1(out var x);
+        System.Console.WriteLine(y);
+    }
+
+    static int Test1(out int x)
+    {
+        x = 123;
+        return 124;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"124").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        public void LocalVariableTypeInferenceAndOutVar_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var y = Test1(out int x) + x;
+        System.Console.WriteLine(y);
+    }
+
+    static int Test1(out int x)
+    {
+        x = 123;
+        return 124;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        public void LocalVariableTypeInferenceAndOutVar_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var y = Test1(out var x) + x;
+        System.Console.WriteLine(y);
+    }
+
+    static int Test1(out int x)
+    {
+        x = 123;
+        return 124;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        public void LocalVariableTypeInferenceAndOutVar_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        for (var y = Test1(out var x) + x; y != 0 ; y = 0)
+        {
+            System.Console.WriteLine(y);
+        }
+    }
+
+    static int Test1(out int x)
+    {
+        x = 123;
+        return 124;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Last();
+
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+        
+        [Fact]
+        [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
+        public void LocalVariableTypeInferenceAndOutVar_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        foreach (var y in new [] {Test1(out var x) + x})
+        {
+            System.Console.WriteLine(y);
+        }
+    }
+
+    static int Test1(out int x)
+    {
+        x = 123;
+        return 124;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Last();
+
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
     }
 }

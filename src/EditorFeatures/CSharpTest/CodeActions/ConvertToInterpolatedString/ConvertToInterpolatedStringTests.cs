@@ -520,5 +520,33 @@ public class T
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOutVariableDeclaration_01()
+        {
+            await TestMissingAsync(
+@"using System;
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}"", out int x)|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOutVariableDeclaration_02()
+        {
+            await TestMissingAsync(
+@"using System;
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(out string x, 1)|];
+    }
+}");
+        }
     }
 }

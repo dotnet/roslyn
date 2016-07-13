@@ -15,11 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     Partial Friend Class SymbolCompletionProvider
-        Inherits AbstractSymbolCompletionProvider
-
-        Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
-            Return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken)
-        End Function
+        Inherits AbstractRecommendationServiceBasedCompletionProvider
 
         Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
@@ -87,14 +83,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Shared s_importDirectiveRules As CompletionItemRules =
             CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
+        Private Shared s_importDirectiveRules_preselect As CompletionItemRules =
+            s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+        Private Shared s_preselectedCompletionItemRules As CompletionItemRules =
+            CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As AbstractSyntaxContext, preselect As Boolean) As CompletionItemRules
             If context.IsInImportsDirective Then
-                Return s_importDirectiveRules
+                Return If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules)
             Else
-                Return CompletionItemRules.Default
+                Return If(preselect, s_preselectedCompletionItemRules, CompletionItemRules.Default)
             End If
         End Function
+
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+            ' Unused
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function IsInstrinsic(s As ISymbol) As Boolean
+            Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
+        End Function
+
+        Protected Overrides ReadOnly Property PreselectedItemSelectionBehavior As CompletionItemSelectionBehavior
+            Get
+                Return CompletionItemSelectionBehavior.SoftSelection
+            End Get
+        End Property
 
     End Class
 End Namespace

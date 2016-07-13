@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
+        internal static readonly CSharpParseOptions LocalFuncOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+
         [Fact]
         public void DiagnosticsWithoutExperimental()
         {

@@ -94,7 +94,6 @@
     <Compile Include="PEWriter\NativeResourceWriter.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorExtensions.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
@@ -408,7 +407,6 @@
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
-    <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
@@ -464,7 +462,6 @@
     <Compile Include="RuleSet\RuleSetInclude.cs" />
     <Compile Include="RuleSet\RuleSetProcessor.cs" />
     <Compile Include="SourceFileResolver.cs" />
-    <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
@@ -533,9 +530,6 @@
     <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
-    <Compile Include="SourceGenerator\SourceGenerator.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorAttribute.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorContext.cs" />
     <Compile Include="SpecialMember.cs" />
     <Compile Include="SpecialMembers.cs" />
     <Compile Include="SpecialType.cs" />
