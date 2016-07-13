@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var trigger = CompletionTrigger.CreateDeletionTrigger(deletedChar.GetValueOrDefault());
                 var completionService = this.GetCompletionService();
 
-                this.StartNewModelComputation(completionService, trigger, filterItems: false);
+                this.StartNewModelComputation(
+                    completionService, trigger, filterItems: false, dismissIfEmptyAllowed: true);
 
                 return;
             }
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     sessionOpt.FilterModel(
                         CompletionFilterReason.BackspaceOrDelete,
                         recheckCaretPosition: false,
+                        dismissIfEmptyAllowed: true,
                         filterState: null);
                 }
             }
