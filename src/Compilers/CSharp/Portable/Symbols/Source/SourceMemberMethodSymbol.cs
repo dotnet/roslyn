@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
-            else if (ContainingType.IsStatic && !IsStatic)
+            else if (ContainingType.IsStatic && !IsStatic && !IsInExtensionClass)
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
             }

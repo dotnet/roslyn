@@ -177,6 +177,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Gets the type of the extended type of this extension class. If the extended type could not be determined, then
+        /// an instance of ErrorType is returned. If this is not an extension class, null is returned.
+        /// </summary>
+        public TypeSymbol ExtensionClassType => ExtensionClassTypeNoUseSiteDiagnostics;
+
+        internal abstract TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics { get; }
+
+        internal TypeSymbol ExtensionClassTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            var result = ExtensionClassTypeNoUseSiteDiagnostics;
+
+            if ((object)result != null)
+            {
+                result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns true and a string from the first GuidAttribute on the type, 
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.

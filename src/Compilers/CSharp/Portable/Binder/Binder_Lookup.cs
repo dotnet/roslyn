@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PROTOTYPE: Need to pass in receiver type (or expression) to be able to check viability on that type.
             // (old extension methods were always unreduced, so viability got checked with argument checking)
-            // Need to also consider static extension viaibility, etc.
+            // Need to also consider static extension viability, etc.
             var members = ArrayBuilder<Symbol>.GetInstance();
             var binder = scope.Binder;
             binder.GetCandidateExtensionMembers(scope.SearchUsingsNotNamespace, members, name, arity, options, this);

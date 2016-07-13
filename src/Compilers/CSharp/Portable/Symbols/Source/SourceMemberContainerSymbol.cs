@@ -675,11 +675,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExtensionClass
+        {
+            get
+            {
+                return (_flags.DeclarationModifiers & DeclarationModifiers.Extension) != 0;
+            }
+        }
+
         public override bool IsStatic
         {
             get
             {
-                return (_flags.DeclarationModifiers & DeclarationModifiers.Static) != 0;
+                return (_flags.DeclarationModifiers & (DeclarationModifiers.Static | DeclarationModifiers.Extension)) != 0;
             }
         }
 
@@ -2909,7 +2917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
             // We don't expect anything to be emitted, but it should be in the symbol table.
-            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic && !this.IsExtensionClass))
+            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic))
             {
                 members.Add((this.TypeKind == TypeKind.Submission) ?
                     new SynthesizedSubmissionConstructor(this, diagnostics) :
@@ -3246,11 +3254,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         #region Extension Methods
-
-        public override bool IsExtensionClass
-        {
-            get { return this.declaration.IsExtensionClass; }
-        }
 
         internal bool ContainsExtensionMembers
         {

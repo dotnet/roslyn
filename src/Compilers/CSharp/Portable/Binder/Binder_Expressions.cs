@@ -1180,26 +1180,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             // base type of the current type, then there should be a "this" associated with the
             // method group. Otherwise, it should be null.
 
-            var currentType = this.ContainingType;
-            if ((object)currentType == null)
+            var currentNamedType = this.ContainingType;
+            if ((object)currentNamedType == null)
             {
                 // This may happen if there is no containing type, 
                 // e.g. we are binding an expression in an assembly-level attribute
                 return null;
             }
 
-            var declaringType = members[0].ContainingType;
+            var declaringNamedType = members[0].ContainingType;
+
+            var declaringType = declaringNamedType.ExtensionClassType ?? declaringNamedType;
+            var currentType = currentNamedType.ExtensionClassType ?? currentNamedType;
 
             HashSet<DiagnosticInfo> unused = null;
             if (currentType.IsEqualToOrDerivedFrom(declaringType, ignoreDynamic: false, useSiteDiagnostics: ref unused))
             {
-                // PROTOTYPE: Get the type of `this` in a better way. Probably want to modify the above if statement?
-                var typeOfThis = currentType.ExtensionClassType ?? currentType;
-                return ThisReference(syntax, typeOfThis, wasCompilerGenerated: true);
+                return ThisReference(syntax, currentType, wasCompilerGenerated: true);
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, this.ContainingMemberOrLambda, currentType, declaringType);
+                if (currentNamedType.IsExtensionClass)
+                {
+                    return null; // cannot be an interactive receiver
+                }
+                return TryBindInteractiveReceiver(syntax, this.ContainingMemberOrLambda, currentNamedType, declaringType);
             }
         }
 
@@ -1517,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingMember;
         }
 
-        private BoundExpression TryBindInteractiveReceiver(CSharpSyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
+        private BoundExpression TryBindInteractiveReceiver(CSharpSyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, TypeSymbol memberDeclaringType)
         {
             if (currentType.TypeKind == TypeKind.Submission && !currentMember.IsStatic)
             {
@@ -1655,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If we have an extension class here, it means we used ContainingType instead of ReceiverType to get the type.
             // That was previously okay, since they were always equivalent in the past, but extension classes break that.
-            Debug.Assert(!((thisTypeOpt as NamedTypeSymbol)?.IsExtensionClass ?? false));
+            Debug.Assert((thisTypeOpt as NamedTypeSymbol)?.IsExtensionClass != true);
             return new BoundThisReference(node, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 

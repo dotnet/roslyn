@@ -1626,7 +1626,7 @@ tryAgain:
 
             _termState = saveTerm;
             bool hasTypeParams = typeParameters != null;
-            var baseList = this.ParseBaseList();
+            var baseList = this.ParseBaseList(modifiers.Any(SyntaxKind.ExtensionKeyword));
 
             // Parse class body
             bool parseMembers = true;
@@ -1863,7 +1863,7 @@ tryAgain:
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        private BaseListSyntax ParseBaseList()
+        private BaseListSyntax ParseBaseList(bool isExtensionClass)
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1881,7 +1881,7 @@ tryAgain:
                 }
                 else
                 {
-                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false, parentIsParameter: false);
+                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false, parentIsParameter: false, isExtensionClass: isExtensionClass);
 
                     list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
@@ -1902,7 +1902,7 @@ tryAgain:
                             }
                             else
                             {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false, parentIsParameter: false)));
+                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false, parentIsParameter: false, isExtensionClass: isExtensionClass)));
                             }
 
                             continue;
@@ -2059,7 +2059,7 @@ tryAgain:
 
                     return _syntaxFactory.ClassOrStructConstraint(isStruct ? SyntaxKind.StructConstraint : SyntaxKind.ClassConstraint, token);
                 default:
-                    var type = this.ParseDeclarationType(true, false);
+                    var type = this.ParseDeclarationType(true, false, false);
                     return _syntaxFactory.TypeConstraint(type);
             }
         }
@@ -2074,10 +2074,11 @@ tryAgain:
                 expected);
         }
 
-        private TypeSyntax ParseDeclarationType(bool isConstraint, bool parentIsParameter)
+        private TypeSyntax ParseDeclarationType(bool isConstraint, bool parentIsParameter, bool isExtensionClass)
         {
             var type = this.ParseType(parentIsParameter);
-            if (type.Kind != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(type.Kind))
+            var isValidName = isExtensionClass ? SyntaxFacts.IsTypeSyntax(type.Kind) : SyntaxFacts.IsName(type.Kind);
+            if (type.Kind != SyntaxKind.PredefinedType && !isValidName)
             {
                 if (isConstraint)
                 {

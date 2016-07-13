@@ -749,7 +749,7 @@ namespace Four
                 parseOptions: parseOptions);
         }
 
-        [Fact(Skip = "PROTOTYPE: IDerived/IBase ambiguity resolution not implemented yet")]
+        [Fact]
         public void AmbiguityPriority()
         {
             var text = @"
@@ -757,13 +757,13 @@ using System;
 
 class BaseClass
 {
-    public int Property { get { return 1; } set { Console.Write(value); } }
+    public int PropertyThing { get { return 1; } set { Console.Write(value); } }
     public static int StaticProperty { get { return 5; } set { Console.Write(value); } }
 }
 
 extension class ExtClass : BaseClass
 {
-    public int Property { get { return 2; } set { Console.Write(value + 1); } }
+    public int PropertyThing { get { return 2; } set { Console.Write(value + 1); } }
     public static int StaticProperty { get { return 6; } set { Console.Write(value + 1); } }
 }
 
@@ -794,24 +794,52 @@ extension class ExtIDerived : IDerived
     public static string StaticMethod() => ""c"";
 }
 
+static class StaticBaseOne { }
+static class StaticBaseTwo { }
+
+extension class StaticExtOne : StaticBaseOne
+{
+    public static string StaticExtension() => ""d"";
+}
+extension class StaticExtTwo : StaticBaseTwo
+{
+    public static string StaticExtension() => ""wrong"";
+}
+
+struct StructObj { }
+extension class ExtStruct : StructObj
+{
+    public string StructObjMethod() => ""e"";
+}
+extension class ExtStructObj : object
+{
+    public string StructObjMethod() => ""wrong"";
+}
+
 class Program
 {
     static void Main()
     {
         BaseClass obj = new BaseClass();
-        Console.Write(obj.Property);
+        Console.Write(obj.PropertyThing);
         Console.Write(2); // PROTOTYPE: figure out syntax to get ExtClass.Property
-        obj.Property = 3;
+        obj.PropertyThing = 3;
         Console.Write(4); // PROTOTYPE: figure out syntax to set ExtClass.Property
         Console.Write(BaseClass.StaticProperty);
         Console.Write(ExtClass.StaticProperty);
         BaseClass.StaticProperty = 7;
         ExtClass.StaticProperty = 7;
-        ExtIDerived iDerived = null;
-        Console.Write(iDerived.Property);
-        Console.Write(IDerived.StaticProperty);
+        IDerived iDerived = null;
+        // PROTOTYPE: Betterness not implemented for property overload resolution
+        //Console.Write(iDerived.Property);
+        // PROTOTYPE: LookupExtensionMembersInSingleBinder does not implement viability for multiple things named the same
+        //Console.Write(IDerived.StaticProperty);
         Console.Write(iDerived.Method());
         Console.Write(IDerived.StaticMethod());
+        // PROTOTYPE: Same thing
+        //Console.Write(StaticBaseOne.StaticExtension());
+        var structobj = new StructObj();
+        Console.Write(structobj.StructObjMethod());
     }
 }
 ";
@@ -819,7 +847,7 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs,
-                expectedOutput: "123456789abc",
+                expectedOutput: "12345678bce",
                 parseOptions: parseOptions);
         }
 
@@ -1254,6 +1282,46 @@ extension class ExtDelegate : Del { }
             );
         }
 
+        [Fact]
+        public void Circular()
+        {
+            var text = @"
+using System.Collections.Generic;
+
+extension class SimpleA : SimpleB { }
+extension class SimpleB : SimpleA { }
+
+extension class A : B { }
+extension class B : C[] { }
+extension class C : List<A> { }
+
+class Program
+{
+    static void Main()
+    {
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
+                // (4,17): error CS0103: The name 'SimpleB' does not exist in the current context
+                // extension class SimpleA : SimpleB { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "SimpleA").WithArguments("SimpleB").WithLocation(4, 17),
+                // (7,17): error CS0103: The name 'B' does not exist in the current context
+                // extension class A : B { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("B").WithLocation(7, 17),
+                // (5,17): error CS0103: The name 'SimpleA' does not exist in the current context
+                // extension class SimpleB : SimpleA { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "SimpleB").WithArguments("SimpleA").WithLocation(5, 17),
+                // (8,21): error CS0719: 'C': array elements cannot be of static type
+                // extension class B : C[] { }
+                Diagnostic(ErrorCode.ERR_ArrayOfStaticClass, "C").WithArguments("C").WithLocation(8, 21),
+                // (9,26): error CS0718: 'A': static types cannot be used as type arguments
+                // extension class C : List<A> { }
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "A").WithArguments("A").WithLocation(9, 26)
+            );
+        }
+
         // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc.
         [Fact]
         public void Ambiguous()
@@ -1383,7 +1451,7 @@ class ExtAsNewConstraint
     void Foo<T>() where T : new() => new T();
     void TestFoo() => Foo<ExtClass>();
 }
-extension class ExtExplicitInterfaceImpl : BaseClass, IEnumerable
+extension class ExtExplicitInterfaceImpl : BaseClass
 {
     IEnumerator IEnumerable.GetEnumerator() => null;
 }
@@ -1421,36 +1489,48 @@ extension class ExtCycle : ExtCycle { }
             // AllowedAttributeLocations is fine, might want to move to success-test
 
             // PROTOTYPE: Diagnostics that should be here but aren't:
-            // ExtAsConstraint
-            // NewExtClass
             // EntryPoint (possibly?)
-            // ExtAsNewConstraint
-            // ExtExplicitInterfaceImpl is very strange
             // MemberNameSame
-            // VolatileField
-            // VariantInterface
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithMainTypeName("EntryPoint"), parseOptions: parseOptions).VerifyDiagnostics(
-                // (33,27): error CS1729: 'ExtClass' does not contain a constructor that takes 0 arguments
-                // [ObjectParamAttribute(new ExtClass())]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ExtClass").WithArguments("ExtClass", "0").WithLocation(33, 27),
-                // (47,17): error CS0540: 'ExtExplicitInterfaceImpl.IEnumerable.GetEnumerator()': containing type does not implement interface 'IEnumerable'
-                //     IEnumerator IEnumerable.GetEnumerator() => null;
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "IEnumerable").WithArguments("ExtExplicitInterfaceImpl.System.Collections.IEnumerable.GetEnumerator()", "System.Collections.IEnumerable").WithLocation(47, 17),
                 // (51,10): error CS0542: 'MemberNameSame': member names cannot be the same as their enclosing type
                 //     void MemberNameSame() { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "MemberNameSame").WithArguments("MemberNameSame").WithLocation(51, 10),
                 // (58,17): error CS0424: 'ExtComImport': a class with the ComImport attribute cannot specify a base class
                 // extension class ExtComImport : BaseClass { }
                 Diagnostic(ErrorCode.ERR_ComImportWithBase, "ExtComImport").WithArguments("ExtComImport").WithLocation(58, 17),
-                // (62,5): error CS0060: Inconsistent accessibility: base class 'Visibility.BaseClass' is less accessible than class 'Visibility.ExtClass'
+                // (66,30): error CS0723: Cannot declare a variable of static type 'ExtClass'
+                //     public volatile ExtClass field; // invalid due to extension class as field type,
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "field").WithArguments("ExtClass").WithLocation(66, 30),
+                // (62,28): error CS0060: Inconsistent accessibility: base class 'Visibility.BaseClass' is less accessible than class 'Visibility.ExtClass'
                 //     public extension class ExtClass : BaseClass { }
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "public extension class ExtClass : BaseClass { }").WithArguments("Visibility.ExtClass", "Visibility.BaseClass").WithLocation(62, 5),
-                // (28,13): error CS1729: 'ExtClass' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "ExtClass").WithArguments("Visibility.ExtClass", "Visibility.BaseClass").WithLocation(62, 28),
+                // (72,17): error CS0103: The name 'ExtCycle' does not exist in the current context
+                // extension class ExtCycle : ExtCycle { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ExtCycle").WithArguments("ExtCycle").WithLocation(72, 17),
+                // (14,36): error CS0717: 'ExtClass': static classes cannot be used as constraints
+                // class ExtAsConstraint<T> where T : ExtClass { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "ExtClass").WithArguments("ExtClass").WithLocation(14, 36),
+                // (47,17): error CS0540: 'ExtExplicitInterfaceImpl.IEnumerable.GetEnumerator()': containing type does not implement interface 'IEnumerable'
+                //     IEnumerator IEnumerable.GetEnumerator() => null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "IEnumerable").WithArguments("ExtExplicitInterfaceImpl.System.Collections.IEnumerable.GetEnumerator()", "System.Collections.IEnumerable").WithLocation(47, 17),
+                // (20,17): error CS0721: 'UnqualifiedNestedTypeInCref<T>.Inner': static types cannot be used as parameters
+                //     public void M(Inner i) { } // should also emit diagnostic, can't have ext class as parameter
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("UnqualifiedNestedTypeInCref<T>.Inner").WithLocation(20, 17),
+                // (71,7): error CS0718: 'ExtClass': static types cannot be used as type arguments
+                // class VariantInterfaceTest : VariantInterface<ExtClass, ExtClass> { }
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "VariantInterfaceTest").WithArguments("ExtClass").WithLocation(71, 7),
+                // (71,7): error CS0718: 'ExtClass': static types cannot be used as type arguments
+                // class VariantInterfaceTest : VariantInterface<ExtClass, ExtClass> { }
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "VariantInterfaceTest").WithArguments("ExtClass").WithLocation(71, 7),
+                // (33,23): error CS0712: Cannot create an instance of the static class 'ExtClass'
+                // [ObjectParamAttribute(new ExtClass())]
+                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new ExtClass()").WithArguments("ExtClass").WithLocation(33, 23),
+                // (28,9): error CS0712: Cannot create an instance of the static class 'ExtClass'
                 //         new ExtClass();
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ExtClass").WithArguments("ExtClass", "0").WithLocation(28, 13),
-                // (43,23): error CS0310: 'ExtClass' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'ExtAsNewConstraint.Foo<T>()'
+                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new ExtClass()").WithArguments("ExtClass").WithLocation(28, 9),
+                // (43,23): error CS0718: 'ExtClass': static types cannot be used as type arguments
                 //     void TestFoo() => Foo<ExtClass>();
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Foo<ExtClass>").WithArguments("ExtAsNewConstraint.Foo<T>()", "T", "ExtClass").WithLocation(43, 23)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Foo<ExtClass>").WithArguments("ExtClass").WithLocation(43, 23)
             );
         }
     }

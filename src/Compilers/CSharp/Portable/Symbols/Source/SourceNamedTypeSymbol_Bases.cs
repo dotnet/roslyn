@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckExtensionClass(DiagnosticBag diagnostics)
         {
-            var extensionClass = this.ExtensionClassTypeNoUseSiteDiagnostics;
+            var extensionClass = this.ExtensionClassType;
 
             if ((object)extensionClass == null)
             {
@@ -186,14 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (extensionClass != null && !extensionClass.IsErrorType())
-            {
-                var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
-                var location = this.Locations[0]; // PROTOTYPE: Change this to the extension type declaration location
-
-                extensionClass.CheckAllConstraints(conversions, location, diagnostics);
-            }
+            // do not need to check constraints, did not wrap the binder in a SuppressConstraintChecks
         }
 
         // finds syntax location where given type was inherited
@@ -725,15 +718,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
                 var info = new CSDiagnosticInfo(ErrorCode.ERR_NameNotInContext, this);
+                diagnostics.Add(info, this.declaration.NameLocations[0]);
                 return new ExtendedErrorTypeSymbol(this, ImmutableArray<Symbol>.Empty, LookupResultKind.Empty, info, 0);
             }
 
-            Location extensionClassTypeLocation = null;
             TypeSymbol extendedType = null;
             ArrayBuilder<TypeSymbol> multipleTypesSpecified = null;
             foreach (var decl in this.declaration.Declarations)
             {
-                extensionClassTypeLocation = decl.Location;
                 BaseListSyntax extendedTypeList = GetBaseListOpt(decl);
                 if (extendedTypeList == null)
                 {
@@ -762,12 +754,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var extensionClassTypeLocation = this.declaration.NameLocations[0];
+
             if ((object)multipleTypesSpecified != null)
             {
                 // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
                 var symbols = multipleTypesSpecified.ToImmutableAndFree();
                 var info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, symbols.CastArray<Symbol>(),
                     new object[] { symbols[0], symbols[1] });
+                diagnostics.Add(info, extensionClassTypeLocation);
                 return new ExtendedErrorTypeSymbol(this, symbols.CastArray<Symbol>(), LookupResultKind.Ambiguous, info, 0);
             }
 
@@ -775,28 +770,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
                 var info = new CSDiagnosticInfo(ErrorCode.ERR_NameNotInContext, this);
+                diagnostics.Add(info, extensionClassTypeLocation);
                 return new ExtendedErrorTypeSymbol(this, LookupResultKind.Empty, info);
             }
 
-            var extendedNamedType = extendedType as NamedTypeSymbol;
-            if ((object)extendedNamedType != null && extendedNamedType.IsExtensionClass)
+            if ((extendedType as NamedTypeSymbol)?.IsExtensionClass == true)
             {
-                // PROTOTYPE: Temporary error message just to return some form of an ErrorTypeSymbol
-                var info = new CSDiagnosticInfo(ErrorCode.ERR_NameNotInContext, this);
-                return new ExtendedErrorTypeSymbol(extendedType, LookupResultKind.Empty, info);
+                // PROTOTYPE: Temporary error message
+                diagnostics.Add(ErrorCode.ERR_NameNotInContext, extensionClassTypeLocation, extendedType);
             }
 
             // note no cycles can occur, we are static (is this true? The other class might be an error but it still resolves)
             this.SetKnownToHaveNoDeclaredBaseCycles();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!this.IsNoMoreVisibleThan(extendedNamedType, ref useSiteDiagnostics))
+            if (!this.IsNoMoreVisibleThan(extendedType, ref useSiteDiagnostics))
             {
                 // PROTOTYPE: Temporary error message ("base" is not right)
                 // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, extensionClassTypeLocation, this, extendedNamedType);
+                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, extensionClassTypeLocation, this, extendedType);
             }
-            diagnostics.Add(Locations[0], useSiteDiagnostics);
+            // PROTOTYPE: Improve location reporting
+            diagnostics.Add(this.declaration.NameLocations[0], useSiteDiagnostics);
 
             return extendedType;
         }

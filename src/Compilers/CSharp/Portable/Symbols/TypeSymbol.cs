@@ -138,27 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE: Does this go in NamedTypeSymbol or TypeSymbol?
-        /// <summary>
-        /// Gets the type of the extended type of this extension class. If the extended type could not be determined, then 
-        /// an instance of ErrorType is returned. If this is not an extension class, null is returned.
-        /// </summary>
-        public TypeSymbol ExtensionClassType => ExtensionClassTypeNoUseSiteDiagnostics;
-
-        internal abstract TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics { get; }
-
-        internal TypeSymbol ExtensionClassTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            var result = ExtensionClassTypeNoUseSiteDiagnostics;
-
-            if ((object)result != null)
-            {
-                result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
-            }
-
-            return result;
-        }
-
         /// <summary>
         /// Gets the BaseType of this type. If the base type could not be determined, then 
         /// an instance of ErrorType is returned. If this kind of type does not have a base type

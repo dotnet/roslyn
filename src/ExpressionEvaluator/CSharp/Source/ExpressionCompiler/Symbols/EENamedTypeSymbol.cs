@@ -290,10 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get
             {
-                if (this.IsExtensionClass)
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
+                // note that IsExtensionClass is overridden to always return false
                 return null;
             }
         }

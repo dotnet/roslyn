@@ -1624,15 +1624,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var m1type = m1.Member.ContainingType.ExtensionClassType;
                 var m2type = m2.Member.ContainingType.ExtensionClassType;
-                if (Conversions.HasIdentityOrImplicitReferenceConversion(m1type, m2type, ref useSiteDiagnostics) ||
-                    Conversions.HasIdentityOrImplicitReferenceConversion(m2type, m1type, ref useSiteDiagnostics))
-                {
-                    result = MoreSpecificType(m1type, m2type, ref useSiteDiagnostics);
 
-                    if (result != BetterResult.Neither)
-                    {
-                        return result;
-                    }
+                // PROTOTYPE: What if they are extending static classes, etc? (That might never happen due to lookup rules)
+                result = BetterConversionTarget(m1type, m2type, ref useSiteDiagnostics);
+                if (result != BetterResult.Neither)
+                {
+                    return result;
                 }
             }
 
