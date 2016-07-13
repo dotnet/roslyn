@@ -175,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
-                shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
+                shouldFormatOnCommit: keyword.ShouldFormatOnCommit,
+                matchPriority: keyword.MatchPriority);
         }
 
         internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
