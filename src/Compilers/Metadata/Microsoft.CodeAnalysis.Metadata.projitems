@@ -12,7 +12,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoRecord.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DynamicLocalInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImportTargetKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PortableCustomDebugInfoKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StateMachineHoistedLocalScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VBImportScopeKind.cs" />
   </ItemGroup>
 </Project>
