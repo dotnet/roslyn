@@ -16,27 +16,28 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    <ExportLanguageServiceFactory(GetType(ILanguageServiceFactory), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
     Public Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
+        Private Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
         Public Sub New()
 
         End Sub
-
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxFactsService(languageServices)
+            Return Instance
         End Function
 
-        <ExportLanguageService(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
+        Friend Shared Function GetService() As VisualBasicSyntaxFactsService
+            Return Instance
+        End Function
+
+
         Friend Class VisualBasicSyntaxFactsService
             Inherits AbstractSyntaxFactsService
-            Implements ISyntaxFactsService
+            Implements ISyntaxFactsService, ILanguageService
 
-            Friend Sub New(LanguageService As HostLanguageServices)
-                Me.LanguageServices = LanguageServices
+            Friend Sub New()
             End Sub
-
-            Private ReadOnly Property LanguageServices As HostLanguageServices
 
             Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
                 Return token.Kind = SyntaxKind.AwaitKeyword

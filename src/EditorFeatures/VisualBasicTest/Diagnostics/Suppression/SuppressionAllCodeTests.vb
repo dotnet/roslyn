@@ -25,17 +25,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Await TestPragmaAsync(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Function
 
-        <Import(NameOf(VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService))>
-        Private Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService
-
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestSuppressionWithAttributeOnEveryNodes() As Threading.Tasks.Task
             Await TestSuppressionWithAttributeAsync(
                 TestResource.AllInOneVisualBasicCode,
                 VisualBasicParseOptions.Default,
                 digInto:=Function(n)
-                             Dim member = _Facts.GetContainingMemberDeclaration(n, n.Span.Start)
+                             Dim member = VisualBasicSyntaxFactsServiceFactory.GetService.GetContainingMemberDeclaration(n, n.Span.Start)
                              If member Is Nothing OrElse member Is n Then
                                  Return True
                              End If

@@ -238,8 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                       token)
         End Function
 
-        <Import(NameOf(VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService))>
-        Private Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService
+        Private ReadOnly Property _Facts As VisualBasicSyntaxFactsServiceFactory.VisualBasicSyntaxFactsService = VisualBasicSyntaxFactsServiceFactory.GetService
 
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
