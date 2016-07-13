@@ -40,7 +40,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("#endregion Green Factory and Property Tests");
             WriteLine();
             WriteLine("#region Green Rewriters");
-            this.WriteRewriterTests();
+            this.WriteRewriterTests(internalSyntax: true);
             WriteLine("#endregion Green Rewriters");
 
             CloseBlock();
@@ -59,7 +59,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("#endregion Red Factory and Property Tests");
             WriteLine();
             WriteLine("#region Red Rewriters");
-            this.WriteRewriterTests();
+            this.WriteRewriterTests(internalSyntax: false);
             WriteLine("#endregion Red Rewriters");
 
             CloseBlock();
@@ -295,7 +295,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRewriterTests()
+        private void WriteRewriterTests(bool internalSyntax)
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode));
             bool first = true;
@@ -306,25 +306,39 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 }
                 first = false;
-                this.WriteTokenDeleteRewriterTest((Node)node);
+                this.WriteTokenDeleteRewriterTest((Node)node, nonRecursive: false);
                 WriteLine();
-                this.WriteIdentityRewriterTest((Node)node);
+                if (!internalSyntax)
+                {
+                    this.WriteTokenDeleteRewriterTest((Node)node, nonRecursive: true);
+                    WriteLine();
+                }
+
+                this.WriteIdentityRewriterTest((Node)node, nonRecursive: false);
+                WriteLine();
+
+                if (!internalSyntax)
+                {
+                    this.WriteIdentityRewriterTest((Node)node, nonRecursive: true);
+                }
             }
         }
 
-        private void WriteTokenDeleteRewriterTest(Node node)
+        private void WriteTokenDeleteRewriterTest(Node node, bool nonRecursive)
         {
+            string nonRecursivePrefix = nonRecursive ? "NonRecursive" : string.Empty;
+
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
 
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine("public void Test{0}TokenDeleteRewriter()", strippedName);
+            WriteLine("public void Test{0}Token{1}DeleteRewriter()", strippedName, nonRecursivePrefix);
             OpenBlock();
 
             WriteLine("var oldNode = Generate{0}();", strippedName);
-            WriteLine("var rewriter = new TokenDeleteRewriter();");
+            WriteLine("var rewriter = new {0}TokenDeleteRewriter();", nonRecursivePrefix);
             WriteLine("var newNode = rewriter.Visit(oldNode);");
 
             WriteLine();
@@ -340,19 +354,21 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteIdentityRewriterTest(Node node)
+        private void WriteIdentityRewriterTest(Node node, bool nonRecursive)
         {
+            string nonRecursivePrefix = nonRecursive ? "NonRecursive" : string.Empty;
+
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
 
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine("public void Test{0}IdentityRewriter()", strippedName);
+            WriteLine("public void Test{0}{1}IdentityRewriter()", strippedName, nonRecursivePrefix);
             OpenBlock();
 
             WriteLine("var oldNode = Generate{0}();", strippedName);
-            WriteLine("var rewriter = new IdentityRewriter();");
+            WriteLine("var rewriter = new {0}IdentityRewriter();", nonRecursivePrefix);
             WriteLine("var newNode = rewriter.Visit(oldNode);");
 
             WriteLine();

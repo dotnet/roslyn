@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 
 namespace CSharpSyntaxGenerator
@@ -55,7 +56,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("    using Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine();
             this.WriteRedVisitors();
-            this.WriteRedRewriter();
+            this.WriteRedRewriters();
             this.WriteRedFactories();
             WriteLine("}");
         }
@@ -1174,6 +1175,7 @@ namespace CSharpSyntaxGenerator
             //WriteRedVisitor(true, true);
             WriteRedVisitor(false, true);
             WriteRedVisitor(false, false);
+            WriteNonRecursiveFullTreeVisitor();
         }
 
         private void WriteRedVisitor(bool genericArgument, bool genericResult)
@@ -1199,6 +1201,38 @@ namespace CSharpSyntaxGenerator
                     WriteLine("    public virtual " + (genericResult ? "TResult" : "void") + " Visit{0}({1} node{2})", StripPost(node.Name, "Syntax"), node.Name, genericArgument ? ", TArgument argument" : "");
                     WriteLine("    {");
                     WriteLine("      " + (genericResult ? "return " : "") + "this.DefaultVisit(node{0});", genericArgument ? ", argument" : "");
+                    WriteLine("    }");
+                }
+            }
+            WriteLine("  }");
+        }
+
+        private void WriteNonRecursiveFullTreeVisitor()
+        {
+            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+
+            WriteLine();
+            WriteLine("  partial class NonRecursiveFullTreeVisitor");
+            WriteLine("  {");
+            bool startWithWhiteLine = false;
+            for (int i = 0, n = nodes.Count; i < n; i++)
+            {
+                var node = nodes[i] as Node;
+                if (node != null)
+                {
+                    if (startWithWhiteLine)
+                    {
+                        WriteLine();
+                    }
+                    else
+                    {
+                        startWithWhiteLine = true;
+                    }
+
+                    WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name), "    ");
+                    WriteLine("    public override Chunk Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
+                    WriteLine("    {");
+                    WriteLine("      return this.CreateChunk(node{0});", this.GenerateChunkParameters(node));
                     WriteLine("    }");
                 }
             }
@@ -1403,6 +1437,12 @@ namespace CSharpSyntaxGenerator
             WriteLine("    }");
         }
 
+        private void WriteRedRewriters()
+        {
+            this.WriteRedRewriter();
+            this.WriteNonRecursiveRewriter();
+        }
+
         private void WriteRedRewriter()
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
@@ -1461,6 +1501,118 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteLine("      return node;");
+                    }
+                    WriteLine("    }");
+                }
+            }
+            WriteLine("  }");
+        }
+
+        private void WriteNonRecursiveRewriter()
+        {
+            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+
+            WriteLine();
+            WriteLine("  partial class NonRecursiveRewriter");
+            WriteLine("  {");
+            bool startWithWhiteLine = false;
+            for (int i = 0, n = nodes.Count; i < n; i++)
+            {
+                var node = nodes[i] as Node;
+                if (node != null)
+                {
+                    string nodeNameWithoutSyntax = StripPost(node.Name, "Syntax");
+                    if (startWithWhiteLine)
+                    {
+                        WriteLine();
+                    }
+                    else
+                    {
+                        startWithWhiteLine = true;
+                    }
+
+                    var rewritingCallParameters = new StringBuilder();
+                    var rewritingCtorParameters = new StringBuilder();
+                    var rewritingCtorStatements = new StringBuilder();
+                    var rewritingProperties = new StringBuilder();
+                    var nodeUpdateParameters = new StringBuilder();
+                    foreach (Field field in node.Fields)
+                    {
+                        if (IsAnyList(field.Type))
+                        {
+                            rewritingCallParameters.AppendFormat("this.PopList(node.{0}), ", field.Name);
+                        }
+                        else if (IsNodeOrNodeListOrToken(field.Type))
+                        {
+                            rewritingCallParameters.AppendFormat("({0})this.RewritenStack.Pop(), ", field.Type);
+                        }
+                        else
+                        {
+                            nodeUpdateParameters.AppendFormat("node.{0}, ", field.Name);
+                            continue;
+                        }
+
+                        string propertyCamelCase = CamelCase(field.Name);
+                        string fieldType = GetTypeName(field.Type);
+                        rewritingCtorParameters.AppendFormat("{0} {1}, ", fieldType, propertyCamelCase);
+                        rewritingCtorStatements.AppendFormat("        this.{0} = {1};", field.Name, propertyCamelCase);
+                        rewritingCtorStatements.AppendLine();
+                        rewritingProperties.AppendLine();
+                        rewritingProperties.AppendFormat("      public {0} {1} {{ get; private set; }}", fieldType, field.Name);
+                        rewritingProperties.AppendLine();
+                        nodeUpdateParameters.AppendFormat("rewriting{0}.{1}, ", nodeNameWithoutSyntax, field.Name);
+                    }
+
+                    if (node.Fields.Count != 0)
+                    {
+                        rewritingCallParameters.Length -= 2;
+                        rewritingCtorParameters.Length -= 2;
+                        nodeUpdateParameters.Length -= 2;
+
+                        WriteComment(string.Format("<summary>Structure containing transformed children of {0} node.</summary>", node.Name), "    ");
+                        WriteLine("    public struct Rewriting{0}", nodeNameWithoutSyntax);
+                        WriteLine("    {");
+                        WriteLine("      public Rewriting{0}({1})", nodeNameWithoutSyntax, rewritingCtorParameters);
+                        WriteLine("        : this()");
+                        WriteLine("      {");
+                        WriteLine("{0}      }}", rewritingCtorStatements.ToString());
+                        WriteLine("{0}    }}", rewritingProperties.ToString());
+                        WriteLine();
+                    }
+
+                    WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name), "    ");
+                    WriteLine("    public override Chunk Visit{0}({1} node)", nodeNameWithoutSyntax, node.Name);
+                    WriteLine("    {");
+                    if (node.Fields.Count == 0)
+                    {
+                        WriteLine("      return this.CreateChunk(node, () => this.Transform{0}(node));", nodeNameWithoutSyntax);
+                    }
+                    else
+                    {
+                        WriteLine("      return this.CreateChunk(node, () => this.Transform{0}(node, new Rewriting{0}({1})){2});", nodeNameWithoutSyntax, rewritingCallParameters, this.GenerateChunkParameters(node));
+                    }
+
+                    WriteLine("    }");
+                    WriteLine();
+
+                    WriteComment(string.Format("<summary>Called when the visitor transforms a {0} node.</summary>", node.Name), "    ");
+                    if (node.Fields.Count == 0)
+                    {
+                        WriteLine("    protected virtual CSharpSyntaxNode Transform{0}({1} node)", nodeNameWithoutSyntax, node.Name);
+                    }
+                    else
+                    {
+                        WriteLine("    public virtual CSharpSyntaxNode Transform{0}({1} node, Rewriting{0} rewriting{0})", nodeNameWithoutSyntax, node.Name);
+                    }
+
+                    WriteLine("    {");
+                    if (node.Fields.Count == 0)
+                    {
+                        WriteLine("      return node;");
+                    }
+                    else
+                    {
+                        WriteLine("      return node.Update({0});", nodeUpdateParameters.ToString());
                     }
                     WriteLine("    }");
                 }
@@ -2080,6 +2232,83 @@ namespace CSharpSyntaxGenerator
                         WriteLine("{0}/// {1}", indent, line.TrimStart());
                     }
                 }
+            }
+        }
+
+        private string GenerateChunkParameters(Node node)
+        {
+            var arrayItems = new List<string>();
+            var parameters = new StringBuilder();
+
+            Action addArrayItems = () =>
+            {
+                if (arrayItems.Count == 0)
+                {
+                    return;
+                }
+
+                bool union = parameters.Length != 0;
+                if (union)
+                {
+                    parameters.Append(".Concat(");
+                }
+
+                parameters.Append("new SyntaxNodeOrToken[] { ");
+                foreach (var item in arrayItems)
+                {
+                    parameters.AppendFormat("node.{0}, ", item);
+                }
+
+                parameters.Length -= 2;
+                parameters.Append(" }");
+                if (union)
+                {
+                    parameters.Append(")");
+                }
+
+                arrayItems.Clear();
+            };
+
+            foreach (Field field in node.Fields)
+            {
+                if (IsAnyList(field.Type))
+                {
+                    addArrayItems();
+                    bool union = parameters.Length != 0;
+                    if (union)
+                    {
+                        parameters.Append(".Concat(");
+                    }
+
+                    parameters.Append("node." + field.Name + ".Select(n => (SyntaxNodeOrToken)n)");
+                    if (union)
+                    {
+                        parameters.Append(")");
+                    }
+                }
+                else if (IsNodeOrNodeListOrToken(field.Type))
+                {
+                    arrayItems.Add(field.Name);
+                }
+            }
+
+            addArrayItems();
+            if (node.Fields.Count != 0)
+            {
+                parameters.Insert(0, ", ");
+            }
+
+            return parameters.ToString();
+        }
+
+        private static string GetTypeName(string typeName)
+        {
+            switch (typeName)
+            {
+                case "SyntaxList<SyntaxToken>":
+                    return "SyntaxTokenList";
+                default:
+                    return typeName;
             }
         }
     }
