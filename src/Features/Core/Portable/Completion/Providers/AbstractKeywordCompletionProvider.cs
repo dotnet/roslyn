@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 tags: s_Tags,
-                matchPriority: keyword.ShouldPreselect ? MatchPriority.Preselect : MatchPriority.Default);
+                matchPriority: keyword.MatchPriority);
         }
 
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(

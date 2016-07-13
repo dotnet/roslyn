@@ -1,9 +1,11 @@
 param(
-  [string] $binariesPath = $(throw "Need a binaries path")
+  [string] $binariesPath = ""
 )
 
-# You can write your powershell scripts inline here. 
-# You can also pass predefined and custom variables to this scripts using arguments
+if ($binariesPath -eq "") {
+    write-host "Need a binaries path"
+    exit 1
+}
 
 $sentinelFile = Join-Path $binariesPath AllTestsPassed.sentinel
 New-Item -Force $sentinelFile -type file

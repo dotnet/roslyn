@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             cancellationToken As CancellationToken) As String
 
             Dim documentWithTypeNode = solutionWithInterfaceDocument.GetDocument(invocationLocationDocument)
-            Dim typeDeclaration = documentWithTypeNode.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodes(Of TypeBlockSyntax)(typeNodeAnnotation).Single()
+            Dim typeDeclaration = documentWithTypeNode.GetSyntaxRootSynchronously(cancellationToken).GetAnnotatedNodes(Of TypeBlockSyntax)(typeNodeAnnotation).Single()
 
             Dim implementedInterfaceStatementSyntax = If(extractedInterfaceSymbol.TypeParameters.Any(),
                 SyntaxFactory.GenericName(
@@ -110,7 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Dim updatedTypeDeclaration = typeDeclaration.WithImplements(updatedImplementsList)
 
             Dim docId = solutionWithInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id
-            Dim updatedRoot = solutionWithInterfaceDocument.GetDocument(docId).GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).ReplaceNode(typeDeclaration, updatedTypeDeclaration)
+            Dim updatedRoot = solutionWithInterfaceDocument.GetDocument(docId).
+                                                            GetSyntaxRootSynchronously(cancellationToken).
+                                                            ReplaceNode(typeDeclaration, updatedTypeDeclaration)
             Dim updatedCompilationUnit = CType(updatedRoot, CompilationUnitSyntax)
 
             docToRootMap.Add(docId, updatedCompilationUnit)
@@ -138,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     If docToRootMap.ContainsKey(candidateDocId) Then
                         currentRoot = docToRootMap(candidateDocId)
                     Else
-                        currentRoot = CType(solutionWithInterfaceDocument.GetDocument(candidateDocId).GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), CompilationUnitSyntax)
+                        currentRoot = CType(solutionWithInterfaceDocument.GetDocument(candidateDocId).GetSyntaxRootSynchronously(cancellationToken), CompilationUnitSyntax)
                     End If
 
                     token = currentRoot.DescendantNodesAndTokensAndSelf().FirstOrDefault(Function(x) x.HasAnnotation(annotation))

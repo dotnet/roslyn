@@ -178,22 +178,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Use MakeConversion helper method in the LocalRewriter instead,
         /// it generates a synthesized conversion in its lowered form.
         /// </remarks>
-        public static BoundConversion SynthesizedNonUserDefined(CSharpSyntaxNode syntax, BoundExpression operand, ConversionKind kind, TypeSymbol type, ConstantValue constantValueOpt = null)
+        public static BoundConversion SynthesizedNonUserDefined(CSharpSyntaxNode syntax, BoundExpression operand, Conversion conversion, TypeSymbol type, ConstantValue constantValueOpt = null)
         {
-            // We need more information than just the conversion kind for creating a synthesized user defined conversion.
-            Debug.Assert(!kind.IsUserDefinedConversion(), "Use the BoundConversion.Synthesized overload that takes a 'Conversion' parameter for generating synthesized user defined conversions.");
-
             return new BoundConversion(
                 syntax,
                 operand,
-                kind,
-                resultKind: LookupResultKind.Viable, //not used
+                conversion,
                 isBaseConversion: false,
-                symbolOpt: null,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: false,
-                isArrayIndex: false,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -240,14 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operand,
-                conversion.Kind,
-                resultKind: conversion.ResultKind,
+                conversion,
                 isBaseConversion: false,
-                symbolOpt: conversion.Method,
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: constantValueOpt,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
@@ -509,14 +498,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundGotoStatement(CSharpSyntaxNode syntax, LabelSymbol label, bool hasErrors = false)
             : this(syntax, label, caseExpressionOpt: null, labelExpressionOpt: null, hasErrors: hasErrors)
-        {
-        }
-    }
-
-    internal sealed partial class BoundSwitchLabel
-    {
-        public BoundSwitchLabel(CSharpSyntaxNode syntax, LabelSymbol label, bool hasErrors = false)
-            : this(syntax, label, expressionOpt: null, hasErrors: hasErrors)
         {
         }
     }

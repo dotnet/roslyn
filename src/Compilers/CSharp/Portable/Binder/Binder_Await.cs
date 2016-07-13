@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Assuming we are in an async method, return true if we're in a context where await would be illegal.
-        /// Specifically, return true if we're in a lock, catch, or finally.
+        /// Specifically, return true if we're in a lock or catch filter.
         /// </summary>
         private bool ContextForbidsAwait
         {
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var INotifyCompletion = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion, diagnostics, node);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            var conversion = this.Conversions.ClassifyImplicitConversion(awaiterType, INotifyCompletion, ref useSiteDiagnostics);
+            var conversion = this.Conversions.ClassifyImplicitConversionFromType(awaiterType, INotifyCompletion, ref useSiteDiagnostics);
             if (!conversion.IsImplicit)
             {
                 diagnostics.Add(node, useSiteDiagnostics);

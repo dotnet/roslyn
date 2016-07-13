@@ -397,6 +397,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
         {
+            // If the tuple type is bound in a declaration context then we must have the
+            // TupleElementNamesAttribute to emit
+            if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
+            {
+                // Report diagnostics if System.String doesn't exist
+                this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+
+                if (!Compilation.HasTupleNamesAttributes)
+                {
+                    var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                        AttributeDescription.TupleElementNamesAttribute.FullName);
+                    Error(diagnostics, info, syntax);
+                }
+            }
+
             int numElements = syntax.Elements.Count;
             var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
             var locations = ArrayBuilder<Location>.GetInstance(numElements);

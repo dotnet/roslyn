@@ -165,6 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, ImmutableArray<string> recentItems)
         {
+            return IsBetterFilterMatchWorker(item1, item2, filterText, recentItems);
+        }
+
+        protected bool IsBetterFilterMatchWorker(CompletionItem item1, CompletionItem item2, string filterText, ImmutableArray<string> recentItems)
+        {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
 

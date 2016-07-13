@@ -471,6 +471,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            if (expression is TupleExpressionSyntax)
+            {
+                return true;
+            }
+
             if (!(expression is ObjectCreationExpressionSyntax) && !(expression is AnonymousObjectCreationExpressionSyntax))
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);

@@ -237,19 +237,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 using (var diffView = (DifferenceViewerPreview)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None)))
                 {
                     var foregroundService = workspace.GetService<IForegroundNotificationService>();
-                    var optionsService = workspace.Services.GetService<IOptionService>();
 
                     var waiter = new ErrorSquiggleWaiter();
                     var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
 
                     // set up tagger for both buffers
                     var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
                     var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
                     using (var leftDisposable = leftTagger as IDisposable)
                     {
                         var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
                         var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
                         using (var rightDisposable = rightTagger as IDisposable)
                         {
