@@ -5,15 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
-using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Debugging
 {
     /// <summary>
     /// A collection of utility method for consuming custom debug info from a PDB.
@@ -30,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
             version = bytes[offset + 0];
             count = bytes[offset + 1];
-            offset += CDI.CdiGlobalHeaderSize;
+            offset += CustomDebugInfoConstants.GlobalHeaderSize;
         }
 
         /// <summary>
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             // two bytes of padding after kind
             size = BitConverter.ToInt32(bytes, offset + 4);
 
-            offset += CDI.CdiRecordHeaderSize;
+            offset += CustomDebugInfoConstants.RecordHeaderSize;
         }
 
         /// <exception cref="InvalidOperationException"></exception>
@@ -69,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidOperationException"></exception>
         public static IEnumerable<CustomDebugInfoRecord> GetCustomDebugInfoRecords(byte[] customDebugInfo)
         {
-            if (customDebugInfo.Length < CDI.CdiGlobalHeaderSize)
+            if (customDebugInfo.Length < CustomDebugInfoConstants.GlobalHeaderSize)
             {
                 throw new InvalidOperationException("Invalid header.");
             }
@@ -80,12 +76,12 @@ namespace Microsoft.CodeAnalysis
             byte globalCount;
             ReadGlobalHeader(customDebugInfo, ref offset, out globalVersion, out globalCount);
 
-            if (globalVersion != CDI.CdiVersion)
+            if (globalVersion != CustomDebugInfoConstants.Version)
             {
                 yield break;
             }
 
-            while (offset <= customDebugInfo.Length - CDI.CdiRecordHeaderSize)
+            while (offset <= customDebugInfo.Length - CustomDebugInfoConstants.RecordHeaderSize)
             {
                 byte version;
                 CustomDebugInfoKind kind;
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 int alignmentSize;
 
                 ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size, out alignmentSize);
-                if (size < CDI.CdiRecordHeaderSize)
+                if (size < CustomDebugInfoConstants.RecordHeaderSize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
@@ -105,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                     alignmentSize = 0;
                 }
 
-                int bodySize = size - CDI.CdiRecordHeaderSize;
+                int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
                 if (offset > customDebugInfo.Length - bodySize || alignmentSize > 3 || alignmentSize > bodySize)
                 {
                     throw new InvalidOperationException("Invalid header.");
@@ -226,12 +222,12 @@ namespace Microsoft.CodeAnalysis
         /// Exposed for <see cref="T:Roslyn.Test.PdbUtilities.PdbToXmlConverter"/>.
         /// </remarks>
         /// <exception cref="InvalidOperationException">Bad data.</exception>
-        public static ImmutableArray<DynamicLocalBucket> DecodeDynamicLocalsRecord(ImmutableArray<byte> bytes)
+        public static ImmutableArray<DynamicLocalInfo> DecodeDynamicLocalsRecord(ImmutableArray<byte> bytes)
         {
             int offset = 0;
             int bucketCount = ReadInt32(bytes, ref offset);
 
-            var builder = ArrayBuilder<DynamicLocalBucket>.GetInstance(bucketCount);
+            var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount);
             for (int i = 0; i < bucketCount; i++)
             {
                 const int FlagBytesCount = 64;
@@ -269,8 +265,7 @@ namespace Microsoft.CodeAnalysis
 
                 var name = pooled.ToStringAndFree();
 
-                var bucket = new DynamicLocalBucket(flagCount, flags, slotId, name);
-                builder.Add(bucket);
+                builder.Add(new DynamicLocalInfo(flagCount, flags, slotId, name));
             }
 
             return builder.ToImmutableAndFree();
@@ -281,7 +276,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
         {
-            int bodySize = size - CDI.CdiRecordHeaderSize;
+            int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
             body = ImmutableArray.Create(bytes, offset, bodySize);
             offset += bodySize;
         }
@@ -291,7 +286,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void SkipRecord(byte[] bytes, ref int offset, int size)
         {
-            offset += size - CDI.CdiRecordHeaderSize;
+            offset += size - CustomDebugInfoConstants.RecordHeaderSize;
         }
 
         /// <summary>
@@ -301,7 +296,12 @@ namespace Microsoft.CodeAnalysis
         /// For each namespace enclosing the method, a list of import strings, innermost to outermost.
         /// There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings(this ISymUnmanagedReader3 reader, int methodToken, int methodVersion, out ImmutableArray<string> externAliasStrings)
+        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings<TArg>(
+            int methodToken,
+            TArg arg,
+            Func<int, TArg, byte[]> getMethodCustomDebugInfo,
+            Func<int, TArg, ImmutableArray<string>> getMethodImportStrings,
+            out ImmutableArray<string> externAliasStrings)
         {
             externAliasStrings = default(ImmutableArray<string>);
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             bool seenForward = false;
 
         RETRY:
-            byte[] bytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
+            byte[] bytes = getMethodCustomDebugInfo(methodToken, arg);
             if (bytes == null)
             {
                 return default(ImmutableArray<ImmutableArray<string>>);
@@ -353,8 +353,11 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         int moduleInfoMethodToken = DecodeForwardToModuleRecord(record.Data);
-                        ImmutableArray<string> allModuleInfoImportStrings = reader.GetMethodByVersion(moduleInfoMethodToken, methodVersion).GetImportStrings();
-                        ArrayBuilder<string> externAliasBuilder = ArrayBuilder<string>.GetInstance();
+
+                        ImmutableArray<string> allModuleInfoImportStrings = getMethodImportStrings(moduleInfoMethodToken, arg);
+                        Debug.Assert(!allModuleInfoImportStrings.IsDefault);
+
+                        var externAliasBuilder = ArrayBuilder<string>.GetInstance();
 
                         foreach (string importString in allModuleInfoImportStrings)
                         {
@@ -375,25 +378,18 @@ namespace Microsoft.CodeAnalysis
                 return default(ImmutableArray<ImmutableArray<string>>);
             }
 
-            var method = reader.GetMethodByVersion(methodToken, methodVersion);
-            if (method == null)
-            {
-                return default(ImmutableArray<ImmutableArray<string>>);
-            }
+            ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
+            Debug.Assert(!importStrings.IsDefault);
 
-            ImmutableArray<string> importStrings = method.GetImportStrings();
-            int numImportStrings = importStrings.Length;
-
-            ArrayBuilder<ImmutableArray<string>> resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
-            ArrayBuilder<string> groupBuilder = ArrayBuilder<string>.GetInstance();
-
+            var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
+            var groupBuilder = ArrayBuilder<string>.GetInstance();
             int pos = 0;
 
             foreach (short groupSize in groupSizes)
             {
                 for (int i = 0; i < groupSize; i++, pos++)
                 {
-                    if (pos >= numImportStrings)
+                    if (pos >= importStrings.Length)
                     {
                         throw new InvalidOperationException(string.Format("Group size indicates more imports than there are import strings (method {0}).", FormatMethodToken(methodToken)));
                     }
@@ -416,7 +412,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(groupBuilder.Count == 0);
 
                 // Extern alias detail strings (prefix "Z") are not included in the group counts.
-                for (; pos < numImportStrings; pos++)
+                for (; pos < importStrings.Length; pos++)
                 {
                     string importString = importStrings[pos];
                     if (!IsCSharpExternAliasInfo(importString))
@@ -433,7 +429,7 @@ namespace Microsoft.CodeAnalysis
             {
                 groupBuilder.Free();
 
-                if (pos < numImportStrings)
+                if (pos < importStrings.Length)
                 {
                     throw new InvalidOperationException(string.Format("Group size indicates fewer imports than there are import strings (method {0}).", FormatMethodToken(methodToken)));
                 }
@@ -448,26 +444,33 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// A list of import strings.  There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<string> GetVisualBasicImportStrings(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
+        public static ImmutableArray<string> GetVisualBasicImportStrings<TArg>(
+            int methodToken,
+            TArg arg,
+            Func<int, TArg, ImmutableArray<string>> getMethodImportStrings)
         {
-            ImmutableArray<string> importStrings = reader.GetMethodByVersion(methodToken, methodVersion).GetImportStrings();
+            ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
+            Debug.Assert(!importStrings.IsDefault);
+
+            if (importStrings.IsEmpty)
+            {
+                return ImmutableArray<string>.Empty;
+            }
 
             // Follow at most one forward link.
-            if (importStrings.Length > 0)
+            // As in PdbUtil::GetRawNamespaceListCore, we consider only the first string when
+            // checking for forwarding.
+            string importString = importStrings[0];
+            if (importString.Length >= 2 && importString[0] == '@')
             {
-                // As in PdbUtil::GetRawNamespaceListCore, we consider only the first string when
-                // checking for forwarding.
-                string importString = importStrings[0];
-                if (importString.Length >= 2 && importString[0] == '@')
+                char ch1 = importString[1];
+                if ('0' <= ch1 && ch1 <= '9')
                 {
-                    char ch1 = importString[1];
-                    if ('0' <= ch1 && ch1 <= '9')
+                    int tempMethodToken;
+                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
                     {
-                        int tempMethodToken;
-                        if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
-                        {
-                            return reader.GetMethodByVersion(tempMethodToken, methodVersion).GetImportStrings();
-                        }
+                        importStrings = getMethodImportStrings(tempMethodToken, arg);
+                        Debug.Assert(!importStrings.IsDefault);
                     }
                 }
             }
@@ -475,139 +478,11 @@ namespace Microsoft.CodeAnalysis
             return importStrings;
         }
 
-        // TODO (https://github.com/dotnet/roslyn/issues/702): caller should depend on abstraction
-        /// <exception cref="InvalidOperationException">Bad data.</exception>
-        public static void GetCSharpDynamicLocalInfo(
-            byte[] customDebugInfo,
-            int methodToken,
-            int methodVersion,
-            IEnumerable<ISymUnmanagedScope> scopes,
-            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
-            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
-        {
-            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
-            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
-
-            var record = TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.DynamicLocals);
-            if (record.IsDefault)
-            {
-                return;
-            }
-
-            ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
-            ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
-
-            var buckets = RemoveAmbiguousLocals(DecodeDynamicLocalsRecord(record), scopes);
-            foreach (var bucket in buckets)
-            {
-                var slot = bucket.SlotId;
-                var flags = GetFlags(bucket);
-                if (slot < 0)
-                {
-                    constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
-                    constantBuilder[bucket.Name] = flags;
-                }
-                else
-                {
-                    localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
-                    localBuilder[slot] = flags;
-                }
-            }
-
-            if (localBuilder != null)
-            {
-                dynamicLocalMap = localBuilder.ToImmutable();
-            }
-
-            if (constantBuilder != null)
-            {
-                dynamicLocalConstantMap = constantBuilder.ToImmutable();
-            }
-        }
-
-        /// <summary>
-        /// If there dynamic locals or constants with SlotId == 0, check all locals and
-        /// constants with SlotId == 0 for duplicate names and discard duplicates since we
-        /// cannot determine which local or constant the dynamic info is associated with.
-        /// </summary>
-        private static ImmutableArray<DynamicLocalBucket> RemoveAmbiguousLocals(
-            ImmutableArray<DynamicLocalBucket> locals,
-            IEnumerable<ISymUnmanagedScope> scopes)
-        {
-            var localsAndConstants = PooledDictionary<string, object>.GetInstance();
-            var firstLocal = GetFirstLocal(scopes);
-            if (firstLocal != null)
-            {
-                localsAndConstants.Add(firstLocal.GetName(), firstLocal);
-            }
-            foreach (var scope in scopes)
-            {
-                foreach (var constant in scope.GetConstants())
-                {
-                    var name = constant.GetName();
-                    localsAndConstants[name] = localsAndConstants.ContainsKey(name) ? null : constant;
-                }
-            }
-            var builder = ArrayBuilder<DynamicLocalBucket>.GetInstance();
-            foreach (var local in locals)
-            {
-                int slot = local.SlotId;
-                var name = local.Name;
-                if (slot == 0)
-                {
-                    object localOrConstant;
-                    localsAndConstants.TryGetValue(name, out localOrConstant);
-                    if (localOrConstant == null)
-                    {
-                        // Duplicate.
-                        continue;
-                    }
-                    if (localOrConstant != firstLocal)
-                    {
-                        // Constant.
-                        slot = -1;
-                    }
-                }
-                builder.Add(new DynamicLocalBucket(local.FlagCount, local.Flags, slot, name));
-            }
-            var result = builder.ToImmutableAndFree();
-            localsAndConstants.Free();
-            return result;
-        }
-
-        private static ISymUnmanagedVariable GetFirstLocal(IEnumerable<ISymUnmanagedScope> scopes)
-        {
-            foreach (var scope in scopes)
-            {
-                foreach (var local in scope.GetLocals())
-                {
-                    if (local.GetSlot() == 0)
-                    {
-                        return local;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private static ImmutableArray<bool> GetFlags(DynamicLocalBucket bucket)
-        {
-            int flagCount = bucket.FlagCount;
-            ulong flags = bucket.Flags;
-            var builder = ArrayBuilder<bool>.GetInstance(flagCount);
-            for (int i = 0; i < flagCount; i++)
-            {
-                builder.Add((flags & (1u << i)) != 0);
-            }
-            return builder.ToImmutableAndFree();
-        }
-
         private static void CheckVersion(byte globalVersion, int methodToken)
         {
-            if (globalVersion != CDI.CdiVersion)
+            if (globalVersion != CustomDebugInfoConstants.Version)
             {
-                throw new InvalidOperationException(string.Format("Method {0}: Expected version {1}, but found version {2}.", FormatMethodToken(methodToken), CDI.CdiVersion, globalVersion));
+                throw new InvalidOperationException(string.Format("Method {0}: Expected version {1}, but found version {2}.", FormatMethodToken(methodToken), CustomDebugInfoConstants.Version, globalVersion));
             }
         }
 
@@ -769,12 +644,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="import"/> is null.</exception>
         /// <exception cref="ArgumentException">Format of <paramref name="import"/> is not valid.</exception>
-        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out ImportScope scope)
+        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out VBImportScopeKind scope)
         {
             alias = null;
             target = null;
             kind = default(ImportTargetKind);
-            scope = default(ImportScope);
+            scope = default(VBImportScopeKind);
 
             if (import == null)
             {
@@ -787,7 +662,7 @@ namespace Microsoft.CodeAnalysis
                 alias = null;
                 target = import;
                 kind = ImportTargetKind.CurrentNamespace;
-                scope = ImportScope.Unspecified;
+                scope = VBImportScopeKind.Unspecified;
                 return true;
             }
 
@@ -803,7 +678,7 @@ namespace Microsoft.CodeAnalysis
                     alias = null;
                     target = import;
                     kind = ImportTargetKind.Defunct;
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     return true;
                 case '*': // VB default namespace
                     // see PEBuilder.cpp in vb\language\CodeGen
@@ -811,7 +686,7 @@ namespace Microsoft.CodeAnalysis
                     alias = null;
                     target = import.Substring(pos);
                     kind = ImportTargetKind.DefaultNamespace;
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     return true;
                 case '@': // VB cases other than default and current namespace
                     // see PEBuilder.cpp in vb\language\CodeGen
@@ -821,15 +696,15 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     switch (import[pos])
                     {
                         case 'F':
-                            scope = ImportScope.File;
+                            scope = VBImportScopeKind.File;
                             pos++;
                             break;
                         case 'P':
-                            scope = ImportScope.Project;
+                            scope = VBImportScopeKind.Project;
                             pos++;
                             break;
                     }
@@ -911,7 +786,7 @@ namespace Microsoft.CodeAnalysis
                     alias = null;
                     target = import;
                     kind = ImportTargetKind.CurrentNamespace;
-                    scope = ImportScope.Unspecified;
+                    scope = VBImportScopeKind.Unspecified;
                     return true;
             }
         }
@@ -941,122 +816,4 @@ namespace Microsoft.CodeAnalysis
             return string.Format("0x{0:x8}", methodToken);
         }
     }
-
-    /// <remarks>
-    /// Exposed for <see cref="T:Roslyn.Test.PdbUtilities.PdbToXmlConverter"/>.
-    /// </remarks>
-    internal struct CustomDebugInfoRecord
-    {
-        public readonly CustomDebugInfoKind Kind;
-        public readonly byte Version;
-        public readonly ImmutableArray<byte> Data;
-
-        public CustomDebugInfoRecord(CustomDebugInfoKind kind, byte version, ImmutableArray<byte> data)
-        {
-            this.Kind = kind;
-            this.Version = version;
-            this.Data = data;
-        }
-    }
-
-    internal enum ImportTargetKind
-    {
-        /// <summary>
-        /// C# or VB namespace import.
-        /// </summary>
-        Namespace,
-
-        /// <summary>
-        /// C# or VB type import.
-        /// </summary>
-        Type,
-
-        /// <summary>
-        /// VB namespace or type alias target (not specified).
-        /// </summary>
-        NamespaceOrType,
-
-        /// <summary>
-        /// C# extern alias.
-        /// </summary>
-        Assembly,
-
-        /// <summary>
-        /// VB XML import.
-        /// </summary>
-        XmlNamespace,
-
-        /// <summary>
-        /// VB forwarding information (i.e. another method has the imports for this one).
-        /// </summary>
-        MethodToken,
-
-        /// <summary>
-        /// VB containing namespace (not an import).
-        /// </summary>
-        CurrentNamespace,
-
-        /// <summary>
-        /// VB root namespace (not an import).
-        /// </summary>
-        DefaultNamespace,
-
-        /// <summary>
-        /// A kind that is no longer used.
-        /// </summary>
-        Defunct,
-    }
-
-    internal enum ImportScope
-    {
-        Unspecified,
-        File,
-        Project,
-    }
-
-    internal struct StateMachineHoistedLocalScope
-    {
-        public readonly int StartOffset;
-        public readonly int EndOffset;
-
-        public StateMachineHoistedLocalScope(int startoffset, int endOffset)
-        {
-            this.StartOffset = startoffset;
-            this.EndOffset = endOffset;
-        }
-    }
-
-    internal struct DynamicLocalBucket
-    {
-        public readonly int FlagCount;
-        public readonly ulong Flags;
-        public readonly int SlotId;
-        public readonly string Name;
-
-        public DynamicLocalBucket(int flagCount, ulong flags, int slotId, string name)
-        {
-            this.FlagCount = flagCount;
-            this.Flags = flags;
-            this.SlotId = slotId;
-            this.Name = name;
-        }
-    }
-
-    /// <summary>
-    /// The kinds of custom debug info that we know how to interpret.
-    /// The values correspond to possible values of the "kind" byte
-    /// in the record header.
-    /// </summary>
-    internal enum CustomDebugInfoKind : byte
-    {
-        UsingInfo = CDI.CdiKindUsingInfo,
-        ForwardInfo = CDI.CdiKindForwardInfo,
-        ForwardToModuleInfo = CDI.CdiKindForwardToModuleInfo,
-        StateMachineHoistedLocalScopes = CDI.CdiKindStateMachineHoistedLocalScopes,
-        ForwardIterator = CDI.CdiKindForwardIterator,
-        DynamicLocals = CDI.CdiKindDynamicLocals,
-        EditAndContinueLocalSlotMap = CDI.CdiKindEditAndContinueLocalSlotMap,
-        EditAndContinueLambdaMap = CDI.CdiKindEditAndContinueLambdaMap,
-    }
 }
-#pragma warning restore RS0010 // Avoid using cref tags with a prefix

@@ -1,8 +1,9 @@
 ﻿{
   "dependencies": {
+    "Microsoft.VisualStudio.Debugger.Engine": "14.3.25420",
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
     "win7": { }

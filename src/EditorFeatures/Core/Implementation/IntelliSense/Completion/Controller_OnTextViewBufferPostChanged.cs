@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 sessionOpt.FilterModel(
                     CompletionFilterReason.TypeChar,
                     recheckCaretPosition: model == null,
+                    dismissIfEmptyAllowed: true,
                     filterState: null);
             }
         }
