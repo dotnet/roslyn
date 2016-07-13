@@ -441,7 +441,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<object> GetCurrentProcess = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(GetCurrentProcess), paramTypes: new Type[] { })
+                .GetDeclaredMethod(nameof(GetCurrentProcess), paramTypes: SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Func<object>>();
         }
 
