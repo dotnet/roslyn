@@ -34,7 +34,7 @@ namespace SignRoslyn
 
         protected abstract int RunMSBuild(ProcessStartInfo startInfo);
 
-        internal void Sign(IEnumerable<string> filePaths)
+        internal void Sign(IEnumerable<BinarySignData> filesToSign)
         {
             var buildFilePath = Path.Combine(AppPath, "build.proj");
             var commandLine = new StringBuilder();
@@ -42,7 +42,7 @@ namespace SignRoslyn
             commandLine.Append($@"""{buildFilePath}"" ");
             Console.WriteLine($"msbuild.exe {commandLine.ToString()}");
 
-            var content = GenerateBuildFileContent(filePaths);
+            var content = GenerateBuildFileContent(filesToSign);
             File.WriteAllText(buildFilePath, content);
             Console.WriteLine("Generated project file");
             Console.WriteLine(content);
@@ -67,7 +67,7 @@ namespace SignRoslyn
             }
         }
 
-        private string GenerateBuildFileContent(IEnumerable<string> filesToSign)
+        private string GenerateBuildFileContent(IEnumerable<BinarySignData> filesToSign)
         {
             var builder = new StringBuilder();
             AppendLine(builder, depth: 0, text: @"<?xml version=""1.0"" encoding=""utf-8""?>");
@@ -82,22 +82,12 @@ namespace SignRoslyn
 
             foreach (var fileToSign in filesToSign)
             {
-                AppendLine(builder, depth: 2, text: $@"<FilesToSign Include=""{fileToSign}"">");
-
-                if (IsAssembly(fileToSign))
+                AppendLine(builder, depth: 2, text: $@"<FilesToSign Include=""{fileToSign.BinaryName.FullPath}"">");
+                AppendLine(builder, depth: 3, text: $@"<Authenticode>{fileToSign.Certificate}</Authenticode>");
+                if (fileToSign.StrongName != null)
                 {
-                    AppendLine(builder, depth: 3, text: @"<Authenticode>$(AuthenticodeCertificateName)</Authenticode>");
-                    AppendLine(builder, depth: 3, text: @"<StrongName>MsSharedLib72</StrongName>");
+                    AppendLine(builder, depth: 3, text: $@"<StrongName>{fileToSign.StrongName}</StrongName>");
                 }
-                else if (IsVsix(fileToSign))
-                {
-                    AppendLine(builder, depth: 3, text: @"<Authenticode>VsixSHA2</Authenticode>");
-                }
-                else
-                {
-                    Console.WriteLine($@"Unrecognized file type: {fileToSign}");
-                }
-
                 AppendLine(builder, depth: 2, text: @"</FilesToSign>");
             }
 

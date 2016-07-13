@@ -12,7 +12,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>

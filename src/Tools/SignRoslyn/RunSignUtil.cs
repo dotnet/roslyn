@@ -66,7 +66,7 @@ namespace SignRoslyn
                 Console.WriteLine($"\t{name.RelativePath}");
             }
 
-            _signTool.Sign(_signData.AssemblyNames.Select(x => x.FullPath));
+            _signTool.Sign(_signData.AssemblyNames.Select(x => _signData.BinarySignDataMap[x]));
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace SignRoslyn
                 }
 
                 Console.WriteLine($"\tSigning ...");
-                _signTool.Sign(list.Select(x => x.FullPath));
+                _signTool.Sign(list.Select(x => _signData.BinarySignDataMap[x]));
 
                 // Signing is complete so now we can update the signed set.
                 list.ForEach(x => signedSet.Add(x));
