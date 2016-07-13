@@ -47,14 +47,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim snippets = snippetInfoService.GetSnippetsIfAvailable()
 
-            Dim itemSpan = CommonCompletionUtilities.GetWordSpan(
-                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken),
-                position,
-                AddressOf Char.IsLetterOrDigit,
-                AddressOf Char.IsLetterOrDigit)
-
             context.IsExclusive = True
-            context.AddItems(CreateCompletionItems(snippets, itemSpan))
+            context.AddItems(CreateCompletionItems(snippets))
 
             Return SpecializedTasks.EmptyTask
         End Function
@@ -63,14 +57,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.Create(
             commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, s_commitChars)))
 
-        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo)) As IEnumerable(Of CompletionItem)
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
-                                                                  s.Shortcut,
-                                                                  span,
-                                                                  description:=s.Description.ToSymbolDisplayParts(),
-                                                                  glyph:=Glyph.Snippet,
-                                                                  rules:=s_rules))
+                                       s.Shortcut,
+                                       description:=s.Description.ToSymbolDisplayParts(),
+                                       glyph:=Glyph.Snippet,
+                                       rules:=s_rules))
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

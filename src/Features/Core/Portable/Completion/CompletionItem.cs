@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
         /// and typically represents the region of the document that will be changed if this item is committed.
         /// </summary>
-        public TextSpan Span { get; }
+        public TextSpan Span { get; internal set; }
 
         /// <summary>
         /// Additional information attached to a completion item by it creator.
@@ -143,9 +143,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
         /// </summary>
+        [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.")]
         public CompletionItem WithSpan(TextSpan span)
         {
-            return With(span: span);
+            return this;
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +38,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This is the most common value used for <see cref="CompletionItem.Span"/> and will
         /// be automatically assigned to any <see cref="CompletionItem"/> that has no <see cref="CompletionItem.Span"/> specified.
         /// </summary>
+        [Obsolete("Not used anymore. Use CompletionListSpan instead.")]
         public TextSpan DefaultItemSpan { get; }
+
+        public TextSpan CompletionListSpan { get; }
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -91,7 +93,10 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Provider = provider;
             this.Document = document;
             this.Position = position;
+#pragma warning disable CS0618 // Type or member is obsolete
             this.DefaultItemSpan = defaultSpan;
+#pragma warning restore CS0618 // Type or member is obsolete
+            this.CompletionListSpan = defaultSpan;
             this.Trigger = trigger;
             this.Options = options;
             this.CancellationToken = cancellationToken;
@@ -157,11 +162,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // remember provider so we can find it again later
             item = item.AddProperty("Provider", this.Provider.Name);
 
-            // assign the default span if not set by provider
-            if (item.Span == default(TextSpan) && this.DefaultItemSpan != default(TextSpan))
-            {
-                item = item.WithSpan(this.DefaultItemSpan);
-            }
+            item.Span = this.CompletionListSpan;
 
             return item;
         }

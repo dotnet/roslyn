@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
             Glyph? glyph,
             DeclarationModifiers modifiers,
             int line,
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return SymbolCompletionItem.Create(
                 displayText: displayText,
-                span: span,
                 symbol: symbol,
                 glyph: glyph,
                 descriptionPosition: descriptionPosition,

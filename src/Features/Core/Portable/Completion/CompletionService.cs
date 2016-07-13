@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -65,9 +66,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         /// <param name="text">The document text that completion is occurring within.</param>
         /// <param name="caretPosition">The position of the caret within the text.</param>
+        [Obsolete("Not used anymore. CompletionService.GetDefaultCompletionListSpan is used instead.")]
         public virtual TextSpan GetDefaultItemSpan(SourceText text, int caretPosition)
         {
-            return CommonCompletionUtilities.GetWordSpan(text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
+            return GetDefaultCompletionListSpan(text, caretPosition);
+        }
+
+        public virtual TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
+        {
+            return CommonCompletionUtilities.GetWordSpan(
+                text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
         }
 
         /// <summary>
@@ -130,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal virtual ImmutableArray<CompletionItem> ChooseBestItems(
             Document document,
             ImmutableArray<CompletionItem> filteredItems,
-            IReadOnlyDictionary<CompletionItem, string> itemToFilterText)
+            string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
 
@@ -144,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
                 else
                 {
-                    var comparison = helper.CompareItems(item, bestItems.First(), itemToFilterText[item]);
+                    var comparison = helper.CompareItems(item, bestItems.First(), filterText);
                     if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.

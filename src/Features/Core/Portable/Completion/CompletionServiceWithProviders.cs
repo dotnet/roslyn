@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var defaultItemSpan = this.GetDefaultItemSpan(text, caretPosition);
+            var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
             options = options ?? document.Options;
             var providers = GetProviders(roles, trigger);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (defaultSpan == null)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                defaultSpan = this.GetDefaultItemSpan(text, position);
+                defaultSpan = this.GetDefaultCompletionListSpan(text, position);
             }
 
             var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);

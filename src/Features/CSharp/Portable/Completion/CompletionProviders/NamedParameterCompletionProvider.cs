@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText: escapedName + ColonString,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: parameter,
                     descriptionPosition: token.SpanStart,
                     filterText: escapedName,

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +21,18 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
         /// Individual <see cref="CompletionItem"/> spans may vary.
         /// </summary>
+        [Obsolete("Not used anymore.  CompletionList.Span is used instead.")]
         public TextSpan DefaultSpan { get; }
+
+        /// <summary>
+        /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> 
+        /// was created.
+        /// 
+        /// The span identifies the text in the document that is used to filter the initial list 
+        /// presented to the user, and typically represents the region of the document that will 
+        /// be changed if this item is committed.
+        /// </summary>
+        public TextSpan Span { get; }
 
         /// <summary>
         /// The rules used to control behavior of the completion list shown to the user during typing.
@@ -48,7 +60,11 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem suggestionModeItem,
             bool isExclusive)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             this.DefaultSpan = defaultSpan;
+#pragma warning restore CS0618 // Type or member is obsolete
+            this.Span = defaultSpan;
+
             this.Items = items.IsDefault ? ImmutableArray<CompletionItem>.Empty : items;
             this.Rules = rules ?? CompletionRules.Default;
             this.SuggestionModeItem = suggestionModeItem;
@@ -83,11 +99,12 @@ namespace Microsoft.CodeAnalysis.Completion
                 defaultSpan, FixItemSpans(items, defaultSpan), rules, suggestionModeItem, isExclusive);
         }
 
-        private static ImmutableArray<CompletionItem> FixItemSpans(ImmutableArray<CompletionItem> items, TextSpan defaultSpan)
+        private static ImmutableArray<CompletionItem> FixItemSpans(
+            ImmutableArray<CompletionItem> items, TextSpan defaultSpan)
         {
-            if (defaultSpan != default(TextSpan) && items.Any(i => i.Span == default(TextSpan)))
+            foreach (var item in items)
             {
-                items = items.Select(i => i.Span == default(TextSpan) ? i.WithSpan(defaultSpan) : i).ToImmutableArray();
+                item.Span = defaultSpan;
             }
 
             return items;
@@ -99,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionRules> rules = default(Optional<CompletionRules>),
             Optional<CompletionItem> suggestionModeItem = default(Optional<CompletionItem>))
         {
-            var newSpan = span.HasValue ? span.Value : this.DefaultSpan;
+            var newSpan = span.HasValue ? span.Value : this.Span;
             var newItems = items.HasValue ? items.Value : this.Items;
             var newRules = rules.HasValue ? rules.Value : this.Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : this.SuggestionModeItem;
 
-            if (newSpan == this.DefaultSpan 
+            if (newSpan == this.Span 
                 && newItems == this.Items 
                 && newRules == this.Rules 
                 && newSuggestionModeItem == this.SuggestionModeItem)
@@ -120,7 +137,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="DefaultSpan"/> property changed.
         /// </summary>
+        [Obsolete("Not used anymore.  Use WithSpan instead.")]
         public CompletionList WithDefaultSpan(TextSpan span)
+        {
+            return With(span: span);
+        }
+
+        public CompletionList WithSpan(TextSpan span)
         {
             return With(span: span);
         }

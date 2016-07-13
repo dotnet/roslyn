@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return item.DisplayText
         End Function
 
-        Public Overrides Function GetDefaultItemSpan(text As SourceText, caretPosition As Integer) As TextSpan
+        Public Overrides Function GetDefaultCompletionListSpan(text As SourceText, caretPosition As Integer) As TextSpan
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
 

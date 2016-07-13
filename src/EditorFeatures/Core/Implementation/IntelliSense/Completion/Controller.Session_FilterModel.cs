@@ -128,9 +128,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var recentItems = this.Controller.GetRecentItems();
 
-                var itemToFilterText = new Dictionary<CompletionItem, string>();
                 var filterResults = new List<FilterResult>();
-                bool? allFilterTextsStartedWithANumber = null;
+
+                var filterText = model.GetCurrentTextInSnapshot(model.OriginalList.Span, textSnapshot, textSpanToText);
+
+                // If the user was typing a number, then immediately dismiss completion.
+                var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
+                if (filterTextStartsWithANumber == true)
+                {
+                    return null;
+                }
 
                 foreach (var currentItem in model.TotalItems)
                 {
@@ -147,29 +154,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         continue;
                     }
 
-                    var filterText = model.GetCurrentTextInSnapshot(currentItem.Item.Span, textSnapshot, textSpanToText);
-                    if (filterText.Length > 0 && char.IsNumber(filterText[0]))
-                    {
-                        if (allFilterTextsStartedWithANumber == null)
-                        {
-                            allFilterTextsStartedWithANumber = true;
-                        }
-                    }
-                    else
-                    {
-                        allFilterTextsStartedWithANumber = false;
-                    }
-
                     // Check if the item matches the filter text typed so far.  Note: we completely
                     // handle the deletion case and use a very weak 'prefix' match approach in order
                     // to not accidently match random parts of a completion item as you delete some
                     // existing code.
                     var matchesFilterText = MatchesFilterText(helper, currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
-
-                    // Save around the filter text for this item.  We'll need it a lot moving foward.
-                    // For example, we'll use it to help determine what parts of the item should be
-                    // highlighted once it is presented in the UI.
-                    itemToFilterText[currentItem.Item] = filterText;
 
                     if (matchesFilterText)
                     {
@@ -189,19 +178,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                // If the user was typing a number, then immediately dismiss completion.
-                if (allFilterTextsStartedWithANumber == true)
-                {
-                    return null;
-                }
-
                 // If no items matched the filter text then determine what we should do.
                 if (filterResults.Count == 0)
                 {
                     return HandleAllItemsFilteredOut(model, filterReason);
                 }
 
-                model = model.WithCompletionItemToFilterText(itemToFilterText);
+                model = model.WithFilterText(filterText);
 
                 // If this was deletion, then we control the entire behavior of deletion
                 // ourselves.
@@ -210,14 +193,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return HandleDeletionTrigger(model, filterResults);
                 }
 
-                return HandleNormalFiltering(model, filterReason, textSnapshot, document, helper, recentItems, itemToFilterText, filterResults);
+                return HandleNormalFiltering(
+                    model, filterReason, textSnapshot, document, 
+                    helper, recentItems, filterText, filterResults);
             }
 
             private Model HandleNormalFiltering(
                 Model model, CompletionFilterReason filterReason, 
                 ITextSnapshot textSnapshot, Document document, 
                 CompletionHelper helper, ImmutableArray<string> recentItems, 
-                Dictionary<CompletionItem, string> itemToFilterText, 
+                string filterText,
                 List<FilterResult> filterResults)
             {
                 // Not deletion.  Defer to the language to decide which item it thinks best
@@ -229,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
                                                            .Select(t => t.PresentationItem.Item)
                                                            .AsImmutable();
-                var chosenItems = service.ChooseBestItems(document, matchingCompletionItems, itemToFilterText);
+                var chosenItems = service.ChooseBestItems(document, matchingCompletionItems, filterText);
 
                 // Of the items the service returned, pick the one most recently committed
                 var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
@@ -252,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var matchingItemCount = filterResults.Where(t => t.MatchedFilterText).Count();
                 var isUnique = bestCompletionItem != null &&
                     matchingItemCount == 1 &&
-                    itemToFilterText[bestCompletionItem].Length > 0;
+                    filterText.Length > 0;
 
                 var result = model.WithFilteredItems(filterResults.Select(r => r.PresentationItem).AsImmutable())
                                   .WithSelectedItem(bestOrFirstPresentationItem)
@@ -384,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // nothing, then we do want the UI to show that to them.  That way the user
                     // can turn off filters they don't want and get the right set of items.
                     return model.WithFilteredItems(ImmutableArray<PresentationItem>.Empty)
-                                .WithCompletionItemToFilterText(SpecializedCollections.EmptyReadOnlyDictionary<CompletionItem, string>())
+                                .WithFilterText("")
                                 .WithHardSelection(false)
                                 .WithIsUnique(false);
                 }

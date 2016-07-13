@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                token.IsChildToken(Of ModuleStatementSyntax)(Function(stmt) stmt.DeclarationKeyword) Then
 
                 If token.GetAncestor(Of TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword) Then
-                    Dim items = Await CreateItemsAsync(document, position, context.DefaultItemSpan, token, cancellationToken).ConfigureAwait(False)
+                    Dim items = Await CreateItemsAsync(document, position, context.CompletionListSpan, token, cancellationToken).ConfigureAwait(False)
 
                     If items?.Any() Then
                         context.AddItems(items)
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 .OfType(Of INamedTypeSymbol)() _
                 .Where(Function(s) NotNewDeclaredMember(s, token)) _
                 .Where(Function(s) MatchesTypeKind(s, token) AndAlso InSameProject(s, compilation)) _
-                .Select(Function(s) CreateCompletionItem(s, span, displayService, token.SpanStart, context))
+                .Select(Function(s) CreateCompletionItem(s, displayService, token.SpanStart, context))
         End Function
 
         Private Function MatchesTypeKind(symbol As INamedTypeSymbol, token As SyntaxToken) As Boolean
@@ -108,7 +108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Function CreateCompletionItem(symbol As INamedTypeSymbol,
-                                              textSpan As TextSpan,
                                               displayService As ISymbolDisplayService,
                                               position As Integer,
                                               context As VisualBasicSyntaxContext) As CompletionItem
@@ -127,7 +126,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SymbolCompletionItem.Create(
                 displayText:=displayText,
                 insertionText:=insertionText,
-                span:=textSpan,
                 symbol:=symbol,
                 contextPosition:=context.Position,
                 descriptionPosition:=position,

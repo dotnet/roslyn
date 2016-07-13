@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected readonly CompletionPresenterSession CompletionPresenterSession;
         protected Dictionary<PresentationItem, VSCompletion> PresentationItemMap;
 
-        protected IReadOnlyDictionary<CompletionItem, string> CompletionItemToFilterText;
+        protected string FilterText;
 
         public Roslyn14CompletionSet(
             IVisualStudioCompletionSet vsCompletionSet,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
+            string filterText)
         {
             this.AssertIsForeground();
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             PresentationItemMap = PresentationItemMap ?? new Dictionary<PresentationItem, VSCompletion>(completionItems.Count + 1);
-            CompletionItemToFilterText = completionItemToFilterText;
+            FilterText = filterText;
 
             try
             {

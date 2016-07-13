@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             return _defaultCompletionProviders;
         }
 
-        public override TextSpan GetDefaultItemSpan(SourceText text, int caretPosition)
+        public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
         {
             return CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
         }

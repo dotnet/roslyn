@@ -58,18 +58,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var keyword in keywords)
                 {
-                    context.AddItem(CreateItem(keyword, context.DefaultItemSpan));
+                    context.AddItem(CreateItem(keyword));
                 }
             }
         }
 
         private static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
 
-        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
+        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword)
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 tags: s_Tags,

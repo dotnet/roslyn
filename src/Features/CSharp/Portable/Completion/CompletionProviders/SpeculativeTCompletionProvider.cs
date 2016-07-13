@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 const string T = nameof(T);
-                context.AddItem(CommonCompletionItem.Create(T, context.DefaultItemSpan, glyph: Glyph.TypeParameter));
+                context.AddItem(CommonCompletionItem.Create(T, glyph: Glyph.TypeParameter));
             }
         }
 

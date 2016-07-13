@@ -111,7 +111,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateCompletionItem(position As Integer,
                                               symbol As ISymbol,
-                                              span As TextSpan,
                                               context As VisualBasicSyntaxContext) As CompletionItem
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
@@ -120,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SymbolCompletionItem.Create(
                 displayText:=displayAndInsertionText.Item1,
                 insertionText:=displayAndInsertionText.Item2,
-                span:=span,
                 symbol:=symbol,
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
