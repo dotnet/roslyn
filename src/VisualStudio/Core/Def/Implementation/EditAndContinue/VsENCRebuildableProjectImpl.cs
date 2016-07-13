@@ -31,6 +31,7 @@ using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
 using Document = Microsoft.CodeAnalysis.Document;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
