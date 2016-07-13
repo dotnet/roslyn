@@ -4135,6 +4135,65 @@ namespace TuplesCrash2
         }
 
         [Fact]
+        [WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
+        public void MultipleDefinitionsOfValueTuple()
+        {
+            var source1 = @"
+public static class C1
+{
+    public static void M1(this int x, (int, int) y)
+    {
+        System.Console.WriteLine(""C1.M1"");
+    }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var source2 = @"
+public static class C2
+{
+    public static void M1(this int x, (int, int) y)
+    {
+        System.Console.WriteLine(""C2.M1"");
+    }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
+            comp1.VerifyDiagnostics();
+            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2");
+            comp2.VerifyDiagnostics();
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        int x = 0;
+        x.M1((1, 1));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() });
+
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
+                );
+
+            comp = CreateCompilationWithMscorlib(source,
+                        references: new[] { comp1.ToMetadataReference() },
+                        options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1.M1");
+        }
+
+        [Fact]
         public void Tuple2To8Members()
         {
             var source = @"
