@@ -26,10 +26,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinaryName.cs" />
-    <Compile Include="BinarySignData.cs" />
     <Compile Include="ContentUtil.cs" />
     <Compile Include="FileJson.cs" />
-    <Compile Include="FileSignData.cs" />
     <Compile Include="PathUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="RealSignTool.cs" />
