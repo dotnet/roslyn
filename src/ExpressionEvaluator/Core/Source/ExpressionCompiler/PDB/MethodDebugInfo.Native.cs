@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;

@@ -27,9 +27,6 @@
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
-      <Link>Shared\CustomDebugInfoReader.cs</Link>
-    </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="CustomTypeInfo.cs" />

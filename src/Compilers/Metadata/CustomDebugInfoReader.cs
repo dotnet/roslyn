@@ -5,15 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
-using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Debugging
 {
     /// <summary>
     /// A collection of utility method for consuming custom debug info from a PDB.
@@ -30,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
             version = bytes[offset + 0];
             count = bytes[offset + 1];
-            offset += CDI.CdiGlobalHeaderSize;
+            offset += CustomDebugInfoConstants.GlobalHeaderSize;
         }
 
         /// <summary>
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             // two bytes of padding after kind
             size = BitConverter.ToInt32(bytes, offset + 4);
 
-            offset += CDI.CdiRecordHeaderSize;
+            offset += CustomDebugInfoConstants.RecordHeaderSize;
         }
 
         /// <exception cref="InvalidOperationException"></exception>
@@ -69,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidOperationException"></exception>
         public static IEnumerable<CustomDebugInfoRecord> GetCustomDebugInfoRecords(byte[] customDebugInfo)
         {
-            if (customDebugInfo.Length < CDI.CdiGlobalHeaderSize)
+            if (customDebugInfo.Length < CustomDebugInfoConstants.GlobalHeaderSize)
             {
                 throw new InvalidOperationException("Invalid header.");
             }
@@ -80,12 +76,12 @@ namespace Microsoft.CodeAnalysis
             byte globalCount;
             ReadGlobalHeader(customDebugInfo, ref offset, out globalVersion, out globalCount);
 
-            if (globalVersion != CDI.CdiVersion)
+            if (globalVersion != CustomDebugInfoConstants.Version)
             {
                 yield break;
             }
 
-            while (offset <= customDebugInfo.Length - CDI.CdiRecordHeaderSize)
+            while (offset <= customDebugInfo.Length - CustomDebugInfoConstants.RecordHeaderSize)
             {
                 byte version;
                 CustomDebugInfoKind kind;
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 int alignmentSize;
 
                 ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size, out alignmentSize);
-                if (size < CDI.CdiRecordHeaderSize)
+                if (size < CustomDebugInfoConstants.RecordHeaderSize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
@@ -105,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                     alignmentSize = 0;
                 }
 
-                int bodySize = size - CDI.CdiRecordHeaderSize;
+                int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
                 if (offset > customDebugInfo.Length - bodySize || alignmentSize > 3 || alignmentSize > bodySize)
                 {
                     throw new InvalidOperationException("Invalid header.");
@@ -280,7 +276,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
         {
-            int bodySize = size - CDI.CdiRecordHeaderSize;
+            int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
             body = ImmutableArray.Create(bytes, offset, bodySize);
             offset += bodySize;
         }
@@ -290,7 +286,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void SkipRecord(byte[] bytes, ref int offset, int size)
         {
-            offset += size - CDI.CdiRecordHeaderSize;
+            offset += size - CustomDebugInfoConstants.RecordHeaderSize;
         }
 
         /// <summary>
@@ -491,9 +487,9 @@ namespace Microsoft.CodeAnalysis
 
         private static void CheckVersion(byte globalVersion, int methodToken)
         {
-            if (globalVersion != CDI.CdiVersion)
+            if (globalVersion != CustomDebugInfoConstants.Version)
             {
-                throw new InvalidOperationException(string.Format("Method {0}: Expected version {1}, but found version {2}.", FormatMethodToken(methodToken), CDI.CdiVersion, globalVersion));
+                throw new InvalidOperationException(string.Format("Method {0}: Expected version {1}, but found version {2}.", FormatMethodToken(methodToken), CustomDebugInfoConstants.Version, globalVersion));
             }
         }
 
@@ -845,54 +841,6 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal enum ImportTargetKind
-    {
-        /// <summary>
-        /// C# or VB namespace import.
-        /// </summary>
-        Namespace,
-
-        /// <summary>
-        /// C# or VB type import.
-        /// </summary>
-        Type,
-
-        /// <summary>
-        /// VB namespace or type alias target (not specified).
-        /// </summary>
-        NamespaceOrType,
-
-        /// <summary>
-        /// C# extern alias.
-        /// </summary>
-        Assembly,
-
-        /// <summary>
-        /// VB XML import.
-        /// </summary>
-        XmlNamespace,
-
-        /// <summary>
-        /// VB forwarding information (i.e. another method has the imports for this one).
-        /// </summary>
-        MethodToken,
-
-        /// <summary>
-        /// VB containing namespace (not an import).
-        /// </summary>
-        CurrentNamespace,
-
-        /// <summary>
-        /// VB root namespace (not an import).
-        /// </summary>
-        DefaultNamespace,
-
-        /// <summary>
-        /// A kind that is no longer used.
-        /// </summary>
-        Defunct,
-    }
-
     internal enum VBImportScopeKind
     {
         Unspecified,
@@ -926,22 +874,5 @@ namespace Microsoft.CodeAnalysis
             this.SlotId = slotId;
             this.Name = name;
         }
-    }
-
-    /// <summary>
-    /// The kinds of custom debug info that we know how to interpret.
-    /// The values correspond to possible values of the "kind" byte
-    /// in the record header.
-    /// </summary>
-    internal enum CustomDebugInfoKind : byte
-    {
-        UsingInfo = CDI.CdiKindUsingInfo,
-        ForwardInfo = CDI.CdiKindForwardInfo,
-        ForwardToModuleInfo = CDI.CdiKindForwardToModuleInfo,
-        StateMachineHoistedLocalScopes = CDI.CdiKindStateMachineHoistedLocalScopes,
-        ForwardIterator = CDI.CdiKindForwardIterator,
-        DynamicLocals = CDI.CdiKindDynamicLocals,
-        EditAndContinueLocalSlotMap = CDI.CdiKindEditAndContinueLocalSlotMap,
-        EditAndContinueLambdaMap = CDI.CdiKindEditAndContinueLambdaMap,
     }
 }

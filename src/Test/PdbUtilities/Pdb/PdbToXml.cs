@@ -13,11 +13,10 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
-using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
+
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 
 namespace Roslyn.Test.PdbUtilities
@@ -264,7 +263,7 @@ namespace Roslyn.Test.PdbUtilities
 
             foreach (var record in records)
             {
-                if (record.Version != CDIC.CdiVersion)
+                if (record.Version != CustomDebugInfoConstants.Version)
                 {
                     WriteUnknownCustomDebugInfo(record);
                 }
@@ -342,7 +341,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("using");
 
-            ImmutableArray<short> counts = CDI.DecodeUsingRecord(record.Data);
+            ImmutableArray<short> counts = CustomDebugInfoReader.DecodeUsingRecord(record.Data);
 
             foreach (short importCount in counts)
             {
@@ -367,7 +366,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("forward");
 
-            int token = CDI.DecodeForwardRecord(record.Data);
+            int token = CustomDebugInfoReader.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
             _writer.WriteEndElement(); //forward
@@ -387,7 +386,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("forwardToModule");
 
-            int token = CDI.DecodeForwardRecord(record.Data);
+            int token = CustomDebugInfoReader.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
             _writer.WriteEndElement(); //forwardToModule
@@ -407,7 +406,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("hoistedLocalScopes");
 
-            var scopes = CDI.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
+            var scopes = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
 
             foreach (StateMachineHoistedLocalScope scope in scopes)
             {
@@ -433,7 +432,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("forwardIterator");
 
-            string name = CDI.DecodeForwardIteratorRecord(record.Data);
+            string name = CustomDebugInfoReader.DecodeForwardIteratorRecord(record.Data);
 
             _writer.WriteAttributeString("name", name);
 
@@ -453,7 +452,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("dynamicLocals");
 
-            var dynamicLocals = CDI.DecodeDynamicLocalsRecord(record.Data);
+            var dynamicLocals = CustomDebugInfoReader.DecodeDynamicLocalsRecord(record.Data);
 
             foreach (DynamicLocalInfo dynamicLocal in dynamicLocals)
             {
@@ -713,7 +712,7 @@ namespace Roslyn.Test.PdbUtilities
                 if (rawName.Length == 0)
                 {
                     externAlias = null;
-                    var parsingSucceeded = CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
+                    var parsingSucceeded = CustomDebugInfoReader.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
                     Debug.Assert(parsingSucceeded);
                 }
                 else
@@ -727,7 +726,7 @@ namespace Roslyn.Test.PdbUtilities
                         case 'E':
                         case 'T':
                             scope = VBImportScopeKind.Unspecified;
-                            if (!CDI.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
+                            if (!CustomDebugInfoReader.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
                             {
                                 throw new InvalidOperationException($"Invalid import '{rawName}'");
                             }
@@ -735,7 +734,7 @@ namespace Roslyn.Test.PdbUtilities
 
                         default:
                             externAlias = null;
-                            if (!CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope))
+                            if (!CustomDebugInfoReader.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope))
                             {
                                 throw new InvalidOperationException($"Invalid import '{rawName}'");
                             }
