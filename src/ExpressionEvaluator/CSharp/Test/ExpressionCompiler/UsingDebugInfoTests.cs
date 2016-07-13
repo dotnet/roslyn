@@ -20,6 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     using System;
+    using Debugging;
     using static MethodDebugInfoValidation;
 
     public class UsingDebugInfoTests : ExpressionCompilerTestBase
