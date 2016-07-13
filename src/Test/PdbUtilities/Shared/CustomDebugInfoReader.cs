@@ -300,7 +300,12 @@ namespace Microsoft.CodeAnalysis
         /// For each namespace enclosing the method, a list of import strings, innermost to outermost.
         /// There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings(this ISymUnmanagedReader3 reader, int methodToken, int methodVersion, out ImmutableArray<string> externAliasStrings)
+        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings<TArg>(
+            int methodToken,
+            TArg arg,
+            Func<int, TArg, byte[]> getMethodCustomDebugInfo,
+            Func<int, TArg, ImmutableArray<string>> getMethodImportStrings,
+            out ImmutableArray<string> externAliasStrings)
         {
             externAliasStrings = default(ImmutableArray<string>);
 
@@ -308,7 +313,7 @@ namespace Microsoft.CodeAnalysis
             bool seenForward = false;
 
         RETRY:
-            byte[] bytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
+            byte[] bytes = getMethodCustomDebugInfo(methodToken, arg);
             if (bytes == null)
             {
                 return default(ImmutableArray<ImmutableArray<string>>);
@@ -352,8 +357,14 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         int moduleInfoMethodToken = DecodeForwardToModuleRecord(record.Data);
-                        ImmutableArray<string> allModuleInfoImportStrings = reader.GetMethodByVersion(moduleInfoMethodToken, methodVersion).GetImportStrings();
-                        ArrayBuilder<string> externAliasBuilder = ArrayBuilder<string>.GetInstance();
+
+                        ImmutableArray<string> allModuleInfoImportStrings = getMethodImportStrings(moduleInfoMethodToken, arg);
+                        if (allModuleInfoImportStrings.IsDefault)
+                        {
+                            throw new InvalidOperationException(string.Format("Forwarded to non-existing method {0}", FormatMethodToken(moduleInfoMethodToken)));
+                        }
+
+                        var externAliasBuilder = ArrayBuilder<string>.GetInstance();
 
                         foreach (string importString in allModuleInfoImportStrings)
                         {
@@ -374,25 +385,21 @@ namespace Microsoft.CodeAnalysis
                 return default(ImmutableArray<ImmutableArray<string>>);
             }
 
-            var method = reader.GetMethodByVersion(methodToken, methodVersion);
-            if (method == null)
+            ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
+            if (importStrings.IsDefault)
             {
                 return default(ImmutableArray<ImmutableArray<string>>);
             }
 
-            ImmutableArray<string> importStrings = method.GetImportStrings();
-            int numImportStrings = importStrings.Length;
-
-            ArrayBuilder<ImmutableArray<string>> resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
-            ArrayBuilder<string> groupBuilder = ArrayBuilder<string>.GetInstance();
-
+            var resultBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(groupSizes.Length);
+            var groupBuilder = ArrayBuilder<string>.GetInstance();
             int pos = 0;
 
             foreach (short groupSize in groupSizes)
             {
                 for (int i = 0; i < groupSize; i++, pos++)
                 {
-                    if (pos >= numImportStrings)
+                    if (pos >= importStrings.Length)
                     {
                         throw new InvalidOperationException(string.Format("Group size indicates more imports than there are import strings (method {0}).", FormatMethodToken(methodToken)));
                     }
@@ -415,7 +422,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(groupBuilder.Count == 0);
 
                 // Extern alias detail strings (prefix "Z") are not included in the group counts.
-                for (; pos < numImportStrings; pos++)
+                for (; pos < importStrings.Length; pos++)
                 {
                     string importString = importStrings[pos];
                     if (!IsCSharpExternAliasInfo(importString))
@@ -432,7 +439,7 @@ namespace Microsoft.CodeAnalysis
             {
                 groupBuilder.Free();
 
-                if (pos < numImportStrings)
+                if (pos < importStrings.Length)
                 {
                     throw new InvalidOperationException(string.Format("Group size indicates fewer imports than there are import strings (method {0}).", FormatMethodToken(methodToken)));
                 }
@@ -447,25 +454,33 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// A list of import strings.  There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<string> GetVisualBasicImportStrings(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
+        public static ImmutableArray<string> GetVisualBasicImportStrings<TArg>(
+            int methodToken,
+            TArg arg,
+            Func<int, TArg, ImmutableArray<string>> getMethodImportStrings)
         {
-            ImmutableArray<string> importStrings = reader.GetMethodByVersion(methodToken, methodVersion).GetImportStrings();
+            ImmutableArray<string> importStrings = getMethodImportStrings(methodToken, arg);
+            if (importStrings.IsDefaultOrEmpty)
+            {
+                return ImmutableArray<string>.Empty;
+            }
 
             // Follow at most one forward link.
-            if (importStrings.Length > 0)
+            // As in PdbUtil::GetRawNamespaceListCore, we consider only the first string when
+            // checking for forwarding.
+            string importString = importStrings[0];
+            if (importString.Length >= 2 && importString[0] == '@')
             {
-                // As in PdbUtil::GetRawNamespaceListCore, we consider only the first string when
-                // checking for forwarding.
-                string importString = importStrings[0];
-                if (importString.Length >= 2 && importString[0] == '@')
+                char ch1 = importString[1];
+                if ('0' <= ch1 && ch1 <= '9')
                 {
-                    char ch1 = importString[1];
-                    if ('0' <= ch1 && ch1 <= '9')
+                    int tempMethodToken;
+                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
                     {
-                        int tempMethodToken;
-                        if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
+                        importStrings = getMethodImportStrings(tempMethodToken, arg);
+                        if (importStrings.IsDefault)
                         {
-                            return reader.GetMethodByVersion(tempMethodToken, methodVersion).GetImportStrings();
+                            throw new InvalidOperationException(string.Format("Forwarded to non-existing method {0}", FormatMethodToken(tempMethodToken)));
                         }
                     }
                 }

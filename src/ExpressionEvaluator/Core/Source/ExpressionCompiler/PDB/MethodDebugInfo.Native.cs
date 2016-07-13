@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -147,7 +148,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<ExternAliasRecord> externAliasRecords)
         {
             ImmutableArray<string> externAliasStrings;
-            var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
+
+            var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
+                methodToken,
+                KeyValuePair.Create(reader, methodVersion),
+                getMethodCustomDebugInfo: (token, arg) => arg.Key.GetCustomDebugInfoBytes(token, arg.Value),
+                getMethodImportStrings: (token, arg) => arg.Key.GetMethodByVersion(token, arg.Value)?.GetImportStrings() ?? default(ImmutableArray<string>),
+                externAliasStrings: out externAliasStrings);
+
             Debug.Assert(importStringGroups.IsDefault == externAliasStrings.IsDefault);
 
             ArrayBuilder<ImmutableArray<ImportRecord>> importRecordGroupBuilder = null;
@@ -405,7 +413,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             importRecordGroups = ImmutableArray<ImmutableArray<ImportRecord>>.Empty;
 
-            var importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion);
+            var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
+                methodToken,  
+                KeyValuePair.Create(reader, methodVersion),
+                (token, arg) => arg.Key.GetMethodByVersion(token, arg.Value)?.GetImportStrings() ?? default(ImmutableArray<string>));
+
             if (importStrings.IsDefault)
             {
                 defaultNamespaceName = "";
