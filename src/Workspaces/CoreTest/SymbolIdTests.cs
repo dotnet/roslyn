@@ -307,11 +307,11 @@ public class C
             Assert.True(symbols.Count > 0);
             TestRoundTrip(symbols, compilation);
         }
-
         [Fact]
         public void TestExtensionMethodReferences()
         {
             var source = @"
+using System;
 using System.Collections.Generic;
 
 public static class E 
@@ -321,6 +321,7 @@ public static class E
     public static void Z<T>(this T t, string y) { }
     public static void Z<T>(this T t, T t2) { }
     public static void Y<T, S>(this T t, S other) { }
+    public static TResult Select<TSource, TResult>(this IEnumerable<TSource> collection, Func<TSource, TResult> selector) { return null;}
 }
 
 public class C
@@ -331,13 +332,14 @@ public class C
         this.Z(""test"");
         this.Z(this);
         this.Y(1.0);
+        new[] { 1, 2, 3 }.Select(
     }
 }
 ";
             var compilation = GetCompilation(source);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
-            var symbols = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).Symbol).ToList();
+            var symbols = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).GetAnySymbol()).ToList();
             Assert.True(symbols.Count > 0);
             Assert.True(symbols.All(s => s.IsReducedExtension()));
             TestRoundTrip(symbols, compilation);
@@ -427,6 +429,104 @@ public class C<S, T>
             TestRoundTrip(constructed, compilation);
         }
 
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestNestedGenericType()
+        {
+            var source = @"
+public class A<TOuter>
+{
+    public class B<TInner>
+    {
+    }
+}";
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var outer = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().First(s => s.Name == "A");
+            var constructed = outer.Construct(compilation.GetSpecialType(SpecialType.System_String));
+            var inner = constructed.GetTypeMembers().Single();
+            TestRoundTrip(inner, compilation, "T:A{N:System.T:String}.T:B`1");
+        }
+
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestNestedGenericType1()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public class A<T1>
+{
+    public class B<T2>
+    {
+        void M<T3>(T1 t1, T2, T3 t3, List<int> l1, List<T3> l2) { }
+    }
+}";
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var a = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(s => s.Name == "A");
+            var a_b = a.GetTypeMembers().Single();
+            var a_b_m = a_b.GetMembers().Single(s => s.Name == "M");
+
+            TestRoundTrip(a, compilation, "T:A`1");
+            TestRoundTrip(a_b, compilation, "T:A`1.T:B`1");
+            TestRoundTrip(a_b_m, compilation, "T:A`1.T:B`1.M:M`1(`0,`1,``0,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{``0})");
+
+            var a_string = a.Construct(compilation.GetSpecialType(SpecialType.System_String));
+            var a_string_b = a_string.GetTypeMembers().Single();
+            var a_string_b_m = a_string_b.GetMembers().Single(s => s.Name == "M");
+            TestRoundTrip(a_string, compilation, "T:A{N:System.T:String}");
+            TestRoundTrip(a_string_b, compilation, "T:A{N:System.T:String}.T:B`1");
+            TestRoundTrip(a_string_b_m, compilation, "T:A{N:System.T:String}.T:B`1.M:M`1(N:System.T:String,`1,``0,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{``0})");
+
+            var a_string_b_int = a_string_b.Construct(compilation.GetSpecialType(SpecialType.System_Int32));
+            var a_string_b_int_m = a_string_b_int.GetMembers().Single(s => s.Name == "M");
+            TestRoundTrip(a_string_b_int, compilation, "T:A{N:System.T:String}.T:B{N:System.T:Int32}");
+            TestRoundTrip(a_string_b_int_m, compilation, "T:A{N:System.T:String}.T:B{N:System.T:Int32}.M:M`1(N:System.T:String,N:System.T:Int32,``0,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{``0})");
+
+            var a_string_b_int_m_datetime = ((IMethodSymbol)a_string_b_int_m).Construct(compilation.GetSpecialType(SpecialType.System_DateTime));
+            TestRoundTrip(a_string_b_int_m_datetime, compilation, "T:A{N:System.T:String}.T:B{N:System.T:Int32}.M:M{N:System.T:DateTime}(N:System.T:String,N:System.T:Int32,N:System.T:DateTime,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{N:System.T:DateTime})");
+
+            var a_b_int = a_b.Construct(compilation.GetSpecialType(SpecialType.System_Int32));
+            var a_b_int_m = a_b_int.GetMembers().Single(s => s.Name == "M");
+            var a_b_int_m_datetime = ((IMethodSymbol)a_b_int_m).Construct(compilation.GetSpecialType(SpecialType.System_DateTime));
+            TestRoundTrip(a_b_int, compilation, "T:A`1.T:B{N:System.T:Int32}");
+            TestRoundTrip(a_b_int_m, compilation, "T:A`1.T:B{N:System.T:Int32}.M:M`1(`0,N:System.T:Int32,``0,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{``0})");
+            TestRoundTrip(a_b_int_m_datetime, compilation, "T:A`1.T:B{N:System.T:Int32}.M:M{N:System.T:DateTime}(`0,N:System.T:Int32,N:System.T:DateTime,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{N:System.T:DateTime})");
+
+            var a_b_m_datetime = ((IMethodSymbol)a_b_m).Construct(compilation.GetSpecialType(SpecialType.System_DateTime));
+            TestRoundTrip(a_b_m_datetime, compilation, "T:A`1.T:B`1.M:M{N:System.T:DateTime}(`0,`1,N:System.T:DateTime,N:System.N:Collections.N:Generic.T:List{N:System.T:Int32},N:System.N:Collections.N:Generic.T:List{N:System.T:DateTime})");
+        }
+
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestGenericTypeTypeParameter()
+        {
+            var source = @"class C<T> { }";
+
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().TypeParameters.Single();
+
+            TestRoundTrip(typeParameter, compilation, "T:C`1:`0");
+        }
+
+        [Fact, WorkItem(235912, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
+        public void TestGenericMethodTypeParameter()
+        {
+            var source = @"class C { void M<T>() { } }";
+
+            var compilation = GetCompilation(source);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
+
+            TestRoundTrip(typeParameter, compilation, "T:C.M:M`1:``0");
+        }
+
         [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
         public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
         {
@@ -477,14 +577,19 @@ class C
         {
             foreach (var symbol in symbols)
             {
-                TestRoundTrip(symbol, compilation, fnId);
+                TestRoundTrip(symbol, compilation, fnId: fnId);
             }
         }
 
-        private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private void TestRoundTrip(ISymbol symbol, Compilation compilation, string expectedId = null, Func<ISymbol, object> fnId = null)
         {
             var id = SymbolId.CreateId(symbol);
             Assert.NotNull(id);
+            if (expectedId != null)
+            {
+                Assert.Equal(expectedId, id);
+            }
+
             var found = SymbolId.GetFirstSymbolForId(id, compilation);
             Assert.NotNull(found);
 

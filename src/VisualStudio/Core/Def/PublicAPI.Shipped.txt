@@ -2,6 +2,8 @@ Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation
 Microsoft.VisualStudio.LanguageServices.RQName
 Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace
 Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.CreatePortableExecutableReference(string filePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> Microsoft.CodeAnalysis.PortableExecutableReference
+XamlGeneratedNamespace.GeneratedInternalTypeHelper
+XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.DisplayReferencedSymbols(Microsoft.CodeAnalysis.Solution solution, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.FindSymbols.ReferencedSymbol> referencedSymbols) -> void
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFileCodeModel(Microsoft.CodeAnalysis.DocumentId documentId) -> EnvDTE.FileCodeModel
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFilePath(Microsoft.CodeAnalysis.DocumentId documentId) -> string
