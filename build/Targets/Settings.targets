@@ -303,7 +303,6 @@
 
   <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
-    <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
   </PropertyGroup>
 
   <!-- 

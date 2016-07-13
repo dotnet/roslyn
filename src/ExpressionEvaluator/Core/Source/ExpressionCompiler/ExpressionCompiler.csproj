@@ -8,7 +8,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
