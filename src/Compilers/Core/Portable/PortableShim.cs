@@ -137,7 +137,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<string> GetTempFileName = (Func<string>)Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(GetTempFileName), paramTypes: new Type[] { })
+                .GetDeclaredMethod(nameof(GetTempFileName), paramTypes: SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate(typeof(Func<string>));
         }
 
@@ -455,7 +455,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Action EnsureSufficientExecutionStack = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(EnsureSufficientExecutionStack), paramTypes: new Type[] { })
+                .GetDeclaredMethod(nameof(EnsureSufficientExecutionStack), paramTypes: SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Action>();
         }
 
@@ -469,11 +469,11 @@ namespace Roslyn.Utilities
 
             private static readonly ConstructorInfo s_Ctor = Type
                 .GetTypeInfo()
-                .GetDeclaredConstructor(new Type[] { });
+                .GetDeclaredConstructor(SpecializedCollections.EmptyArray<Type>());
 
             private static readonly MethodInfo s_ToString = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod("ToString", new Type[] { });
+                .GetDeclaredMethod("ToString", SpecializedCollections.EmptyArray<Type>());
 
             internal static string GetString()
             {
@@ -665,10 +665,10 @@ namespace Roslyn.Utilities
             {
                 if (s_lazyHashAndReset == null)
                 {
-                    s_lazyHashAndReset = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(GetHashAndReset), new Type[0]);
+                    s_lazyHashAndReset = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(GetHashAndReset), SpecializedCollections.EmptyArray<Type>());
                 }
 
-                return (byte[])s_lazyHashAndReset.Invoke(incrementalHash, new object[0]);
+                return (byte[])s_lazyHashAndReset.Invoke(incrementalHash, SpecializedCollections.EmptyArray<object>());
             }
         }
 
@@ -696,7 +696,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .GetDeclaredMethod(nameof(Create), SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -710,7 +710,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .GetDeclaredMethod(nameof(Create), SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -724,7 +724,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .GetDeclaredMethod(nameof(Create), SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -738,7 +738,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .GetDeclaredMethod(nameof(Create), SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -752,7 +752,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .GetDeclaredMethod(nameof(Create), SpecializedCollections.EmptyArray<Type>())
                 .CreateDelegate<Func<IDisposable>>();
         }
     }

@@ -8,7 +8,11 @@ namespace Roslyn.Utilities
         {
             internal class Array<T>
             {
+#if COMPILERCORE
                 public static readonly T[] Instance = new T[0];
+#else
+                public static readonly T[] Instance = System.Array.Empty<T>();
+#endif
             }
         }
     }
