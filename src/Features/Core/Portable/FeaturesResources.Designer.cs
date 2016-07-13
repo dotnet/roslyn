@@ -89,20 +89,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add default switch case.
+        ///   Looks up a localized string similar to Add default case.
         /// </summary>
-        internal static string Add_default_switch_case {
+        internal static string Add_default_case {
             get {
-                return ResourceManager.GetString("Add_default_switch_case", resourceCulture);
+                return ResourceManager.GetString("Add_default_case", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add missing switch cases.
+        ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
-        internal static string Add_missing_switch_cases {
+        internal static string Add_missing_cases {
             get {
-                return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
+                return ResourceManager.GetString("Add_missing_cases", resourceCulture);
             }
         }
         
