@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
         }
 
-        private async Task CheckResultsAsync(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph, int? matchPriority)
+        private async Task CheckResultsAsync(
+            Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph, int? matchPriority)
         {
             var code = (await document.GetTextAsync()).ToString();
 
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 {
                     AssertEx.Any(items, c => CompareItems(c.DisplayText, expectedItemOrNull)
                         && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
-                        && (glyph.HasValue ? CompletionHelper.TagsEqual(c.Tags, GlyphTags.GetTags(glyph.Value)) : true)
+                        && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags(glyph.Value)) : true)
                         && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true ));
                 }
             }
