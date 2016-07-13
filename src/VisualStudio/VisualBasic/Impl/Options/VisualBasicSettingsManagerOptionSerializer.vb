@@ -13,9 +13,10 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ExportLanguageSpecificOptionSerializer(
@@ -33,8 +34,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Inherits AbstractSettingsManagerOptionSerializer
 
         <ImportingConstructor>
-        Public Sub New(workspace As VisualStudioWorkspaceImpl)
-            MyBase.New(workspace)
+        Public Sub New(serviceProvider As SVsServiceProvider, importedOptionService As IOptionService)
+            MyBase.New(serviceProvider, importedOptionService)
         End Sub
 
         Private Const Style_QualifyFieldAccess As String = NameOf(AutomationObject.Style_QualifyFieldAccess)

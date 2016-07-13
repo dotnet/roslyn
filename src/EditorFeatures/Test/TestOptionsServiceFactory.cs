@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // give out new option service per workspace
-            return new OptionServiceFactory.OptionService(
-                new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>>()),
-                workspaceServices);
+            return new OptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>>());
         }
     }
 }

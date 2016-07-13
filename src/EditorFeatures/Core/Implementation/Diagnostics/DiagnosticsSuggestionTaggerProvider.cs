@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticsSuggestionTaggerProvider(
+            IOptionService optionService,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)

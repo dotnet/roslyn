@@ -7,11 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Provides services for reading and writing options.  This will provide support for
-    /// customizations workspaces need to perform around options.  Note that 
-    /// <see cref="IGlobalOptionService"/> options will normally still be offered through 
-    /// implementations of this.  However, implementations may customize things differently 
-    /// depending on their needs.
+    /// Provides services for reading and writing options.
     /// </summary>
     internal interface IOptionService : IWorkspaceService
     {

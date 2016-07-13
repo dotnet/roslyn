@@ -290,8 +290,6 @@ namespace Microsoft.CodeAnalysis
             {
                 this.ClearSolutionData();
             }
-
-            ((IWorkspaceOptionService)this.Services.GetService<IOptionService>()).OnWorkspaceDisposed(this);
         }
 
         #region Host API
