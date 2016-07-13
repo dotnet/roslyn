@@ -260,6 +260,8 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
 
+        System_Runtime_CompilerServices_TupleElementNamesAttribute,
+
         NextAvailable,
     }
 
@@ -511,6 +513,8 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple`7",
             "System.ValueTuple`8",
+
+            "System.Runtime.CompilerServices.TupleElementNamesAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

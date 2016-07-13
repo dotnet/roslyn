@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Host.TextFactoryService),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.ProjectCacheHostServiceFactory),
                 typeof(Solution), // ServicesCore
-                typeof(Microsoft.CodeAnalysis.Options.OptionService), // Service
-                typeof(Microsoft.CodeAnalysis.Options.OptionsServiceFactory),
+                typeof(Microsoft.CodeAnalysis.Options.GlobalOptionService),
+                typeof(Microsoft.CodeAnalysis.Options.OptionServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Options.Providers.ExportedOptionProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),

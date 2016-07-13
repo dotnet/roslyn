@@ -397,6 +397,9 @@
     <Compile Include="Execution\Serialization\SolutionSnapshotService.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
+    <Compile Include="Options\OptionService.cs" />
+    <Compile Include="Options\IGlobalOptionService.cs" />
+    <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
@@ -747,9 +750,8 @@
     <Compile Include="Options\Option`1.cs" />
     <Compile Include="Options\OptionChangedEventArgs.cs" />
     <Compile Include="Options\OptionKey.cs" />
-    <Compile Include="Options\OptionService.cs" />
+    <Compile Include="Options\OptionServiceFactory.cs" />
     <Compile Include="Options\WorkspaceOptionSet.cs" />
-    <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />

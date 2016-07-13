@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
             return DocumentState.GetSyntaxTreeAsync(cancellationToken);
         }
 
-        private SyntaxTree GetSyntaxTree(CancellationToken cancellationToken)
+        internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
         {
             if (!this.SupportsSyntaxTree)
             {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var tree = this.GetSyntaxTree(cancellationToken);
+            var tree = this.GetSyntaxTreeSynchronously(cancellationToken);
             return tree.GetRoot(cancellationToken);
         }
 

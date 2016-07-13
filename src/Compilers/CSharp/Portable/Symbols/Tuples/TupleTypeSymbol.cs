@@ -89,21 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
 
-            return Create(locationOpt, underlyingType, elementLocations, elementNames);
+            return Create(underlyingType, elementNames, locationOpt, elementLocations);
         }
 
-        public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType)
-        {
-            return Create(ImmutableArray<Location>.Empty,
-                          tupleCompatibleType,
-                          default(ImmutableArray<Location>),
-                          default(ImmutableArray<string>));
-        }
-
-        public static TupleTypeSymbol Create(Location locationOpt, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
+        public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType,
+                                             ImmutableArray<string> elementNames = default(ImmutableArray<string>),
+                                             Location locationOpt = null,
+                                             ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
             return Create(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
-                          tupleCompatibleType, elementLocations, elementNames);
+                          tupleCompatibleType,
+                          elementLocations,
+                          elementNames);
         }
 
         public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
@@ -161,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 do
                 {
-                    var extensionTuple = Create(null, tupleCompatibleType, default(ImmutableArray<Location>), default(ImmutableArray<string>));
+                    var extensionTuple = Create(tupleCompatibleType);
                     tupleCompatibleType = nonTupleTypeChain.Pop();
 
                     tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, typeArgumentsBuilder, extensionTuple);
