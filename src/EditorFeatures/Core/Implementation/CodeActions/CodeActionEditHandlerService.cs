@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.                    
                     if (!await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(true))
                     {
                         documentErrorLookup.Add(document.Id);
