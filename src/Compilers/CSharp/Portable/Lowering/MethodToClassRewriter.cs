@@ -497,12 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // All incoming extension methods on the rewriting type should be reduced
-            // PROTOTYPE: not sure how to check for that specific case
-            //Debug.Assert(!method.IsExtensionMethod || !method.IsStatic);
-            method = method.UnreduceExtensionMethod() ?? method;
-            // and the conversion must succeed
-            Debug.Assert(!method.IsExtensionMethod || method.IsStatic);
+            // All incoming extension methods should be either static originally or unreduced (static in either case)
+            Debug.Assert(!(method.IsInExtensionClass || method.IsExtensionMethod) || method.IsStatic);
 
             if (method.IsTupleMethod)
             {
@@ -573,14 +569,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (property.IsInExtensionClass)
-            {
-                // All incoming extension properties should be reduced
-                Debug.Assert(property.IsStatic);
-                property = property.UnreduceExtensionProperty();
-                // and the conversion must succeed
-                Debug.Assert((object)property != null);
-            }
+            // All incoming extension properties should be either static originally or unreduced (static in either case)
+            Debug.Assert(!property.IsInExtensionClass || property.IsStatic);
 
             if (!property.ContainingType.IsAnonymousType)
             {
