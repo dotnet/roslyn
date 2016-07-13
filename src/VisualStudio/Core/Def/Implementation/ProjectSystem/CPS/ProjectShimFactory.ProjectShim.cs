@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public ProjectShim(
                 VisualStudioProjectTracker projectTracker,
-                Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreator,
+                Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
                 string projectName,
                 IVsHierarchy hierarchy,
                 string language,
                 IServiceProvider serviceProvider,
-                VisualStudioWorkspaceImpl visualStudioWorkspace,
-                HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-                : base(projectTracker, reportExternalErrorCreator, projectName, hierarchy, language, serviceProvider, visualStudioWorkspace, hostDiagnosticUpdateSource)
+                VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
+                HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+                : base(projectTracker, reportExternalErrorCreatorOpt, projectName, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
             {
                 // Set the bin output path so that this project can be hooked up to the project tracker.
                 // Note that this method gets the bin output path from the hierarchy, null argument here just sets the object output path to null.
@@ -53,14 +53,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     outputPath = Path.Combine(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName ?? base.ProjectSystemName);
                 }
-                catch (IOException ex) when (FatalError.ReportWithoutCrash(ex))
+                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
                 {
                     return;
                 }
 
                 if (_lastOutputPath == null || !_lastOutputPath.Equals(outputPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    SetOutputPathAndRelatedData(outputPath);
+                    if (this.Workspace != null)
+                    {
+                        SetOutputPathAndRelatedData(outputPath);
+                    }
+                    else
+                    {
+                        // This can happen only in tests.
+                        // For tests, we need to explicitly update the ProjectTracker bin paths as we don't have a VSWorkspace and
+                        // SetOutputPathAndRelatedData (which updates the ProjectTracker bin paths for product code) will bail out early.
+                        this.ProjectTracker.UpdateProjectBinPath(this, _lastOutputPath, outputPath);
+                    }
+
                     _lastOutputPath = outputPath;
                 }
             }

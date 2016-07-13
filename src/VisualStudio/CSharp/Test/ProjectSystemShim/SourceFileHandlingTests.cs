@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
-    public class SourceFileHandlingTests
+    public partial class SourceFileHandlingTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]

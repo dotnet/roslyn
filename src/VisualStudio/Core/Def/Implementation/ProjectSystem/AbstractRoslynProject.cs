@@ -158,12 +158,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Gets the parse options from parsed command line arguments.
+        /// Gets the parse options from parsed command line arguments (with overridden default DocumentationMode).
         /// It is expected that derived types which need to add more specific options will fetch the base options and override those options.
         /// </summary>
         protected virtual ParseOptions GetParseOptions()
         {
-            return GetParsedCommandLineArguments().ParseOptions;
+            var parsedArguments = GetParsedCommandLineArguments();
+            
+            // Override the default documentation mode.
+            var documentationMode = parsedArguments.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;
+            return parsedArguments.ParseOptions.WithDocumentationMode(documentationMode);
         }
     }
 }

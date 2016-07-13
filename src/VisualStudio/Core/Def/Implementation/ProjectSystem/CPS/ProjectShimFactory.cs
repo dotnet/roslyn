@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class ProjectShimFactory : IProjectShimFactory
     {
         private readonly VisualStudioProjectTracker _projectTracker;
-        private readonly SVsServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly Dictionary<string, IVsReportExternalErrors> _externalErrorReporterMap;
@@ -40,6 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspace = visualStudioWorkspace;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _externalErrorReporterMap = new Dictionary<string, IVsReportExternalErrors>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        // internal for testing purposes only.
+        internal static IProjectShim CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectName, string languageName)
+        {
+            return new ProjectShim(projectTracker, reportExternalErrorCreatorOpt: null, projectName: projectName,
+                hierarchy: hierarchy, language: languageName, serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null);
         }
 
         IProjectShim IProjectShimFactory.CreateProjectShim(string languageName, string projectName)

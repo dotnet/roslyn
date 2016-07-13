@@ -159,7 +159,11 @@
     <Compile Include="Interactive\Commands\TestResetInteractive.cs" />
     <Compile Include="Interactive\TestInteractiveEvaluator.cs" />
     <Compile Include="PersistentStorage\SolutionSizeTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\AnalyzersTests_CPS.cs" />
+    <Compile Include="ProjectSystemShim\CPS\CSharpCompilerOptionsTests_CPS.cs" />
+    <Compile Include="ProjectSystemShim\CPS\CSharpReferencesTests_CPS.cs" />
     <Compile Include="ProjectSystemShim\CSharpReferencesTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\SourceFileHandlingTests_CPS.cs" />
     <Compile Include="ProjectSystemShim\SourceFileHandlingTests.cs" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />

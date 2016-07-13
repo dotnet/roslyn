@@ -24,10 +24,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
+            var fileChangeService = (IVsFileChangeEx)this.ServiceProvider.GetService(typeof(SVsFileChangeEx));
+            if (_visualStudioWorkspaceOpt == null)
+            {
+                // This can happen only in tests.
+                var testAnalyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, loader: null, language: this.Language);
+                _analyzers[analyzerAssemblyFullPath] = testAnalyzer;
+                return;
+            }
+
             var analyzerLoader = _visualStudioWorkspaceOpt.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             analyzerLoader.AddDependencyLocation(analyzerAssemblyFullPath);
-
-            var fileChangeService = (IVsFileChangeEx)this.ServiceProvider.GetService(typeof(SVsFileChangeEx));
             var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, analyzerLoader, this.Language);
             _analyzers[analyzerAssemblyFullPath] = analyzer;
 
@@ -64,6 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioAnalyzer analyzer;
             if (!_analyzers.TryGetValue(analyzerAssemblyFullPath, out analyzer))
             {
+                return;
+            }
+
+            if (_visualStudioWorkspaceOpt == null)
+            {
+                // This can happen only in tests.
+                _analyzers.Remove(analyzerAssemblyFullPath);
+                analyzer.Dispose();
                 return;
             }
 

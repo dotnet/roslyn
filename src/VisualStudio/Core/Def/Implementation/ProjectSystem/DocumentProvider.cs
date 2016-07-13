@@ -67,6 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
+            if (shell == null)
+            {
+                // This can happen only in tests, bail out.
+                return;
+            }
+
             int installed;
             Marshal.ThrowExceptionForHR(shell.IsPackageInstalled(Guids.RoslynPackageId, out installed));
             IsRoslynPackageInstalled = installed != 0;

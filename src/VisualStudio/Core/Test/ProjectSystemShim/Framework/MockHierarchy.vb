@@ -3,6 +3,7 @@
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports System.Runtime.InteropServices
+Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Public NotInheritable Class MockHierarchy
@@ -16,10 +17,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _projectCapabilities As String
 
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
+        Private ReadOnly _hierarchyItems As New Dictionary(Of UInteger, String)
 
         Public Sub New(projectName As String, projectCapabilities As String)
             _projectName = projectName
             _projectCapabilities = projectCapabilities
+            _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectName)
         End Sub
 
         Public Sub RenameProject(projectName As String)
@@ -35,11 +38,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Sub
 
         Public Function AddItem(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemidLoc As UInteger, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSADDITEMOPERATION")> dwAddItemOperation As VSADDITEMOPERATION, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszItemName As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.ULONG")> cFilesToOpen As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> rgpszFilesToOpen() As String, hwndDlgOwner As IntPtr, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSADDRESULT")> pResult() As VSADDRESULT) As Integer Implements IVsProject3.AddItem
-            Throw New NotImplementedException()
+            _hierarchyItems.Add(itemidLoc, pszItemName)
+            Return VSConstants.S_OK
         End Function
 
         Public Function AddItemWithSpecific(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemidLoc As UInteger, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSADDITEMOPERATION")> dwAddItemOperation As VSADDITEMOPERATION, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszItemName As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.ULONG")> cFilesToOpen As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> rgpszFilesToOpen() As String, hwndDlgOwner As IntPtr, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSSPECIFICEDITORFLAGS")> grfEditorFlags As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidEditorType As Guid, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszPhysicalView As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidLogicalView As Guid, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSADDRESULT")> pResult() As VSADDRESULT) As Integer Implements IVsProject3.AddItemWithSpecific
-            Throw New NotImplementedException()
+            _hierarchyItems.Add(itemidLoc, pszItemName)
+            Return VSConstants.S_OK
         End Function
 
         Public Function AdviseHierarchyEvents(pEventSink As IVsHierarchyEvents, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> ByRef pdwCookie As UInteger) As Integer Implements IVsHierarchy.AdviseHierarchyEvents
@@ -49,7 +54,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function Close() As Integer Implements IVsHierarchy.Close
-            Throw New NotImplementedException()
+            _hierarchyItems.Clear()
+            Return VSConstants.S_OK
         End Function
 
         Public Function GenerateUniqueItemName(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemidLoc As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszExt As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszSuggestedRoot As String, ByRef pbstrItemName As String) As Integer Implements IVsProject3.GenerateUniqueItemName
@@ -75,7 +81,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function GetMkDocument(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemid As UInteger, ByRef pbstrMkDocument As String) As Integer Implements IVsProject3.GetMkDocument
-            Return VSConstants.E_NOTIMPL
+            _hierarchyItems.TryGetValue(itemid, pbstrMkDocument)
+            Return VSConstants.S_OK
         End Function
 
         Public Function GetNestedHierarchy(itemid As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFIID")> ByRef iidHierarchyNested As Guid, ByRef ppHierarchyNested As IntPtr, ByRef pitemidNested As UInteger) As Integer Implements IVsHierarchy.GetNestedHierarchy
@@ -96,7 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 End If
             End If
 
-            Throw New NotImplementedException()
+            Return VSConstants.E_NOTIMPL
         End Function
 
         Public Function GetSite(ByRef ppSP As IServiceProvider) As Integer Implements IVsHierarchy.GetSite
@@ -104,7 +111,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function IsDocumentInProject(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszMkDocument As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")> ByRef pfFound As Integer, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSDOCUMENTPRIORITY")> pdwPriority() As VSDOCUMENTPRIORITY, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> ByRef pitemid As UInteger) As Integer Implements IVsProject3.IsDocumentInProject
-            Throw New NotImplementedException()
+            pfFound = 0
+            For Each kvp In _hierarchyItems
+                If kvp.Value = pszMkDocument Then
+                    pfFound = 1
+                    pitemid = kvp.Key
+                    Exit For
+                End If
+            Next
+
+            Return VSConstants.S_OK
         End Function
 
         Public Function OpenItem(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemid As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidLogicalView As Guid, punkDocDataExisting As IntPtr, ByRef ppWindowFrame As IVsWindowFrame) As Integer Implements IVsProject3.OpenItem
@@ -116,7 +132,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function ParseCanonicalName(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszName As String, ByRef pitemid As UInteger) As Integer Implements IVsHierarchy.ParseCanonicalName
-            Throw New NotImplementedException()
+            For Each kvp In _hierarchyItems
+                If kvp.Value = pszName Then
+                    pitemid = kvp.Key
+                    Exit For
+                End If
+            Next
+
+            Return VSConstants.S_OK
         End Function
 
         Public Function QueryClose(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")> ByRef pfCanClose As Integer) As Integer Implements IVsHierarchy.QueryClose
@@ -124,7 +147,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function RemoveItem(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")> dwReserved As UInteger, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemid As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")> ByRef pfResult As Integer) As Integer Implements IVsProject3.RemoveItem
-            Throw New NotImplementedException()
+            _hierarchyItems.Remove(itemid)
+            Return VSConstants.S_OK
         End Function
 
         Public Function ReopenItem(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> itemid As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidEditorType As Guid, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszPhysicalView As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidLogicalView As Guid, punkDocDataExisting As IntPtr, ByRef ppWindowFrame As IVsWindowFrame) As Integer Implements IVsProject3.ReopenItem
@@ -144,7 +168,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function TransferItem(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszMkDocumentOld As String, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> pszMkDocumentNew As String, punkWindowFrame As IVsWindowFrame) As Integer Implements IVsProject3.TransferItem
-            Throw New NotImplementedException()
+            For Each kvp In _hierarchyItems
+                If kvp.Value = pszMkDocumentOld Then
+                    _hierarchyItems(kvp.Key) = pszMkDocumentNew
+                    Exit For
+                End If
+            Next
+
+            Return VSConstants.S_OK
         End Function
 
         Public Function UnadviseHierarchyEvents(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> dwCookie As UInteger) As Integer Implements IVsHierarchy.UnadviseHierarchyEvents

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
-    public class AnalyzersTests
+    public partial class AnalyzersTests
     {
         private sealed class DisposableFile : IDisposable
         {

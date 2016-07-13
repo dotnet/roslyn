@@ -4,9 +4,13 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.IO;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -27,6 +31,24 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 serviceProvider: environment.ServiceProvider,
                 visualStudioWorkspaceOpt: null,
                 hostDiagnosticUpdateSourceOpt: null);
+        }
+
+        public static IProjectShim CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)
+        {
+            var hierarchy = environment.CreateHierarchy(projectName, "CSharp");
+            var projectShim = ProjectShimFactory.CreateProjectShim(
+                environment.ProjectTracker,
+                environment.ServiceProvider,
+                hierarchy,
+                projectName,
+                LanguageNames.CSharp);
+            SetCommandLineArguments(projectShim, commandLineArguments);
+            return projectShim;
+        }
+
+        public static void SetCommandLineArguments(IProjectShim projectShim, params string[] commandLineArguments)
+        {
+            projectShim.SetCommandLineArguments(CSharpCommandLineParser.Default.Parse(commandLineArguments, Path.GetDirectoryName(projectShim.ProjectFilePath), sdkDirectory: null));
         }
 
         private class MockCSharpProjectRoot : ICSharpProjectRoot

@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (currentDocument != null)
                 {
                     RemoveFile(currentDocument.FilePath);
-                    AddFile(currentDocument.FilePath, currentDocument.GetInitialState().SourceCodeKind,
+                    AddFile(newFilePath, currentDocument.GetInitialState().SourceCodeKind,
                         currentDocument.GetItemId(), CanUseTextBuffer);
                 }
             }

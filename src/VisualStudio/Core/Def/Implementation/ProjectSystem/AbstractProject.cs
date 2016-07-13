@@ -812,9 +812,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
+            // RunningDocumentTable can be null for tests.
             AddDocument(
                 document,
-                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
+                isCurrentContext: RunningDocumentTable != null && LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
         }
 
         protected void AddUntrackedFile(string filename)
