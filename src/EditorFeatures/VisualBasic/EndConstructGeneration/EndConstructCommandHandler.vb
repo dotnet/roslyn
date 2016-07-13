@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return
             End If
 
-            Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim statement = root.FindToken(position.Value).GetAncestor(Of StatementSyntax)()
             If statement Is Nothing OrElse TypeOf statement Is EmptyStatementSyntax OrElse
                Not statement.ContainsDiagnostics Then
