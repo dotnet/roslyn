@@ -35,13 +35,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Do not instrument any methods if CreatePayload is not present.
                 ' Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
+                ' Do not instrument if the syntax node does not have a valid mapped line span.
                 ' CreatePayload will fail at run time with an infinite recursion if it Is instrumented.
-                If createPayload IsNot Nothing AndAlso Not method.Equals(createPayload) Then
+                If createPayload IsNot Nothing AndAlso Not method.Equals(createPayload) AndAlso HasValidMappedLineSpan(methodBody.Syntax) Then
                     Return New DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous)
                 End If
             End If
 
             Return Nothing
+        End Function
+
+        Private Shared Function HasValidMappedLineSpan(syntax As VisualBasicSyntaxNode) As Boolean
+            Return syntax.GetLocation().GetMappedLineSpan().IsValid
         End Function
 
         Public ReadOnly Property DynamicAnalysisSpans As ImmutableArray(Of SourceSpan)
