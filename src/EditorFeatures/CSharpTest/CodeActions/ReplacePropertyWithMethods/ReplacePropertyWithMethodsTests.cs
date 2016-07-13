@@ -281,6 +281,23 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestComputedPropWithTrailingTrivia()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop => 1; // Comment
+}",
+@"class C
+{
+    private int GetProp()
+    {
+        return 1; // Comment
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestAbstractProperty()
         {
             await TestAsync(
