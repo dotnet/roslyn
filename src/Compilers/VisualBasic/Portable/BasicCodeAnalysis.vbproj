@@ -813,6 +813,13 @@
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedRegularMethodBase.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedSimpleConstructorSymbol.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedSimpleMethodSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleErrorFieldSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleEventSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleFieldSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleMethodSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleParameterSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TuplePropertySymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleTypeSymbol.vb" />
     <Compile Include="Symbols\TypedConstant.vb" />
     <Compile Include="Symbols\TypeKind.vb" />
     <Compile Include="Symbols\TypeParameterConstraint.vb" />
@@ -824,6 +831,7 @@
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedEventSymbol.vb" />
     <Compile Include="Symbols\Wrapped\WrappedFieldSymbol.vb" />
     <Compile Include="Symbols\Wrapped\WrappedMethodSymbol.vb" />
     <Compile Include="Symbols\Wrapped\WrappedNamedTypeSymbol.vb" />

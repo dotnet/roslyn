@@ -1201,21 +1201,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementTypes As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TupleElementTypes
+        Private ReadOnly Property INamedTypeSymbol_TupleElementTypes As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TupleElementTypes
             Get
-                Return Nothing
+                Return StaticCast(Of ITypeSymbol).From(TupleElementTypes())
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
+        Public ReadOnly Property INamedTypeSymbol_TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
             Get
-                Return Nothing
+                Return TupleElementNames
             End Get
         End Property
 
-        Public ReadOnly Property TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
+        Public ReadOnly Property INamedTypeSymbol_TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
             Get
-                Return Nothing
+                Return TupleUnderlyingType
             End Get
         End Property
 

@@ -205,6 +205,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property IsMethodKindBasedOnSyntax As Boolean
+            Get
+                Return Me.UnderlyingMethod.IsMethodKindBasedOnSyntax
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsIterator As Boolean
+            Get
+                Return Me.UnderlyingMethod.IsIterator
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+            Get
+                Return Me.UnderlyingMethod.Syntax
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsOverloads As Boolean
+            Get
+                Return Me.UnderlyingMethod.IsOverloads
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return Me.UnderlyingMethod.GenerateDebugInfoImpl
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsOverridable As Boolean
+            Get
+                Return Me.UnderlyingMethod.IsOverridable
+            End Get
+        End Property
+
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return Me.UnderlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
         End Function

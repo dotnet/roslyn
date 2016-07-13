@@ -399,6 +399,62 @@ Done:
             Return result
         End Function
 
+        Public Overridable ReadOnly Property IsTupleType() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleUnderlyingType() As NamedTypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElementTypes() As ImmutableArray(Of TypeSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElementNames() As ImmutableArray(Of String)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type 
+        ''' and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        ''' </summary>
+        ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        ''' <returns></returns>
+        Public Overridable Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+            tupleCardinality = 0
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type. 
+        ''' </summary>
+        Public Function IsTupleCompatible() As Boolean
+            Dim countOfItems As Integer
+            Return IsTupleCompatible(countOfItems)
+        End Function
+
+        ''' <summary>
+        ''' Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
+        ''' with the given cardinality. 
+        ''' </summary>
+        Public Function IsTupleOrCompatibleWithTupleOfCardinality(targetCardinality As Integer) As Boolean
+            If (IsTupleType) Then
+                Return TupleElementTypes.Length = targetCardinality
+            End If
+
+            Dim countOfItems As Integer
+            Return IsTupleCompatible(countOfItems) AndAlso countOfItems = targetCardinality
+        End Function
+
 #Region "Use-Site Diagnostics"
 
         ''' <summary>

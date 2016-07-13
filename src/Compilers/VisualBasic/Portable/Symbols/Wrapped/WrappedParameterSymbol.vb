@@ -150,6 +150,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
+            Get
+                Return Me._underlyingParameter.IsExplicitByRef
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsOptional As Boolean
+            Get
+                Return Me._underlyingParameter.IsOptional
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
+            Get
+                Return Me._underlyingParameter.HasExplicitDefaultValue
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
+            Get
+                Return Me._underlyingParameter.ExplicitDefaultConstantValue(inProgress)
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasOptionCompare As Boolean
+            Get
+                Return Me._underlyingParameter.HasOptionCompare
+            End Get
+        End Property
+
         Protected Sub New(underlyingParameter As ParameterSymbol)
             Debug.Assert(underlyingParameter IsNot Nothing)
             Me._underlyingParameter = underlyingParameter
