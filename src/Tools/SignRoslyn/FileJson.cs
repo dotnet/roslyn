@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SignRoslyn.Json
+namespace SignRoslyn
 {
     internal sealed class FileJson
     {
         [JsonProperty(PropertyName = "sign")]
-        public FileSignData[] SignList { get; set; }
+        public string[] SignList { get; set; }
 
         [JsonProperty(PropertyName = "exclude")]
         public string[] ExcludeList { get; set; }
@@ -18,22 +18,6 @@ namespace SignRoslyn.Json
         public FileJson()
         {
 
-        }
-    }
-
-    internal sealed class FileSignData
-    {
-        [JsonProperty(PropertyName = "certificate")]
-        public string Certificate { get; set; }
-
-        [JsonProperty(PropertyName = "strongName")]
-        public string StrongName { get; set; }
-
-        [JsonProperty(PropertyName = "values")]
-        public string[] FileList { get; set; }
-
-        public FileSignData()
-        {
         }
     }
 }
