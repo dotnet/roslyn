@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// itemToFilterText provides the values that each individual completion item should
         /// be filtered against.
         /// </summary>
-        internal virtual ImmutableArray<CompletionItem> ChooseBestItems(
+        public virtual ImmutableArray<CompletionItem> ChooseBestItems(
             Document document,
             ImmutableArray<CompletionItem> filteredItems,
             string filterText)
