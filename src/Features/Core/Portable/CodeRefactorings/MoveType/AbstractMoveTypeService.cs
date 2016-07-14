@@ -24,28 +24,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return root.FindNode(span);
         }
 
-        private bool IsNestedType(TTypeDeclarationSyntax typeNode)
-        {
-            return typeNode.Parent is TTypeDeclarationSyntax;
-        }
+        private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
+            typeNode.Parent is TTypeDeclarationSyntax;
 
-        private bool IsSingleTypeDeclarationInSourceDocument(SyntaxNode root)
-        {
-            return root.DescendantNodes().OfType<TTypeDeclarationSyntax>().Count() == 1;
-        }
+        private bool IsSingleTypeDeclarationInSourceDocument(SyntaxNode root) =>
+            root.DescendantNodes().OfType<TTypeDeclarationSyntax>().Count() == 1;
 
-        private bool ProjectContainsTargetFile(Project project, string targetFileName, string typeName, string sourceDocumentName)
-        {
-            // currently we generate into the same project. 
-            // so, if type name matches file name, target file name is already present.
-            return TypeNameMatchesDocumentName(typeName, sourceDocumentName) ||
-                project.ContainsDocument(DocumentId.CreateNewId(project.Id, targetFileName));
-        }
+        /// <remarks>
+        /// currently we generate into the same project. 
+        /// so, if type name matches file name, target file name is already present.
+        /// </remarks>
+        private bool ProjectContainsTargetFile(Project project, string targetFileName, string typeName, string sourceDocumentName) =>
+            TypeNameMatchesDocumentName(typeName, sourceDocumentName) ||
+            project.ContainsDocument(DocumentId.CreateNewId(project.Id, targetFileName));
 
-        private bool TypeNameMatchesDocumentName(string fileName, string typeName)
-        {
-            return string.Equals(fileName, typeName, StringComparison.CurrentCultureIgnoreCase);
-        }
+        private bool TypeNameMatchesDocumentName(string fileName, string typeName) =>
+            string.Equals(fileName, typeName, StringComparison.CurrentCultureIgnoreCase);
 
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -56,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return null;
             }
 
-            var actions = CreateActions(semanticDocument, state, cancellationToken);
+            var actions = CreateActions(state, cancellationToken);
             if (actions.Count == 0)
             {
                 return null;
@@ -65,90 +59,80 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return new CodeRefactoring(null, actions);
         }
 
-        private List<CodeAction> CreateActions(SemanticDocument document, State state, CancellationToken cancellationToken)
+        private List<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
             var actions = new List<CodeAction>();
             var targetFileName = state.TargetFileNameCandidate + state.TargetFileExtension;
             var uiRequired = ProjectContainsTargetFile(state.SemanticDocument.Project, targetFileName, state.DocumentName, state.TypeName);
             var isPartial = IsPartial(state.TypeNode);
-            var isNested = IsNestedType(state.TypeNode);
+            var isNestedType = IsNestedType(state.TypeNode);
             var singleType = IsSingleTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
             var typeSymbol = state.SemanticDocument.SemanticModel.GetDeclaredSymbol(state.TypeNode, cancellationToken) as INamedTypeSymbol;
 
-            // BALAJIK: make this clear, should also check if TypeNameMatchesFileName?
-            if (isNested)
+            if (singleType)
             {
-                // nested type, make outer type partial and move type into a new file inside a partial part.
-                if (!uiRequired)
-                {
-                    actions.Add(GetSimpleCodeAction(
-                        document, state, renameFile: false, renameType: false, makeTypePartial: false, makeOuterTypePartial: true));
-                }
-
-                actions.Add(GetCodeActionWithUI(
-                    document, state, renameFile: false, renameType: false, makeTypePartial: false, makeOuterTypePartial: true));
+                // one type declaration in current document. No moving around required, just sync
+                // document name and type name by offering rename in both directions between type and document.
+                AddSimpleCodeAction(actions, state, uiRequired, renameFile: true);
+                AddSimpleCodeAction(actions, state, uiRequired, renameType: true);
             }
             else
             {
-                if (singleType)
-                {
-                    //Todo: clean up this, showDialog means can't move or rename etc.. feels weird.
-                    if (!uiRequired)
-                    {
-                        // rename file.
-                        actions.Add(GetSimpleCodeAction(
-                            document, state, renameFile: true, renameType: false, makeTypePartial: false, makeOuterTypePartial: false));
-
-                        // rename type.
-                        actions.Add(GetSimpleCodeAction(
-                            document, state, renameFile: false, renameType: true, makeTypePartial: false, makeOuterTypePartial: false));
-
-                        // make partial and create a partial decl in a new file
-                        //actions.Add(GetSimpleCodeAction(
-                        //    document, state, renameFile: false, renameType:false, moveToNewFile: false, makeTypePartial: true, makeOuterTypePartial: false));
-                    }
-
-                    if (!isPartial)
-                    {
-                        // create a partial part in a file name that user inputs.
-                        actions.Add(GetCodeActionWithUI(
-                            document, state, renameFile: false, renameType: false, makeTypePartial: true, makeOuterTypePartial: false));
-                    }
-                }
-                else
-                {
-                    // straight forward case, not the only type in this file, move type to a new file.
-                    if (!uiRequired)
-                    {
-                        // move to file name that is precomputed
-                        actions.Add(GetSimpleCodeAction(
-                            document, renameFile: false, renameType: false, makeTypePartial: false, makeOuterTypePartial: false, state: state));
-                    }
-
-                    // move to a file name that user inputs.
-                    actions.Add(GetCodeActionWithUI(
-                        document, renameFile: false, renameType: false, makeTypePartial: false, makeOuterTypePartial: false, state: state));
-
-                    if (!isPartial)
-                    {
-                        // create a partial part in a file name that user inputs.
-                        actions.Add(GetCodeActionWithUI(
-                            document, renameFile: false, renameType: false, makeTypePartial: true, makeOuterTypePartial: false, state: state));
-                    }
-                }
+                // multiple type declarations in current document.
+                AddSimpleCodeAction(actions, state, uiRequired, newFile: true, makeOuterTypePartial: isNestedType);
             }
+
+            // Add actions that bring up UI dialog.
+            AddCodeActionsWithUI(actions, state, makeTypePartial: !isPartial, makeOuterTypePartial: isNestedType);
 
             return actions;
         }
 
-        private CodeAction GetCodeActionWithUI(SemanticDocument document, State state, bool renameFile, bool renameType, bool makeTypePartial, bool makeOuterTypePartial)
+        private void AddCodeActionsWithUI(
+            List<CodeAction> actions,
+            State state,
+            bool makeTypePartial,
+            bool makeOuterTypePartial)
         {
-            return new MoveTypeCodeActionWithOption((TService)this, document, renameFile, renameType, makeTypePartial, makeOuterTypePartial, state);
+            // make this type declaration partial and add a new partial part in a new file.
+            if (makeTypePartial)
+            {
+                actions.Add(
+                    GetCodeActionWithUI(state, makeTypePartial, makeOuterTypePartial));
+            }
+
+            // this gives an option for the user specify a custom file name for the normal move scenario.
+            actions.Add(
+                GetCodeActionWithUI(
+                    state, makeTypePartial: false, makeOuterTypePartial: makeOuterTypePartial));
         }
 
-        private MoveTypeCodeAction GetSimpleCodeAction(SemanticDocument document, State state, bool renameFile, bool renameType, bool makeTypePartial, bool makeOuterTypePartial)
+        private MoveTypeCodeActionWithOption GetCodeActionWithUI(
+            State state, bool makeTypePartial, bool makeOuterTypePartial) =>
+                new MoveTypeCodeActionWithOption(
+                        (TService)this,
+                        state: state,
+                        makeTypePartial: makeTypePartial,
+                        makeOuterTypePartial: makeOuterTypePartial);
+
+        private void AddSimpleCodeAction(
+            List<CodeAction> actions,
+            State state,
+            bool uiRequired,
+            bool renameFile = false,
+            bool renameType = false,
+            bool newFile = false,
+            bool makeTypePartial = false,
+            bool makeOuterTypePartial = false)
         {
-            return new MoveTypeCodeAction((TService)this, document, renameFile, renameType, makeTypePartial, makeOuterTypePartial, state);
+            // to add the codeaction without UI dialog, ensure scenario does not require user interaction
+            // and atleast one valid case exists.
+            if ((renameFile || renameType || newFile || makeTypePartial || makeOuterTypePartial) && !uiRequired)
+            {
+                actions.Add(
+                    new MoveTypeCodeAction(
+                        (TService)this, state, renameFile, renameType, makeTypePartial, makeOuterTypePartial));
+            }
         }
     }
 }

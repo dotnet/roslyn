@@ -14,31 +14,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     {
         private class MoveTypeCodeActionWithOption : CodeActionWithOptions
         {
-            private readonly SemanticDocument _document;
             private readonly State _state;
             private readonly TService _service;
-            private readonly bool _renameFile;
-            private readonly bool _renameType;
             private readonly bool _makeTypePartial;
             private readonly bool _makeOuterTypePartial;
             private readonly string _title;
 
             public MoveTypeCodeActionWithOption(
                 TService service,
-                SemanticDocument document,
-                bool renameFile,
-                bool renameType,
+                State state,
                 bool makeTypePartial,
-                bool makeOuterTypePartial,
-                State state)
+                bool makeOuterTypePartial)
             {
-                _document = document;
-                _renameFile = renameFile;
-                _renameType = renameType;
+                _service = service;
+                _state = state;
                 _makeTypePartial = makeTypePartial;
                 _makeOuterTypePartial = makeOuterTypePartial;
-                _state = state;
-                _service = service;
                 _title = CreateDisplayText();
             }
 
@@ -52,20 +43,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return $"Move '{_state.TypeName}' to new file";
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
+            public override string Title => _title;
+            public Project Project => _state.SemanticDocument.Project;
+            public Document SyntacticDocument => _state.SemanticDocument.Document;
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var moveTypeOptionsService = _document.Project.Solution.Workspace.Services.GetService<IMoveTypeOptionsService>();
-                var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-                var syntaxFactsService = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 var suggestedFileName = _state.TargetFileNameCandidate + _state.TargetFileExtension;
+                var workspaceServices = _state.SemanticDocument.Project.Solution.Workspace.Services;
 
-                return moveTypeOptionsService.GetMoveTypeOptions(suggestedFileName, _document.Document, notificationService, projectManagementService, syntaxFactsService);
+                var moveTypeOptionsService = workspaceServices.GetService<IMoveTypeOptionsService>();
+                var notificationService = workspaceServices.GetService<INotificationService>();
+                var projectManagementService = workspaceServices.GetService<IProjectManagementService>();
+                var syntaxFactsService = Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+                return moveTypeOptionsService.GetMoveTypeOptions(suggestedFileName, SyntacticDocument, notificationService, projectManagementService, syntaxFactsService);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -75,7 +67,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var moveTypeOptions = options as MoveTypeOptionsResult;
                 if (moveTypeOptions != null && !moveTypeOptions.IsCancelled)
                 {
-                    var editor = new Editor(_service, _document, _renameFile, _renameType, _makeTypePartial, _makeOuterTypePartial, _state, moveTypeOptions, fromDialog: true, cancellationToken: cancellationToken);
+                    // Move Type dialog is for moving types to new files.
+                    // It cannot perform rename file or rename type operations.
+                    var editor = new Editor(
+                        _service,
+                        state: _state,
+                        renameFile: false,
+                        renameType: false,
+                        makeTypePartial: _makeTypePartial,
+                        makeOuterTypePartial: _makeOuterTypePartial,
+                        moveTypeOptions: moveTypeOptions,
+                        fromDialog: true,
+                        cancellationToken: cancellationToken);
+
                     operations = await editor.GetOperationsAsync().ConfigureAwait(false);
                 }
 

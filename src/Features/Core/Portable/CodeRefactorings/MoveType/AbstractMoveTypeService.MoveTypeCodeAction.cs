@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     {
         private class MoveTypeCodeAction : CodeAction
         {
-            private readonly SemanticDocument _document;
             private readonly State _state;
             private readonly TService _service;
 
@@ -23,14 +22,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public MoveTypeCodeAction(
                 TService service,
-                SemanticDocument document,
+                State state,
                 bool renameFile,
                 bool renameType,
                 bool makeTypePartial,
-                bool makeOuterTypePartial,
-                State state)
+                bool makeOuterTypePartial)
             {
-                _document = document;
                 _renameFile = renameFile;
                 _renameType = renameType;
                 _makeTypePartial = makeTypePartial;
@@ -58,16 +55,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return $"Move Type to '{_state.TargetFileNameCandidate + _state.TargetFileExtension}'";
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
+            public override string Title => _title;
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                // var moveTypeOptions = new MoveTypeOptionsResult(_state.TargetFileNameCandidate);
-                // TODO: Make another constructor overload that doesn't require MoveTypeOptions.
-                var editor = new Editor(_service, _document, _renameFile, _renameType, _makeTypePartial, _makeOuterTypePartial, _state, moveTypeOptions: null, fromDialog: false, cancellationToken: cancellationToken);
+                var editor = new Editor(_service, _state, _renameFile, _renameType, _makeTypePartial, _makeOuterTypePartial, moveTypeOptions: null, fromDialog: false, cancellationToken: cancellationToken);
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
         }

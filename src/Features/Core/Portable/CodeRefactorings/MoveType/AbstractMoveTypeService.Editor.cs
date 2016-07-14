@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         {
             private readonly CancellationToken _cancellationToken;
             private readonly MoveTypeOptionsResult _moveTypeOptions;
-            private readonly SemanticDocument _document;
             private readonly State _state;
             private readonly TService _service;
 
@@ -33,17 +32,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public Editor(
                 TService service,
-                SemanticDocument document,
+                State state,
                 bool renameFile,
                 bool renameType,
                 bool makeTypePartial,
                 bool makeOuterTypePartial,
-                State state,
                 MoveTypeOptionsResult moveTypeOptions,
                 bool fromDialog,
                 CancellationToken cancellationToken)
             {
-                _document = document;
                 _renameFile = renameFile;
                 _makeTypePartial = makeTypePartial;
                 _makeOuterTypesPartial = makeOuterTypePartial || makeTypePartial;
@@ -55,9 +52,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 this._cancellationToken = cancellationToken;
             }
 
+            private SemanticDocument SemanticDocument => _state.SemanticDocument;
+
             internal async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
             {
-                var solution = _document.Document.Project.Solution;
+                var solution = SemanticDocument.Document.Project.Solution;
 
                 if (_renameFile)
                 {
@@ -78,14 +77,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private async Task<IEnumerable<CodeActionOperation>> MoveTypeToNewFileAsync(string documentName)
             {
                 // fork source document, keep required type/namespace hierarchy and add it to a new document
-                var projectToBeUpdated = _document.Document.Project;
+                var projectToBeUpdated = SemanticDocument.Document.Project;
                 var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, documentName);
 
                 var solutionWithNewDocument = await AddNewDocumentWithTypeDeclarationAsync(
-                    _document, documentName, newDocumentId, _state.TypeNode, _cancellationToken).ConfigureAwait(false);
+                    SemanticDocument, documentName, newDocumentId, _state.TypeNode, _cancellationToken).ConfigureAwait(false);
 
                 // Get the original source document again, from the latest forked solution.
-                var sourceDocument = solutionWithNewDocument.GetDocument(_document.Document.Id);
+                var sourceDocument = solutionWithNewDocument.GetDocument(SemanticDocument.Document.Id);
 
                 // update source document to add partial modifiers to type chain
                 // and/or remove type declaration from original source document.
@@ -98,15 +97,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private async Task<IEnumerable<CodeActionOperation>> RenameTypeToMatchFileAsync(Solution solution)
             {
                 var symbol = _state.SemanticDocument.SemanticModel.GetDeclaredSymbol(_state.TypeNode, _cancellationToken) as INamedTypeSymbol;
-                var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, _state.DocumentName, _document.Document.Options, _cancellationToken).ConfigureAwait(false);
+                var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, _state.DocumentName, SemanticDocument.Document.Options, _cancellationToken).ConfigureAwait(false);
                 return new CodeActionOperation[] { new ApplyChangesOperation(newSolution) };
             }
 
             private IEnumerable<CodeActionOperation> RenameFileToMatchTypeName(Solution solution)
             {
-                var text = _document.Text;
-                var oldDocumentId = _document.Document.Id;
-                var newDocumentId = DocumentId.CreateNewId(_document.Document.Project.Id, _state.TargetFileNameCandidate);
+                var text = SemanticDocument.Text;
+                var oldDocumentId = SemanticDocument.Document.Id;
+                var newDocumentId = DocumentId.CreateNewId(SemanticDocument.Document.Project.Id, _state.TargetFileNameCandidate);
 
                 var newSolution = solution.RemoveDocument(oldDocumentId);
                 newSolution = newSolution.AddDocument(newDocumentId, _state.TargetFileNameCandidate, text);
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
                 }
 
-                var memberToAdd = GetMemberToAdd(documentEditor.Generator, newDocumentName, _makeOuterTypesPartial);
+                var memberToAdd = GetMemberToAdd(documentEditor.Generator, newDocumentName);
                 if (memberToAdd != null)
                 {
                     documentEditor.AddMember(typeNode, memberToAdd);
@@ -156,9 +155,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return await CleanUpDocumentAsync(newDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            private SyntaxNode GetMemberToAdd(SyntaxGenerator generator, string newDocumentName, bool makeOuterTypesPartial)
+            private async Task<Solution> UpdateSourceDocumentAsync(
+                Document sourceDocument, TTypeDeclarationSyntax typeNode, CancellationToken cancellationToken)
             {
-                if (!makeOuterTypesPartial)
+                var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, cancellationToken).ConfigureAwait(false);
+
+                AddPartialModifiersToTypeChain(documentEditor, typeNode);
+
+                if (!_makeTypePartial)
+                {
+                    documentEditor.RemoveNode(typeNode, SyntaxRemoveOptions.KeepNoTrivia);
+                }
+
+                var updatedDocument = documentEditor.GetChangedDocument();
+                // TODO: make this optional -- shouldn't touch other parts of source document unless asked to. 
+                return await CleanUpDocumentAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+            }
+
+            private SyntaxNode GetMemberToAdd(SyntaxGenerator generator, string newDocumentName)
+            {
+                if (!_makeOuterTypesPartial)
                 {
                     return null;
                 }
@@ -213,26 +229,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private static bool IsTopLevelNamespaceOrTypeNode(SyntaxNode node)
             {
-                return (node is TNamespaceDeclarationSyntax && node.Parent is TCompilationUnitSyntax
-                     || node is TTypeDeclarationSyntax && (node.Parent is TNamespaceDeclarationSyntax
-                                                            || node.Parent is TCompilationUnitSyntax));
-            }
-
-            private async Task<Solution> UpdateSourceDocumentAsync(
-                Document sourceDocument, TTypeDeclarationSyntax typeNode, CancellationToken cancellationToken)
-            {
-                var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, cancellationToken).ConfigureAwait(false);
-
-                AddPartialModifiersToTypeChain(documentEditor, typeNode);
-
-                if (!_makeTypePartial)
-                {
-                    documentEditor.RemoveNode(typeNode, SyntaxRemoveOptions.KeepNoTrivia);
-                }
-
-                var updatedDocument = documentEditor.GetChangedDocument();
-                // TODO: make this optional -- shouldn't touch other parts of source document unless asked to. 
-                return await CleanUpDocumentAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+                return ((node is TNamespaceDeclarationSyntax && node.Parent is TCompilationUnitSyntax)
+                     || (node is TTypeDeclarationSyntax && (node.Parent is TNamespaceDeclarationSyntax
+                                                            || node.Parent is TCompilationUnitSyntax)));
             }
 
             private void AddPartialModifiersToTypeChain(DocumentEditor documentEditor, TTypeDeclarationSyntax typeNode)
