@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
     public abstract class AbstractMoveTypeTestsBase : AbstractCodeActionTest
     {
         private const string SpanMarker = "[||]";
+        private const string RenameFileCodeActionTitle = "Rename File";
+        private const string RenameTypeCodeActionTitle = "Rename Type";
 
         private string StripSpanMarkers(string text)
         {
@@ -21,12 +24,90 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             return text.Remove(index, SpanMarker.Length);
         }
 
+        protected async Task TestRenameTypeToMatchFileAsync(
+           string originalCode,
+           string expectedCode = null,
+           bool expectedCodeAction = true,
+           bool compareTokens = true)
+        {
+            using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
+            {
+                if (expectedCodeAction)
+                {
+                    Assert.True(expectedCode != null, $"{nameof(expectedCode)} should be present if {nameof(expectedCodeAction)} is true.");
+
+                    var documentId = workspace.Documents[0].Id;
+                    var documentName = workspace.Documents[0].Name;
+
+                    var oldSolutionAndNewSolution = await TestOperationAsync(
+                        workspace, expectedCode, RenameTypeCodeActionTitle, compareTokens);
+
+                    // the original source document does not exist in the new solution.
+                    var newSolution = oldSolutionAndNewSolution.Item2;
+
+                    var document = newSolution.GetDocument(documentId);
+                    Assert.NotNull(document);
+                    Assert.Equal(documentName, document.Name);
+                }
+                else
+                {
+                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                    var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
+                    Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
+                }
+            }
+        }
+
         protected async Task TestRenameFileToMatchTypeAsync(
             string originalCode,
-            string expectedDocumentName)
+            string expectedDocumentName = null,
+            bool expectedCodeAction = true,
+            bool compareTokens = true)
         {
-            // TODO: Implement this.
-            await Task.Delay(1);
+            using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
+            {
+                if (expectedCodeAction)
+                {
+                    Assert.True(expectedDocumentName != null, $"{nameof(expectedDocumentName)} should be present if {nameof(expectedCodeAction)} is true.");
+
+                    var oldDocumentId = workspace.Documents[0].Id;
+                    var expectedText = StripSpanMarkers(originalCode);
+
+                    // a new document with the same text as old document is added.
+                    var oldSolutionAndNewSolution = await TestOperationAsync(
+                        workspace, expectedText, RenameFileCodeActionTitle, compareTokens);
+
+                    // the original source document does not exist in the new solution.
+                    var newSolution = oldSolutionAndNewSolution.Item2;
+                    Assert.Null(newSolution.GetDocument(oldDocumentId));
+                }
+                else
+                {
+                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                    var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
+                    Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
+                }
+            }
+        }
+
+        private async Task<Tuple<Solution, Solution>> TestOperationAsync(
+            Workspaces.TestWorkspace workspace,
+            string expectedCode,
+            string operation,
+            bool compareTokens)
+        {
+            var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+            var action = actions.Single(a => a.Title.StartsWith(operation));
+            var operations = await action.GetOperationsAsync(CancellationToken.None);
+
+            return await TestOperationsAsync(workspace,
+                expectedText: expectedCode,
+                operations: operations,
+                conflictSpans: null,
+                renameSpans: null,
+                warningSpans: null,
+                compareTokens: compareTokens,
+                expectedChangedDocumentId: null);
         }
 
         protected async Task TestMoveTypeToNewFileAsync(
@@ -50,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     }
 
                     var sourceDocumentId = workspace.Documents[0].Id;
-                    var refactoring = await GetCodeRefactoringAsync(workspace);
 
                     // Verify the newly added document and its text
                     var oldSolutionAndNewSolution = await TestAddDocumentAsync(workspace,

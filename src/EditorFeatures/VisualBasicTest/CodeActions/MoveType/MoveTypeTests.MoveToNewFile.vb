@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         Inherits BasicMoveTypeTestsBase
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-        Public Async Function ClassesWithNoContainerNamespace() As Task
+        Public Async Function MultipleTypesInFileWithNoContainerNamespace() As Task
             Dim code =
 <File>
 [||]Class Class1

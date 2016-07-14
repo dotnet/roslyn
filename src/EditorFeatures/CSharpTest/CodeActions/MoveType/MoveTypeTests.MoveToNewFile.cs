@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task ClassesWithNoContainerNamespace()
+        public async Task MoveTypeWithNoContainerNamespace()
         {
             var code = 
 @"[||]class Class1 { }
@@ -23,7 +23,157 @@ class Class2 { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task ClassesWithContainerNamespace()
+        public async Task MoveTypeWithWithUsingsAndNoContainerNamespace()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+[||]class Class1 { }
+class Class2 { }";
+
+            var codeAfterMove =
+@"// Banner Text
+
+class Class2 { }";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText = 
+@"class Class1 { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithWithMembers()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+[||]class Class1 
+{ 
+    void Print(int x)
+    {
+        Console.WriteLine(x);
+    }
+}
+class Class2 { }";
+
+            var codeAfterMove =
+@"// Banner Text
+
+class Class2 { }";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText =
+@"
+using System;
+class Class1 
+{ 
+    void Print(int x)
+    {
+        Console.WriteLine(x);
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithWithMembers2()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+[||]class Class1 
+{ 
+    void Print(int x)
+    {
+        Console.WriteLine(x);
+    }
+}
+
+class Class2
+{ 
+    void Print(int x)
+    {
+        Console.WriteLine(x);
+    }
+}";
+
+            var codeAfterMove =
+@"// Banner Text
+using System;
+
+class Class2
+{ 
+    void Print(int x)
+    {
+        Console.WriteLine(x);
+    }
+}";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText =
+@"
+using System;
+class Class1 
+{ 
+    void Print(int x)
+    {
+        Console.WriteLine(x);
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveAnInterface()
+        {
+            var code =
+@"[||]interface IMoveType { }
+class Class2 { }";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "IMoveType.cs";
+            var destinationDocumentText = @"interface IMoveType { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveAStruct()
+        {
+            var code =
+@"[||]struct MyStruct { }
+class Class2 { }";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "MyStruct.cs";
+            var destinationDocumentText = @"struct MyStruct { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveAnEnum()
+        {
+            var code =
+@"[||]enum MyEnum { }
+class Class2 { }";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "MyEnum.cs";
+            var destinationDocumentText = @"enum MyEnum { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithWithContainerNamespace()
         {
             var code =
 @"namespace N1
