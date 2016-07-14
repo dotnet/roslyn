@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public class Chunk
         {
-            private int currentIndex;
+            private int _currentIndex;
 
             internal Chunk(Func<SyntaxNodeOrToken> transform, SyntaxNodeOrToken[] children)
             {
                 this.Transform = transform;
                 this.ChildNodes = children;
-                this.currentIndex = children.Length;
+                this._currentIndex = children.Length;
             }
 
             public Func<SyntaxNodeOrToken> Transform { get; set; }
@@ -30,19 +30,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool MoveNextChildNode()
             {
-                return this.currentIndex-- > 0;
+                return this._currentIndex-- > 0;
             }
 
             public SyntaxNodeOrToken GetCurrentChild()
             {
-                return ChildNodes[this.currentIndex];
+                return ChildNodes[this._currentIndex];
             }
         }
 
-        private Stack<SyntaxNodeOrToken> rewrittenStack = new Stack<SyntaxNodeOrToken>();
+        private Stack<SyntaxNodeOrToken> _rewrittenStack = new Stack<SyntaxNodeOrToken>();
         protected internal Stack<SyntaxNodeOrToken> RewrittenStack
         {
-            get { return this.rewrittenStack; }
+            get { return this._rewrittenStack; }
         }
 
         public new SyntaxNode Visit(SyntaxNode node)
