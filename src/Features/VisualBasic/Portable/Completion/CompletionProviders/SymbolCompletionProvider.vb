@@ -6,14 +6,12 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-
     Partial Friend Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider
 
@@ -91,14 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)).
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, "("c))
 
-        private shared readonly s_itemRules_preselect = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+        Private Shared ReadOnly s_itemRules_preselect As CompletionItemRules = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
 
         Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As AbstractSyntaxContext, preselect As Boolean) As CompletionItemRules
-            If context.IsInImportsDirective Then
-                Return If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules)
-            Else
-                Return If(preselect, s_itemRules_preselect, s_itemRules)
-            End If
+            Return If(context.IsInImportsDirective,
+                If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules),
+                If(preselect, s_itemRules_preselect, s_itemRules))
         End Function
 
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
