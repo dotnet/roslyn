@@ -22,11 +22,8 @@ Public MustInherit Class BasicTestBase
     End Function
 
     Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol)
-        If action IsNot Nothing Then
-            Return Sub(m) action(DirectCast(m, ModuleSymbol))
-        Else
-            Return Nothing
-        End If
+        If action Is Nothing Then Return Nothing
+        Return Sub(m) action(DirectCast(m, ModuleSymbol))
     End Function
 
     ' TODO (tomat): TestEmitOptions.All
@@ -173,6 +170,38 @@ Public MustInherit Class BasicTestBase
             verify)
     End Function
 
+    '' NEW TARGET
+    'Friend Shadows Function CompileAndVerify(
+    '    source As String,
+    '    allReferences As IEnumerable(Of MetadataReference),
+    '    Optional expectedOutput As String = Nothing,
+    '    Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+    '    Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+    '    Optional validator As Action(Of PEAssembly) = Nothing,
+    '    Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+    '    Optional expectedSignatures As SignatureDescription() = Nothing,
+    '    Optional options As VisualBasicCompilationOptions = Nothing,
+    '    Optional parseOptions As VisualBasicParseOptions = Nothing,
+    '    Optional verify As Boolean = True
+    ') As CompilationVerifier
+
+    '    If options Is Nothing Then
+    '        options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
+    '    End If
+
+    '    Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=allReferences, options:=options, parseOptions:=parseOptions)
+
+    '    Return MyBase.CompileAndVerify(
+    '        compilation,
+    '        Nothing,
+    '        dependencies,
+    '        Translate(sourceSymbolValidator),
+    '        validator,
+    '        Translate(symbolValidator),
+    '        expectedSignatures,
+    '        expectedOutput,
+    '        verify)
+    'End Function
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
@@ -199,6 +228,34 @@ Public MustInherit Class BasicTestBase
             parseOptions,
             verify:=OSVersion.IsWin8)
     End Function
+
+    '' NEW TARGET
+    'Friend Shadows Function CompileAndVerifyOnWin8Only(
+    '    source As String,
+    '    allReferences As IEnumerable(Of MetadataReference),
+    '    Optional expectedOutput As String = Nothing,
+    '    Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+    '    Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+    '    Optional validator As Action(Of PEAssembly) = Nothing,
+    '    Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+    '    Optional expectedSignatures As SignatureDescription() = Nothing,
+    '    Optional options As VisualBasicCompilationOptions = Nothing,
+    '    Optional parseOptions As VisualBasicParseOptions = Nothing,
+    '    Optional verify As Boolean = True
+    ') As CompilationVerifier
+    '    Return Me.CompileAndVerify(
+    '        source,
+    '        allReferences,
+    '        If(OSVersion.IsWin8, expectedOutput, Nothing),
+    '        dependencies,
+    '        sourceSymbolValidator,
+    '        validator,
+    '        symbolValidator,
+    '        expectedSignatures,
+    '        options,
+    '        parseOptions,
+    '        verify:=OSVersion.IsWin8)
+    'End Function
 
     ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerifyOnWin8Only(
@@ -352,23 +409,20 @@ Public MustInherit Class BasicTestBaseBase
             End Function)
     End Function
 
-    Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
-        Get
-            Return TestOptions.ReleaseDll
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions = TestOptions.ReleaseDll
 
     Protected Overrides Function GetCompilationForEmit(
-        source As IEnumerable(Of String),
-        additionalRefs As IEnumerable(Of MetadataReference),
-        options As CompilationOptions,
-        parseOptions As ParseOptions
-    ) As Compilation
+                                                         source As IEnumerable(Of String),
+                                                         additionalRefs As IEnumerable(Of MetadataReference),
+                                                         options As CompilationOptions,
+                                                         parseOptions As ParseOptions
+                                                      ) As Compilation
         Return VisualBasicCompilation.Create(
-            GetUniqueName(),
-            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
-            references:=If(additionalRefs IsNot Nothing, DefaultVbReferences.Concat(additionalRefs), DefaultVbReferences),
-            options:=DirectCast(options, VisualBasicCompilationOptions))
+                                              GetUniqueName(),
+                                              syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
+                                               references:=If(additionalRefs IsNot Nothing, DefaultVbReferences.Concat(additionalRefs), DefaultVbReferences),
+                                                  options:=DirectCast(options, VisualBasicCompilationOptions)
+                                            )
     End Function
 
     Public Shared Function CreateSubmission(code As String,
@@ -425,7 +479,7 @@ Public MustInherit Class BasicTestBaseBase
                </sequencePoints>
     End Function
 
-    Public Shared ReadOnly ClassesWithReadWriteProperties As XCData = <![CDATA[
+    Public Shared ReadOnly ClassesWithReadWriteProperties As String = "
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
@@ -630,7 +684,7 @@ Public MustInherit Class BasicTestBaseBase
     .get instance int32 D2::get_P_rw_rw_r()
   } // end of property D2::P_rw_rw_r
 } // end of class D2
-]]>
+"
 
     Public Class NameSyntaxFinder
         Inherits VisualBasicSyntaxWalker
