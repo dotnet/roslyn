@@ -45,6 +45,7 @@
                 "Microsoft.VisualStudio.VisualBasic.Repl.dll",
                 "Microsoft.VisualStudio.VsInteractiveWindow.dll",
                 "Pdb2Xml.exe",
+                "Roslyn.VisualStudio.Setup.Interactive.dll",
                 "Roslyn.Compilers.Extension.dll",
                 "Roslyn.Hosting.Diagnostics.dll",
                 "Roslyn.VisualStudio.DiagnosticsWindow.dll",
