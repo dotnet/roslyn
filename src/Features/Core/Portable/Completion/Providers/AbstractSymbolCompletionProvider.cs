@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
-                    insertionText = selectedItem.DisplayText;
+                    insertionText = SymbolCompletionItem.GetInsertionText(selectedItem);
                 }
             }
 
