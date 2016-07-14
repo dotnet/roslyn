@@ -865,5 +865,111 @@ class Program
 sasquatch";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void WhenClause02()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main()
+    {
+        M(0.0);
+        M(-0.0);
+        M(2.1);
+        M(1.0);
+        M(double.NaN);
+        M(-double.NaN);
+        M(0.0f);
+        M(-0.0f);
+        M(2.1f);
+        M(1.0f);
+        M(float.NaN);
+        M(-float.NaN);
+        M(0.0m);
+        M(0m);
+        M(2.1m);
+        M(1.0m);
+        M(null);
+    }
+    public static void M(object o)
+    {
+        switch (o)
+        {
+            case 0.0f:
+                Console.WriteLine(""0.0f !"");
+                break;
+            case 0.0d:
+                Console.WriteLine(""0.0d !"");
+                break;
+            case 0.0m:
+                Console.WriteLine(""0.0m !"");
+                break;
+            case 1.0f:
+                Console.WriteLine(""1.0f !"");
+                break;
+            case 1.0d:
+                Console.WriteLine(""1.0d !"");
+                break;
+            case 1.0m:
+                Console.WriteLine(""1.0m !"");
+                break;
+            case 2.0f:
+                Console.WriteLine(""2.0f !"");
+                break;
+            case 2.0d:
+                Console.WriteLine(""2.0d !"");
+                break;
+            case 2.0m:
+                Console.WriteLine(""2.0m !"");
+                break;
+            case float.NaN:
+                Console.WriteLine(""float.NaN !"");
+                break;
+            case double.NaN:
+                Console.WriteLine(""double.NaN !"");
+                break;
+            case float f when f is float g:
+                Console.WriteLine(""float "" + g);
+                break;
+            case double d when d is double e:
+                Console.WriteLine(""double "" + e);
+                break;
+            case decimal d when d is decimal e:
+                Console.WriteLine(""decimal "" + e);
+                break;
+            case null:
+                Console.WriteLine(""null"");
+                break;
+            case object k:
+                Console.WriteLine(k.GetType() + "" + "" + k);
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"0.0d !
+0.0d !
+double 2.1
+1.0d !
+double.NaN !
+double.NaN !
+0.0f !
+0.0f !
+float 2.1
+1.0f !
+float.NaN !
+float.NaN !
+0.0m !
+0.0m !
+decimal 2.1
+1.0m !
+null";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
