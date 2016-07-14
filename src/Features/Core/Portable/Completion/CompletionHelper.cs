@@ -44,9 +44,10 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
-        public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
+        public IReadOnlyList<TextSpan> GetHighlightedSpans(
+            CompletionItem completionItem, string filterText, CultureInfo culture)
         {
-            var match = GetMatch(completionItem, filterText, includeMatchSpans: true);
+            var match = GetMatch(completionItem, filterText, includeMatchSpans: true, culture: culture);
             return match?.MatchedSpans;
         }
 
@@ -55,17 +56,19 @@ namespace Microsoft.CodeAnalysis.Completion
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public bool MatchesFilterText(CompletionItem item, string filterText)
+        public bool MatchesFilterText(CompletionItem item, string filterText, CultureInfo culture)
         {
-            return GetMatch(item, filterText) != null;
+            return GetMatch(item, filterText, culture) != null;
         }
 
-        private PatternMatch? GetMatch(CompletionItem item, string filterText)
+        private PatternMatch? GetMatch(CompletionItem item, string filterText, CultureInfo culture)
         {
-            return GetMatch(item, filterText, includeMatchSpans: false);
+            return GetMatch(item, filterText, includeMatchSpans: false, culture: culture);
         }
 
-        private PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
+        private PatternMatch? GetMatch(
+            CompletionItem item, string filterText,
+            bool includeMatchSpans, CultureInfo culture)
         {
             // If the item has a dot in it (i.e. for something like enum completion), then attempt
             // to match what the user wrote against the last portion of the name.  That way if they
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (lastDotIndex >= 0)
             {
                 var textAfterLastDot = item.FilterText.Substring(lastDotIndex + 1);
-                var match = GetMatchWorker(textAfterLastDot, filterText, includeMatchSpans);
+                var match = GetMatchWorker(textAfterLastDot, filterText, includeMatchSpans, culture);
                 if (match != null)
                 {
                     return match;
@@ -86,12 +89,14 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Didn't have a dot, or the user text didn't match the portion after the dot.
             // Just do a normal check against the entire completion item.
-            return GetMatchWorker(item.FilterText, filterText, includeMatchSpans);
+            return GetMatchWorker(item.FilterText, filterText, includeMatchSpans, culture);
         }
 
-        private PatternMatch? GetMatchWorker(string completionItemText, string filterText, bool includeMatchSpans)
+        private PatternMatch? GetMatchWorker(
+            string completionItemText, string filterText,
+            bool includeMatchSpans, CultureInfo culture)
         {
-            var patternMatcher = this.GetPatternMatcher(filterText, CultureInfo.CurrentCulture);
+            var patternMatcher = this.GetPatternMatcher(filterText, culture);
             var match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
 
             if (match != null)
@@ -100,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Start with the culture-specific comparison, and fall back to en-US.
-            if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
+            if (!culture.Equals(EnUSCultureInfo))
             {
                 patternMatcher = this.GetEnUSPatternMatcher(filterText);
                 match = patternMatcher.GetFirstMatch(completionItemText);
@@ -145,10 +150,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public int CompareItems(CompletionItem item1, CompletionItem item2, string filterText)
+        public int CompareItems(CompletionItem item1, CompletionItem item2, string filterText, CultureInfo culture)
         {
-            var match1 = GetMatch(item1, filterText);
-            var match2 = GetMatch(item2, filterText);
+            var match1 = GetMatch(item1, filterText, culture);
+            var match2 = GetMatch(item2, filterText, culture);
 
             if (match1 != null && match2 != null)
             {

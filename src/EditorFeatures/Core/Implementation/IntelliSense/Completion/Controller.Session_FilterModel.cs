@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user was typing a number, then immediately dismiss completion.
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
-                if (filterTextStartsWithANumber == true)
+                if (filterTextStartsWithANumber)
                 {
                     return null;
                 }
@@ -425,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return false;
                 }
 
-                return helper.MatchesFilterText(item, filterText);
+                return helper.MatchesFilterText(item, filterText, CultureInfo.CurrentCulture);
             }
 
             private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)

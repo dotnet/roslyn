@@ -41,7 +41,17 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore. Use CompletionListSpan instead.")]
         public TextSpan DefaultItemSpan { get; }
 
-        public TextSpan CompletionListSpan { get; }
+        /// <summary>
+        /// The span of the document the completion list corresponds to.  It will be set initially to
+        /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
+        /// be overwritten bduring <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
+        /// of the span is to:
+        ///     1. Signify where the completions should be presented.
+        ///     2. Designate any existing text in the document that should be used for filtering.
+        ///     3. Specify, by default, what portion of the text should be replaced when a completion 
+        ///        item is committed.
+        /// </summary>
+        public TextSpan CompletionListSpan { get; set; }
 
         /// <summary>
         /// The triggering action that caused completion to be started.

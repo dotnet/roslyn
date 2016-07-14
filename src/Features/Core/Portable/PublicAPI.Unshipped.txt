@@ -1,5 +1,6 @@
 *REMOVED*static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, Microsoft.CodeAnalysis.Text.TextSpan span = default(Microsoft.CodeAnalysis.Text.TextSpan), System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionListSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionListSpan.set -> void
 Microsoft.CodeAnalysis.Completion.CompletionItemRules.SelectionBehavior.get -> Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior
 Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithSelectionBehavior(Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior selectionBehavior) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
 Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior

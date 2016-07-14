@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                     if (presentationItem != null && !presentationItem.IsSuggestionModeItem)
                     {
-                        var highlightedSpans = completionHelper.GetHighlightedSpans(presentationItem.Item, FilterText);
+                        var highlightedSpans = completionHelper.GetHighlightedSpans(
+                            presentationItem.Item, FilterText, CultureInfo.CurrentCulture);
                         if (highlightedSpans != null)
                         {
                             return highlightedSpans.Select(s => s.ToSpan()).ToArray();

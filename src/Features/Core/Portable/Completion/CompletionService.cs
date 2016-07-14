@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
                 else
                 {
-                    var comparison = helper.CompareItems(item, bestItems.First(), filterText);
+                    var comparison = helper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
                     if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.
