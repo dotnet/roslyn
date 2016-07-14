@@ -101,7 +101,7 @@
     <Compile Include="Semantics\InteractiveSemanticModelTests.cs" />
     <Compile Include="Semantics\InterpolationTests.cs" />
     <Compile Include="Semantics\OutVarTests.cs" />
-    <Compile Include="Semantics\PatternSubsumptionTests.cs" />
+    <Compile Include="Semantics\PatternSwitchTests.cs" />
     <Compile Include="Semantics\RefLocalsAndReturns.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
