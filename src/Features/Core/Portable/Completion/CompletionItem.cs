@@ -72,6 +72,26 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Rules = rules ?? CompletionItemRules.Default;
         }
 
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+        public static CompletionItem Create(
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+            string displayText,
+            string filterText = null,
+            string sortText = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default(ImmutableArray<string>),
+            CompletionItemRules rules = null)
+        {
+            return new CompletionItem(
+                span: default(TextSpan),
+                displayText: displayText,
+                filterText: filterText,
+                sortText: sortText,
+                properties: properties,
+                tags: tags,
+                rules: rules);
+        }
+
         /// <summary>
         /// Creates a new <see cref="CompletionItem"/>
         /// </summary>
@@ -83,14 +103,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="tags">Descriptive tags that may influence how the item is displayed.</param>
         /// <param name="rules">The rules that declare how this item should behave.</param>
         /// <returns></returns>
+        [Obsolete("Use the Create overload that does not take a span")]
         public static CompletionItem Create(
             string displayText,
-            string filterText = null,
-            string sortText = null,
-            TextSpan span = default(TextSpan),
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            string filterText,
+            string sortText,
+            TextSpan span,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules)
         {
             return new CompletionItem(
                 span: span,
@@ -119,18 +140,18 @@ namespace Microsoft.CodeAnalysis.Completion
             var newTags = tags.HasValue ? tags.Value : this.Tags;
             var newRules = rules.HasValue ? rules.Value : this.Rules;
 
-            if (newSpan == this.Span
-                && newDisplayText == this.DisplayText
-                && newFilterText == this.FilterText
-                && newSortText == this.SortText
-                && newProperties == this.Properties
-                && newTags == this.Tags
-                && newRules == this.Rules)
+            if (newSpan == this.Span &&
+                newDisplayText == this.DisplayText &&
+                newFilterText == this.FilterText &&
+                newSortText == this.SortText &&
+                newProperties == this.Properties &&
+                newTags == this.Tags &&
+                newRules == this.Rules)
             {
                 return this;
             }
 
-            return Create(
+            return new CompletionItem(
                 displayText: newDisplayText,
                 filterText: newFilterText,
                 span: newSpan,
