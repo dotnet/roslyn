@@ -56,16 +56,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)boundRHS.Type == null)
             {
-                if (boundRHS.Kind == BoundKind.TupleLiteral && !isDeclaration)
+                if (boundRHS.Kind == BoundKind.TupleLiteral)
                 {
-                    // tuple literal without type such as `(null, null)`, let's fix it up by peeking at the LHS
-                    TypeSymbol lhsAsTuple = MakeTupleTypeFromDeconstructionLHS(checkedVariables, diagnostics, Compilation);
-                    boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
+                    // let's fix it up by making a merged type from the LHS and RHS
+                    TypeSymbol lhsAsTuple = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, node, diagnostics, Compilation);
+                    if (lhsAsTuple != null)
+                    {
+                        boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
+                    }
                 }
                 else
                 {
-                    // expression without type such as `null`
                     Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, right);
+                }
+
+                if ((object)boundRHS.Type == null)
+                {
+                    // we could still not infer a type for the RHS
                     FailRemainingInferences(checkedVariables, diagnostics);
 
                     return new BoundDeconstructionAssignmentOperator(
@@ -74,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 voidType, hasErrors: true);
                 }
             }
-
             var deconstructionSteps = ArrayBuilder<BoundDeconstructionDeconstructStep>.GetInstance(1);
             var assignmentSteps = ArrayBuilder<BoundDeconstructionAssignmentStep>.GetInstance(1);
             bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(boundRHS.Syntax, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
@@ -188,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
                 {
                     BoundLocal local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], success: true);
-                    variables[i] = new DeconstructionVariable(local);
+                    variables[i] = new DeconstructionVariable(local, local.Syntax);
                 }
             }
         }
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
                     {
                         var local = ((DeconstructionLocalPendingInference)variable.Single).FailInference(this);
-                        variables[i] = new DeconstructionVariable(local);
+                        variables[i] = new DeconstructionVariable(local, local.Syntax);
                     }
                 }
             }
@@ -226,11 +232,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
             public readonly CSharpSyntaxNode Syntax;
 
-            public DeconstructionVariable(BoundExpression variable)
+            public DeconstructionVariable(BoundExpression variable, CSharpSyntaxNode syntax)
             {
                 Single = variable;
                 NestedVariables = null;
-                Syntax = variable.Syntax;
+                Syntax = syntax;
             }
 
             public DeconstructionVariable(ArrayBuilder<DeconstructionVariable> variables, CSharpSyntaxNode syntax)
@@ -282,21 +288,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// For cases where the RHS of a deconstruction-assignment has no type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
+        /// For cases where the RHS of a deconstruction-assignment is a tuple literal, we merge type information from both the LHS and RHS.
+        /// Returns null if a merged tuple type could not be fabricated.
         /// </summary>
-        private static TypeSymbol MakeTupleTypeFromDeconstructionLHS(ArrayBuilder<DeconstructionVariable> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        private static TypeSymbol MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundTupleLiteral rhsLiteral, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Count);
-            foreach (var variable in topLevelCheckedVariables)
+            int leftLength = lhsVariables.Count;
+            int rightLength = rhsLiteral.Arguments.Length;
+
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(lhsVariables.Count);
+            for (int i = 0; i < rightLength; i++)
             {
-                if (variable.HasNestedVariables)
+                BoundExpression element = rhsLiteral.Arguments[i];
+                TypeSymbol mergedType = element.Type;
+
+                if (i < leftLength)
                 {
-                    typesBuilder.Add(MakeTupleTypeFromDeconstructionLHS(variable.NestedVariables, diagnostics, compilation));
+                    var variable = lhsVariables[i];
+                    if (variable.HasNestedVariables)
+                    {
+                        if (element.Kind == BoundKind.TupleLiteral)
+                        {
+                            // (variables) on the left and (elements) on the right
+                            mergedType = MakeMergedTupleType(variable.NestedVariables, (BoundTupleLiteral)element, syntax, diagnostics, compilation);
+                        }
+                        else if (element.Type == null)
+                        {
+                            // (variables) on the left and null on the right
+                            Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
+                        }
+                    }
+                    else
+                    {
+                        if (variable.Single.Type != null)
+                        {
+                            // typed-variable on the left
+                            mergedType = variable.Single.Type;
+                        }
+                        else if (element.Type == null)
+                        {
+                            // typeless-variable on the left and typeless-element on the right
+                            Error(diagnostics, ErrorCode.ERR_DeconstructCouldNotInferMergedType, syntax, variable.Syntax, element.Syntax);
+                        }
+                    }
                 }
-                else
+
+                if (mergedType == null)
                 {
-                    typesBuilder.Add(variable.Single.Type);
+                    typesBuilder.Free();
+                    return null;
                 }
+
+                typesBuilder.Add(mergedType);
             }
 
             return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
@@ -327,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var boundVariable = BindExpression(argument.Expression, diagnostics, invoked: false, indexed: false);
                     var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
 
-                    checkedVariablesBuilder.Add(new DeconstructionVariable(checkedVariable));
+                    checkedVariablesBuilder.Add(new DeconstructionVariable(checkedVariable, argument));
                 }
             }
 
@@ -527,11 +570,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeconstructionVariable local;
                 if (variable.IsDeconstructionDeclaration)
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationLocals(variable, typeSyntax, diagnostics), node.Deconstruction);
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationLocals(variable, typeSyntax, diagnostics), variable.Deconstruction);
                 }
                 else
                 {
-                    local = new DeconstructionVariable(BindDeconstructionDeclarationLocal(variable, typeSyntax, diagnostics));
+                    local = new DeconstructionVariable(BindDeconstructionDeclarationLocal(variable, typeSyntax, diagnostics), variable);
                 }
 
                 localsBuilder.Add(local);

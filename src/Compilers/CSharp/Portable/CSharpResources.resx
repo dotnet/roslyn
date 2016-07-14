@@ -4917,4 +4917,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
+  <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
+    <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
+  </data>
 </root>

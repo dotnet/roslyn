@@ -2974,14 +2974,14 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (6,9): error CS8209: The type information on the left-hand-side 'x2' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         var (x1, x2) = (1, null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(1, null)").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x1, x2) = (1, null);").WithArguments("x2", "null").WithLocation(6, 9)
                 );
         }
 
         [Fact]
-        public void InferTypeOfTypelessDeclaration()
+        public void TypeMergingSuccess1()
         {
             string source = @"
 class C
@@ -2993,11 +2993,139 @@ class C
     }
 }
 ";
+            var comp = CompileAndVerify(source, expectedOutput: " 1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, byte x2, var x3) = (null, 2, 3);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, (1, 2));
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess4()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((string x1, byte x2, var x3), int x4) = (M(), 4);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4);
+    }
+    static (string, byte, int) M() { return (null, 2, 3); }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyLeftNestings()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((string x1, byte x2, var x3), int x4) = (null, 4);
+    }
+}
+";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,37): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         (var (x1, x2), string x3) = ((1, 2), null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "((1, 2), null)").WithLocation(6, 37)
+                // (6,51): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         ((string x1, byte x2, var x3), int x4) = (null, 4);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyRightNestings()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, (null, 2));
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, var x2) = (null, (null, 2));
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("var x2", "(null, 2)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyLeftVariables()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2, int x3) = (null, ""hello"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (string x1, var x2, int x3) = (null, "hello");
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"");").WithArguments("2", "3").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyRightVariables()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, ""hello"", 3);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         (string x1, var x2) = (null, "hello", 3);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9)
                 );
         }
 
