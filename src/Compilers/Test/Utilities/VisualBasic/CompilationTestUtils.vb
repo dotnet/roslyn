@@ -1185,11 +1185,7 @@ Friend Module CompilationUtils
     Public Function VerifyIsGlobal(globalNS1 As ISymbol, Optional expected As Boolean = True) As NamespaceSymbol
         Dim nsSymbol = DirectCast(globalNS1, NamespaceSymbol)
         Assert.NotNull(nsSymbol)
-        If (expected) Then
-            Assert.True(nsSymbol.IsGlobalNamespace)
-        Else
-            Assert.False(nsSymbol.IsGlobalNamespace)
-        End If
+        Assert.Equal(expected, nsSymbol.IsGlobalNamespace)
         Return nsSymbol
     End Function
 
@@ -1214,13 +1210,14 @@ Friend Module CompilationUtils
     End Sub
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
+        If strings Is Nothing OrElse strings.Count = 0 Then Return String.Empty
+        If strings.Length = 1 Then Return strings(0)
         Array.Sort(strings)
-        Dim builder = New StringBuilder
-        For Each str In strings
-            If builder.Length > 0 Then
-                builder.AppendLine()
-            End If
-            builder.Append(str)
+        Dim builder As New StringBuilder(strings(0))
+        Dim e = strings.Length - 1
+        For i = 1 To e
+            builder.AppendLine()
+            builder.Append(strings(i))
         Next
         Return builder.ToString
     End Function

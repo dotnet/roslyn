@@ -178,3 +178,5 @@ $RECYCLE.BIN/
 
 # Visual Studio Code
 .vscode/
+/errors.txt
+/Roslyn-ErrorReport.exe
