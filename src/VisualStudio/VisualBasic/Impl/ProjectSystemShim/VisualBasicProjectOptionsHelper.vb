@@ -29,6 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Private Shared ReadOnly s_EmptyCommandLineArguments As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(SpecializedCollections.EmptyEnumerable(Of String)(), baseDirectory:="", sdkDirectory:=Nothing)
 
         Public Shared Function GetCompilationOptions(baseCompilationOptionsOpt As VisualBasicCompilationOptions,
+                                                     newParseOptions As VisualBasicParseOptions,
                                                      compilerOptions As VBCompilerOptions,
                                                      compilerHost As IVbCompilerHost,
                                                      globalImports As IEnumerable(Of GlobalImport),
@@ -73,10 +74,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 .WithOptionStrict(If(compilerOptions.bOptionStrictOff, OptionStrict.Custom, OptionStrict.On)) _
                 .WithOptionCompareText(compilerOptions.bOptionCompareText) _
                 .WithOptimizationLevel(If(compilerOptions.bOptimize, OptimizationLevel.Release, OptimizationLevel.Debug)) _
-                .WithOutputKind(OutputKind) _
+                .WithOutputKind(outputKind) _
                 .WithPlatform(platform) _
                 .WithRootNamespace(If(compilerOptions.wszDefaultNamespace, String.Empty)) _
-                .WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+                .WithSpecificDiagnosticOptions(specificDiagnosticOptions) _
+                .WithParseOptions(newParseOptions)
         End Function
 
         Private Shared Function GetOutputKind(options As VBCompilerOptions) As OutputKind

@@ -87,10 +87,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return "CS" + errorCode.ToString("0000");
         }
 
-        protected override CompilationOptions GetCompilationOptions()
+        protected override CompilationOptions GetCompilationOptions(ParseOptions newParseOptions)
         {
             // Get the base options from command line arguments + common workspace defaults.
-            var options = (CSharpCompilationOptions)base.GetCompilationOptions();
+            var options = (CSharpCompilationOptions)base.GetCompilationOptions(newParseOptions);
 
             // Now override these with the options from our state.
             IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;

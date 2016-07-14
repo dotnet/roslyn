@@ -163,6 +163,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim compilerHost = New MockCompilerHost("C:\SDK")
             Dim convertedOptions = VisualBasicProjectOptionsHelper.GetCompilationOptions(
                                     Nothing,
+                                    VisualBasicParseOptions.Default,
                                     compilerOptions,
                                     compilerHost,
                                     SpecializedCollections.EmptyEnumerable(Of GlobalImport),

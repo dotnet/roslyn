@@ -94,8 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected sealed override void UpdateOptions()
         {
-            var compilationOptions = GetCompilationOptions();
             var parseOptions = GetParseOptions();
+            var compilationOptions = GetCompilationOptions(parseOptions);
             if (compilationOptions == CurrentCompilationOptions && parseOptions == CurrentParseOptions)
             {
                 return;
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gets the compilation options from parsed command line arguments, with additional workspace specific options appended.
         /// It is expected that derived types which need to add more specific options will fetch the base options and override those options.
         /// </summary>
-        protected virtual CompilationOptions GetCompilationOptions()
+        protected virtual CompilationOptions GetCompilationOptions(ParseOptions newParseOptions)
         {
             // Get options from command line arguments.
             var options = GetParsedCommandLineArguments().CompilationOptions;

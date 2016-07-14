@@ -380,9 +380,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Try
         End Sub
 
-        Protected Overrides Function GetCompilationOptions() As CompilationOptions
-            Dim baseCompilationOptions = DirectCast(MyBase.GetCompilationOptions(), VisualBasicCompilationOptions)
-            Return VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, Me.ruleSet)
+        Protected Overrides Function GetCompilationOptions(newParseOptions As ParseOptions) As CompilationOptions
+            Dim baseCompilationOptions = DirectCast(MyBase.GetCompilationOptions(newParseOptions), VisualBasicCompilationOptions)
+            Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
+            Return VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, Me.ruleSet)
         End Function
 
         Protected Overrides Function GetParseOptions() As ParseOptions

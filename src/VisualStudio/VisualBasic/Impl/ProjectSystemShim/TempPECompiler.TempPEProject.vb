@@ -201,6 +201,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 _outputPath = VisualBasicProjectOptionsHelper.GetOutputPath(pCompilerOptions)
                 _parseOptions = VisualBasicProjectOptionsHelper.GetParseOptions(Nothing, pCompilerOptions)
                 _compilationOptions = VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptionsOpt:=Nothing,
+                                                                                            newParseOptions:=_parseOptions,
                                                                                             compilerOptions:=pCompilerOptions,
                                                                                             compilerHost:=_compilerHost,
                                                                                             globalImports:=Array.Empty(Of GlobalImport)(),
