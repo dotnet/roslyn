@@ -306,7 +306,7 @@ public class C
             TestRoundTrip(symbols, compilation);
         }
 
-        [Fact(Skip = "PROTOTYPE: Extension Everything breaks this, due to reduced method symbols having a receiver type dependent on type parameters")]
+        [Fact]
         public void TestExtensionMethodReferences()
         {
             var source = @"

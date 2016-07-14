@@ -104,7 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _typeMap.SubstituteType(_reducedFrom.Parameters[0].Type).Type;
+                // Note: Do not alpha rename the type (_typeMap.SubstituteType).
+                // This is because upon reduction of Foo<T>(this T t) into T.Foo<T'>(), we "reduced it"
+                // using the receiver type of the *original* (static) method symbol type parameter.
+                // Typemapping to the alpha-renamed type parameter causes an impossible recursion.
+                return _reducedFrom.Parameters[0].Type;
             }
         }
 

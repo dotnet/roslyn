@@ -68,7 +68,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers => _unreducedFrom.TypeCustomModifiers;
 
-        internal override Cci.CallingConvention CallingConvention => _unreducedFrom.CallingConvention;
+        internal override Cci.CallingConvention CallingConvention
+        {
+            get
+            {
+                var originalCallingConvention = _unreducedFrom.CallingConvention;
+                Debug.Assert((originalCallingConvention & Cci.CallingConvention.HasThis) != 0);
+                return originalCallingConvention & ~Cci.CallingConvention.HasThis;
+            }
+        }
 
         internal override bool HasSpecialName => _unreducedFrom.HasSpecialName;
 
