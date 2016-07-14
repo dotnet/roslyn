@@ -1175,7 +1175,7 @@ namespace CSharpSyntaxGenerator
             //WriteRedVisitor(true, true);
             WriteRedVisitor(false, true);
             WriteRedVisitor(false, false);
-            WriteNonRecursiveFullTreeVisitor();
+            WriteNonRecursiveSyntaxWalker();
         }
 
         private void WriteRedVisitor(bool genericArgument, bool genericResult)
@@ -1207,12 +1207,12 @@ namespace CSharpSyntaxGenerator
             WriteLine("  }");
         }
 
-        private void WriteNonRecursiveFullTreeVisitor()
+        private void WriteNonRecursiveSyntaxWalker()
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  partial class NonRecursiveFullTreeVisitor");
+            WriteLine("  partial class NonRecursiveSyntaxWalker");
             WriteLine("  {");
             bool startWithWhiteLine = false;
             for (int i = 0, n = nodes.Count; i < n; i++)
@@ -1440,7 +1440,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedRewriters()
         {
             this.WriteRedRewriter();
-            this.WriteNonRecursiveRewriter();
+            this.WriteNonRecursiveSyntaxRewriter();
         }
 
         private void WriteRedRewriter()
@@ -1508,12 +1508,12 @@ namespace CSharpSyntaxGenerator
             WriteLine("  }");
         }
 
-        private void WriteNonRecursiveRewriter()
+        private void WriteNonRecursiveSyntaxRewriter()
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  partial class NonRecursiveRewriter");
+            WriteLine("  partial class NonRecursiveSyntaxRewriter");
             WriteLine("  {");
             bool startWithWhiteLine = false;
             for (int i = 0, n = nodes.Count; i < n; i++)
@@ -1544,7 +1544,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else if (IsNodeOrNodeListOrToken(field.Type))
                         {
-                            rewritingCallParameters.AppendFormat("({0})this.RewritenStack.Pop(), ", field.Type);
+                            rewritingCallParameters.AppendFormat("({0})this.RewrittenStack.Pop(), ", field.Type);
                         }
                         else
                         {

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents a non-recursive visitor which descends an entire <see cref="CSharpSyntaxNode"/> graph and
     /// may replace or remove visited SyntaxNodes in depth-first order.
     /// </summary>
-    public partial class NonRecursiveRewriter : CSharpSyntaxVisitor<NonRecursiveRewriter.Chunk>
+    public partial class NonRecursiveSyntaxRewriter : CSharpSyntaxVisitor<NonRecursiveSyntaxRewriter.Chunk>
     {
         public class Chunk
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.currentIndex = children.Length;
             }
 
-            public Func<SyntaxNodeOrToken> Transform { get; private set; }
+            public Func<SyntaxNodeOrToken> Transform { get; set; }
 
             public SyntaxNodeOrToken[] ChildNodes { get; private set; }
 
@@ -39,31 +39,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private Stack<SyntaxNodeOrToken> rewritenStack = new Stack<SyntaxNodeOrToken>();
-        protected internal Stack<SyntaxNodeOrToken> RewritenStack
+        private Stack<SyntaxNodeOrToken> rewrittenStack = new Stack<SyntaxNodeOrToken>();
+        protected internal Stack<SyntaxNodeOrToken> RewrittenStack
         {
-            get { return this.rewritenStack; }
+            get { return this.rewrittenStack; }
         }
 
         public new SyntaxNode Visit(SyntaxNode node)
-        {
-            return this.Visit((SyntaxNodeOrToken)node);
-        }
-
-        public SyntaxNode Visit(SyntaxToken token)
-        {
-            return this.Visit((SyntaxNodeOrToken)token);
-        }
-
-        private SyntaxNode Visit(SyntaxNodeOrToken node)
         {
             if (node == null)
             {
                 return null;
             }
 
-            Chunk chunk = this.VisitNode((CSharpSyntaxNode)node);
-            Stack<Chunk> nodesToRewriteStack = new Stack<Chunk>();
+            return this.Visit((SyntaxNodeOrToken)node);
+        }
+
+        public SyntaxToken Visit(SyntaxToken token)
+        {
+            return (SyntaxToken)this.VisitToken(token).Transform();
+        }
+
+        private SyntaxNode Visit(SyntaxNodeOrToken nodeOrToken)
+        {
+            Chunk chunk = this.VisitNode((CSharpSyntaxNode)nodeOrToken);
+            var nodesToRewriteStack = new Stack<Chunk>();
             nodesToRewriteStack.Push(chunk);
             Queue<Chunk> rewriterQueue = new Queue<Chunk>();
 
@@ -98,15 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (rewriterQueue.Count != 0)
             {
-                this.RewritenStack.Push(rewriterQueue.Dequeue().Transform());
+                this.RewrittenStack.Push(rewriterQueue.Dequeue().Transform());
             }
 
-            if (this.RewritenStack.Count != 1)
+            if (this.RewrittenStack.Count != 1)
             {
                 throw new InvalidOperationException();
             }
 
-            return this.RewritenStack.Pop().AsNode();
+            return this.RewrittenStack.Pop().AsNode();
         }
 
         protected virtual Chunk CreateChunk(SyntaxNodeOrToken nodeOrToken, Func<SyntaxNodeOrToken> transform, params SyntaxNodeOrToken[] children)
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool updated = false;
             foreach (T originalItem in originalItems)
             {
-                T item = cast(this.rewritenStack.Pop());
+                T item = cast(this.RewrittenStack.Pop());
                 newList.Add(item);
                 if (notEquals(item, originalItem))
                 {

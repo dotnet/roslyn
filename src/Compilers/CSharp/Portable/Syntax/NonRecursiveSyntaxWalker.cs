@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents a non-recursive visitor which descends an entire <see cref="CSharpSyntaxNode"/> graph
     /// </summary>
-    public abstract partial class NonRecursiveFullTreeVisitor : CSharpSyntaxVisitor<NonRecursiveFullTreeVisitor.Chunk>
+    public abstract partial class NonRecursiveSyntaxWalker : CSharpSyntaxVisitor<NonRecursiveSyntaxWalker.Chunk>
     {
         public class Chunk
         {
