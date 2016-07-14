@@ -699,4 +699,13 @@ Additional information: {1}</value>
   <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
   </data>
+  <data name="AddFile" xml:space="preserve">
+    <value>Add File</value>
+  </data>
+  <data name="MoveTypeDialogTitle" xml:space="preserve">
+    <value>Move Type To File...</value>
+  </data>
+  <data name="RemoveUnusedUsings" xml:space="preserve">
+    <value>Remove unused usings in source file</value>
+  </data>
 </root>
