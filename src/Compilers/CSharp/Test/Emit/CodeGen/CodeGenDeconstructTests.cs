@@ -3050,6 +3050,29 @@ class C
         }
 
         [Fact]
+        public void TypeMergingWithMultipleAmbiguousVars()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x3", "null").WithLocation(6, 9),
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x4", "null").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
         public void TypeMergingWithTooManyLeftNestings()
         {
             string source = @"

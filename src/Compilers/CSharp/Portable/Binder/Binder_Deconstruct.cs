@@ -333,13 +333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (mergedType == null)
-                {
-                    typesBuilder.Free();
-                    return null;
-                }
-
                 typesBuilder.Add(mergedType);
+            }
+
+            if (typesBuilder.Any(t => t == null))
+            {
+                typesBuilder.Free();
+                return null;
             }
 
             return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
