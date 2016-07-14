@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
             SuggestionModeItem = suggestionModeItem;
             IsExclusive = isExclusive;
 
-            foreach (var item in items)
+            foreach (var item in Items)
             {
                 item.Span = defaultSpan;
             }
