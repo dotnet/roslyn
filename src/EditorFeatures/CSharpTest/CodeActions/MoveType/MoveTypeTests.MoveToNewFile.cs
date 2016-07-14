@@ -197,5 +197,185 @@ class Class2 { }";
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypeToNewFile_Simple()
+        {
+            var code =
+@"namespace N1
+{
+    class Class1 
+    {
+        [||]class Class2 { }
+    }
+    
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    partial class Class1
+    {
+
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
+        {
+            var code =
+@"namespace N1
+{
+    class Class1 
+    {
+        private int _field1;
+
+        [||]class Class2 { }
+
+        public void Method1() { }
+    }
+    
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    partial class Class1
+    {
+        private int _field1;
+
+        public void Method1() { }
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypeToNewFile_HasOtherTopLevelMembers()
+        {
+            var code =
+@"namespace N1
+{
+    class Class1 
+    {
+        private int _field1;
+
+        [||]class Class2 { }
+
+        public void Method1() { }
+    }
+
+    internal class Class3 
+    {
+        private void Method1() { }
+    }
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    partial class Class1
+    {
+        private int _field1;
+
+        public void Method1() { }
+    }
+
+    internal class Class3
+    {
+        private void Method1() { }
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypeToNewFile_HasMembers()
+        {
+            var code =
+@"namespace N1
+{
+    class Class1 
+    {
+        private int _field1;
+
+        [||]class Class2 
+        {
+            private string _field1;
+            public void InnerMethod() { }
+        }
+
+        public void Method1() { }
+    }
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    partial class Class1
+    {
+        private int _field1;
+
+        public void Method1() { }
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    partial class Class1 
+    {
+        class Class2
+        {
+            private string _field1;
+            public void InnerMethod() { }
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
     }
 }
