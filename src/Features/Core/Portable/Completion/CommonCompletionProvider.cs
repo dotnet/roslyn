@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using System.Threading;
+using System;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -44,10 +45,15 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))
                 ?? new TextChange(item.Span, item.DisplayText);
-            return CompletionChange.Create(ImmutableArray.Create(change));
+            return CompletionChange.Create(change);
         }
 
         public virtual Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            return GetTextChangeAsync(selectedItem, ch, cancellationToken);
+        }
+
+        protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(null);
         }

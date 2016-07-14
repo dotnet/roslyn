@@ -272,8 +272,6 @@
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
-    <Compile Include="Extensibility\Completion\CompletionHelper.cs" />
-    <Compile Include="Extensibility\Completion\CompletionHelperFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ImageMonikers.cs" />
