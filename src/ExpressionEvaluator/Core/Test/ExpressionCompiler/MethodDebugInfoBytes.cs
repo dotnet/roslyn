@@ -5,6 +5,7 @@ using System.Linq;
 using Roslyn.Utilities;
 using Microsoft.DiaSymReader;
 using Xunit;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {

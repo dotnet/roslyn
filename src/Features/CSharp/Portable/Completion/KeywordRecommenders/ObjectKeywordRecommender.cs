@@ -6,10 +6,11 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class ObjectKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class ObjectKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
     {
         public ObjectKeywordRecommender()
             : base(SyntaxKind.ObjectKeyword)
@@ -43,5 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
+
+        protected override SpecialType SpecialType => SpecialType.System_Object;
     }
 }

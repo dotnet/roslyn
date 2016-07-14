@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Function GetOfText(symbol As ISymbol, typedChar As Char) As String
             If symbol.Kind = SymbolKind.NamedType Then
                 If typedChar = "("c Then
-                    Return "("
+                    Return ""
                 Else
                     Return "(Of"
                 End If
@@ -148,6 +148,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return GetInsertionText(name, symbol, context.IsRightOfNameSeparator, DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, ch)
         End Function
-
     End Module
 End Namespace

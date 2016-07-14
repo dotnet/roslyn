@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 var path = pathSoFar.Substring(0, comma);
                 return from identity in GetAssemblyIdentities(path)
                        let text = identity.GetDisplayName()
-                       select CommonCompletionItem.Create(text, _textChangeSpan, glyph: Glyph.Assembly, rules: _itemRules);
+                       select CommonCompletionItem.Create(text, glyph: Glyph.Assembly, rules: _itemRules);
             }
             else
             {
                 return from displayName in s_lazyAssemblySimpleNames.Value
                        select CommonCompletionItem.Create(
-                           displayName, _textChangeSpan,
+                           displayName,
                            description: GlobalAssemblyCache.Instance.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts(),
                            glyph: Glyph.Assembly,
                            rules: _itemRules);
