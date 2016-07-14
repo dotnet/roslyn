@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion
             char? commitCharacter = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Task.FromResult(CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText))));
+            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
 
         /// <summary>

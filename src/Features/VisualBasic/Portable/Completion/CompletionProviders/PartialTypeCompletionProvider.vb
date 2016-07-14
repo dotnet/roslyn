@@ -140,10 +140,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Not s.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).All(Function(a) a.Span.IntersectsWith(token.Span))
         End Function
 
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
             Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
         End Function
-
     End Class
 End Namespace

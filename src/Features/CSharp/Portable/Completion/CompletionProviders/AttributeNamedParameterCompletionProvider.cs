@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return attributeType.GetAttributeNamedParameters(semanticModel.Compilation, within);
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetTextChange(selectedItem, ch));
         }

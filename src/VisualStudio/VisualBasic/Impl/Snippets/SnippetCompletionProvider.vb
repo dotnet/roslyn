@@ -71,7 +71,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
-        Public Sub Commit(completionItem As CompletionItem, textView As ITextView, subjectBuffer As ITextBuffer, triggerSnapshot As ITextSnapshot, commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
+        Public Sub Commit(completionItem As CompletionItem,
+                          textView As ITextView,
+                          subjectBuffer As ITextBuffer,
+                          triggerSnapshot As ITextSnapshot,
+                          commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
             Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(textView, subjectBuffer, _editorAdaptersFactoryService)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)

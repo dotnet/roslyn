@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return obj.Name.GetHashCode();
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,

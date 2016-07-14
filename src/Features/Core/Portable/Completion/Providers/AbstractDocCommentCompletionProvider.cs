@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var items = await GetItemsWorkerAsync(
                 context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+
             if (items != null)
             {
                 context.AddItems(items);
@@ -207,7 +209,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             replacementText += afterCaretText;
 
-            return CompletionChange.Create(ImmutableArray.Create(new TextChange(replacementSpan, replacementText)), newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(
+                new TextChange(replacementSpan, replacementText),
+                newPosition, includesCommitCharacter: true);
         }
 
         private TextSpan ComputeReplacementSpan(CompletionItem completionItem, SourceText text)
