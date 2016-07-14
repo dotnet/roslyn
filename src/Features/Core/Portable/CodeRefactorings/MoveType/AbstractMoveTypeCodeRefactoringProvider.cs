@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -18,7 +19,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return;
             }
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            var workspace = document.Project.Solution.Workspace;
+            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            {
+                return;
+            }
+
+            var generatedCodeRecognitionService = workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            if (generatedCodeRecognitionService.IsGeneratedCode(document))
             {
                 return;
             }

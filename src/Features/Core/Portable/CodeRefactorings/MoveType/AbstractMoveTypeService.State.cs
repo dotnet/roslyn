@@ -14,25 +14,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         protected class State
         {
             private readonly TService _service;
+            public SemanticDocument SemanticDocument { get; }
 
-            public SemanticDocument Document { get; }
+            public TTypeDeclarationSyntax TypeNode { get; set; }
+            public string TypeName { get; set; }
             public string DocumentName { get; set; }
-
-            public bool IsNestedType { get; private set; }
-            public bool TypeNameMatchesFileName { get; set; }
-            public bool MakeTypePartial { get; set; }
-            public bool MakeContainingTypePartial { get; set; }
-            public bool OnlyTypeInFile { get; set; }
-            public bool TargetFileNameAlreadyExists { get; set; }
             public string TargetFileNameCandidate { get; set; }
             public string TargetFileExtension { get; set; }
-            public INamedTypeSymbol TypeSymbol { get; set; } //BalajiK: This can be removed.
-            public TTypeDeclarationSyntax TypeNode { get; set;}
 
             private State(TService service,SemanticDocument document)
             {
                 this._service = service;
-                this.Document = document;
+                this.SemanticDocument = document;
             }
 
             internal static State Generate(TService service, SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -55,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return false;
                 }
 
-                var tree = this.Document.SyntaxTree;
-                var root = this.Document.Root;
-                var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var tree = this.SemanticDocument.SyntaxTree;
+                var root = this.SemanticDocument.Root;
+                var syntaxFacts = this.SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
                 var typeDeclaration = _service.GetNodetoAnalyze(root, textSpan) as TTypeDeclarationSyntax;
                 if (typeDeclaration == null)
@@ -65,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return false;
                 }
 
-                var typeSymbol = this.Document.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
+                var typeSymbol = this.SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
 
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
                 if (typeSymbol == null ||
@@ -77,25 +70,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 TypeNode = typeDeclaration;
-                TypeSymbol = typeSymbol;
-
-                IsNestedType = typeDeclaration.Parent is TTypeDeclarationSyntax;
-                OnlyTypeInFile = this.Document.Root.DescendantNodes().OfType<TTypeDeclarationSyntax>().Count() == 1;
-
-                DocumentName = Path.GetFileNameWithoutExtension(this.Document.Document.Name);
-                TypeNameMatchesFileName = string.Equals(DocumentName, typeSymbol.Name, StringComparison.CurrentCultureIgnoreCase);
+                TypeName = typeSymbol.Name;
+                DocumentName = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
                 TargetFileNameCandidate = typeSymbol.Name;
-                TargetFileExtension = this.Document.Document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
-
-                if (!TypeNameMatchesFileName)
-                {
-                    var destinationDocumentId = DocumentId.CreateNewId(this.Document.Project.Id, TargetFileNameCandidate + TargetFileExtension);
-                    TargetFileNameAlreadyExists = this.Document.Project.ContainsDocument(destinationDocumentId);
-                }
-                else
-                {
-                    TargetFileNameAlreadyExists = true;
-                }
+                TargetFileExtension = this.SemanticDocument.Document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
 
                 return true;
             }

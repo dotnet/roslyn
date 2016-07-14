@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private async Task<IEnumerable<CodeActionOperation>> RenameTypeToMatchFileAsync(Solution solution)
             {
-                var newSolution = await Renamer.RenameSymbolAsync(solution, _state.TypeSymbol, _state.DocumentName, _document.Document.Options, _cancellationToken).ConfigureAwait(false);
+                var symbol = _state.SemanticDocument.SemanticModel.GetDeclaredSymbol(_state.TypeNode, _cancellationToken) as INamedTypeSymbol;
+                var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, _state.DocumentName, _document.Document.Options, _cancellationToken).ConfigureAwait(false);
                 return new CodeActionOperation[] { new ApplyChangesOperation(newSolution) };
             }
 

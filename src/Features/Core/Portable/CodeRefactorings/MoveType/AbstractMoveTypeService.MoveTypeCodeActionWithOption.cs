@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 if (_makeTypePartial)
                 {
-                    return $"Make partial definition for '{_state.TypeSymbol.Name}' in new file";
+                    return $"Make partial definition for '{_state.TypeName}' in new file";
                 }
 
-                return $"Move '{_state.TypeSymbol.Name}' to new file";
+                return $"Move '{_state.TypeName}' to new file";
             }
 
             public override string Title
