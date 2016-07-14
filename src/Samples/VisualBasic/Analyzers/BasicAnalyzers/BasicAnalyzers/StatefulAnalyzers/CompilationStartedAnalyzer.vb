@@ -21,7 +21,8 @@ Namespace BasicAnalyzers
         Friend Shared ReadOnly MessageFormat As LocalizableString = New LocalizableResourceString(NameOf(Resources.CompilationStartedAnalyzerMessageFormat), Resources.ResourceManager, GetType(Resources))
         Friend Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(NameOf(Resources.CompilationStartedAnalyzerDescription), Resources.ResourceManager, GetType(Resources))
 
-        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateful, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
+        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateful,
+                                                       DiagnosticSeverity.Warning, True, Description, Nothing, Array.Empty(Of String))
 #End Region
 
         Public Const DontInheritInterfaceTypeName As String = "MyInterfaces.Interface"

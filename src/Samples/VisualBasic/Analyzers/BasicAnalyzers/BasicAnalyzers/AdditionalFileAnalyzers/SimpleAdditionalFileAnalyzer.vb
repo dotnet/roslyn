@@ -24,7 +24,10 @@ Namespace BasicAnalyzers
                 MessageFormat,
                 DiagnosticCategories.AdditionalFile,
                 DiagnosticSeverity.Error,
-                isEnabledByDefault:=True)
+                True,
+                Nothing,
+                Nothing,
+                Array.Empty(Of String))
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
             Get

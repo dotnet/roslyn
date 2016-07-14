@@ -31,7 +31,9 @@ Namespace BasicAnalyzers
         Friend Shared ReadOnly MessageFormat As LocalizableString = New LocalizableResourceString(NameOf(Resources.CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat), Resources.ResourceManager, GetType(Resources))
         Friend Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(NameOf(Resources.CompilationStartedAnalyzerWithCompilationWideAnalysisDescription), Resources.ResourceManager, GetType(Resources))
 
-        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId, Title, MessageFormat, DiagnosticCategories.Stateful, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
+        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId, Title, MessageFormat,
+                                                       DiagnosticCategories.Stateful, DiagnosticSeverity.Warning,
+                                                       True, Description, Nothing, Array.Empty(Of String))
 #End Region
 
         Public Const UnsecureMethodAttributeName As String = "MyNamespace.UnsecureMethodAttribute"
