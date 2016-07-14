@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -195,14 +194,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 return HandleNormalFiltering(
-                    model, filterReason, textSnapshot, document, 
+                    model, filterReason, textSnapshot, document,
                     helper, recentItems, filterText, filterResults);
             }
 
             private Model HandleNormalFiltering(
-                Model model, CompletionFilterReason filterReason, 
-                ITextSnapshot textSnapshot, Document document, 
-                CompletionHelper helper, ImmutableArray<string> recentItems, 
+                Model model, CompletionFilterReason filterReason,
+                ITextSnapshot textSnapshot, Document document,
+                CompletionHelper helper, ImmutableArray<string> recentItems,
                 string filterText,
                 List<FilterResult> filterResults)
             {

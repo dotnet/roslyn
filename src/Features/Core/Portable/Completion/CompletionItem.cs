@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default(Optional<string>),
             Optional<string> filterText = default(Optional<string>),
             Optional<string> sortText = default(Optional<string>),
-            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string,string>>),
+            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string, string>>),
             Optional<ImmutableArray<string>> tags = default(Optional<ImmutableArray<string>>),
             Optional<CompletionItemRules> rules = default(Optional<CompletionItemRules>))
         {
