@@ -77,7 +77,7 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticOutOfProcHostSpecificService.cs" />
     <Compile Include="Remote\RemoteHostService.cs" />
-    <Compile Include="Remote\ServiceHubClient.cs" />
+    <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\ServiceHubRemoteHost.JsonRpcSnapshot.cs" />
     <Compile Include="Remote\ServiceHubRemoteHost.cs" />
   </ItemGroup>

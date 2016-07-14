@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -148,6 +149,65 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var syntaxTree = document.SyntaxTree;
             return syntaxTree.GetLocation(dataLocation.SourceSpan ?? DiagnosticData.GetTextSpan(dataLocation, document.Text));
+        }
+
+        public static string GetAnalyzerId(this DiagnosticAnalyzer analyzer)
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            var type = analyzer.GetType();
+            return GetAssemblyQualifiedName(type);
+        }
+
+        private static string GetAssemblyQualifiedName(Type type)
+        {
+            // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
+            // so we need to consider them.
+            return type.AssemblyQualifiedName;
+        }
+
+        public static ImmutableDictionary<DiagnosticAnalyzer, CompilerResultBuilder> ToResultBuilderMap(
+            this AnalysisResult analysisResult,
+            Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
+            CancellationToken cancellationToken)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, CompilerResultBuilder>();
+
+            ImmutableArray<Diagnostic> diagnostics;
+            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzerMap;
+
+            foreach (var analyzer in analyzers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var result = new CompilerResultBuilder(project, version);
+
+                foreach (var tree in analysisResult.SyntaxDiagnostics.Keys.Concat(analysisResult.SemanticDiagnostics.Keys))
+                {
+                    if (analysisResult.SyntaxDiagnostics.TryGetValue(tree, out diagnosticsByAnalyzerMap) &&
+                        diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    {
+                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        result.AddSyntaxDiagnostics(tree, diagnostics);
+                    }
+
+                    if (analysisResult.SemanticDiagnostics.TryGetValue(tree, out diagnosticsByAnalyzerMap) &&
+                        diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    {
+                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        result.AddSemanticDiagnostics(tree, diagnostics);
+                    }
+                }
+
+                if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
+                {
+                    Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                    result.AddCompilationDiagnostics(diagnostics);
+                }
+
+                builder.Add(analyzer, result);
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

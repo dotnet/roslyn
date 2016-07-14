@@ -1,12 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// We have this builder to avoid creating collections unnecessarily.
@@ -14,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal struct CompilerResultBuilder
     {
-        private readonly Project _project;
-        private readonly VersionStamp _version;
+        public readonly Project Project;
+        public readonly VersionStamp Version;
 
         private HashSet<DocumentId> _lazySet;
 
@@ -27,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public CompilerResultBuilder(Project project, VersionStamp version)
         {
-            _project = project;
-            _version = version;
+            Project = project;
+            Version = version;
 
             _lazySet = null;
             _lazySyntaxLocals = null;
@@ -37,21 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _lazyOthers = null;
         }
 
-        public AnalysisResult ToResult()
-        {
-            var documentIds = _lazySet == null ? ImmutableHashSet<DocumentId>.Empty : _lazySet.ToImmutableHashSet();
-            var syntaxLocals = Convert(_lazySyntaxLocals);
-            var semanticLocals = Convert(_lazySemanticLocals);
-            var nonLocals = Convert(_lazyNonLocals);
-            var others = _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
-
-            return new AnalysisResult(_project.Id, _version, syntaxLocals, semanticLocals, nonLocals, others, documentIds, fromBuild: false);
-        }
-
-        private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>> map)
-        {
-            return map == null ? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty : map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        }
+        public ImmutableHashSet<DocumentId> DocumentIds => _lazySet == null ? ImmutableHashSet<DocumentId>.Empty : _lazySet.ToImmutableHashSet();
+        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
+        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
+        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
+        public ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
 
         public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
         {
@@ -68,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void AddExternalDiagnostics(
             ref Dictionary<DocumentId, List<DiagnosticData>> lazyLocals, DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
         {
-            Contract.ThrowIfTrue(_project.SupportsCompilation);
+            Contract.ThrowIfTrue(Project.SupportsCompilation);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -80,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             var diagnosticDocumentId = GetExternalDocumentId(diagnostic);
                             if (documentId == diagnosticDocumentId)
                             {
-                                var document = _project.GetDocument(diagnosticDocumentId);
+                                var document = Project.GetDocument(diagnosticDocumentId);
                                 if (document != null)
                                 {
                                     // local diagnostics to a file
@@ -92,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                             else if (diagnosticDocumentId != null)
                             {
-                                var document = _project.GetDocument(diagnosticDocumentId);
+                                var document = Project.GetDocument(diagnosticDocumentId);
                                 if (document != null)
                                 {
                                     // non local diagnostics to a file
@@ -106,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             {
                                 // non local diagnostics without location
                                 _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                                _lazyOthers.Add(DiagnosticData.Create(_project, diagnostic));
+                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
                             }
 
                             break;
@@ -114,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     case LocationKind.None:
                         {
                             _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                            _lazyOthers.Add(DiagnosticData.Create(_project, diagnostic));
+                            _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
                             break;
                         }
                     case LocationKind.SourceFile:
@@ -168,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     case LocationKind.None:
                         {
                             _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                            _lazyOthers.Add(DiagnosticData.Create(_project, diagnostic));
+                            _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
                             break;
                         }
                     case LocationKind.SourceFile:
@@ -187,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                             else if (diagnostic.Location.SourceTree != null)
                             {
-                                var document = _project.GetDocument(diagnostic.Location.SourceTree);
+                                var document = Project.GetDocument(diagnostic.Location.SourceTree);
                                 if (document != null)
                                 {
                                     // non local diagnostics to a file
@@ -201,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             {
                                 // non local diagnostics without location
                                 _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                                _lazyOthers.Add(DiagnosticData.Create(_project, diagnostic));
+                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
                             }
 
                             break;
@@ -229,15 +218,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private Document GetDocument(Diagnostic diagnostic)
         {
-            return _project.GetDocument(diagnostic.Location.SourceTree);
+            return Project.GetDocument(diagnostic.Location.SourceTree);
         }
 
         private DocumentId GetExternalDocumentId(Diagnostic diagnostic)
         {
-            var projectId = _project.Id;
+            var projectId = Project.Id;
             var lineSpan = diagnostic.Location.GetLineSpan();
 
-            return _project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path).FirstOrDefault(id => id.ProjectId == projectId);
+            return Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path).FirstOrDefault(id => id.ProjectId == projectId);
+        }
+
+        private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>> map)
+        {
+            return map == null ?
+                ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty :
+                map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
         }
     }
 }

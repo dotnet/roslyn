@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // merge the result to existing one.
                         // there can be existing one from compiler driver with empty set. overwrite it with
                         // ide one.
-                        result = result.SetItem(analyzer, builder.ToResult());
+                        result = result.SetItem(analyzer, new AnalysisResult(builder));
                     }
 
                     return result;
@@ -483,10 +483,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+            private async Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
             {
+                // quick bail out
+                if (analyzerDriver.Analyzers.Length == 0)
+                {
+                    return new CompilerAnalysisResult(
+                        ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty,
+                        ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+                }
+
                 var executor = project.Solution.Workspace.Services.GetHostSpecificServiceAvailable<ICompilerDiagnosticExecutor>();
-                return executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
+                return await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 
             private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)

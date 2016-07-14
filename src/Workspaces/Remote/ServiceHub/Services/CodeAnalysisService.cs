@@ -17,13 +17,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public async Task<string> CalculateDiagnosticsAsync(byte[] checksum, Guid guid, string debugName)
+        public async Task<string> CalculateDiagnosticsAsync(byte[] checksum, Guid guid, string debugName, string[] analyzerIds)
         {
             // entry point for diagnostic service
             var solutionSnapshotId = await RoslynServices.AssetService.GetAssetAsync<SolutionSnapshotId>(new Checksum(ImmutableArray.Create(checksum))).ConfigureAwait(false);
             var projectId = ProjectId.CreateFromSerialized(guid, debugName);
 
-            return await (new DiagnosticComputer()).GetDiagnosticsAsync(solutionSnapshotId, projectId, CancellationToken).ConfigureAwait(false);
+            var result = await (new DiagnosticComputer()).GetDiagnosticsAsync(solutionSnapshotId, projectId, analyzerIds, CancellationToken).ConfigureAwait(false);
+
+            // just for testing
+            return result.AnalysisResult.Count.ToString();
         }
     }
 }

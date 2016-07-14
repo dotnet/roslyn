@@ -7,12 +7,12 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal class ServiceHubClient : IDisposable
+    internal class JsonRpcClient : IDisposable
     {
         private readonly Stream _stream;
         public readonly JsonRpc Rpc;
 
-        public ServiceHubClient(Stream stream, object target = null)
+        public JsonRpcClient(Stream stream, object target = null)
         {
             _stream = stream;
 

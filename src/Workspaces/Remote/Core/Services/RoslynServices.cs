@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Remote
     //       only way to do so is using static type
     internal static class RoslynServices
     {
+        // TODO: probably need to split this to private and public services
         public static readonly HostServices HostServices = MefHostServices.Create(
             MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 

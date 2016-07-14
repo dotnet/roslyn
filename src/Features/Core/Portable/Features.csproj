@@ -207,7 +207,6 @@
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
-    <Compile Include="Diagnostics\EngineV2\CompilerResultBuilder.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticInProcHostSpecificService.cs" />
     <Compile Include="Diagnostics\EngineV2\ICompilerDiagnosticExecutor.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />

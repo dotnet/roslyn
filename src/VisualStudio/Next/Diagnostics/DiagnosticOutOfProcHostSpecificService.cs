@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -39,14 +42,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
                 return new CompilerAnalysisResult(ImmutableDictionary<DiagnosticAnalyzer, CodeAnalysis.Diagnostics.EngineV2.AnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
             }
 
+            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
+
             using (var session = await remoteHost.CreateSnapshotSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-            using (var client = new ServiceHubClient(await remoteHost.CreateCodeAnalysisServiceStreamAsync(cancellationToken).ConfigureAwait(false)))
+            using (var client = new JsonRpcClient(await remoteHost.CreateCodeAnalysisServiceStreamAsync(cancellationToken).ConfigureAwait(false)))
             {
                 // TODO: change it to use direct stream rather than returning string
-                var result = await client.InvokeAsync<string>(WellKnownServiceHubServices.CodeAnalysisService_GetDiagnostics, session.SolutionSnapshot.Id.Checksum.ToArray(), project.Id.Id, project.Id.DebugName).ConfigureAwait(false);
+                var result = await client.InvokeAsync<string>(
+                    WellKnownServiceHubServices.CodeAnalysisService_GetDiagnostics, session.SolutionSnapshot.Id.Checksum.ToArray(), project.Id.Id, project.Id.DebugName, analyzerMap.Keys.ToArray()).ConfigureAwait(false);
             }
 
             return new CompilerAnalysisResult(ImmutableDictionary<DiagnosticAnalyzer, CodeAnalysis.Diagnostics.EngineV2.AnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+        }
+
+        private Dictionary<string, DiagnosticAnalyzer> CreateAnalyzerMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            // TODO: this needs to be cached. we can have 300+ analyzers
+            return analyzers.ToDictionary(a => a.GetAnalyzerIdAndVersion().Item1, a => a);
         }
     }
 }

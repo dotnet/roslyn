@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
@@ -79,6 +80,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // do after all fields are assigned.
             DocumentIds = DocumentIds ?? CreateDocumentIds();
             IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
+        }
+
+        public AnalysisResult(CompilerResultBuilder builder) :
+            this(builder.Project.Id, builder.Version,
+                builder.SyntaxLocals, builder.SemanticLocals, builder.NonLocals, builder.Others,
+                builder.DocumentIds, fromBuild: false)
+        {
         }
 
         // aggregated form means it has aggregated information but no actual data.
