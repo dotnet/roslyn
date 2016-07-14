@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
                 else if (_makeTypePartial)
                 {
-                    return $"Make partial definition for '{_state.TypeSymbol.Name}'";
+                    return $"Make partial definition for '{_state.TypeName}'";
                 }
 
                 return $"Move Type to '{_state.TargetFileNameCandidate + _state.TargetFileExtension}'";

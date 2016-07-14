@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,9 +18,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TMemberDeclarationSyntax : SyntaxNode
     {
         protected abstract bool IsPartial(TTypeDeclarationSyntax typeDeclaration);
+
         protected virtual SyntaxNode GetNodetoAnalyze(SyntaxNode root, TextSpan span)
         {
             return root.FindNode(span);
+        }
+
+        private bool IsNestedType(TTypeDeclarationSyntax typeNode)
+        {
+            return typeNode.Parent is TTypeDeclarationSyntax;
+        }
+
+        private bool IsSingleTypeDeclarationInSourceDocument(SyntaxNode root)
+        {
+            return root.DescendantNodes().OfType<TTypeDeclarationSyntax>().Count() == 1;
+        }
+
+        private bool ProjectContainsTargetFile(Project project, string targetFileName, string typeName, string sourceDocumentName)
+        {
+            // currently we generate into the same project. 
+            // so, if type name matches file name, target file name is already present.
+            return TypeNameMatchesDocumentName(typeName, sourceDocumentName) ||
+                project.ContainsDocument(DocumentId.CreateNewId(project.Id, targetFileName));
+        }
+
+        private bool TypeNameMatchesDocumentName(string fileName, string typeName)
+        {
+            return string.Equals(fileName, typeName, StringComparison.CurrentCultureIgnoreCase);
         }
 
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -42,11 +68,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private List<CodeAction> CreateActions(SemanticDocument document, State state, CancellationToken cancellationToken)
         {
             var actions = new List<CodeAction>();
-            var uiRequired = state.TargetFileNameAlreadyExists;
+            var targetFileName = state.TargetFileNameCandidate + state.TargetFileExtension;
+            var uiRequired = ProjectContainsTargetFile(state.SemanticDocument.Project, targetFileName, state.DocumentName, state.TypeName);
             var isPartial = IsPartial(state.TypeNode);
+            var isNested = IsNestedType(state.TypeNode);
+            var singleType = IsSingleTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
+            var typeSymbol = state.SemanticDocument.SemanticModel.GetDeclaredSymbol(state.TypeNode, cancellationToken) as INamedTypeSymbol;
 
             // BALAJIK: make this clear, should also check if TypeNameMatchesFileName?
-            if (state.IsNestedType)
+            if (isNested)
             {
                 // nested type, make outer type partial and move type into a new file inside a partial part.
                 if (!uiRequired)
@@ -60,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
             else
             {
-                if (state.OnlyTypeInFile)
+                if (singleType)
                 {
                     //Todo: clean up this, showDialog means can't move or rename etc.. feels weird.
                     if (!uiRequired)
