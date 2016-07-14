@@ -50,7 +50,6 @@
                 "Roslyn.VisualStudio.DiagnosticsWindow.dll",
                 "Roslyn.VisualStudio.InteractiveComponents.dll",
                 "Roslyn.VisualStudio.Setup.Interactive.dll",
-                "Roslyn.VisualStudio.Test.Utilities.dll",
                 "SDK\\Roslyn.SyntaxVisualizer.DgmlHelper.dll",
                 "SDK\\Roslyn.SyntaxVisualizer.Control.dll",
                 "SDK\\Roslyn.SyntaxVisualizer.Extension.dll",
