@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (newFilteredItems == FilteredItems &&
                 newSelectedItem == SelectedItem &&
+                newFilterState == FilterState &&
                 newFilterText == FilterText &&
-                newCompletionItemToFilterText == CompletionItemToFilterText &&
                 newIsHardSelection == IsHardSelection &&
                 newIsUnique == IsUnique &&
                 newUseSuggestionMode == UseSuggestionMode &&
