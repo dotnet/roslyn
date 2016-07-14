@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
             string sortText = null,
@@ -55,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                span: span,
                 properties: properties,
                 tags: tags,
                 rules: rules);

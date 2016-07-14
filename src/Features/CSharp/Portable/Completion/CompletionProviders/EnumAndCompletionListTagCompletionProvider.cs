@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var item = SymbolCompletionItem.Create(
                     displayText: displayText,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: alias ?? type,
                     descriptionPosition: position,
                     matchPriority: MatchPriority.Preselect,

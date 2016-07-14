@@ -168,11 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword)
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 shouldFormatOnCommit: keyword.ShouldFormatOnCommit,

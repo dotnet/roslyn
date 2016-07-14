@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return items
             End If
 
-            items.AddRange(GetAlwaysVisibleItems(span))
+            items.AddRange(GetAlwaysVisibleItems())
 
             If declaration IsNot Nothing Then
                 items.AddRange(GetTagsForDeclaration(semanticModel, declaration, span, parent, cancellationToken))
@@ -97,28 +97,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(span, symbol))
+                items.AddRange(GetNestedTags(symbol))
 
                 If GetStartTagName(grandParent) = ListTagName Then
                     items.AddRange(GetListItems(span))
                 End If
 
                 If GetStartTagName(grandParent) = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems(span))
+                    items.AddRange(GetListHeaderItems())
                 End If
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(span, symbol))
+                items.AddRange(GetNestedTags(symbol))
 
                 If GetStartTagName(token.Parent.Parent) = ListTagName Then
                     items.AddRange(GetListItems(span))
                 End If
 
                 If GetStartTagName(token.Parent.Parent) = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems(span))
+                    items.AddRange(GetListHeaderItems())
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                 items.AddRange(GetSingleUseTopLevelItems(parent, span))
-                items.AddRange(GetTopLevelRepeatableItems(span))
+                items.AddRange(GetTopLevelRepeatableItems())
             End If
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     End If
 
                     If GetStartTagName(parentElement.Parent) = ListHeaderTagName Then
-                        items.AddRange(GetListHeaderItems(span))
+                        items.AddRange(GetListHeaderItems())
                     End If
                 End If
             End If
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(CreateCompletionItem(span, nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
             End If
 
             Return Nothing
@@ -211,11 +211,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                     If attributeName = NameAttributeName Then
                         If tagName = ParamTagName Then
-                            items.AddRange(symbol.GetParameters().Select(Function(s) CreateCompletionItem(span, s.Name)))
+                            items.AddRange(symbol.GetParameters().Select(Function(s) CreateCompletionItem(s.Name)))
                         End If
 
                         If tagName = TypeParamTagName Then
-                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) CreateCompletionItem(span, s.Name)))
+                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) CreateCompletionItem(s.Name)))
                         End If
                     End If
                 End If
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim typeParameters = type.GetTypeArguments().Select(Function(t) t.Name).ToSet()
             RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
 
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(TypeParamTagName, p))))
+            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
 
             Return items
         End Function
@@ -285,13 +285,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If [property].IsIndexer Then
                 Dim parameters = [property].Parameters.Select(Function(p) p.Name).ToSet()
                 RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
-                items.AddRange(parameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(ParamTagName, p))))
+                items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
             End If
 
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(TypeParamTagName, p))))
+            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
 
             If value Then
-                items.Add(GetItem(ValueTagName, span))
+                items.Add(GetItem(ValueTagName))
             End If
 
             Return items
@@ -318,11 +318,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
             Next
 
-            items.AddRange(parameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(ParamTagName, p))))
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(TypeParamTagName, p))))
+            items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
+            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
 
             If returns Then
-                items.Add(GetItem(ReturnsTagName, span))
+                items.Add(GetItem(ReturnsTagName))
             End If
 
             Return items
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             RemoveExistingTags(parentTrivia, names, Function(x) DirectCast(x.StartTag.Name, XmlNameSyntax).LocalName.ValueText)
 
-            Return names.Select(Function(n) GetItem(n, span))
+            Return names.Select(AddressOf GetItem)
         End Function
 
         Private Sub RemoveExistingTags(parentTrivia As DocumentationCommentTriviaSyntax, names As ISet(Of String), selector As Func(Of XmlElementSyntax, String))
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If nameSyntax IsNot Nothing Then
                 Dim name = nameSyntax.LocalName.ValueText
                 Dim existingAttributeNames = startTag.Attributes.OfType(Of XmlAttributeSyntax).Select(Function(a) DirectCast(a.Name, XmlNameSyntax).LocalName.ValueText)
-                Return GetAttributeItem(name, span).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
+                Return GetAttributeItem(name).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
             End If
 
             Return Nothing
