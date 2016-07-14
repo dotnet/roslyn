@@ -882,7 +882,9 @@ Friend Module CompilationUtils
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 
-            Dim messages As New StringBuilder
+            Static messages As StringBuilder = Nothing
+            messages = If(messages, New StringBuilder(256))
+            messages.Length = 0
             With messages
                 .AppendLine()
 
@@ -928,8 +930,10 @@ Friend Module CompilationUtils
         Dim expectedReader As New StringReader(expected)
         Dim actualReader As New StringReader(actual)
 
-        Dim expectedBuilder As New StringBuilder()
-        Dim actualBuilder As New StringBuilder()
+        Static expectedBuilder As StringBuilder = Nothing : expectedBuilder = If(expectedBuilder, New StringBuilder())
+        expectedBuilder.Length = 0
+        Dim actualBuilder As StringBuilder = Nothing : actualBuilder = If(actualBuilder, New StringBuilder())
+        actualBuilder.Length = 0
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
@@ -1148,9 +1152,9 @@ Friend Module CompilationUtils
         Loop
 
         If (isDistinct) Then
-            symType = (From temp In symType Distinct Select temp Order By temp.ToDisplayString()).ToList()
+            symType = (From temp In symType Distinct Order By temp.ToDisplayString()).ToList()
         Else
-            symType = (From temp In symType Select temp Order By temp.ToDisplayString()).ToList()
+            symType = (From temp In symType Order By temp.ToDisplayString()).ToList()
         End If
         Return symType
 
@@ -1165,7 +1169,7 @@ Friend Module CompilationUtils
         Dim bindings1 = compilation.GetSemanticModel(tree)
         Dim symbols = GetTypeSymbol(compilation, treeName, symbolName, isDistinct)
         Assert.Equal(ExpectedDispName.Count, symbols.Count)
-        ExpectedDispName = (From temp In ExpectedDispName Select temp Order By temp).ToArray()
+        ExpectedDispName = (From temp In ExpectedDispName Order By temp).ToArray()
         Dim count = 0
         For Each item In symbols
             Assert.NotNull(item)
