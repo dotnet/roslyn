@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -275,9 +273,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
+        private Document GetDocument()
+        {
+            return this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        }
+
         private CompletionHelper GetCompletionHelper()
         {
-            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = GetDocument();
             if (document != null)
             {
                 return CompletionHelper.GetHelper(document);

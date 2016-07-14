@@ -168,6 +168,7 @@
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionDescription.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
+    <Compile Include="Completion\CompletionHelper.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
     <Compile Include="Completion\CompletionItemFilter.cs" />
     <Compile Include="Completion\CompletionItemRules.cs" />

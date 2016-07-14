@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.DefaultItemSpan, context.CancellationToken).ConfigureAwait(false);
+            var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
             var items = await state.GetItemsAsync().ConfigureAwait(false);
 
             if (items?.Any() == true)

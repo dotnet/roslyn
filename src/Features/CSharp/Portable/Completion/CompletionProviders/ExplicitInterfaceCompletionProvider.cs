@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText,
                     insertionText: insertionText,
-                    span: context.DefaultItemSpan,
                     symbol: member,
                     contextPosition: position,
                     descriptionPosition: position,

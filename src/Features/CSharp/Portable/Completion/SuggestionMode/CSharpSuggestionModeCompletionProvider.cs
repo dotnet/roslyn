@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
-        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
@@ -41,27 +42,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
                 }
                 else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {
-                    return CreateEmptySuggestionModeItem(itemSpan);
+                    return CreateEmptySuggestionModeItem();
                 }
                 else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.ImplicitArrayCreation, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.ImplicitArrayCreation, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
                 }
                 else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
                 }
             }
 

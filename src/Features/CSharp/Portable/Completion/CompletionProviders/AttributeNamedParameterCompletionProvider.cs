@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    select SymbolCompletionItem.Create(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
-                       span: context.DefaultItemSpan,
                        symbol: p,
                        descriptionPosition: token.SpanStart,
                        sortText: p.Name,
@@ -167,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    select SymbolCompletionItem.Create(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
-                       span: context.DefaultItemSpan,
                        symbol: p,
                        descriptionPosition: token.SpanStart,
                        sortText: p.Name,
