@@ -686,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     inGetTypeContext As Boolean,
                                                     resolvingBaseType As Boolean) As TypeSymbol
 
-                Dim numElements As Integer = syntax.TupleElements.Count
+                Dim numElements As Integer = syntax.Elements.Count
                 Dim types = ArrayBuilder(Of TypeSymbol).GetInstance(numElements)
                 Dim locations = ArrayBuilder(Of Location).GetInstance(numElements)
                 Dim elementNames As ArrayBuilder(Of String) = Nothing
@@ -696,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim countOfExplicitNames As Integer = 0
 
                 For i As Integer = 0 To numElements - 1
-                    Dim argumentSyntax = syntax.TupleElements(i)
+                    Dim argumentSyntax = syntax.Elements(i)
 
                     Dim argumentType As TypeSymbol = binder.BindTypeSyntax(argumentSyntax.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
                     types.Add(argumentType)

@@ -5072,7 +5072,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "(" token</description>
       </child>
 
-      <child name="TupleElements" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TupleElementSyntax">
+      <child name="Elements" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TupleElementSyntax">
         <description>The list of tuple arguments.</description>
       </child>
       
