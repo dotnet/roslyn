@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
 
         private readonly object _gate = new object();
-        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _patternMatcherMap =
+             new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
+        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _fallbackPatternMatcherMap =
+            new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
+
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
@@ -119,17 +122,24 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private PatternMatcher GetPatternMatcher(
-            string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
+            string value, CultureInfo culture, Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> map)
         {
             lock (_gate)
             {
+                Dictionary<string, PatternMatcher> innerMap;
+                if (!map.TryGetValue(culture, out innerMap))
+                {
+                    innerMap = new Dictionary<string, PatternMatcher>();
+                    map[culture] = innerMap;
+                }
+
                 PatternMatcher patternMatcher;
-                if (!map.TryGetValue(value, out patternMatcher))
+                if (!innerMap.TryGetValue(value, out patternMatcher))
                 {
                     patternMatcher = new PatternMatcher(value, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,
                         allowFuzzyMatching: false);
-                    map.Add(value, patternMatcher);
+                    innerMap.Add(value, patternMatcher);
                 }
 
                 return patternMatcher;
