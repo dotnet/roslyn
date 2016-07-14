@@ -98,6 +98,7 @@
     <Compile Include="CodeGen\CodeGenAsyncTests.vb" />
     <Compile Include="CodeGen\CodeGenClosureLambdaTests.vb" />
     <Compile Include="CodeGen\CodeGenCollectionInitializer.vb" />
+    <Compile Include="CodeGen\CodeGenTuples.vb" />
     <Compile Include="CodeGen\CodeGenConstLocal.vb" />
     <Compile Include="CodeGen\CodeGenDelegateCreation.vb" />
     <Compile Include="CodeGen\CodeGenEvents.vb" />

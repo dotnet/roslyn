@@ -478,8 +478,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Shared Function NumberOfValueTuples(numElements As Integer, <Out()> ByRef remainder As Integer) As Integer
-            remainder = (numElements - 1) Mod TupleTypeSymbol.RestPosition - 1 + 1
-            Return (numElements - 1) \ TupleTypeSymbol.RestPosition - 1 + 1
+            remainder = (numElements - 1) Mod (RestPosition - 1) + 1
+            Return (numElements - 1) \ (RestPosition - 1) + 1
         End Function
 
         Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As VisualBasicSyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag) As NamedTypeSymbol
@@ -493,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Binder.ReportUseSiteError(diagnostics, syntax, wellKnownType)
             End If
 
-            Dim namedTypeSymbol As NamedTypeSymbol = wellKnownType.Construct(ImmutableArray.Create(Of TypeSymbol)(elementTypes, (chainLength - 1) * TupleTypeSymbol.RestPosition - 1, remainder))
+            Dim namedTypeSymbol As NamedTypeSymbol = wellKnownType.Construct(ImmutableArray.Create(Of TypeSymbol)(elementTypes, (chainLength - 1) * (TupleTypeSymbol.RestPosition - 1), remainder))
             Dim [loop] As Integer = chainLength - 1
             If [loop] > 0 Then
                 Dim wellKnownType2 As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(TupleTypeSymbol.RestPosition))
@@ -502,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Binder.ReportUseSiteError(diagnostics, syntax, wellKnownType2)
                 End If
                 Do
-                    Dim typeArguments As ImmutableArray(Of TypeSymbol) = ImmutableArray.Create(Of TypeSymbol)(elementTypes, ([loop] - 1) * TupleTypeSymbol.RestPosition - 1, TupleTypeSymbol.RestPosition - 1).Add(namedTypeSymbol)
+                    Dim typeArguments As ImmutableArray(Of TypeSymbol) = ImmutableArray.Create(Of TypeSymbol)(elementTypes, ([loop] - 1) * (TupleTypeSymbol.RestPosition - 1), TupleTypeSymbol.RestPosition - 1).Add(namedTypeSymbol)
                     namedTypeSymbol = wellKnownType2.Construct(typeArguments)
                     [loop] -= 1
                 Loop While [loop] > 0
@@ -661,7 +661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Dim field = DirectCast(member, FieldSymbol)
 
                             Dim tupleFieldIndex = currentFieldsForElements.IndexOf(field, ReferenceEqualityComparer.Instance)
-                            If tupleFieldIndex = 0 Then
+                            If tupleFieldIndex >= 0 Then
                                 ' This Is a tuple backing field
                                 Dim FieldSymbol = field.AsMember(currentUnderlying)
 
