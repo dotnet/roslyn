@@ -61,14 +61,19 @@ namespace Microsoft.CodeAnalysis.Completion
             bool isExclusive)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            this.DefaultSpan = defaultSpan;
+            DefaultSpan = defaultSpan;
 #pragma warning restore CS0618 // Type or member is obsolete
-            this.Span = defaultSpan;
+            Span = defaultSpan;
 
-            this.Items = items.IsDefault ? ImmutableArray<CompletionItem>.Empty : items;
-            this.Rules = rules ?? CompletionRules.Default;
-            this.SuggestionModeItem = suggestionModeItem;
-            this.IsExclusive = isExclusive;
+            Items = items.IsDefault ? ImmutableArray<CompletionItem>.Empty : items;
+            Rules = rules ?? CompletionRules.Default;
+            SuggestionModeItem = suggestionModeItem;
+            IsExclusive = isExclusive;
+
+            foreach (var item in items)
+            {
+                item.Span = defaultSpan;
+            }
         }
 
         /// <summary>
@@ -95,19 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem suggestionModeItem,
             bool isExclusive)
         {
-            return new CompletionList(
-                defaultSpan, FixItemSpans(items, defaultSpan), rules, suggestionModeItem, isExclusive);
-        }
-
-        private static ImmutableArray<CompletionItem> FixItemSpans(
-            ImmutableArray<CompletionItem> items, TextSpan defaultSpan)
-        {
-            foreach (var item in items)
-            {
-                item.Span = defaultSpan;
-            }
-
-            return items;
+            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
         }
 
         private CompletionList With(
@@ -121,10 +114,10 @@ namespace Microsoft.CodeAnalysis.Completion
             var newRules = rules.HasValue ? rules.Value : this.Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : this.SuggestionModeItem;
 
-            if (newSpan == this.Span 
-                && newItems == this.Items 
-                && newRules == this.Rules 
-                && newSuggestionModeItem == this.SuggestionModeItem)
+            if (newSpan == this.Span &&
+                newItems == this.Items &&
+                newRules == this.Rules &&
+                newSuggestionModeItem == this.SuggestionModeItem)
             {
                 return this;
             }
