@@ -549,8 +549,7 @@ public class YourTaskBuilder<T>
                 );
         }
 
-        // PROTOTYPE(tasklike): Use VisitType or similar to cover all cases.
-        //[Fact]
+        [Fact]
         public void NormalizeTaskTypes()
         {
             string source =
@@ -563,8 +562,9 @@ unsafe class C<T, U>
 #pragma warning disable CS0169
     static MyTask F0;
     static MyTask<T> F1;
-    static A<MyTask<MyTask>[]>.B<C<int, MyTask[]>> F2;
-    static int* F3;
+    static C<MyTask, MyTask[]>[,] F2;
+    static A<MyTask<MyTask>>.B<C<int, MyTask>> F3;
+    static int* F4;
 #pragma warning restore CS0169
 }
 struct MyTask
@@ -593,24 +593,33 @@ struct MyTaskMethodBuilder<T>
             Assert.Equal("System.Threading.Tasks.Task<T>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F2").Type;
-            Assert.Equal("A<MyTask<MyTask>[]>.B<C<System.Int32, MyTask[]>>", type.ToTestDisplayString());
-            Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>[]>.B<C<System.Int32, System.Threading.Tasks.Task[]>>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("C<MyTask, MyTask[]>[,]", type.ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task, System.Threading.Tasks.Task[]>[,]", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F3").Type;
+            Assert.Equal("A<MyTask<MyTask>>.B<C<System.Int32, MyTask>>", type.ToTestDisplayString());
+            // PROTOTYPE(tasklike): Normalize type arguments in containing types.
+            //Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>>.B<C<System.Int32, System.Threading.Tasks.Task>>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F4").Type;
             Assert.Equal("System.Int32*", type.ToTestDisplayString());
             Assert.Equal("System.Int32*", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
         }
 
         [Fact]
-        public void NormalizeTaskTypes_Nested()
+        public void NormalizeTaskTypes_Inner()
         {
             string source =
 @"class C<T, U>
 {
 #pragma warning disable CS0169
     static MyTask<U> F0;
-    static C<U, object>.MyTask F1;
+    static C<U, MyTask>.MyTask F1;
+    static C<T, MyTask<U>>.Inner F2;
 #pragma warning restore CS0169
+    class Inner
+    {
+    }
     class MyTask
     {
         public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
@@ -634,8 +643,88 @@ struct MyTaskMethodBuilder<T>
             Assert.Equal("System.Threading.Tasks.Task<U>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F1").Type;
-            Assert.Equal("C<U, System.Object>.MyTask", type.ToTestDisplayString());
+            Assert.Equal("C<U, C<T, U>.MyTask>.MyTask", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            Assert.Equal("C<T, C<T, U>.MyTask<U>>.Inner", type.ToTestDisplayString());
+            // PROTOTYPE(tasklike): Normalize type arguments in containing types.
+            //Assert.Equal("C<T, System.Threading.Tasks.Task<U>>.Inner", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Outer()
+        {
+            string source =
+@"class C
+{
+#pragma warning disable CS0169
+    static MyTask<MyTask.A> F0;
+    static MyTask<MyTask<object>>.B F1;
+#pragma warning restore CS0169
+}
+class MyTask
+{
+    internal class A { }
+    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
+}
+class MyTask<V>
+{
+    internal class B { }
+    public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
+}
+class MyTaskMethodBuilder
+{
+}
+class MyTaskMethodBuilder<V>
+{
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal("MyTask<MyTask.A>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal("MyTask<MyTask<System.Object>>.B", type.ToTestDisplayString());
+            // PROTOTYPE(tasklike): Normalize type arguments in containing types.
+            //Assert.Equal("MyTask<System.Threading.Tasks.Task<System.Object>>.B", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+        }
+
+        /// <summary>
+        /// Normalize should have no effect if System.Threading.Tasks.Task
+        /// and System.Threading.Tasks.Task&lt;T&gt; are not available.
+        /// </summary>
+        [Fact]
+        public void NormalizeTaskTypes_MissingWellKnownTypes()
+        {
+            string source =
+@"class C
+{
+#pragma warning disable CS0169
+    static MyTask<MyTask> F;
+#pragma warning restore CS0169
+}
+struct MyTask
+{
+    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
+}
+struct MyTask<T>
+{
+    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
+}
+struct MyTaskMethodBuilder
+{
+}
+struct MyTaskMethodBuilder<T>
+{
+}";
+            var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20 });
+            compilation.VerifyDiagnostics();
+            var type = compilation.GetMember<FieldSymbol>("C.F").Type;
+            Assert.Equal("MyTask<MyTask>", type.ToTestDisplayString());
+            Assert.Equal("MyTask<MyTask>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
         }
 
         [Fact]

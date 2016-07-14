@@ -1286,7 +1286,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
 
             // Find the public static CreateAsyncMethodBuilder method.
-            // PROTOTYPE(tasklike): Look on base types.
             var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
             foreach (var member in members)
             {
@@ -1330,13 +1329,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (type.Kind)
             {
                 case SymbolKind.NamedType:
-                    var namedType = (NamedTypeSymbol)type;
-                    var changed = NormalizeTaskTypesCore(compilation, ref namedType);
-                    type = namedType;
-                    return changed;
+                    {
+                        var namedType = (NamedTypeSymbol)type;
+                        var changed = NormalizeTaskTypesCore(compilation, ref namedType);
+                        type = namedType;
+                        return changed;
+                    }
                 case SymbolKind.ArrayType:
-                    // PROTOTYPE(tasklike): Use VisitType or similar to cover all cases.
-                    break;
+                    {
+                        var arrayType = (ArrayTypeSymbol)type;
+                        var changed = NormalizeTaskTypesCore(compilation, ref arrayType);
+                        type = arrayType;
+                        return changed;
+                    }
             }
             return false;
         }
@@ -1353,15 +1358,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
                 Debug.Assert(type.Arity < 2);
-                type = compilation.GetWellKnownType(
+                var taskType = compilation.GetWellKnownType(
                     type.Arity == 1 ?
                     WellKnownType.System_Threading_Tasks_Task_T :
                     WellKnownType.System_Threading_Tasks_Task);
+                if (taskType.TypeKind == TypeKind.Error)
+                {
+                    // Skip if Task types are not available.
+                    return false;
+                }
+                type = taskType;
                 return true;
             }
             else
             {
-                var typeArgs = type.TypeArguments;
+                var typeArgs = type.TypeArgumentsNoUseSiteDiagnostics;
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
                 bool hasChanged = false;
                 foreach (var typeArg in typeArgs)
@@ -1388,6 +1399,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 return hasChanged;
             }
+        }
+
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
+        {
+            var elementType = arrayType.ElementType;
+            if (!NormalizeTaskTypesCore(compilation, ref elementType))
+            {
+                return false;
+            }
+            arrayType = arrayType.WithElementType(elementType);
+            return true;
         }
     }
 }

@@ -265,7 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Symbol GetMember(NamedTypeSymbol containingType, MemberDescriptor descriptor)
         {
-            // PROTOTYPE(tasklike): Look on base types.
             // PROTOTYPE(tasklike): Compare kind.
             // PROTOTYPE(tasklike): Compare signatures.
             // PROTOTYPE(tasklike): Compare constraints.
