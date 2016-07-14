@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (ReturnType.ContainsTuple())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(ReturnType));
+                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(ReturnType));
             }
         }
 

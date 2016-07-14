@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type.ContainsTuple())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type));
             }
         }
 
