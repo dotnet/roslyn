@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     // First create the session that represents that we now have a potential
                     // completion list.  Then tell it to start computing.
-                    StartNewModelComputation(completionService, trigger, filterItems: true);
+                    StartNewModelComputation(completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
                     return;
                 }
                 else
@@ -195,7 +195,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Now filter whatever result we have.
-                    sessionOpt.FilterModel(CompletionFilterReason.TypeChar);
+                    sessionOpt.FilterModel(
+                        CompletionFilterReason.TypeChar,
+                        recheckCaretPosition: false,
+                        dismissIfEmptyAllowed: true,
+                        filterState: null);
                 }
                 else
                 {
@@ -221,7 +225,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // Known to be a filter character for the currently selected item.  So just 
                         // filter the session.
-                        sessionOpt.FilterModel(CompletionFilterReason.TypeChar);
+                        sessionOpt.FilterModel(CompletionFilterReason.TypeChar,
+                            recheckCaretPosition: false,
+                            dismissIfEmptyAllowed: true,
+                            filterState: null);
                         return;
                     }
 
@@ -255,7 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // First create the session that represents that we now have a potential
                         // completion list.
-                        StartNewModelComputation(completionService, trigger, filterItems: true);
+                        StartNewModelComputation(
+                            completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
                         return;
                     }
                 }

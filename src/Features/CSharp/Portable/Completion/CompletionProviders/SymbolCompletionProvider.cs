@@ -15,14 +15,22 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class SymbolCompletionProvider : AbstractSymbolCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
         protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
+        }
+
+        protected override bool IsInstrinsic(ISymbol s)
+        {
+            var ts = s as ITypeSymbol;
+            return ts != null && ts.IsIntrinsicType();
         }
 
         protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
@@ -100,17 +108,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static CompletionItemRules s_importDirectiveRules =
             CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+        private static CompletionItemRules s_importDirectiveRules_preselect = s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+        private static CompletionItemRules s_preselectionRules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
         // '<' should not filter the completion list, even though it's in generic items like IList<>
         private static readonly CompletionItemRules s_itemRules = CompletionItemRules.Default.
             WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
 
+        private static readonly CompletionItemRules s_itemRules_preselect = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect)
+        {
+            if (context.IsInImportsDirective)
+            {
+                return preselect ? s_importDirectiveRules_preselect : s_importDirectiveRules;
+            }
+            else
+            {
+                return preselect ? s_itemRules_preselect : s_itemRules;
+            }
+        }
+
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
         {
-            return context.IsInImportsDirective
-                ? s_importDirectiveRules
-                : s_itemRules;
+            // Unused
+            throw new NotImplementedException();
         }
+
+        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
     }
 }

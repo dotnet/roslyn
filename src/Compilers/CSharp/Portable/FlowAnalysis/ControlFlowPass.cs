@@ -306,15 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitGotoStatement(node);
         }
 
-        protected override void VisitSwitchSectionLabel(LabelSymbol label, BoundSwitchSection node)
-        {
-            _labelsDefined.Add(label);
-            base.VisitSwitchSectionLabel(label, node);
-
-            // switch statement labels are always considered to be referenced
-            _labelsUsed.Add(label);
-        }
-
         public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
         {
             base.VisitSwitchSection(node);
@@ -333,6 +324,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        {
+            // The pattern switch statement has computed a state machine, and gathered diagnostics
+            // related to subsumption. We report those here.
+            Diagnostics.AddRange(node.DecisionTreeDiagnostics);
+
+            return base.VisitPatternSwitchStatement(node);
+        }
+
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.PatternSwitchLabels.Last().Pattern.Syntax;
+                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
                 this.State.Reported = true;

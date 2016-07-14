@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                 document,
                                                 spanToFormat,
                                                 baseSnapshot, baseTree,
-                                                dirtyRegion, document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken),
+                                                dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(s_codeCleanupPredicate).Concat(commitFormattingCleanup)
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                              codeCleanups,
                                                              cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
-                    Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                    Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
                     Dim newRoot = Await CodeCleaner.CleanupAsync(root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken).ConfigureAwait(False)
                     If root Is newRoot Then
                         finalDocument = document
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
 
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             ' If we have any unterminated strings that overlap what we're trying to format, then
             ' bail out.  It's quite likely the unterminated string will cause a bunch of code to

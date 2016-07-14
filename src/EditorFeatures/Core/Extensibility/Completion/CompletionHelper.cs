@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
             }
 
-            if (IsAllDigits(filterText))
+            if (filterText.Length > 0 && IsAllDigits(filterText))
             {
                 // The user is just typing a number.  We never want this to match against
                 // anything we would put in a completion list.
@@ -84,13 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor
             return GetMatch(item, filterText) != null;
         }
 
-        protected static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
+        private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
         {
             var index = recentItems.IndexOf(item.DisplayText);
             return -index;
         }
 
-        protected static bool IsAllDigits(string filterText)
+        private static bool IsAllDigits(string filterText)
         {
             for (int i = 0; i < filterText.Length; i++)
             {
@@ -103,15 +103,39 @@ namespace Microsoft.CodeAnalysis.Editor
             return true;
         }
 
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText)
+        private PatternMatch? GetMatch(CompletionItem item, string filterText)
         {
             return GetMatch(item, filterText, includeMatchSpans: false);
         }
 
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
+        private PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
+        {
+            // If the item has a dot in it (i.e. for something like enum completion), then attempt
+            // to match what the user wrote against the last portion of the name.  That way if they
+            // write "Bl" and we have "Blub" and "Color.Black", we'll consider hte latter to be a
+            // better match as they'll both be prefix matches, and the latter will have a higher
+            // priority.
+
+            var lastDotIndex = item.FilterText.LastIndexOf('.');
+            if (lastDotIndex >= 0)
+            {
+                var textAfterLastDot = item.FilterText.Substring(lastDotIndex + 1);
+                var match = GetMatchWorker(textAfterLastDot, filterText, includeMatchSpans);
+                if (match != null)
+                {
+                    return match;
+                }
+            }
+
+            // Didn't have a dot, or the user text didn't match the portion after the dot.
+            // Just do a normal check against the entire completion item.
+            return GetMatchWorker(item.FilterText, filterText, includeMatchSpans);
+        }
+
+        private PatternMatch? GetMatchWorker(string completionItemText, string filterText, bool includeMatchSpans)
         {
             var patternMatcher = this.GetPatternMatcher(filterText, CultureInfo.CurrentCulture);
-            var match = patternMatcher.GetFirstMatch(item.FilterText, includeMatchSpans);
+            var match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
 
             if (match != null)
             {
@@ -122,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor
             if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
             {
                 patternMatcher = this.GetEnUSPatternMatcher(filterText);
-                match = patternMatcher.GetFirstMatch(item.FilterText);
+                match = patternMatcher.GetFirstMatch(completionItemText);
                 if (match != null)
                 {
                     return match;
@@ -150,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
         }
 
-        protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
+        private PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
         {
             return GetPatternMatcher(value, culture, _patternMatcherMap);
         }
@@ -165,6 +189,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// text, or false if it is not better.
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, ImmutableArray<string> recentItems)
+        {
+            return IsBetterFilterMatchWorker(item1, item2, filterText, recentItems);
+        }
+
+        protected bool IsBetterFilterMatchWorker(CompletionItem item1, CompletionItem item2, string filterText, ImmutableArray<string> recentItems)
         {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
@@ -214,27 +243,22 @@ namespace Microsoft.CodeAnalysis.Editor
             return false;
         }
 
-        internal static bool TagsEqual(CompletionItem item1, CompletionItem item2)
+        private static bool TagsEqual(CompletionItem item1, CompletionItem item2)
         {
             return TagsEqual(item1.Tags, item2.Tags);
         }
 
-        internal static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
+        private static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
         {
             return tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
         }
 
-        protected static bool IsKeywordItem(CompletionItem item)
+        private static bool IsKeywordItem(CompletionItem item)
         {
             return item.Tags.Contains(CompletionTags.Keyword);
         }
 
-        protected static bool IsEnumMemberItem(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.EnumMember);
-        }
-
-        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
             // First see how the two items compare in a case insensitive fashion.  Matches that 
             // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
@@ -286,18 +310,6 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return 0;
-        }
-
-        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            var textTypedWithChar = textTypedSoFar + ch;
-            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
-                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        private static StringComparison GetComparision(bool isCaseSensitive)
-        {
-            return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
         }
     }
 }

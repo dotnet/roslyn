@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     symbol: parameter,
                     descriptionPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: CompletionItemRules.Default));
+                    rules: CompletionItemRules.Default,
+                    matchPriority: SymbolMatchPriority.PreferNamedArgument));
             }
         }
 

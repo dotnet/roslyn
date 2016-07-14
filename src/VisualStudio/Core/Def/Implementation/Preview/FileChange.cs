@@ -48,9 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             _componentModel = componentModel;
             var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
-            var bufferText = left != null ?
-                left.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None) :
-                right.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var bufferText = left != null
+                ? left.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                : right.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             _buffer = bufferFactory.CreateTextBuffer(bufferText.ToString(), bufferFactory.InertContentType);
             _encoding = bufferText.Encoding;
 

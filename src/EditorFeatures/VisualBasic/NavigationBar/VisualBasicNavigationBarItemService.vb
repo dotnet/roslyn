@@ -494,7 +494,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim sourceLocations = symbol.Locations.Where(Function(l) l.IsInSource)
 
             ' First figure out the location that we want to grab considering partial types
-            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)))
+            Dim syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken)
+            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(syntaxTree))
 
             If location Is Nothing Then
                 location = sourceLocations.FirstOrDefault
@@ -517,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             ' We'll compute everything up front before we go mutate state
             Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim generatedTree = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim generatedTree = newDocument.GetSyntaxRootSynchronously(cancellationToken)
             Dim generatedNode = generatedTree.GetAnnotatedNodes(AbstractGenerateCodeItem.GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
             Dim indentSize = newDocument.Options.GetOption(FormattingOptions.IndentationSize)
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)

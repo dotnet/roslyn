@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // a reference to a fixed buffer is translated into its address
                 result = new BoundConversion(syntax,
                     new BoundAddressOfOperator(syntax, result, syntax != null && SyntaxFacts.IsFixedStatementExpression(syntax), type, false),
-                    new Conversion(ConversionKind.PointerToPointer), false, false, default(ConstantValue), type, false);
+                    Conversion.PointerToPointer, false, false, default(ConstantValue), type, false);
             }
 
             return result;

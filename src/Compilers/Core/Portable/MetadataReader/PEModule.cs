@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis
         // Note: not a general purpose helper
         private static readonly AttributeValueExtractor<decimal> s_decimalValueInDecimalConstantAttributeExtractor = CrackDecimalInDecimalConstantAttribute;
         private static readonly AttributeValueExtractor<ImmutableArray<bool>> s_attributeBoolArrayValueExtractor = CrackBoolArrayInAttributeValue;
+        private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
 
@@ -989,6 +990,20 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out dynamicTransforms);
         }
 
+        internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
+        {
+            var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                tupleElementNames = default(ImmutableArray<string>);
+                return false;
+            }
+
+            return TryExtractStringArrayValueFromAttribute(info.Handle, out tupleElementNames);
+        }
+
         internal bool HasDeprecatedOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
         {
             AttributeInfo info;
@@ -1281,6 +1296,11 @@ namespace Microsoft.CodeAnalysis
         private bool TryExtractBoolArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<bool> value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeBoolArrayValueExtractor);
+        }
+
+        private bool TryExtractStringArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<string> value)
+        {
+            return TryExtractValueFromAttribute(handle, out value, s_attributeStringArrayValueExtractor);
         }
 
         private bool TryExtractValueFromAttribute<T>(CustomAttributeHandle handle, out T value, AttributeValueExtractor<T> valueExtractor)

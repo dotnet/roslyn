@@ -15,11 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     Partial Friend Class SymbolCompletionProvider
-        Inherits AbstractSymbolCompletionProvider
-
-        Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
-            Return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken)
-        End Function
+        Inherits AbstractRecommendationServiceBasedCompletionProvider
 
         Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
@@ -87,16 +83,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Shared s_importDirectiveRules As CompletionItemRules =
             CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
+        Private Shared s_importDirectiveRules_preselect As CompletionItemRules =
+            s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
 
         ' '(' should not filter the completion list, even though it's in generic items like IList(Of...)
         Private Shared ReadOnly s_itemRules As CompletionItemRules = CompletionItemRules.Default.
             WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)).
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, "("c))
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
-            Return If(context.IsInImportsDirective,
-                      s_importDirectiveRules,
-                      s_itemRules)
+        private shared readonly s_itemRules_preselect = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+
+        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As AbstractSyntaxContext, preselect As Boolean) As CompletionItemRules
+            If context.IsInImportsDirective Then
+                Return If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules)
+            Else
+                Return If(preselect, s_itemRules_preselect, s_itemRules)
+            End If
         End Function
+
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+            ' Unused
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function IsInstrinsic(s As ISymbol) As Boolean
+            Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
+        End Function
+
+        Protected Overrides ReadOnly Property PreselectedItemSelectionBehavior As CompletionItemSelectionBehavior
+            Get
+                Return CompletionItemSelectionBehavior.SoftSelection
+            End Get
+        End Property
     End Class
 End Namespace

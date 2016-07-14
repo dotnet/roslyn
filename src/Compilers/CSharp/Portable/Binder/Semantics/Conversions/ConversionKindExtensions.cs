@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitNumeric:
                 case ConversionKind.ExplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitEnumeration:
                 case ConversionKind.ExplicitNullable:
                 case ConversionKind.ExplicitReference:
