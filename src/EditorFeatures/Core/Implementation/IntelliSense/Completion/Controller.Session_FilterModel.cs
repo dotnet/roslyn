@@ -155,10 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         continue;
                     }
 
-                    // Check if the item matches the filter text typed so far.  Note: we completely
-                    // handle the deletion case and use a very weak 'prefix' match approach in order
-                    // to not accidently match random parts of a completion item as you delete some
-                    // existing code.
+                    // Check if the item matches the filter text typed so far.
                     var matchesFilterText = MatchesFilterText(helper, currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
 
                     if (matchesFilterText)
