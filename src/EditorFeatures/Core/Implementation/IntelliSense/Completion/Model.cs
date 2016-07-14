@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         public ImmutableArray<CompletionItemFilter> CompletionItemFilters { get; }
         public ImmutableDictionary<CompletionItemFilter, bool> FilterState { get; }
-        public IReadOnlyDictionary<CompletionItem, string> CompletionItemToFilterText { get; }
+        public string FilterText { get; } = "";
 
         public bool IsHardSelection { get; }
         public bool IsUnique { get; }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             PresentationItem selectedItem,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             ImmutableDictionary<CompletionItemFilter, bool> filterState,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText,
+            string filterText,
             bool isHardSelection,
             bool isUnique,
             bool useSuggestionMode,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.FilterState = filterState;
             this.SelectedItem = selectedItem;
             this.CompletionItemFilters = completionItemFilters;
-            this.CompletionItemToFilterText = completionItemToFilterText;
+            this.FilterText = filterText;
             this.IsHardSelection = isHardSelection;
             this.IsUnique = isUnique;
             this.UseSuggestionMode = useSuggestionMode;
@@ -145,19 +145,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 totalItems = totalItemsBuilder.AsImmutable();
-                defaultSuggestionModePresentationItem = new DescriptionModifyingPresentationItem(CreateDefaultSuggestionModeItem(originalList.DefaultSpan), completionService, isSuggestionModeItem: true);
+                defaultSuggestionModePresentationItem = new DescriptionModifyingPresentationItem(
+                    CreateDefaultSuggestionModeItem(), completionService, isSuggestionModeItem: true);
                 suggestionModePresentationItem = suggestionModeItem != null ? new DescriptionModifyingPresentationItem(suggestionModeItem, completionService, isSuggestionModeItem: true) : null;
             }
             else
             {
                 totalItems = originalList.Items.Select(item => new SimplePresentationItem(item, completionService)).ToImmutableArray<PresentationItem>();
-                defaultSuggestionModePresentationItem = new SimplePresentationItem(CreateDefaultSuggestionModeItem(originalList.DefaultSpan), completionService, isSuggestionModeItem: true);
+                defaultSuggestionModePresentationItem = new SimplePresentationItem(CreateDefaultSuggestionModeItem(), completionService, isSuggestionModeItem: true);
                 suggestionModePresentationItem = suggestionModeItem != null ? new SimplePresentationItem(suggestionModeItem, completionService, isSuggestionModeItem: true) : null;
             }
 
             var selectedPresentationItem = totalItems.FirstOrDefault(it => it.Item == selectedItem);
-
-            var completionItemToFilterText = new Dictionary<CompletionItem, string>();
 
             return new Model(
                 triggerDocument,
@@ -168,14 +167,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 selectedPresentationItem,
                 actualItemFilters,
                 filterState,
-                completionItemToFilterText,
+                "",
                 isHardSelection,
                 isUnique,
                 useSuggestionMode,
                 suggestionModePresentationItem,
                 defaultSuggestionModePresentationItem,
                 trigger,
-                GetDefaultTrackingSpanEnd(originalList.DefaultSpan, disconnectedBufferGraph),
+                GetDefaultTrackingSpanEnd(originalList.Span, disconnectedBufferGraph),
                 originalList.Rules.DismissIfEmpty);
         }
 
@@ -189,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 PointTrackingMode.Positive);
         }
 
-        private static CompletionItem CreateDefaultSuggestionModeItem(TextSpan defaultTrackingSpanInSubjectBuffer)
+        private static CompletionItem CreateDefaultSuggestionModeItem()
         {
-            return CompletionItem.Create(displayText: "", span: defaultTrackingSpanInSubjectBuffer);
+            return CompletionItem.Create(displayText: "");
         }
 
         public bool IsSoftSelection
@@ -206,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Optional<ImmutableArray<PresentationItem>> filteredItems = default(Optional<ImmutableArray<PresentationItem>>),
             Optional<PresentationItem> selectedItem = default(Optional<PresentationItem>),
             Optional<ImmutableDictionary<CompletionItemFilter, bool>> filterState = default(Optional<ImmutableDictionary<CompletionItemFilter, bool>>),
-            Optional<IReadOnlyDictionary<CompletionItem, string>> completionItemToFilterText = default(Optional<IReadOnlyDictionary<CompletionItem, string>>),
+            Optional<string> filterText = default(Optional<string>),
             Optional<bool> isHardSelection = default(Optional<bool>),
             Optional<bool> isUnique = default(Optional<bool>),
             Optional<bool> useSuggestionMode = default(Optional<bool>),
@@ -216,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var newFilteredItems = filteredItems.HasValue ? filteredItems.Value : FilteredItems;
             var newSelectedItem = selectedItem.HasValue ? selectedItem.Value : SelectedItem;
             var newFilterState = filterState.HasValue ? filterState.Value : FilterState;
-            var newCompletionItemToFilterText = completionItemToFilterText.HasValue ? completionItemToFilterText.Value : CompletionItemToFilterText;
+            var newFilterText = filterText.HasValue ? filterText.Value : FilterText;
             var newIsHardSelection = isHardSelection.HasValue ? isHardSelection.Value : IsHardSelection;
             var newIsUnique = isUnique.HasValue ? isUnique.Value : IsUnique;
             var newUseSuggestionMode = useSuggestionMode.HasValue ? useSuggestionMode.Value : UseSuggestionMode;
@@ -225,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (newFilteredItems == FilteredItems &&
                 newSelectedItem == SelectedItem &&
-                newFilterState == FilterState &&
+                newFilterText == FilterText &&
                 newCompletionItemToFilterText == CompletionItemToFilterText &&
                 newIsHardSelection == IsHardSelection &&
                 newIsUnique == IsUnique &&
@@ -238,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             return new Model(
                 TriggerDocument, _disconnectedBufferGraph, OriginalList, TotalItems, newFilteredItems,
-                newSelectedItem, CompletionItemFilters, newFilterState, newCompletionItemToFilterText,
+                newSelectedItem, CompletionItemFilters, newFilterState, newFilterText,
                 newIsHardSelection, newIsUnique, newUseSuggestionMode, newSuggestionModeItem,
                 DefaultSuggestionModeItem, Trigger, newCommitTrackingSpanEndPoint, DismissIfEmpty);
         }
@@ -283,9 +282,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return With(filterState: filterState);
         }
 
-        internal Model WithCompletionItemToFilterText(IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
+        internal Model WithFilterText(string filterText)
         {
-            return With(completionItemToFilterText: new Optional<IReadOnlyDictionary<CompletionItem, string>>(completionItemToFilterText));
+            return With(filterText: filterText);
         }
 
         internal SnapshotSpan GetCurrentSpanInSnapshot(ViewTextSpan originalSpan, ITextSnapshot textSnapshot)

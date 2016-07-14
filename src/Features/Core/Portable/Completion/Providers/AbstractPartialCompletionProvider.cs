@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var items = await CreatePartialItemsAsync(document, position, context.DefaultItemSpan, modifiers, token, cancellationToken).ConfigureAwait(false);
+            var items = await CreatePartialItemsAsync(
+                document, position, context.CompletionListSpan, modifiers, token, cancellationToken).ConfigureAwait(false);
 
             if (items?.Any() == true)
             {
@@ -75,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 statements: syntaxFactory.CreateThrowNotImplementedStatementBlock(semanticModel.Compilation));
         }
 
-        protected async Task<IEnumerable<CompletionItem>> CreatePartialItemsAsync(Document document, int position, TextSpan span, DeclarationModifiers modifiers, SyntaxToken token, CancellationToken cancellationToken)
+        protected async Task<IEnumerable<CompletionItem>> CreatePartialItemsAsync(
+            Document document, int position, TextSpan span, DeclarationModifiers modifiers, SyntaxToken token, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken) as INamedTypeSymbol;
@@ -103,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return MemberInsertionCompletionItem.Create(
                 displayText,
-                span,
                 Glyph.MethodPrivate,
                 modifiers,
                 line,

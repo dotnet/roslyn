@@ -295,9 +295,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
+        private Document GetDocument()
+        {
+            return this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        }
+
         private CompletionHelper GetCompletionHelper()
         {
-            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = GetDocument();
             if (document != null)
             {
                 return CompletionHelper.GetHelper(document);

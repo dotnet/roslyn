@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var items = await GetItemsWorkerAsync(
-                context.Document, context.Position, context.DefaultItemSpan,
-                context.Trigger, context.CancellationToken).ConfigureAwait(false);
+                context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+
             if (items != null)
             {
                 context.AddItems(items);
@@ -95,28 +95,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, TextSpan span, CompletionTrigger trigger, CancellationToken cancellationToken);
 
-        protected CompletionItem GetItem(string n, TextSpan span)
+        protected CompletionItem GetItem(string n)
         {
             if (_tagMap.ContainsKey(n))
             {
                 var value = _tagMap[n];
-                return CreateCompletionItem(span, n, value[0], value[1]);
+                return CreateCompletionItem(n, value[0], value[1]);
             }
 
-            return CreateCompletionItem(span, n);
+            return CreateCompletionItem(n);
         }
 
-        protected IEnumerable<CompletionItem> GetAttributeItem(string n, TextSpan span)
+        protected IEnumerable<CompletionItem> GetAttributeItem(string n)
         {
-            var items = _attributeMap.Where(x => x[0] == n).Select(x => CreateCompletionItem(span, x[1], x[2], x[3]));
+            var items = _attributeMap.Where(x => x[0] == n).Select(x => CreateCompletionItem(x[1], x[2], x[3]));
 
-            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(CreateCompletionItem(span, n));
+            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(CreateCompletionItem(n));
         }
 
-        protected IEnumerable<CompletionItem> GetAlwaysVisibleItems(TextSpan itemSpan)
+        protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }
-                .Select(t => GetItem(t, itemSpan));
+            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }.Select(GetItem);
         }
 
         protected IEnumerable<string> NestedTagNames
@@ -124,14 +123,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             get { return new[] { CTagName, CodeTagName, ParaTagName, ListTagName }; }
         }
 
-        protected IEnumerable<CompletionItem> GetNestedTags(TextSpan itemSpan, ISymbol declaredSymbol)
+        protected IEnumerable<CompletionItem> GetNestedTags(ISymbol declaredSymbol)
         {
-            return NestedTagNames.Select(t => GetItem(t, itemSpan))
-                                 .Concat(GetParamRefItems(itemSpan, declaredSymbol))
-                                 .Concat(GetTypeParamRefItems(itemSpan, declaredSymbol));
+            return NestedTagNames.Select(GetItem)
+                                 .Concat(GetParamRefItems(declaredSymbol))
+                                 .Concat(GetTypeParamRefItems(declaredSymbol));
         }
 
-        private IEnumerable<CompletionItem> GetParamRefItems(TextSpan itemSpan, ISymbol declaredSymbol)
+        private IEnumerable<CompletionItem> GetParamRefItems(ISymbol declaredSymbol)
         {
             var parameters = declaredSymbol?.GetParameters().Select(p => p.Name).ToSet();
 
@@ -141,13 +140,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return parameters.Select(p => CreateCompletionItem(
-                span: itemSpan,
                 displayText: FormatParameter(ParamRefTagName, p),
                 beforeCaretText: FormatParameterRefTag(ParamRefTagName, p),
                 afterCaretText: string.Empty));
         }
 
-        private IEnumerable<CompletionItem> GetTypeParamRefItems(TextSpan itemSpan, ISymbol declaredSymbol)
+        private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol declaredSymbol)
         {
             var typeParameters = declaredSymbol?.GetTypeParameters().Select(t => t.Name).ToSet();
 
@@ -157,28 +155,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return typeParameters.Select(t => CreateCompletionItem(
-                span: itemSpan,
                 displayText: FormatParameter(TypeParamRefTagName, t),
                 beforeCaretText: FormatParameterRefTag(TypeParamRefTagName, t),
                 afterCaretText: string.Empty));
         }
 
-        protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems(TextSpan itemSpan)
+        protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
         {
-            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }
-                .Select(t => GetItem(t, itemSpan));
+            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListItems(TextSpan span)
         {
-            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }
-                .Select(t => GetItem(t, span));
+            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }.Select(GetItem);
         }
 
-        protected IEnumerable<CompletionItem> GetListHeaderItems(TextSpan span)
+        protected IEnumerable<CompletionItem> GetListHeaderItems()
         {
-            return new[] { TermTagName, DescriptionTagName }
-                .Select(t => GetItem(t, span));
+            return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
         }
 
         protected string FormatParameter(string kind, string name)
@@ -227,15 +221,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return TextSpan.FromBounds(text[currentSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? currentSpan.Start - 1 : currentSpan.Start, currentSpan.End);
         }
 
-        protected CompletionItem CreateCompletionItem(TextSpan span, string displayText)
+        protected CompletionItem CreateCompletionItem(string displayText)
         {
-            return CreateCompletionItem(span, displayText, displayText, string.Empty);
+            return CreateCompletionItem(displayText, displayText, string.Empty);
         }
 
-        protected CompletionItem CreateCompletionItem(TextSpan span, string displayText, string beforeCaretText, string afterCaretText)
+        protected CompletionItem CreateCompletionItem(string displayText, string beforeCaretText, string afterCaretText)
         {
             return XmlDocCommentCompletionItem.Create(
-                span, displayText, beforeCaretText, afterCaretText, 
+                displayText, beforeCaretText, afterCaretText, 
                 rules: GetCompletionItemRules(displayText));
         }
 

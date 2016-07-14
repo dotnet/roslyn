@@ -72,22 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return CompletionHelper.GetHelper(document);
         }
 
-        internal static async Task<CompletionContext> GetCompletionListContextAsync(
-            CompletionProvider provider,
-            Document document,
-            int position,
-            CompletionTrigger triggerInfo,
-            OptionSet options = null)
-        {
-            options = options ?? document.Options;
-            var service = document.Project.LanguageServices.GetService<CompletionService>();
-            var text = await document.GetTextAsync();
-            var span = service.GetDefaultItemSpan(text, position);
-            var context = new CompletionContext(provider, document, position, span, triggerInfo, options, CancellationToken.None);
-            await provider.ProvideCompletionsAsync(context);
-            return context;
-        }
-
         internal Task<CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document, int position, CompletionTrigger triggerInfo, OptionSet options = null)

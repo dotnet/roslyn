@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -64,9 +67,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         /// <param name="text">The document text that completion is occurring within.</param>
         /// <param name="caretPosition">The position of the caret within the text.</param>
+        [Obsolete("Not used anymore. CompletionService.GetDefaultCompletionListSpan is used instead.")]
         public virtual TextSpan GetDefaultItemSpan(SourceText text, int caretPosition)
         {
-            return CommonCompletionUtilities.GetWordSpan(text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
+            return GetDefaultCompletionListSpan(text, caretPosition);
+        }
+
+        public virtual TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
+        {
+            return CommonCompletionUtilities.GetWordSpan(
+                text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
         }
 
         /// <summary>
@@ -116,6 +126,53 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
+        }
+
+        /// <summary>
+        /// Given a list of completion items that match the current code typed by the user,
+        /// returns the item that is considered the best match, and whether or not that
+        /// item should be selected or not.
+        /// 
+        /// itemToFilterText provides the values that each individual completion item should
+        /// be filtered against.
+        /// </summary>
+        public virtual ImmutableArray<CompletionItem> ChooseBestItems(
+            Document document,
+            ImmutableArray<CompletionItem> filteredItems,
+            string filterText)
+        {
+            var helper = CompletionHelper.GetHelper(document);
+
+            var bestItems = ImmutableArray.CreateBuilder<CompletionItem>();
+            foreach (var item in filteredItems)
+            {
+                if (bestItems.Count == 0)
+                {
+                    // We've found no good items yet.  So this is the best item currently.
+                    bestItems.Add(item);
+                }
+                else
+                {
+                    var comparison = helper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
+                    if (comparison < 0)
+                    {
+                        // This item is strictly better than the best items we've found so far.
+                        bestItems.Clear();
+                        bestItems.Add(item);
+                    }
+                    else if (comparison == 0)
+                    {
+                        // This item is as good as the items we've been collecting.  We'll return 
+                        // it and let the controller decide what to do.  (For example, it will
+                        // pick the one that has the best MRU index).
+                        bestItems.Add(item);
+                    }
+                    // otherwise, this item is strictly worse than the ones we've been collecting.
+                    // We can just ignore it.
+                }
+            }
+
+            return bestItems.ToImmutable();
         }
     }
 }

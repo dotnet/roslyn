@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
             IReadOnlyList<ISymbol> symbols,
             int contextPosition = -1,
             int descriptionPosition = -1,
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
-                span: span,
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name),
                 sortText: sortText ?? symbols[0].Name,
                 glyph: glyph ?? symbols[0].GetGlyph(),
@@ -69,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
             ISymbol symbol,
             int contextPosition = -1,
             int descriptionPosition = -1,
@@ -85,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return Create(
                 displayText: displayText,
-                span: span,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: contextPosition,
                 descriptionPosition: descriptionPosition,

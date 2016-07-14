@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // The user is typing inside an XmlElement
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement)
                 {
-                    items.AddRange(GetNestedTags(span, declaredSymbol));
+                    items.AddRange(GetNestedTags(declaredSymbol));
                 }
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
@@ -94,13 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderTagName)
                 {
-                    items.AddRange(GetListHeaderItems(span));
+                    items.AddRange(GetListHeaderItems());
                 }
 
                 if (token.Parent.Parent is DocumentationCommentTriviaSyntax)
                 {
                     items.AddRange(GetTopLevelSingleUseNames(parentTrivia, span));
-                    items.AddRange(GetTopLevelRepeatableItems(span));
+                    items.AddRange(GetTopLevelRepeatableItems());
                 }
             }
 
@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderTagName)
                 {
-                    items.AddRange(GetListHeaderItems(span));
+                    items.AddRange(GetListHeaderItems());
                 }
             }
 
-            items.AddRange(GetAlwaysVisibleItems(span));
+            items.AddRange(GetAlwaysVisibleItems());
             return items;
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             RemoveExistingTags(parentTrivia, names, (x) => x.StartTag.Name.LocalName.ValueText);
 
-            return names.Select(n => GetItem(n, span));
+            return names.Select(GetItem);
         }
 
         private void RemoveExistingTags(DocumentationCommentTriviaSyntax parentTrivia, ISet<string> names, Func<XmlElementSyntax, string> selector)
@@ -151,23 +151,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (symbol is IMethodSymbol)
             {
-                return GetTagsForMethod((IMethodSymbol)symbol, itemSpan, trivia, token);
+                return GetTagsForMethod((IMethodSymbol)symbol, trivia, token);
             }
 
             if (symbol is IPropertySymbol)
             {
-                return GetTagsForProperty((IPropertySymbol)symbol, itemSpan, trivia, token);
+                return GetTagsForProperty((IPropertySymbol)symbol, trivia, token);
             }
 
             if (symbol is INamedTypeSymbol)
             {
-                return GetTagsForType((INamedTypeSymbol)symbol, itemSpan, trivia);
+                return GetTagsForType((INamedTypeSymbol)symbol, trivia);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        private IEnumerable<CompletionItem> GetTagsForType(INamedTypeSymbol symbol, TextSpan itemSpan, DocumentationCommentTriviaSyntax trivia)
+        private IEnumerable<CompletionItem> GetTagsForType(INamedTypeSymbol symbol, DocumentationCommentTriviaSyntax trivia)
         {
             var items = new List<CompletionItem>();
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
 
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(itemSpan, FormatParameter(TypeParamTagName, t))));
+            items.AddRange(typeParameters.Select(t => CreateCompletionItem(FormatParameter(TypeParamTagName, t))));
             return items;
         }
 
@@ -197,7 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<CompletionItem> GetTagsForProperty(IPropertySymbol symbol, TextSpan itemSpan, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
+        private IEnumerable<CompletionItem> GetTagsForProperty(
+            IPropertySymbol symbol, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
         {
             var items = new List<CompletionItem>();
 
@@ -220,23 +221,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // We're writing the name of a paramref
                     if (parentElementName == ParamRefTagName)
                     {
-                        items.AddRange(parameters.Select(p => CreateCompletionItem(itemSpan, p)));
+                        items.AddRange(parameters.Select(CreateCompletionItem));
                     }
 
                     return items;
                 }
 
                 RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
-                items.AddRange(parameters.Select(p => CreateCompletionItem(itemSpan, FormatParameter(ParamTagName, p))));
+                items.AddRange(parameters.Select(p => CreateCompletionItem(FormatParameter(ParamTagName, p))));
             }
 
             var typeParameters = symbol.GetTypeArguments().Select(p => p.Name).ToSet();
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(itemSpan, TypeParamTagName, NameAttributeName, t)));
-            items.Add(CreateCompletionItem(itemSpan, "value"));
+            items.AddRange(typeParameters.Select(t => CreateCompletionItem(TypeParamTagName, NameAttributeName, t)));
+            items.Add(CreateCompletionItem("value"));
             return items;
         }
 
-        private IEnumerable<CompletionItem> GetTagsForMethod(IMethodSymbol symbol, TextSpan itemSpan, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
+        private IEnumerable<CompletionItem> GetTagsForMethod(
+            IMethodSymbol symbol, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
         {
             var items = new List<CompletionItem>();
 
@@ -258,11 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // We're writing the name of a paramref or typeparamref
                 if (parentElementName == ParamRefTagName)
                 {
-                    items.AddRange(parameters.Select(p => CreateCompletionItem(itemSpan, p)));
+                    items.AddRange(parameters.Select(CreateCompletionItem));
                 }
                 else if (parentElementName == TypeParamRefTagName)
                 {
-                    items.AddRange(typeParameters.Select(t => CreateCompletionItem(itemSpan, t)));
+                    items.AddRange(typeParameters.Select(CreateCompletionItem));
                 }
 
                 return items;
@@ -271,8 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
 
-            items.AddRange(parameters.Select(p => CreateCompletionItem(itemSpan, FormatParameter(ParamTagName, p))));
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(itemSpan, FormatParameter(TypeParamTagName, t))));
+            items.AddRange(parameters.Select(p => CreateCompletionItem(FormatParameter(ParamTagName, p))));
+            items.AddRange(typeParameters.Select(t => CreateCompletionItem(FormatParameter(TypeParamTagName, t))));
 
             // Provide a return completion item in case the function returns something
             var returns = true;
@@ -294,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (returns && !symbol.ReturnsVoid)
             {
-                items.Add(CreateCompletionItem(itemSpan, ReturnsTagName));
+                items.Add(CreateCompletionItem(ReturnsTagName));
             }
 
             return items;

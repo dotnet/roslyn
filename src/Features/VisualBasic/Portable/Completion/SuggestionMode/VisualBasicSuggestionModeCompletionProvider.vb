@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
             If semanticModel.OptionExplicit = False AndAlso (syntaxTree.IsExpressionContext(position, targetToken, cancellationToken) OrElse syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken)) Then
-                Return CreateSuggestionModeItem(VBFeaturesResources.EmptyString1, itemSpan, VBFeaturesResources.EmptyString1)
+                Return CreateSuggestionModeItem(VBFeaturesResources.EmptyString1, VBFeaturesResources.EmptyString1)
             End If
 
             ' Builder if we're typing a field
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
                               VBFeaturesResources.NoteSpaceCompletionIsDisa
 
             If syntaxTree.IsFieldNameDeclarationContext(position, targetToken, cancellationToken) Then
-                Return CreateSuggestionModeItem(VBFeaturesResources.NewField, itemSpan, description)
+                Return CreateSuggestionModeItem(VBFeaturesResources.NewField, description)
             End If
 
             If targetToken.Kind = SyntaxKind.None OrElse targetToken.FollowsEndOfStatement(position) Then
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
                 ' Otherwise just return a builder. It won't show up unless other modifiers are
                 ' recommended, which is what we want.
-                Return CreateSuggestionModeItem(VBFeaturesResources.ParameterName, itemSpan, description)
+                Return CreateSuggestionModeItem(VBFeaturesResources.ParameterName, description)
             End If
 
             ' Builder in select clause: after Select, after comma
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
                     description = VBFeaturesResources.TypeANewNameForTheColumn & vbCrLf &
                                   VBFeaturesResources.NoteUseTabForAutomaticCo
 
-                    Return CreateSuggestionModeItem(VBFeaturesResources.ResultAlias, itemSpan, description)
+                    Return CreateSuggestionModeItem(VBFeaturesResources.ResultAlias, description)
                 End If
             End If
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
                 description = VBFeaturesResources.TypeANewVariableName & vbCrLf &
                               VBFeaturesResources.NoteSpaceAndCompletion
 
-                Return CreateSuggestionModeItem(VBFeaturesResources.NewVariable, itemSpan, description)
+                Return CreateSuggestionModeItem(VBFeaturesResources.NewVariable, description)
             End If
 
             ' Build after Using
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
                 description = VBFeaturesResources.TypeANewVariableName & vbCrLf &
                               VBFeaturesResources.NoteSpaceAndCompletion
 
-                Return CreateSuggestionModeItem(VBFeaturesResources.NewResource, itemSpan, description)
+                Return CreateSuggestionModeItem(VBFeaturesResources.NewResource, description)
             End If
 
             ' Builder at Namespace declaration name
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
                 description = VBFeaturesResources.TypeANameHereToDeclareANamespace & vbCrLf &
                               VBFeaturesResources.NoteSpaceAndCompletion
 
-                Return CreateSuggestionModeItem(VBFeaturesResources.NamespaceName, itemSpan, description)
+                Return CreateSuggestionModeItem(VBFeaturesResources.NamespaceName, description)
             End If
 
             Return Nothing

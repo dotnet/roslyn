@@ -70,7 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     SymbolCompletionItem.Create(
                         displayText:=parameter.Name & s_colonEquals,
                         insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                        span:=context.DefaultItemSpan,
                         symbol:=parameter,
                         descriptionPosition:=position,
                         contextPosition:=position,

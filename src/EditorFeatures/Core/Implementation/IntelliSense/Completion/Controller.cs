@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
                     this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode),
-                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.CompletionItemToFilterText);
+                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }
 
@@ -183,7 +183,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
                 ? CompletionFilterReason.BackspaceOrDelete
-                : CompletionFilterReason.TypeChar;
+                : trigger.Kind == CompletionTriggerKind.Other
+                    ? CompletionFilterReason.Other
+                    : CompletionFilterReason.TypeChar;
 
             if (filterItems)
             {
