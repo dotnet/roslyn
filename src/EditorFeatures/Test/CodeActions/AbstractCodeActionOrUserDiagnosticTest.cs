@@ -164,6 +164,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine);
         }
 
+        protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
+            TestWorkspace workspace,
+            string expectedMarkup,
+            int index,
+            string expectedDocumentName,
+            IList<string> expectedContainers,
+            bool compareTokens = true)
+        {
+            var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+            return await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
+                codeActions, compareTokens);
+        }
+
         private async Task TestAddDocument(
             string initialMarkup, string expectedMarkup,
             int index,
@@ -182,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private async Task TestAddDocument(
+        private async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expectedMarkup,
             int index,
@@ -192,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             bool compareTokens)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
-            await TestAddDocument(
+            return await TestAddDocument(
                 workspace,
                 expectedMarkup,
                 operations,
