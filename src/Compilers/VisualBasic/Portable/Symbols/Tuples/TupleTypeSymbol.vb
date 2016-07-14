@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            If modifiers.IsDefault AndAlso Not modifiers(TupleTypeSymbol.RestPosition - 1).IsDefaultOrEmpty Then
+            If Not modifiers.IsDefault AndAlso Not modifiers(TupleTypeSymbol.RestPosition - 1).IsDefaultOrEmpty Then
                 typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple, modifiers(TupleTypeSymbol.RestPosition - 1)))
             Else
                 typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple))
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim namesOfVirtualFields = ArrayBuilder(Of String).GetInstance(_elementTypes.Length)
 
             If _elementNames.IsDefault Then
-                For i As Integer = 1 To _elementTypes.Length - 1
+                For i As Integer = 1 To _elementTypes.Length
                     namesOfVirtualFields.Add(TupleMemberName(i))
                 Next
             Else
