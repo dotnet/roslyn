@@ -510,7 +510,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_IsTupleSymbol As Boolean Implements ITypeSymbol.IsTupleType
             Get
-                Return False
+                Return Me.IsTupleType
             End Get
         End Property
 
