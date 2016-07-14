@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -58,22 +57,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var keyword in keywords)
                 {
-                    context.AddItem(CreateItem(keyword, context.DefaultItemSpan));
+                    context.AddItem(CreateItem(keyword));
                 }
             }
         }
 
         private static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
 
-        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
+        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword)
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 tags: s_Tags,
-                matchPriority: keyword.ShouldPreselect ? MatchPriority.Preselect : MatchPriority.Default);
+                matchPriority: keyword.MatchPriority);
         }
 
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
@@ -105,22 +103,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return set;
         }
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
         {
-            var insertionText = item.DisplayText;
-            if (ch == ' ')
-            {
-                var currentSnapshot = document.Project.Solution.Workspace.CurrentSolution.GetDocument(document.Id);
-                var text = await currentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textTypedSoFar = text.GetSubText(GetCurrentSpan(item.Span, text)).ToString() + ch;
-
-                if (textTypedSoFar.Length > 0 && insertionText.StartsWith(textTypedSoFar, StringComparison.OrdinalIgnoreCase))
-                {
-                    insertionText = insertionText.Substring(0, textTypedSoFar.Length - 1);
-                }
-            }
-
-            return new TextChange(item.Span, insertionText);
+            return Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
         }
 
         internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);

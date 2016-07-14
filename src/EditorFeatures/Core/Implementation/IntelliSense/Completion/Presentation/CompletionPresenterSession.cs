@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
+            string filterText)
         {
             AssertIsForeground();
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             {
                 _completionSet.SetCompletionItems(
                     completionItems, selectedItem, suggestionModeItem, suggestionMode, 
-                    isSoftSelected, completionItemFilters, completionItemToFilterText);
+                    isSoftSelected, completionItemFilters, filterText);
             }
             finally
             {

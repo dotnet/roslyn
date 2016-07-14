@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected IEnumerable<CompletionItem> CreateItems(
             int position,
             IEnumerable<ISymbol> symbols,
-            TextSpan span,
             AbstractSyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, context)
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, position, g.ToList(), context, span, invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(g.Key.Item1, g.Key.Item2, position, g.ToList(), context, invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected IEnumerable<CompletionItem> CreateItems(
             int position,
             IEnumerable<ISymbol> symbols,
-            TextSpan span,
             Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, position, g.ToList(), originatingContextMap[g.First()], span, invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(g.Key.Item1, g.Key.Item2, position, g.ToList(), originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -86,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
-            TextSpan span,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
@@ -111,16 +108,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return CreateItem(displayText, insertionText, position, symbols, context, span, preselect, supportedPlatformData);
+            return CreateItem(displayText, insertionText, position, symbols, context, preselect, supportedPlatformData);
         }
 
-        protected virtual CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan span, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected virtual CompletionItem CreateItem(
+            string displayText, string insertionText,
+            int position, List<ISymbol> symbols,
+            AbstractSyntaxContext context, bool preselect,
+            SupportedPlatformData supportedPlatformData)
         {
             return SymbolCompletionItem.Create(
                 displayText: displayText,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
-                span: span,
                 contextPosition: context.Position,
                 descriptionPosition: position,
                 symbols: symbols,
@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var document = context.Document;
             var position = context.Position;
-            var span = context.DefaultItemSpan;
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
@@ -173,15 +172,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var regularItems = await GetItemsWorkerAsync(document, position, span, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var regularItems = await GetItemsWorkerAsync(document, position, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                 context.AddItems(regularItems);
 
-                var preselectedItems = await GetItemsWorkerAsync(document, position, span, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var preselectedItems = await GetItemsWorkerAsync(document, position, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 context.AddItems(preselectedItems);
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, TextSpan span, OptionSet options, bool preselect, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
             var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
 
                 itemsForCurrentDocument = itemsForCurrentDocument ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-                return CreateItems(position, itemsForCurrentDocument, span, context, null, null, preselect);
+                return CreateItems(position, itemsForCurrentDocument, context, null, null, preselect);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
 
-            return CreateItems(position, unionedSymbolsList, span, originatingContextMap, missingSymbolsMap, totalProjects, preselect);
+            return CreateItems(position, unionedSymbolsList, originatingContextMap, missingSymbolsMap, totalProjects, preselect);
         }
 
         protected virtual bool IsExclusive()

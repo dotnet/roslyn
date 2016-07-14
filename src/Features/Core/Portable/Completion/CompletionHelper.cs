@@ -3,44 +3,44 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Completion
 {
-    internal class CompletionHelper
+    internal sealed class CompletionHelper
     {
+        private static readonly CompletionHelper CaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+        private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+
         private readonly object _gate = new object();
-        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _patternMatcherMap =
+             new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
+        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _fallbackPatternMatcherMap =
+            new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
+
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
-        protected CompletionHelper(bool isCaseSensitive)
+        private CompletionHelper(bool isCaseSensitive)
         {
             _isCaseSensitive = isCaseSensitive;
         }
 
         public static CompletionHelper GetHelper(Workspace workspace, string language)
         {
+            var isCaseSensitive = true;
             var ls = workspace.Services.GetLanguageServices(language);
             if (ls != null)
             {
-                var factory = ls.GetService<CompletionHelperFactory>();
-                if (factory != null)
-                {
-                    return factory.CreateCompletionHelper();
-                }
-
                 var syntaxFacts = ls.GetService<ISyntaxFactsService>();
-                return new CompletionHelper(syntaxFacts?.IsCaseSensitive ?? true);
+                isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
             }
 
-            return null;
+            return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
         }
 
         public static CompletionHelper GetHelper(Document document)
@@ -48,9 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor
             return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
-        public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
+        public IReadOnlyList<TextSpan> GetHighlightedSpans(
+            CompletionItem completionItem, string filterText, CultureInfo culture)
         {
-            var match = GetMatch(completionItem, filterText, includeMatchSpans: true);
+            var match = GetMatch(completionItem, filterText, includeMatchSpans: true, culture: culture);
             return match?.MatchedSpans;
         }
 
@@ -59,58 +60,48 @@ namespace Microsoft.CodeAnalysis.Editor
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public virtual bool MatchesFilterText(
+        public bool MatchesFilterText(CompletionItem item, string filterText, CultureInfo culture)
+        {
+            return GetMatch(item, filterText, culture) != null;
+        }
+
+        private PatternMatch? GetMatch(CompletionItem item, string filterText, CultureInfo culture)
+        {
+            return GetMatch(item, filterText, includeMatchSpans: false, culture: culture);
+        }
+
+        private PatternMatch? GetMatch(
             CompletionItem item, string filterText,
-            CompletionTrigger trigger, ImmutableArray<string> recentItems)
+            bool includeMatchSpans, CultureInfo culture)
         {
-            // If the user hasn't typed anything, and this item was preselected, or was in the
-            // MRU list, then we definitely want to include it.
-            if (filterText.Length == 0)
+            // If the item has a dot in it (i.e. for something like enum completion), then attempt
+            // to match what the user wrote against the last portion of the name.  That way if they
+            // write "Bl" and we have "Blub" and "Color.Black", we'll consider hte latter to be a
+            // better match as they'll both be prefix matches, and the latter will have a higher
+            // priority.
+
+            var lastDotIndex = item.FilterText.LastIndexOf('.');
+            if (lastDotIndex >= 0)
             {
-                if (item.Rules.MatchPriority > MatchPriority.Default || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
+                var textAfterLastDot = item.FilterText.Substring(lastDotIndex + 1);
+                var match = GetMatchWorker(textAfterLastDot, filterText, includeMatchSpans, culture);
+                if (match != null)
                 {
-                    return true;
+                    return match;
                 }
             }
 
-            if (IsAllDigits(filterText))
-            {
-                // The user is just typing a number.  We never want this to match against
-                // anything we would put in a completion list.
-                return false;
-            }
-
-            return GetMatch(item, filterText) != null;
+            // Didn't have a dot, or the user text didn't match the portion after the dot.
+            // Just do a normal check against the entire completion item.
+            return GetMatchWorker(item.FilterText, filterText, includeMatchSpans, culture);
         }
 
-        protected static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
+        private PatternMatch? GetMatchWorker(
+            string completionItemText, string filterText,
+            bool includeMatchSpans, CultureInfo culture)
         {
-            var index = recentItems.IndexOf(item.DisplayText);
-            return -index;
-        }
-
-        protected static bool IsAllDigits(string filterText)
-        {
-            for (int i = 0; i < filterText.Length; i++)
-            {
-                if (filterText[i] < '0' || filterText[i] > '9')
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText)
-        {
-            return GetMatch(item, filterText, includeMatchSpans: false);
-        }
-
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
-        {
-            var patternMatcher = this.GetPatternMatcher(filterText, CultureInfo.CurrentCulture);
-            var match = patternMatcher.GetFirstMatch(item.FilterText, includeMatchSpans);
+            var patternMatcher = this.GetPatternMatcher(filterText, culture);
+            var match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
 
             if (match != null)
             {
@@ -118,10 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             // Start with the culture-specific comparison, and fall back to en-US.
-            if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
+            if (!culture.Equals(EnUSCultureInfo))
             {
                 patternMatcher = this.GetEnUSPatternMatcher(filterText);
-                match = patternMatcher.GetFirstMatch(item.FilterText);
+                match = patternMatcher.GetFirstMatch(completionItemText);
                 if (match != null)
                 {
                     return match;
@@ -132,24 +123,31 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         private PatternMatcher GetPatternMatcher(
-            string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
+            string value, CultureInfo culture, Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> map)
         {
             lock (_gate)
             {
+                Dictionary<string, PatternMatcher> innerMap;
+                if (!map.TryGetValue(culture, out innerMap))
+                {
+                    innerMap = new Dictionary<string, PatternMatcher>();
+                    map[culture] = innerMap;
+                }
+
                 PatternMatcher patternMatcher;
-                if (!map.TryGetValue(value, out patternMatcher))
+                if (!innerMap.TryGetValue(value, out patternMatcher))
                 {
                     patternMatcher = new PatternMatcher(value, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,
                         allowFuzzyMatching: false);
-                    map.Add(value, patternMatcher);
+                    innerMap.Add(value, patternMatcher);
                 }
 
                 return patternMatcher;
             }
         }
 
-        protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
+        private PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
         {
             return GetPatternMatcher(value, culture, _patternMatcherMap);
         }
@@ -163,77 +161,61 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, ImmutableArray<string> recentItems)
+        public int CompareItems(CompletionItem item1, CompletionItem item2, string filterText, CultureInfo culture)
         {
-            var match1 = GetMatch(item1, filterText);
-            var match2 = GetMatch(item2, filterText);
+            var match1 = GetMatch(item1, filterText, culture);
+            var match2 = GetMatch(item2, filterText, culture);
 
             if (match1 != null && match2 != null)
             {
                 var result = CompareMatches(match1.Value, match2.Value, item1, item2);
                 if (result != 0)
                 {
-                    return result < 0;
+                    return result;
                 }
             }
             else if (match1 != null)
             {
-                return true;
+                return -1;
             }
             else if (match2 != null)
             {
-                return false;
+                return 1;
             }
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.MatchPriority != item2.Rules.MatchPriority)
+            var diff = item1.Rules.MatchPriority - item2.Rules.MatchPriority;
+            if (diff != 0)
             {
-                return item1.Rules.MatchPriority > item2.Rules.MatchPriority;
+                return -diff;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
             if (!TagsEqual(item1, item2) && item1.FilterText == item2.FilterText)
             {
-                return IsKeywordItem(item1);
+                return IsKeywordItem(item1) ? -1 : IsKeywordItem(item2) ? 1 : 0;
             }
 
-            // They matched on everything, including preselection values.  Item1 is better if it
-            // has a lower MRU index.
-
-            if (!recentItems.IsDefault)
-            {
-                var item1MRUIndex = GetRecentItemIndex(recentItems, item1);
-                var item2MRUIndex = GetRecentItemIndex(recentItems, item2);
-
-                // The one with the lower index is the better one.
-                return item1MRUIndex < item2MRUIndex;
-            }
-
-            return false;
+            return 0;
         }
 
-        internal static bool TagsEqual(CompletionItem item1, CompletionItem item2)
+        private static bool TagsEqual(CompletionItem item1, CompletionItem item2)
         {
             return TagsEqual(item1.Tags, item2.Tags);
         }
 
-        internal static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
+        private static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
         {
             return tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
         }
 
-        protected static bool IsKeywordItem(CompletionItem item)
+        private static bool IsKeywordItem(CompletionItem item)
         {
             return item.Tags.Contains(CompletionTags.Keyword);
         }
 
-        protected static bool IsEnumMemberItem(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.EnumMember);
-        }
-
-        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
             // First see how the two items compare in a case insensitive fashion.  Matches that 
             // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
@@ -285,18 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return 0;
-        }
-
-        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            var textTypedWithChar = textTypedSoFar + ch;
-            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
-                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        private static StringComparison GetComparision(bool isCaseSensitive)
-        {
-            return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
         }
     }
 }

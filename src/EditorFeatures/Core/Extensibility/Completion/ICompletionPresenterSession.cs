@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
             ITrackingSpan triggerSpan, IList<PresentationItem> items, PresentationItem selectedItem,
             PresentationItem suggestionModeItem, bool suggestionMode, bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText);
+            string filterText);
 
         void SelectPreviousItem();
         void SelectNextItem();

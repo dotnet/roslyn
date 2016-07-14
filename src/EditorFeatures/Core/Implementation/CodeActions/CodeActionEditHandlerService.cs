@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -92,8 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, 
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+        public async Task ApplyAsync(
+            Workspace workspace, Document fromDocument,
+            IEnumerable<CodeActionOperation> operations,
+            string title, IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
 
@@ -111,7 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
-                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.                    
+                    if (!await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(true))
                     {
                         documentErrorLookup.Add(document.Id);
                     }
@@ -147,7 +153,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 // can be undone at once.
                 using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
-                    updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, progressTracker, cancellationToken);
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.
+                    updatedSolution = await ProcessOperationsAsync(
+                        workspace, fromDocument, title, oldSolution,
+                        updatedSolution, operationsList, progressTracker,
+                        cancellationToken).ConfigureAwait(true);
 
                     // link current file in the global undo transaction
                     if (fromDocument != null)
@@ -160,9 +171,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
             else
             {
-                updatedSolution = ProcessOperations(
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
+                updatedSolution = await ProcessOperationsAsync(
                     workspace, fromDocument, title, oldSolution, updatedSolution, operationsList,
-                    progressTracker, cancellationToken);
+                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
 #if DEBUG
@@ -181,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
 
-        private static Solution ProcessOperations(
+        private static async Task<Solution> ProcessOperationsAsync(
             Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, 
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
@@ -216,11 +229,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     {
                         if (changedDocuments.Any())
                         {
-                            text = oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            // ConfigureAwait(true) so we come back to the same thread as 
+                            // we do all application on the UI thread.
+                            text = await oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
                         }
                         else if (changedAdditionalDocuments.Any())
                         {
-                            text = oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            // ConfigureAwait(true) so we come back to the same thread as 
+                            // we do all application on the UI thread.
+                            text = await oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
                         }
                     }
 

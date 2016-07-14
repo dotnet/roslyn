@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d73adf7d-2c1c-42ae-b2ab-edc9497e4b71</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Metadata</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoRecord.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DynamicLocalInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImportTargetKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PortableCustomDebugInfoKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StateMachineHoistedLocalScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VBImportScopeKind.cs" />
+  </ItemGroup>
+</Project>

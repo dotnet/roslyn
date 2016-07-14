@@ -25,13 +25,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan span, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(
+            string displayText, string insertionText, int position, List<ISymbol> symbols,
+            AbstractSyntaxContext context, bool preselect,
+            SupportedPlatformData supportedPlatformData)
         {
             return SymbolCompletionItem.Create(
                 displayText: displayText,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
-                span: span,
                 contextPosition: context.Position,
                 descriptionPosition: position,
                 symbols: symbols,

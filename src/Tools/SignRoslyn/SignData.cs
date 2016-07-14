@@ -34,16 +34,30 @@ namespace SignRoslyn
         /// </summary>
         internal ImmutableArray<BinaryName> VsixNames { get; }
 
-        internal SignData(string rootBinaryPath, IEnumerable<string> binaryNames, IEnumerable<string> externalBinaryNames)
+        /// <summary>
+        /// A map of all of the binaries that need to be signed to the actual signing data.
+        /// </summary>
+        internal ImmutableDictionary<BinaryName, BinarySignData> BinarySignDataMap { get; }
+
+        internal SignData(string rootBinaryPath, Dictionary<string, FileSignData> fileSignDataMap, IEnumerable<string> externalBinaryNames)
         {
             RootBinaryPath = rootBinaryPath;
 
             // Use order by to make the output of this tool as predictable as possible.
+            var binaryNames = fileSignDataMap.Keys;
             BinaryNames = binaryNames.OrderBy(x => x).Select(x => new BinaryName(rootBinaryPath, x)).ToImmutableArray();
             ExternalBinaryNames = externalBinaryNames.OrderBy(x => x).ToImmutableArray();
 
             AssemblyNames = BinaryNames.Where(x => x.IsAssembly).ToImmutableArray();
             VsixNames = BinaryNames.Where(x => x.IsVsix).ToImmutableArray();
+
+            var builder = ImmutableDictionary.CreateBuilder<BinaryName, BinarySignData>();
+            foreach (var name in BinaryNames)
+            {
+                var data = fileSignDataMap[name.RelativePath];
+                builder.Add(name, new BinarySignData(name, data));
+            }
+            BinarySignDataMap = builder.ToImmutable();
         }
     }
 }
