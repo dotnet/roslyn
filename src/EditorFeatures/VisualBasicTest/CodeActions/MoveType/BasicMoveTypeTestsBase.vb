@@ -34,8 +34,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             Return TestOptions.Script
         End Function
 
-        Protected Overloads Function TestRenameFileToMatchTypeAsync(originalCode As XElement, expectedDocumentName As String) As Task
-            Return MyBase.TestRenameFileToMatchTypeAsync(originalCode.ConvertTestSourceTag(), expectedDocumentName)
+        Protected Overloads Function TestRenameTypeToMatchFileAsync(
+            originalCode As XElement,
+            Optional expectedCode As XElement = Nothing,
+            Optional expectedCodeAction As Boolean = True,
+            Optional compareTokens As Boolean = True
+        ) As Task
+
+            Dim expectedText As String = Nothing
+            If Not expectedCode Is Nothing Then
+                expectedText = expectedCode.ConvertTestSourceTag()
+            End If
+
+            Return MyBase.TestRenameTypeToMatchFileAsync(
+                originalCode.ConvertTestSourceTag(), expectedText, expectedCodeAction, compareTokens)
+        End Function
+
+        Protected Overloads Function TestRenameFileToMatchTypeAsync(
+            originalCode As XElement,
+            Optional expectedDocumentName As String = Nothing,
+            Optional expectedCodeAction As Boolean = True,
+            Optional compareTokens As Boolean = True
+        ) As Task
+
+            Return MyBase.TestRenameFileToMatchTypeAsync(
+                originalCode.ConvertTestSourceTag(), expectedDocumentName, expectedCodeAction, compareTokens)
         End Function
 
         Protected Overloads Function TestMoveTypeToNewFileAsync(
