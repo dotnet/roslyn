@@ -98,11 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return ValueTuple.Create(text, text)
             End If
 
-            Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol,
-                                                                  context.IsAttributeNameContext,
-                                                                  context.IsRightOfNameSeparator,
-                                                                  DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod,
-                                                                  context.GetLanguageService(Of ISyntaxFactsService)())
+            Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
             Return result
         End Function
 

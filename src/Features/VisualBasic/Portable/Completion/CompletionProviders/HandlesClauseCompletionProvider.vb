@@ -113,8 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                               symbol As ISymbol,
                                               context As VisualBasicSyntaxContext) As CompletionItem
 
-            Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+            Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
 
             Return SymbolCompletionItem.Create(
                 displayText:=displayAndInsertionText.Item1,
@@ -137,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol,
                                                                 context As AbstractSyntaxContext) As ValueTuple(Of String, String)
 
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, isWithinAsyncMethod:=DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)

@@ -71,16 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 text, characterPosition, AddressOf IsWordStartCharacter, AddressOf IsWordCharacter)
         End Function
 
-        Public Function GetDisplayAndInsertionText(
-            symbol As ISymbol,
-            isAttributeNameContext As Boolean, isAfterDot As Boolean, isWithinAsyncMethod As Boolean,
-            syntaxFacts As ISyntaxFactsService
-        ) As ValueTuple(Of String, String)
+        Public Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+            Dim isAttributeNameContext = context.IsAttributeNameContext
+            Dim isAfterDot = context.IsRightOfNameSeparator
+            Dim isWithinAsyncMethod = DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod
+            Dim syntaxFacts = context.GetLanguageService(Of ISyntaxFactsService)()
 
-            Dim name As String = Nothing
-            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, isAttributeNameContext, syntaxFacts, name) Then
-                name = symbol.Name
-            End If
+            Dim name = CommonCompletionUtilities.GetAppropriateNameInContext(symbol, context)
 
             Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod)
             Dim displayText = GetDisplayText(name, symbol)
@@ -141,12 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Public Function GetInsertionTextAtInsertionTime(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Dim name As String = Nothing
-            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService(Of ISyntaxFactsService), name) Then
-                name = symbol.Name
-            End If
-
-            Return GetInsertionText(name, symbol, context.IsRightOfNameSeparator, DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, ch)
+            Dim name = CommonCompletionUtilities.GetAppropriateNameInContext(symbol, context)
+            Return GetInsertionText(name, symbol, context.IsRightOfNameSeparator,
+                                    DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, ch)
         End Function
     End Module
 End Namespace

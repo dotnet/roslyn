@@ -39,19 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
         {
-            string name;
-
-            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService<ISyntaxFactsService>(), out name))
-            {
-                // Cannot escape Attribute name with the suffix removed. Only use the name with
-                // the suffix removed if it does not need to be escaped.
-                if (name.Equals(name.EscapeIdentifier()))
-                {
-                    return name;
-                }
-            }
-
-            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+            var name = CommonCompletionUtilities.GetAppropriateNameInContext(symbol, context);
+            return name.EscapeIdentifier(isQueryContext: context.IsInQuery);
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)

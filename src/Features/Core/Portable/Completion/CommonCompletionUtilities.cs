@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -206,22 +207,25 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, bool isAttributeNameContext, ISyntaxFactsService syntaxFacts, out string name)
+        public static string GetAppropriateNameInContext(
+            ISymbol symbol,
+            AbstractSyntaxContext context)
         {
-            if (!isAttributeNameContext)
+            var displayService = context.GetLanguageService<ISymbolDisplayService>();
+            var name = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
+
+            if (context.IsAttributeNameContext && symbol.IsAttribute())
             {
-                name = null;
-                return false;
+                var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+
+                string nameWithoutAttribute;
+                if (name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out nameWithoutAttribute))
+                {
+                    return nameWithoutAttribute;
+                }
             }
 
-            // Do the symbol textual check first. Then the more expensive symbolic check.
-            if (!symbol.Name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out name) ||
-                !symbol.IsAttribute())
-            {
-                return false;
-            }
-
-            return true;
+            return name;
         }
     }
 }
