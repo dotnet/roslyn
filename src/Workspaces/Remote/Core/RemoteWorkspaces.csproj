@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\DiagnosticComputer.cs" />
-    <Compile Include="Services\AssertSource.cs" />
+    <Compile Include="Services\AssetSource.cs" />
     <Compile Include="Services\AssetService.cs" />
     <Compile Include="Services\CompilationService.cs" />
     <Compile Include="Services\RoslynServices.cs" />

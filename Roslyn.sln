@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.25421.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -381,6 +381,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiaSymReader.PortablePdb", "src\Dependencies\DiaSymReader.PortablePdb\DiaSymReader.PortablePdb.csproj", "{D06F8190-AC11-48E6-B0BF-5F17B7EB7B62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignRoslyn", "src\Tools\SignRoslyn\SignRoslyn.csproj", "{3DA711E1-055F-4352-A5E1-F9169C86A20F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RemoteServices", "RemoteServices", "{3D83D7F5-2C5F-4C86-9F71-60C1C6A84E76}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
