@@ -6,7 +6,9 @@
         "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
         "Newtonsoft.Json": "6.0.4",
         "NETStandard.Library": "1.6.0",
-        "System.Diagnostics.Contracts": "4.0.1"
+        "System.Diagnostics.Contracts": "4.0.1",
+        "System.Linq.Parallel": "4.0.1",
+        "System.Threading.Tasks.Parallel": "4.0.1"
     },
     "frameworks": {
         "netstandard1.3": {
