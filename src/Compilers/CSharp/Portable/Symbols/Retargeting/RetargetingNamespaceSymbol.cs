@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     {
                         var original = underlyingMethod.UnreduceExtensionMethod();
                         var retargeted = this.RetargetingTranslator.Retarget(original);
-                        var reduced = retargeted.ReduceExtensionMethod();
+                        var reduced = retargeted.ReduceExtensionMethod(); // PROTOTYPE: Specify the receiver type here.
                         Debug.Assert((object)reduced != null);
                         Debug.Assert(reduced.IsDefinition);
                         members.Add(reduced);

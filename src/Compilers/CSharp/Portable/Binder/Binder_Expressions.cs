@@ -5650,10 +5650,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 bool wasError;
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError);
-                // PROTOTYPE: This might not be true for extension classes - LookupExtensionMembers returns other kinds of members.
-                Debug.Assert((object)symbol == null);
-                Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithExtensionMethods(left, members.SelectAsArray(s_toMethodSymbolFunc), typeArguments, lookupResult.Kind);
+                if ((object)symbol != null)
+                {
+                    // This can happen when a non-extension method was found on the type (say, .Count()),
+                    // and an extension property was found (say, .Count). For now, always prefer the non-extension method.
+                    // PROTOTYPE: Evalulate the above statement, and figure out what to do in the face of mixed-member-kind lookups in general
+                    //  (e.g. when both property and method extensions are found with the same name, and both are applicable)
+                    Debug.Assert(!members.Any());
+                }
+                else
+                {
+                    Debug.Assert(members.Count > 0);
+                    methodGroup.PopulateWithExtensionMethods(left, members.SelectAsArray(s_toMethodSymbolFunc), typeArguments, lookupResult.Kind);
+                }
                 members.Free();
             }
 
@@ -6731,7 +6740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, methodGroup.Receiver,
                     result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments,
                     inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
-                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
+                // The caller does not expect analyzedArguments to be consumed (it frees it after it's done), so make a copy to consume (for the result).
+                var argumentCopy = AnalyzedArguments.GetInstance();
+                CopyExtensionMethodArguments(analyzedArguments, argumentCopy); // PROTOTYPE: Figure out if a copy is needed (this is not an extension method).
+                return new MethodGroupResolution(methodGroup, null, result, argumentCopy, methodGroup.ResultKind, sealedDiagnostics);
             }
         }
 

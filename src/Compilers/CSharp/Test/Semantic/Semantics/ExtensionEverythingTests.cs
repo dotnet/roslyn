@@ -450,6 +450,91 @@ class Program
         }
 
         [Fact]
+        public void BuiltinExtensions()
+        {
+            var text = @"
+using System;
+
+extension class MathExt : double
+{
+    public double Cos => Math.Cos(this);
+}
+
+extension class IntMathExt : int
+{
+    public double Abs => Math.Abs(this);
+}
+
+struct Derp
+{
+    public void Foo()
+    {
+    }
+}
+
+static class Program
+{
+    static void Main()
+    {
+        new Derp().Foo();
+        var x = 2.0.Cos;
+        // round it a bit so we don't have to deal with precision.
+        // x should be somewhere around -0.41614683654
+        Console.Write((int)(x * 10000));
+        Console.Write(' ');
+        Console.Write(1.Abs);
+        Console.Write((-1).Abs);
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs.Concat(new[] { MscorlibRef_v46 }),
+                expectedOutput: "-4161 11",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void CountProperty()
+        {
+            var text = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+extension class EnumExt : IEnumerable<int>
+{
+    public int Size => this.Count();
+}
+
+extension class StrExt : string
+{
+    public string JoinStr<T>(List<T> stuff)
+    {
+        return string.Join(this, stuff);
+    }
+}
+
+static class Program
+{
+    static void Main()
+    {
+        Console.Write(new[]{1,2}.Size);
+        Func<List<string>, string> joinn = "", "".JoinStr;
+        Console.Write(joinn(new List<string> { ""hello"", ""world"" }));
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs.Concat(new[] { MscorlibRef_v46 }),
+                expectedOutput: "2hello, world",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
         public void DuckDiscovery()
         {
             var text = @"

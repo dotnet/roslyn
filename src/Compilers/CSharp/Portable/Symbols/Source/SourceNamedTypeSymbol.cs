@@ -1118,7 +1118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 underlyingMembersMap = _underlyingMembersMap;
             }
 
-            // PROTOTYPE: Strip generic constructions off of symbol?
             Symbol cachedResult;
             if (underlyingMembersMap.TryGetValue(symbol, out cachedResult))
             {
@@ -1157,7 +1156,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     var constructedFrom = method.ConstructedFrom;
-                                    result = new UnreducedExtensionMethodSymbol(constructedFrom);
+                                    var resultMethod = new UnreducedExtensionMethodSymbol(constructedFrom);
+                                    if (method != constructedFrom)
+                                    {
+                                        result = resultMethod.Construct(method.TypeArguments);
+                                    }
+                                    else
+                                    {
+                                        result = resultMethod;
+                                    }
                                 }
                                 // PROTOTYPE: Generics/construction of result? (probably put in Create method)
                                 break;

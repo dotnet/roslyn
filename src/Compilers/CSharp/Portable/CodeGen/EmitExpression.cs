@@ -542,6 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+
         private void EmitArgument(BoundExpression argument, RefKind refKind)
         {
             if (refKind == RefKind.None)
@@ -551,7 +552,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 var temp = EmitAddress(argument, AddressKind.Writeable);
-                Debug.Assert(temp == null, "passing args byref should not clone them into temps");
+                // PROTOTYPE: Resolve the commented-out assert.
+                // temporaries are allowed in the specific case of emitting a receiver for an extension class instance member extending a struct.
+                // This situation did not occur before, since `ref this` is not allowed on old-style extension methods (but is default for extension class).
+                // Disable the assert for now, until we resolve what we specifically want to do here.
+                //Debug.Assert(temp == null, "passing args byref should not clone them into temps");
+                FreeOptTemp(temp);
             }
         }
 

@@ -229,7 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class UnreducedExtensionMethodThisParameterSymbol : SynthesizedParameterSymbol
         {
             public UnreducedExtensionMethodThisParameterSymbol(UnreducedExtensionMethodSymbol containingMethod) :
-                base(containingMethod, containingMethod.ContainingType.ExtensionClassType, 0, RefKind.None)
+                base(containingMethod, containingMethod.ContainingType.ExtensionClassType, 0,
+                     containingMethod.ContainingType.ExtensionClassType.IsValueType ? RefKind.Ref : RefKind.None)
             {
             }
 

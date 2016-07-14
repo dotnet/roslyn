@@ -1500,23 +1500,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-                    foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
+                    // PROTOTYPE: Improve this filtering
+                    foreach (var extensionMember in lookupResult.Symbols)
                     {
-                        if (extensionMethod.MethodKind == MethodKind.ReducedExtension)
+                        if (extensionMember.Kind == SymbolKind.Method)
                         {
-                            // PROTOTYPE: Fix this somehow. We might have to do partial type inference to get
-                            // the receiverType to line up right, and do receiver inference on extension class methods.
-                            var receiverType = (TypeSymbol)container;
-                            var rereduced = extensionMethod.UnreduceExtensionMethod().ReduceExtensionMethod(receiverType);
-                            if (rereduced != null)
+                            var extensionMethod = (MethodSymbol)extensionMember;
+                            if (extensionMethod.MethodKind == MethodKind.ReducedExtension)
                             {
-                                results.Add(rereduced);
+                                // PROTOTYPE: Fix this somehow. We might have to do partial type inference to get
+                                // the receiverType to line up right, and do receiver inference on extension class methods.
+                                var receiverType = (TypeSymbol)container;
+                                var rereduced = extensionMethod.UnreduceExtensionMethod().ReduceExtensionMethod(receiverType);
+                                if (rereduced != null)
+                                {
+                                    results.Add(rereduced);
+                                }
+                                continue;
                             }
                         }
-                        else
-                        {
-                            results.Add(extensionMethod);
-                        }
+                        results.Add(extensionMember);
                     }
                 }
 
@@ -3028,7 +3031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((conversion.ConversionKind == ConversionKind.MethodGroup) && conversion.IsExtensionMethod)
                         {
                             var symbol = conversion.SymbolOpt;
-                            Debug.Assert((object)symbol != null && symbol.MethodKind == MethodKind.ReducedExtension);
+                            Debug.Assert((object)symbol != null && (symbol.MethodKind == MethodKind.ReducedExtension || symbol.IsInExtensionClass));
                             symbols = ImmutableArray.Create<Symbol>(symbol);
                             resultKind = conversion.ResultKind;
                         }
@@ -4128,10 +4131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedMethod = method;
             }
 
-            if ((object)receiverType != null)
+            if ((object)receiverType != null && constructedMethod.MethodKind == MethodKind.ReducedExtension)
             {
-                // PROTOTYPE: Figure this out
-                Debug.Assert(constructedMethod.MethodKind == MethodKind.ReducedExtension);
                 constructedMethod = constructedMethod.UnreduceExtensionMethod().ReduceExtensionMethod(receiverType);
                 if ((object)constructedMethod == null)
                 {
