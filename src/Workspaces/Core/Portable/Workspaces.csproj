@@ -435,6 +435,7 @@
     <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />

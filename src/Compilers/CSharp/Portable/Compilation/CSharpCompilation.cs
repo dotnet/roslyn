@@ -2835,6 +2835,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
         }
 
+        protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+        {
+            for (int i = 0, n = memberTypes.Length; i < n; i++)
+            {
+                memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
+            }
+
+            var fields = memberTypes.Select((t, i) => new AnonymousTypeField(memberNames[i], Location.None, (TypeSymbol)t)).ToImmutableArray();
+            var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
+
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);
+        }
+
         protected override ITypeSymbol CommonDynamicType
         {
             get { return DynamicType; }
