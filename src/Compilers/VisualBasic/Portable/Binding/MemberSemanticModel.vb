@@ -121,14 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If sourceLambda IsNot Nothing Then
                         boundExpression = sourceLambda.UnboundLambda
                     End If
-
-                Case BoundKind.ArrayCreation
-                    ' Switch back to the array literal node when we have it 
-                    Dim arrayLiteral = DirectCast(boundExpression, BoundArrayCreation).ArrayLiteralOpt
-
-                    If arrayLiteral IsNot Nothing Then
-                        boundExpression = arrayLiteral
-                    End If
             End Select
 
             Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbDestination, GetEnclosingBinder(boundExpression.Syntax), Nothing))
