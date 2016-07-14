@@ -91,8 +91,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _projectTracker.Dispose()
         End Sub
 
-        Public Function CreateHierarchy(projectName As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, projectCapabilities)
+        Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectCapabilities As String) As IVsHierarchy
+            Return New MockHierarchy(projectName, projectBinPath, projectCapabilities)
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions

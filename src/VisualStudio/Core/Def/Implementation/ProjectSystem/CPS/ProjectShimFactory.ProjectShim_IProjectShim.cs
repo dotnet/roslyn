@@ -66,17 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 RemoveFile(filePath);
             }
 
-            public void RenameSourceFile(string originalFilePath, string newFilePath)
-            {
-                var currentDocument = GetCurrentDocumentFromPath(originalFilePath);
-                if (currentDocument != null)
-                {
-                    RemoveFile(currentDocument.FilePath);
-                    AddFile(newFilePath, currentDocument.GetInitialState().SourceCodeKind,
-                        currentDocument.GetItemId(), CanUseTextBuffer);
-                }
-            }
-
             private bool CanUseTextBuffer(ITextBuffer textBuffer)
             {
                 return true;

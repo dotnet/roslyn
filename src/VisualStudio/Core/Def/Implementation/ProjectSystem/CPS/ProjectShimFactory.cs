@@ -43,13 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         // internal for testing purposes only.
-        internal static IProjectShim CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectName, string languageName)
+        internal static IProjectShim CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectName, string languageName, CommandLineArguments commandLineArguments)
         {
-            return new ProjectShim(projectTracker, reportExternalErrorCreatorOpt: null, projectName: projectName,
+            return new ProjectShim(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, projectName: projectName,
                 hierarchy: hierarchy, language: languageName, serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null);
         }
 
-        IProjectShim IProjectShimFactory.CreateProjectShim(string languageName, string projectName)
+        IProjectShim IProjectShimFactory.CreateProjectShim(string languageName, string projectName, CommandLineArguments commandLineArguments)
         {
             var vsSolution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
             IVsHierarchy vsHierarchy;
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (vsHierarchy != null)
             {
                 Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
-                return new ProjectShim(_projectTracker, getExternalErrorReporter, projectName,
+                return new ProjectShim(commandLineArguments, _projectTracker, getExternalErrorReporter, projectName,
                     vsHierarchy, languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource);
             }
 

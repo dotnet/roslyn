@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private string _lastOutputPath;
 
             public ProjectShim(
+                CommandLineArguments commandLineArguments,
                 VisualStudioProjectTracker projectTracker,
                 Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
                 string projectName,
@@ -29,9 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
                 : base(projectTracker, reportExternalErrorCreatorOpt, projectName, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
             {
-                // Set the bin output path so that this project can be hooked up to the project tracker.
-                // Note that this method gets the bin output path from the hierarchy, null argument here just sets the object output path to null.
-                SetOutputPathAndRelatedData(objOutputPath: null);
+                // Set the initial options from the command line before we add the project to the project tracker.
+                SetCommandLineArguments(commandLineArguments);
 
                 projectTracker.AddProject(this);
             }
@@ -45,33 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 base.PostSetOptions();
 
-                // Project tracker tracks projects by bin path, so if the output path has been updated, we need to let it know.
-                var commandLineArguments = base.GetParsedCommandLineArguments();
+                // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
                 string outputPath;
-
-                try
+                if (!base.TryGetOutputPathFromBuildManager(out outputPath))
                 {
-                    outputPath = Path.Combine(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName ?? base.ProjectSystemName);
-                }
-                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
-                {
-                    return;
+                    // This can happen for tests.
+                    outputPath = null;
                 }
 
-                if (_lastOutputPath == null || !_lastOutputPath.Equals(outputPath, StringComparison.OrdinalIgnoreCase))
+                if (_lastOutputPath == null || outputPath != null && !_lastOutputPath.Equals(outputPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (this.Workspace != null)
-                    {
-                        SetOutputPathAndRelatedData(outputPath);
-                    }
-                    else
-                    {
-                        // This can happen only in tests.
-                        // For tests, we need to explicitly update the ProjectTracker bin paths as we don't have a VSWorkspace and
-                        // SetOutputPathAndRelatedData (which updates the ProjectTracker bin paths for product code) will bail out early.
-                        this.ProjectTracker.UpdateProjectBinPath(this, _lastOutputPath, outputPath);
-                    }
-
+                    SetOutputPathAndRelatedData(outputPath);
                     _lastOutputPath = outputPath;
                 }
             }

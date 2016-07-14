@@ -68,12 +68,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 // Add analyzer reference
                 var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
                 project1.AddAnalyzerAssembly(analyzerAssemblyFullPath);
-
                 Assert.True(project1.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
 
                 // Remove analyzer reference
                 project1.RemoveAnalyzerAssembly(analyzerAssemblyFullPath);
-
                 Assert.False(project1.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
 
                 project1.Disconnect();

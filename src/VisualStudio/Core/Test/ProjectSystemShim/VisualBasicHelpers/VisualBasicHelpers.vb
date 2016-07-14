@@ -3,14 +3,16 @@
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
+Imports System.IO
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
     Friend Module VisualBasicHelpers
         Public Function CreateVisualBasicProject(environment As TestEnvironment, projectName As String, Optional compilerHost As IVbCompilerHost = Nothing) As VisualBasicProjectShimWithServices
+            Dim projectBinPath = Path.GetTempPath()
             Return New VisualBasicProjectShimWithServices(environment.ProjectTracker,
                                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
                                                           projectName,
-                                                          environment.CreateHierarchy(projectName, "VB"),
+                                                          environment.CreateHierarchy(projectName, projectBinPath, "VB"),
                                                           environment.ServiceProvider)
         End Function
 

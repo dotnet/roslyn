@@ -4,23 +4,27 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Public NotInheritable Class MockHierarchy
         Implements IVsHierarchy
         Implements IVsProject3
         Implements IVsAggregatableProject
+        Implements IVsBuildPropertyStorage
 
         Public Shared ReadOnly ReferencesNodeItemId As UInteger = 123456
 
         Private _projectName As String
+        Private _projectBinPath As String
         Private ReadOnly _projectCapabilities As String
 
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
         Private ReadOnly _hierarchyItems As New Dictionary(Of UInteger, String)
 
-        Public Sub New(projectName As String, projectCapabilities As String)
+        Public Sub New(projectName As String, projectBinPath As String, projectCapabilities As String)
             _projectName = projectName
+            _projectBinPath = projectBinPath
             _projectCapabilities = projectCapabilities
             _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectName)
         End Sub
@@ -160,6 +164,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function SetProperty(itemid As UInteger, propid As Integer, var As Object) As Integer Implements IVsHierarchy.SetProperty
+            If propid = __VSHPROPID.VSHPROPID_ProjectName Then
+                _projectName = If(TryCast(var, String), _projectName)
+                Return VSConstants.S_OK
+            End If
+
             Throw New NotImplementedException()
         End Function
 
@@ -287,6 +296,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function SetAggregateProjectTypeGuids(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.LPCOLESTR")> lpstrProjTypeGuids As String) As Integer Implements IVsAggregatableProject.SetAggregateProjectTypeGuids
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetPropertyValue(pszPropName As String, pszConfigName As String, storage As UInteger, ByRef pbstrPropValue As String) As Integer Implements IVsBuildPropertyStorage.GetPropertyValue
+            If pszPropName = "OutDir" Then
+                pbstrPropValue = _projectBinPath
+                Return VSConstants.S_OK
+            ElseIf pszPropName = "TargetFileName" Then
+                pbstrPropValue = PathUtilities.ChangeExtension(_projectName, "dll")
+                Return VSConstants.S_OK
+            End If
+
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function SetPropertyValue(pszPropName As String, pszConfigName As String, storage As UInteger, pszPropValue As String) As Integer Implements IVsBuildPropertyStorage.SetPropertyValue
+            If pszPropName = "OutDir" Then
+                _projectBinPath = pszPropValue
+                Return VSConstants.S_OK
+            ElseIf pszPropName = "TargetFileName" Then
+                _projectName = PathUtilities.GetFileName(pszPropValue, includeExtension:=False)
+                Return VSConstants.S_OK
+            End If
+
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function RemoveProperty(pszPropName As String, pszConfigName As String, storage As UInteger) As Integer Implements IVsBuildPropertyStorage.RemoveProperty
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetItemAttribute(item As UInteger, pszAttributeName As String, ByRef pbstrAttributeValue As String) As Integer Implements IVsBuildPropertyStorage.GetItemAttribute
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function SetItemAttribute(item As UInteger, pszAttributeName As String, pszAttributeValue As String) As Integer Implements IVsBuildPropertyStorage.SetItemAttribute
             Throw New NotImplementedException()
         End Function
     End Class

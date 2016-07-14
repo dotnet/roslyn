@@ -27,14 +27,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 project1Shim.AddSourceFile(sourceFileFullPath, itemId: 0);
                 Assert.True(project1.GetCurrentDocuments().Any(s => s.FilePath == sourceFileFullPath));
 
-                // Rename source file
-                var sourceFileFullPath2 = @"c:\source2.cs";
-                project1Shim.RenameSourceFile(sourceFileFullPath, sourceFileFullPath2);
-                Assert.False(project1.GetCurrentDocuments().Any(s => s.FilePath == sourceFileFullPath));
-                Assert.True(project1.GetCurrentDocuments().Any(s => s.FilePath == sourceFileFullPath2));
-
                 // Remove source file
-                project1Shim.RemoveSourceFile(sourceFileFullPath2);
+                project1Shim.RemoveSourceFile(sourceFileFullPath);
                 Assert.Empty(project1.GetCurrentDocuments());
 
                 project1.Disconnect();

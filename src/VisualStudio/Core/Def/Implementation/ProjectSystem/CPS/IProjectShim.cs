@@ -23,6 +23,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Source files.
         void AddSourceFile(string filePath, uint itemId, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
-        void RenameSourceFile(string originalFilePath, string newFilePath);
     }
 }

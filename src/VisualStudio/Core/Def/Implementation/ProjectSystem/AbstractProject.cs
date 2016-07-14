@@ -812,10 +812,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            // RunningDocumentTable can be null for tests.
             AddDocument(
                 document,
-                isCurrentContext: RunningDocumentTable != null && LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
+                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
         }
 
         protected void AddUntrackedFile(string filename)
@@ -1292,21 +1291,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
         {
-            if (this.Workspace == null)
-            {
-                // can only happen in tests
-                return;
-            }
-
             if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(_objOutputPathOpt, objOutputPath, StringComparison.OrdinalIgnoreCase))
             {
                 // set obj output path if changed
                 _objOutputPathOpt = objOutputPath;
 
-                _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
-                    metadataService: this.Workspace.Services.GetService<IMetadataService>(),
-                    projectDirectory: this.ContainingDirectoryPathOpt,
-                    outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
+                // Workspace can be null for tests.
+                if (this.Workspace != null)
+                {
+                    _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
+                        metadataService: this.Workspace.Services.GetService<IMetadataService>(),
+                        projectDirectory: this.ContainingDirectoryPathOpt,
+                        outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
+                }
 
                 if (_pushingChangesToWorkspaceHosts)
                 {
@@ -1340,7 +1337,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // set obj output path if changed
                     _binOutputPathOpt = newBinOutputPath;
 
-                    this.ProjectTracker.UpdateProjectBinPath(this, oldBinOutputPath, _binOutputPathOpt);
+                    // If the project has been hooked up with the project tracker, then update the bin path with the tracker.
+                    if (this.ProjectTracker.GetProject(Id) != null)
+                    {
+                        this.ProjectTracker.UpdateProjectBinPath(this, oldBinOutputPath, _binOutputPathOpt);
+                    }
                 }
             }
         }
@@ -1404,7 +1405,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
 
-        private bool TryGetOutputPathFromBuildManager(out string binOutputPath)
+        protected bool TryGetOutputPathFromBuildManager(out string binOutputPath)
         {
             binOutputPath = null;
 

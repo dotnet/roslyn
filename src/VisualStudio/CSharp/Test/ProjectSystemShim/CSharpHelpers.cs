@@ -20,7 +20,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
     {
         public static CSharpProjectShimWithServices CreateCSharpProject(TestEnvironment environment, string projectName)
         {
-            var hierarchy = environment.CreateHierarchy(projectName, "CSharp");
+            var projectBinPath = Path.GetTempPath();
+            var hierarchy = environment.CreateHierarchy(projectName, projectBinPath, "CSharp");
 
             return new CSharpProjectShimWithServices(
                 new MockCSharpProjectRoot(hierarchy),
@@ -35,20 +36,51 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         public static IProjectShim CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)
         {
-            var hierarchy = environment.CreateHierarchy(projectName, "CSharp");
-            var projectShim = ProjectShimFactory.CreateProjectShim(
+            var tempPath = Path.GetTempPath();
+            var hierarchy = environment.CreateHierarchy(projectName, tempPath, "CSharp");
+            var parsedArguments = GetParsedCommandLineArguments(hierarchy, commandLineArguments);
+
+            return ProjectShimFactory.CreateProjectShim(
                 environment.ProjectTracker,
                 environment.ServiceProvider,
                 hierarchy,
                 projectName,
-                LanguageNames.CSharp);
-            SetCommandLineArguments(projectShim, commandLineArguments);
-            return projectShim;
+                LanguageNames.CSharp,
+                parsedArguments);
         }
 
         public static void SetCommandLineArguments(IProjectShim projectShim, params string[] commandLineArguments)
         {
-            projectShim.SetCommandLineArguments(CSharpCommandLineParser.Default.Parse(commandLineArguments, Path.GetDirectoryName(projectShim.ProjectFilePath), sdkDirectory: null));
+            var parsedArguments = GetParsedCommandLineArguments(((AbstractProject)projectShim).Hierarchy, commandLineArguments);
+            projectShim.SetCommandLineArguments(parsedArguments);
+        }
+
+        private static CommandLineArguments GetParsedCommandLineArguments(IVsHierarchy hierarchy, string[] commandLineArguments)
+        {
+            // Compute the output path from the argument.
+            string outputPath = Path.GetTempPath();
+            foreach (var arg in commandLineArguments)
+            {
+                var outPrefix = "out:";
+                var index = arg.IndexOf(outPrefix);
+                if (index > 0)
+                {
+                    var outputPathArg = arg.Substring(index + outPrefix.Length).Trim();
+                    outputPath = Path.GetDirectoryName(outputPathArg);
+
+                    // AbstractProject computes the output path by querying the hierarchy.
+                    // So we explicitly set the output path stored by the mock hierarchy.
+                    var buildPropertyStorage = hierarchy as IVsBuildPropertyStorage;
+                    if (buildPropertyStorage != null)
+                    {
+                        buildPropertyStorage.SetPropertyValue("OutDir", null, (uint)_PersistStorageType.PST_PROJECT_FILE, outputPath);
+                        buildPropertyStorage.SetPropertyValue("TargetFileName", null, (uint)_PersistStorageType.PST_PROJECT_FILE, Path.GetFileName(outputPathArg));
+                        break;
+                    }
+                }
+            }
+
+            return CSharpCommandLineParser.Default.Parse(commandLineArguments, outputPath, sdkDirectory: null);
         }
 
         private class MockCSharpProjectRoot : ICSharpProjectRoot
