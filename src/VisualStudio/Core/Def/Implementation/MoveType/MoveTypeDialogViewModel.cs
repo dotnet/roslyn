@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveType
 
         internal bool TrySubmit()
         {
-            // make file checks and raise appropriate failure messages.
+            // TODO: NYI. make file checks and raise appropriate failure messages.
             return true;
         }
     }

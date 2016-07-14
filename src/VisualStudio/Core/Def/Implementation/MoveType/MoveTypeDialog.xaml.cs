@@ -25,11 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveType
     {
         private readonly MoveTypeDialogViewModel _viewModel;
 
-        // TODO: Localize
-        public string MoveTypeDialogTitle { get { return "Move Type to File..."; } }
+        public string MoveTypeDialogTitle => ServicesVSResources.MoveTypeDialogTitle;
+        public string AddFile => ServicesVSResources.AddFile;
+        public string RemoveUnusedUsings => ServicesVSResources.RemoveUnusedUsings;
+
+        // TODO: NYI
         public string Folder { get; }
-        public string AddFile { get { return "Add File"; } }
-        public string RemoveUnusedUsings { get { return "Remove unused usings in source file"; } }
 
         public MoveTypeDialog(MoveTypeDialogViewModel viewModel)
         {

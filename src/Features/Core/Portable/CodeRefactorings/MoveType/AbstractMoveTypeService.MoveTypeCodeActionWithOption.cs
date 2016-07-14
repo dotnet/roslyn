@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 if (_makeTypePartial)
                 {
-                    return $"Make partial definition for '{_state.TypeName}' in new file";
+                    return string.Format(
+                        FeaturesResources.MakePartialDefinitionForTypeInNewFile, _state.TypeName);
                 }
 
-                return $"Move '{_state.TypeName}' to new file";
+                return string.Format(FeaturesResources.MoveTypeToNewFile, _state.TypeName);
             }
 
             public override string Title => _title;

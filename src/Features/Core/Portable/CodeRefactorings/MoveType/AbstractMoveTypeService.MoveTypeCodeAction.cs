@@ -41,18 +41,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 if (_renameFile)
                 {
-                    return $"Rename File to '{_state.TargetFileNameCandidate + _state.TargetFileExtension}'";
+                    return string.Format(
+                        FeaturesResources.RenameFileToMatchTypeName,
+                        _state.TargetFileNameCandidate + _state.TargetFileExtension);
                 }
                 else if (_renameType)
                 {
-                    return $"Rename Type to '{_state.DocumentName}'";
+                    return string.Format(
+                        FeaturesResources.RenameTypeToMatchFileName, _state.DocumentName);
                 }
                 else if (_makeTypePartial)
                 {
-                    return $"Make partial definition for '{_state.TypeName}'";
+                    return string.Format(
+                        FeaturesResources.MakePartialDefinitionForType, _state.TypeName);
                 }
 
-                return $"Move Type to '{_state.TargetFileNameCandidate + _state.TargetFileExtension}'";
+                return string.Format(
+                    FeaturesResources.MoveTypeToFileName,
+                    _state.TargetFileNameCandidate + _state.TargetFileExtension);
             }
 
             public override string Title => _title;
