@@ -638,15 +638,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Organize Usings.
-        /// </summary>
-        internal static string OrganizeUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("OrganizeUsingsWithAccelerator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources..
         /// </summary>
         internal static string OverrideAFinalizerTodo {
@@ -742,15 +733,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string RemoveUnnecessaryUsingsDiagnosticTitle {
             get {
                 return ResourceManager.GetString("RemoveUnnecessaryUsingsDiagnosticTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Remove Unnecessary Usings.
-        /// </summary>
-        internal static string RemoveUnnecessaryUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("RemoveUnnecessaryUsingsWithAccelerator", resourceCulture);
             }
         }
         
@@ -868,15 +850,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string SimplifyName {
             get {
                 return ResourceManager.GetString("SimplifyName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string SortUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("SortUsingsWithAccelerator", resourceCulture);
             }
         }
         

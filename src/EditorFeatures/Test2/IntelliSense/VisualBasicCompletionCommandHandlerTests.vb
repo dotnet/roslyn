@@ -11,7 +11,6 @@ Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicCompletionCommandHandlerTests
-
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function MultiWordKeywordCommitBehavior() As Task
@@ -980,13 +979,11 @@ Class Foo
         Bar(0$$
     End Sub
 End Class
-class Foo
                               </Document>)
 
                 state.SendTypeChars(", ")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numeros", isSoftSelected:=True)
-                Assert.Equal(1, state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.Item.DisplayText = "Numeros").Count())
+                Await state.AssertSelectedCompletionItem(displayText:="Numeros.Dos", isSoftSelected:=True)
             End Using
         End Function
 
@@ -2290,6 +2287,149 @@ End Module]]></Document>)
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("T")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Threading
+Module Program
+    Sub Cancel(x As Integer, cancellationToken As CancellationToken)
+        Cancel(x + 1, $$)
+    End Sub
+End Module]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cancellationToken").ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim aaz As Integer
+        args = $$
+    End Sub
+End Module]]></Document>)
+                state.SendTypeChars("a")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("args").ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection3() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class D
+End Class
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim cw = 7
+       Dim cx as D = new D()
+       Dim  cx2 as D = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionLocalsOverType() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class A 
+End Class
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim  cx = new A()
+       Dim cx2 as A = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6942"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionConvertibility1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Mustinherit Class C 
+End Class
+Class D 
+inherits C
+End Class
+Class Program
+    Sub Main(string() args)
+    
+       Dim cx = new D()
+       Dim cx2 as C = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionParamsArray() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim azc as integer
+       M2(a$$
+    End Sub
+    Sub M2(params int() yx)  
+    End Sub
+End Class
+ 
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("azc", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionSetterValue() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class Program
+    Private Async As Integer
+    Public Property NewProperty() As Integer
+        Get
+            Return Async
+        End Get
+        Set(ByVal value As Integer)
+            Async = $$
+        End Set
+    End Property
+End Class]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=False, isSoftSelected:=True).ConfigureAwait(True)
             End Using
         End Function
     End Class

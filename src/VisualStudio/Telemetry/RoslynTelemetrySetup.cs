@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                     new VSTelemetryActivityLogger(telemetryService),
                     Logger.GetLogger()));
 
-            Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(Sqm).Assembly.Location).FileVersion));
+            Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
         }
     }
 }

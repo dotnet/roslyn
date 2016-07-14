@@ -290,6 +290,8 @@ namespace Microsoft.CodeAnalysis
             {
                 this.ClearSolutionData();
             }
+
+            ((IWorkspaceOptionService)this.Services.GetService<IOptionService>()).OnWorkspaceDisposed(this);
         }
 
         #region Host API
@@ -425,9 +427,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Currently projects can always be removed, but this method still exists because it's protected and we don't
+        /// want to break people who may have derived from <see cref="Workspace"/> and either called it, or overridden it.
+        /// </summary>
         protected virtual void CheckProjectCanBeRemoved(ProjectId projectId)
         {
-            CheckProjectDoesNotContainOpenDocuments(projectId);
         }
 
         /// <summary>

@@ -45,7 +45,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" /> 
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -195,12 +195,6 @@
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
-      <Link>Shared\CustomDebugInfoConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
-      <Link>Shared\CustomDebugInfoReader.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -558,7 +552,6 @@
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.HostProject.cs" />
     <Compile Include="Implementation\ProjectSystem\ReiteratedVersionSnapshotTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\Sqm.cs" />
     <Compile Include="Implementation\ProjectSystem\ViewEventArgs.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
@@ -741,6 +734,7 @@
   <ItemGroup>
     <Folder Include="Implementation\Options\Style\" />
   </ItemGroup>
+  <Import Project="..\..\..\Compilers\Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

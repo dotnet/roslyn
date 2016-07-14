@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var doc = updatedSolution.GetDocument(docId);
                 var updater = doc.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
-                var root = doc.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
 
                 var nodes = nodesToUpdate[docId];
 

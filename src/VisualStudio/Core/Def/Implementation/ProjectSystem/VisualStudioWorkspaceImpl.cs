@@ -71,15 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
-
-            var session = serviceProvider.GetService(typeof(SVsLog)) as IVsSqmMulti;
-            var profileService = serviceProvider.GetService(typeof(SVsFeedbackProfile)) as IVsFeedbackProfile;
-
-            // We have Watson hits where this came back null, so guard against it
-            if (profileService != null)
-            {
-                Sqm.LogSession(session, profileService.IsMicrosoftInternal);
-            }
         }
 
         internal static HostServices CreateHostServices(SVsServiceProvider serviceProvider)
@@ -879,10 +870,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // find that one, we can map back to the open buffer and set its active context to
             // the appropriate project.
 
+            // Note that if there is a single head project and it's in the process of being unloaded
+            // there might not be a host project.
             var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
-            if (hostProject.Hierarchy == sharedHierarchy)
+            if (hostProject?.Hierarchy == sharedHierarchy)
             {
-                // How?
                 return;
             }
 

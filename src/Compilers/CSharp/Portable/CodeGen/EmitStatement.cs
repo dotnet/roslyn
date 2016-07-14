@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)switchStatement.Expression.Type != null);
-            Debug.Assert(switchStatement.Expression.Type.IsValidSwitchGoverningType());
+            Debug.Assert(switchStatement.Expression.Type.IsValidV6SwitchGoverningType());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
             Debug.Assert(!switchStatement.Expression.Type.IsNullableType());
@@ -1084,17 +1084,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
-                    var label = (SourceLabelSymbol)boundLabel.Label;
-                    if (label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel)
+                    var label = boundLabel.Label;
+                    if (boundLabel.ConstantValueOpt == null)
                     {
                         fallThroughLabel = label;
                     }
                     else
                     {
-                        Debug.Assert(label.SwitchCaseLabelConstant != null
-                            && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(label.SwitchCaseLabelConstant));
-
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(label.SwitchCaseLabelConstant, label));
+                        var value = boundLabel.ConstantValueOpt;
+                        Debug.Assert(value != null
+                            && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
+                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
                     }
                 }
             }
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
-                expression.Type.IsValidSwitchGoverningType());
+                expression.Type.IsValidV6SwitchGoverningType());
             Debug.Assert(switchCaseLabels.Length > 0);
 
             Debug.Assert(switchCaseLabels != null);
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // expressions do not contain labels or branches
                 BoundExpression expressionOpt = node.ExpressionOpt;
-                return node.Update(labelClone, expressionOpt);
+                return node.Update(labelClone, expressionOpt, node.ConstantValueOpt);
             }
 
             public override BoundNode VisitGotoStatement(BoundGotoStatement node)

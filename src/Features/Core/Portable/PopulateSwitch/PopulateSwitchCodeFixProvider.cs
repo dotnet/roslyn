@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_missing_switch_cases,
+                        FeaturesResources.Add_missing_cases,
                         c => AddMissingSwitchCasesAsync(context, includeMissingCases: true, includeDefaultCase: false)),
                     context.Diagnostics);
             }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_default_switch_case,
+                        FeaturesResources.Add_default_case,
                         c => AddMissingSwitchCasesAsync(context, includeMissingCases: false, includeDefaultCase: true)),
                     context.Diagnostics);
             }

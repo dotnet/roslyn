@@ -307,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var initialBreakpointSpan = snapshot.GetSpan(pCodeSpan[0]);
                             if (initialBreakpointSpan.Length > 0 && document.SupportsSyntaxTree)
                             {
-                                var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
                                 if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                                 {
                                     return VSConstants.E_FAIL;

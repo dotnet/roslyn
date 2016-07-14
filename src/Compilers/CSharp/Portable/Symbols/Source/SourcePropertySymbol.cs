@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(hasExpressionBody, notRegularProperty, location, diagnostics);
+                CheckInitializer(notRegularProperty, location, diagnostics);
             }
 
             if (notRegularProperty || hasInitializer)
@@ -380,7 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CheckInitializer(
-            bool hasExpressionBody,
             bool isAutoProperty,
             Location location,
             DiagnosticBag diagnostics)
@@ -1058,10 +1057,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            if (Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length));
+            }
+
+            if (Type.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

@@ -363,6 +363,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _hostProjects.Remove(hostProject.Id);
                 _docCookiesToHostProject.Remove(docCookie);
 
+                document.Dispose();
+
                 return;
             }
         }

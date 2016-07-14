@@ -1682,5 +1682,188 @@ class C
             End Using
 
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection1() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Threading;
+class Program
+{
+    void Cancel(int x, CancellationToken cancellationToken)
+    {
+        Cancel(x + 1, cancellationToken: $$)
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cancellationToken", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        int aaz = 0;
+        args = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("a")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("args", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection_DoesNotOverrideEnumPreselection() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+enum E
+{
+
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        E e;
+        e = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection3() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class D {}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+       int cw = 7;
+       D cx = new D();
+       D cx2 = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionLocalsOverType() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class A {}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+       A cx = new A();
+       A cx2 = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionParameterOverMethod() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    bool f;
+
+    void foo(bool x) { }
+
+    void Main(string[] args) 
+    {
+        foo($$) // Not "Equals"
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("f", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6942"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionConvertibility1() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+abstract class C {}
+class D : C {}
+class Program
+{
+    static void Main(string[] args)
+    {
+       D cx = new D();
+       C cx2 = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionLocalOverProperty() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    public int aaa { get; }
+
+     void Main(string[] args)
+    {
+        int aaq;
+
+        int y = a$$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("aaq", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionSetterValuey() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    int _x;
+    int X
+    {
+        set
+        {
+            _x = $$
+        }
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
     End Class
 End Namespace

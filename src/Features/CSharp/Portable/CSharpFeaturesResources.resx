@@ -246,15 +246,6 @@
   <data name="RemoveAndSortUsingsWithAccelerator" xml:space="preserve">
     <value>Remove &amp;and Sort Usings</value>
   </data>
-  <data name="SortUsingsWithAccelerator" xml:space="preserve">
-    <value>&amp;Sort Usings</value>
-  </data>
-  <data name="RemoveUnnecessaryUsingsWithAccelerator" xml:space="preserve">
-    <value>&amp;Remove Unnecessary Usings</value>
-  </data>
-  <data name="OrganizeUsingsWithAccelerator" xml:space="preserve">
-    <value>&amp;Organize Usings</value>
-  </data>
   <data name="AutoselectDisabledDueToPotentialImplicitArray" xml:space="preserve">
     <value>Autoselect disabled due to potential implicit array creation.</value>
   </data>

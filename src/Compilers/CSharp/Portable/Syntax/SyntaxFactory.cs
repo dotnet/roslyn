@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(string name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
         {
-            return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, textTokens);
+            return XmlTextAttribute(XmlName(name), quoteKind, textTokens);
         }
 
         /// <summary>
@@ -2503,6 +2503,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type)
+        {
+            return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>));
+        }
+
+        /// <summary>Creates a new VariableDeclarationSyntax instance, such as `int x`.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
+        {
+            return SyntaxFactory.VariableDeclaration(type, variables, default(VariableDeconstructionDeclaratorSyntax));
+        }
+
+        /// <summary>Creates a new VariableDeclarationSyntax instance, such as `(int x, int y)`.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
+        {
+            return SyntaxFactory.VariableDeclaration(null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
+        }
+
+        /// <summary>Creates a new VariableDeclarationSyntax instance, such as `var (x, y)`.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, VariableDeconstructionDeclaratorSyntax deconstructionDeclaration)
+        {
+            if (!type.IsVar)
+            {
+                throw new ArgumentException(CSharpResources.TypeMustBeVar, nameof(type));
+            }
+
+            return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
+        }
+
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
         {
@@ -2557,6 +2586,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(nameof(expressionOrDeclaration));
             }
         }
+
+        public static ForEachStatementSyntax ForEachStatement(TypeSyntax type, SyntaxToken identifier, ExpressionSyntax expression, StatementSyntax statement)
+        {
+            return ForEachStatement(Token(SyntaxKind.ForEachKeyword), Token(SyntaxKind.OpenParenToken), type, identifier, Token(SyntaxKind.InKeyword), expression, Token(SyntaxKind.CloseParenToken), statement);
+        }
+
+        public static ForEachStatementSyntax ForEachStatement(TypeSyntax type, string identifier, ExpressionSyntax expression, StatementSyntax statement)
+        {
+            return ForEachStatement(type, Identifier(identifier), expression, statement);
+        }
+
+        public static ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            return ForEachStatement(forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
+        }
     }
 }
 
@@ -2606,4 +2650,3 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
     }
 }
-

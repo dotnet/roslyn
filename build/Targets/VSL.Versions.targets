@@ -1,29 +1,18 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <!-- This controls the version numbers of the build that we are producing -->
+
+  <Import Project="Dependencies.props" />
+  
   <PropertyGroup>
     <!-- This the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
     <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.0.0</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
-    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta4</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta5</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- These are the versions of dependencies we insert into VS -->
-    <SystemReflectionMetadataVersion>1.4.1-beta-24227-04</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
-    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
-    <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
-    <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
-    <CoreFXVersionSuffix></CoreFXVersionSuffix>
-    <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
-    <CoreClrVersionSuffix></CoreClrVersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -87,10 +76,6 @@
   <PropertyGroup>
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
-
-    <!-- TODO: change to a fixed version once we move this component to a separate repo -->
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.1.0-beta1</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion Condition="'$(BuildNumber)' != ''">$(MicrosoftDiaSymReaderPortablePdbVersion)-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</MicrosoftDiaSymReaderPortablePdbVersion>
   </PropertyGroup>
 
 </Project>

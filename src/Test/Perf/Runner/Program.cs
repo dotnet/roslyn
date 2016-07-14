@@ -81,11 +81,11 @@ namespace Runner
                 testInstances.AddRange(tests);
             }
 
-            var traceManager = TraceManagerFactory.GetTraceManager();
 
-            traceManager.Initialize();
             foreach (var test in testInstances)
             {
+                var traceManager = test.GetTraceManager();
+                traceManager.Initialize();
                 test.Setup();
                 traceManager.Setup();
 

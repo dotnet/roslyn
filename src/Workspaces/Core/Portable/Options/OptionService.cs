@@ -9,19 +9,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    [Export(typeof(IOptionService))]
-    [Shared]
-    internal class OptionService : IOptionService
+    [Export(typeof(IGlobalOptionService)), Shared]
+    internal class GlobalOptionService : IGlobalOptionService
     {
         private readonly Lazy<HashSet<IOption>> _options;
         private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>> _featureNameToOptionSerializers =
             ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
 
         private readonly object _gate = new object();
+
         private ImmutableDictionary<OptionKey, object> _currentValues;
 
         [ImportingConstructor]
-        public OptionService(
+        public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
         {
@@ -88,11 +88,6 @@ namespace Microsoft.CodeAnalysis.Options
         public IEnumerable<IOption> GetRegisteredOptions()
         {
             return _options.Value;
-        }
-
-        public OptionSet GetOptions()
-        {
-            return new WorkspaceOptionSet(this);
         }
 
         public T GetOption<T>(Option<T> option)
@@ -179,7 +174,12 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            // Outside of the lock, raise events
+            // Outside of the lock, raise the events on our task queue.
+            RaiseEvents(changedOptions);
+        }
+
+        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions)
+        {
             var optionChanged = OptionChanged;
             if (optionChanged != null)
             {

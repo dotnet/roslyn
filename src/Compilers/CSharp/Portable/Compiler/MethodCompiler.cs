@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool sawLambdas;
-            bool sawLocalFunctions;
+                bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowOmissionOfConditionalCalls: true,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
-                sawLocalFunctions: out sawLocalFunctions,
+                    sawLocalFunctions: out sawLocalFunctions,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;
-            if (sawLambdas || sawLocalFunctions)
+                if (sawLambdas || sawLocalFunctions)
                 {
                     bodyWithoutLambdas = LambdaRewriter.Rewrite(
                         loweredBody,
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method.ThisParameter,
                         method,
                         methodOrdinal,
-                    null,
+                        null,
                         lambdaDebugInfoBuilder,
                         closureDebugInfoBuilder,
                         lazyVariableSlotAllocator,

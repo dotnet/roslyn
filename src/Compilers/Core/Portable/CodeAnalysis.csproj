@@ -407,7 +407,6 @@
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
-    <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
@@ -421,7 +420,6 @@
     <Compile Include="MetadataReader\ModuleExtensions.cs" />
     <Compile Include="MetadataReader\PEAssembly.cs" />
     <Compile Include="MetadataReader\PEModule.cs" />
-    <Compile Include="MetadataReader\PortableCustomDebugInfoKinds.cs" />
     <Compile Include="MetadataReader\SymbolFactory.cs" />
     <Compile Include="MetadataReader\TypeAttributesExtensions.cs" />
     <Compile Include="MetadataReader\TypeNameDecoder.cs" />
@@ -463,14 +461,12 @@
     <Compile Include="RuleSet\RuleSetInclude.cs" />
     <Compile Include="RuleSet\RuleSetProcessor.cs" />
     <Compile Include="SourceFileResolver.cs" />
-    <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
-    <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
     <Compile Include="PEWriter\CustomDebugInfoWriter.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
@@ -792,6 +788,7 @@
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
+  <Import Project="..\..\Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
