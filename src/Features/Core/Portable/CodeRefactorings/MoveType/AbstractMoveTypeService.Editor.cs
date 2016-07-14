@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return generator.ClassDeclaration(innerTypeName, accessibility: Accessibility.Private);
             }
 
-            // TODO: Think through this carefully. This is very brittle.
+            // TODO: look to optimize the number of Ancestors and Descendants calls here.
             private static IEnumerable<SyntaxNode> GetMembersToRemove(
                 SyntaxNode root, TTypeDeclarationSyntax typeNode, bool removeDescendentsOfSelf)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     .Except(new[] { typeNode });
 
                 var membersOfAncestorsKept = ancestorsKept
-                    .SelectMany(a => a.DescendantNodes().OfType<TMemberDeclarationSyntax>().Where(t => !t.Equals(typeNode)));
+                    .SelectMany(a => a.DescendantNodes().OfType<TMemberDeclarationSyntax>().Where(t => !t.Equals(typeNode) && t.Parent.Equals(a)));
 
                 var membersToRemove = topLevelMembersToRemove.Concat(membersOfAncestorsKept);
 
