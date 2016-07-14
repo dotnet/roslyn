@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -135,6 +136,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
                 }
 
+                var memberToAdd = GetMemberToAdd(documentEditor.Generator, newDocumentName, _makeOuterTypesPartial);
+                if (memberToAdd != null)
+                {
+                    documentEditor.AddMember(typeNode, memberToAdd);
+                }
+
                 var modifiedRoot = documentEditor.GetChangedRoot();
 
                 // add an empty document to solution, so that we'll have options from the right context.
@@ -146,6 +153,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // get the updated document, perform clean up like remove unused usings.
                 var newDocument = solutionWithNewDocument.GetDocument(newDocumentId);
                 return await CleanUpDocumentAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            }
+
+            private SyntaxNode GetMemberToAdd(SyntaxGenerator generator, string newDocumentName, bool makeOuterTypesPartial)
+            {
+                if (!makeOuterTypesPartial)
+                {
+                    return null;
+                }
+
+                // we recognize filenames of that follow the pattern "OuterClass.InnerClass.cs" 
+                // and generate code for this file, which will look like so:
+                // a partial definition of OuterClass and a nested private InnerClass.
+                var nameParts = Path.GetFileNameWithoutExtension(newDocumentName).Split(new char[] { '.' });
+                if (nameParts == null || nameParts.Count() != 2)
+                {
+                    return null;
+                }
+
+                var innerTypeName = nameParts[1];
+                return generator.ClassDeclaration(innerTypeName, accessibility: Accessibility.Private);
             }
 
             // TODO: Think through this carefully. This is very brittle.
