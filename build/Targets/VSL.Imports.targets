@@ -392,11 +392,12 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
-    
-    <!-- SKIPPING: https://github.com/dotnet/roslyn/issues/12508
-      <Message Text="Adding optimization data to @(IntermediateAssembly)"/>
-      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
-    -->
+      <Message Text="Adding optimization data to @(IntermediateAssembly)" />
+      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
+            ConsoleToMSBuild="true">
+        <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
+      </Exec>
+      <Message Text="$(IbcMergeOutput)" />
 
   </Target>
 
