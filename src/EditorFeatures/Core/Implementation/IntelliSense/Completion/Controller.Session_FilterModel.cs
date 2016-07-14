@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // typed.  i.e.  if we have "Console.$$" we don't want to commit something
                 // like "WriteLine" since no filter text has actually been provided.  HOwever,
                 // if "Console.WriteL$$" is typed, then we do want "WriteLine" to be committed.
-                var matchingItemCount = filterResults.Where(t => t.MatchedFilterText).Count();
+                var matchingItemCount = matchingCompletionItems.Length;
                 var isUnique = bestCompletionItem != null &&
                     matchingItemCount == 1 &&
                     filterText.Length > 0;
