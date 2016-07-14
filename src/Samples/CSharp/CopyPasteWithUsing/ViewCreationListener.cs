@@ -37,8 +37,10 @@ using Microsoft.VisualStudio.Utilities;
 namespace Roslyn.Samples.CodeAction.CopyPasteWithUsing
 {
     [Export(typeof(IVsTextViewCreationListener)), Shared]
+#if false
     [ContentType("Roslyn C#")]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
+#endif
     internal class ViewCreationListener : IVsTextViewCreationListener
     {
         private readonly IVsEditorAdaptersFactoryService adaptersFactory;
