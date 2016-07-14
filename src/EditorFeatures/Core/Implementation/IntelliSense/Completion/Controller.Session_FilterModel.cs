@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             public void FilterModel(
                 CompletionFilterReason filterReason,
-                bool recheckCaretPosition = false,
-                bool dismissIfEmptyAllowed = true,
-                ImmutableDictionary<CompletionItemFilter, bool> filterState = null)
+                bool dismissIfEmptyAllowed,
+                bool recheckCaretPosition,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 AssertIsForeground();
 
@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     });
             }
 
-            public void IdentifyBestMatchAndFilterToAllItems(CompletionFilterReason filterReason, bool recheckCaretPosition = false, bool dismissIfEmptyAllowed = true)
+            public void IdentifyBestMatchAndFilterToAllItems(
+                CompletionFilterReason filterReason, bool recheckCaretPosition, bool dismissIfEmptyAllowed)
             {
                 AssertIsForeground();
 
@@ -58,7 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var localId = _filterId;
                 Computation.ChainTaskAndNotifyControllerWhenFinished(model =>
                     {
-                        var filteredModel = FilterModelInBackground(model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                        var filteredModel = FilterModelInBackground(
+                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+
                         return filteredModel != null
                             ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItem)
                             : null;
@@ -76,8 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, recheckCaretPosition,
-                        dismissIfEmptyAllowed, filterReason);
+                        model, id, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
                 }
             }
 
@@ -142,10 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         return model;
                     }
-
-                    // We may have wrapped some items in the list in DescriptionModifying items,
-                    // but we should use the actual underlying items when filtering. That way
-                    // our rules can access the underlying item's provider.
 
                     if (ItemIsFilteredOut(currentItem.Item, filterState))
                     {
@@ -218,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     if (dismissIfEmptyAllowed &&
                         model.DismissIfEmpty &&
-                        filterReason != CompletionFilterReason.BackspaceOrDelete)
+                        filterReason == CompletionFilterReason.TypeChar)
                     {
                         return null;
                     }

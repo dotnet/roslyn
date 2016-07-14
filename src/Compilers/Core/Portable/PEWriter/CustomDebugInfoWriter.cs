@@ -6,9 +6,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 namespace Microsoft.Cci
 {
@@ -131,7 +131,7 @@ namespace Microsoft.Cci
             {
                 customDebugInfo.Add(
                     SerializeRecord(
-                        CDI.CdiKindEditAndContinueLocalSlotMap, 
+                        CustomDebugInfoKind.EditAndContinueLocalSlotMap, 
                         debugInfo,
                         (info, builder) => info.SerializeLocalSlots(builder)));
             }
@@ -140,20 +140,20 @@ namespace Microsoft.Cci
             {
                 customDebugInfo.Add(
                     SerializeRecord(
-                        CDI.CdiKindEditAndContinueLambdaMap,
+                        CustomDebugInfoKind.EditAndContinueLambdaMap,
                         debugInfo,
                         (info, builder) => info.SerializeLambdaMap(builder)));
             }
         }
 
         private static PooledBlobBuilder SerializeRecord(
-            byte kind,
+            CustomDebugInfoKind kind,
             EditAndContinueMethodDebugInformation debugInfo,
             Action<EditAndContinueMethodDebugInformation, BlobBuilder> recordSerializer)
         {
             var cmw = PooledBlobBuilder.GetInstance();
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte(kind);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
+            cmw.WriteByte((byte)kind);
             cmw.WriteByte(0);
 
             // alignment size and length (will be patched)
@@ -182,8 +182,8 @@ namespace Microsoft.Cci
         {
             if (iteratorClassName == null) return;
             var cmw = PooledBlobBuilder.GetInstance();
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte(CDI.CdiKindForwardIterator);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
+            cmw.WriteByte((byte)CustomDebugInfoKind.ForwardIterator);
             cmw.Align(4);
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
@@ -205,8 +205,8 @@ namespace Microsoft.Cci
 
             uint numberOfScopes = (uint)scopes.Length;
             var cmw = PooledBlobBuilder.GetInstance();
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte(CDI.CdiKindStateMachineHoistedLocalScopes);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
+            cmw.WriteByte((byte)CustomDebugInfoKind.StateMachineHoistedLocalScopes);
             cmw.Align(4);
             cmw.WriteUInt32(12 + numberOfScopes * 8);
             cmw.WriteUInt32(numberOfScopes);
@@ -264,8 +264,8 @@ namespace Microsoft.Cci
             const int identifierSize = 64;
             const int blobSize = dynamicAttributeSize + 4 + 4 + identifierSize * 2;//DynamicAttribute: 64, DynamicAttributeLength: 4, SlotIndex: 4, IdentifierName: 128
             var cmw = PooledBlobBuilder.GetInstance();
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte(CDI.CdiKindDynamicLocals);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
+            cmw.WriteByte((byte)CustomDebugInfoKind.DynamicLocals);
             cmw.Align(4);
             // size = Version,Kind + size + cBuckets + (dynamicCount * sizeOf(Local Blob))
             cmw.WriteUInt32(4 + 4 + 4 + (uint)dynamicLocals.Count * blobSize);//Size of the Dynamic Block
@@ -332,7 +332,7 @@ namespace Microsoft.Cci
             ];
 
             var cmw = new BlobWriter(result);
-            cmw.WriteByte(CDI.CdiVersion);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
             cmw.WriteByte((byte)recordWriters.Count); // count
             cmw.WriteInt16(0);
             foreach (var recordWriter in recordWriters)
@@ -369,8 +369,8 @@ namespace Microsoft.Cci
             if (usingCounts.Count > 0)
             {
                 uint streamLength;
-                cmw.WriteByte(CDI.CdiVersion);
-                cmw.WriteByte(CDI.CdiKindUsingInfo);
+                cmw.WriteByte(CustomDebugInfoConstants.Version);
+                cmw.WriteByte((byte)CustomDebugInfoKind.UsingInfo);
                 cmw.Align(4);
 
                 cmw.WriteUInt32(streamLength = BitArithmeticUtilities.Align((uint)usingCounts.Count * 2 + 10, 4));
@@ -439,8 +439,8 @@ namespace Microsoft.Cci
         private void SerializeReferenceToMethodWithModuleInfo(ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
             var cmw = PooledBlobBuilder.GetInstance();
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte(CDI.CdiKindForwardToModuleInfo);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
+            cmw.WriteByte((byte)CustomDebugInfoKind.ForwardToModuleInfo);
             cmw.Align(4);
             cmw.WriteUInt32(12);
             cmw.WriteUInt32((uint)_methodTokenWithModuleInfo);
@@ -450,8 +450,8 @@ namespace Microsoft.Cci
         private void SerializeReferenceToPreviousMethodWithUsingInfo(ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
             var cmw = PooledBlobBuilder.GetInstance(12);
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte(CDI.CdiKindForwardInfo);
+            cmw.WriteByte(CustomDebugInfoConstants.Version);
+            cmw.WriteByte((byte)CustomDebugInfoKind.ForwardInfo);
             cmw.Align(4);
             cmw.WriteUInt32(12);
             cmw.WriteUInt32((uint)_previousMethodTokenWithUsingInfo);

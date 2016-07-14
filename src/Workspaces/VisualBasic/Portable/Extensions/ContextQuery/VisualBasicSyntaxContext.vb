@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -93,7 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
-                isInImportsDirective:=isInImportsDirective)
+                isInImportsDirective:=isInImportsDirective,
+                cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
 
@@ -270,6 +272,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Position, TargetToken, Function(joinOperator) joinOperator.JoinedVariables.LastCollectionExpression(), cancellationToken)
         End Function
 
+        Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
+            Return New VisualBasicTypeInferenceService()
+        End Function
     End Class
 End Namespace
 
