@@ -121,7 +121,8 @@
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\PartialMethodCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletionProvider.cs" />

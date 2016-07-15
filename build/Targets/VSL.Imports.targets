@@ -382,13 +382,13 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <OptimizationDataFolderPath>$(MSBuildThisFileDirectory)..\..\..\Closed\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\1.3.0-beta5-60518-02\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
-    <IbcMergePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\Closed\Tools\ibcmerge\ibcmerge.exe'))</IbcMergePath>
   </PropertyGroup>
 
+  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a build definition variable -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
+          Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 

@@ -125,6 +125,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to type declaration..
+        /// </summary>
+        internal static string AutoselectDisabledDueToTypeDeclaration {
+            get {
+                return ResourceManager.GetString("AutoselectDisabledDueToTypeDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to awaitable.
         /// </summary>
         internal static string Awaitable {
@@ -202,6 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string CheckedStatement {
             get {
                 return ResourceManager.GetString("CheckedStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;class name&gt;.
+        /// </summary>
+        internal static string ClassName {
+            get {
+                return ResourceManager.GetString("ClassName", resourceCulture);
             }
         }
         
@@ -463,6 +481,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string InsertAwait {
             get {
                 return ResourceManager.GetString("InsertAwait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;interface name&gt;.
+        /// </summary>
+        internal static string InterfaceName {
+            get {
+                return ResourceManager.GetString("InterfaceName", resourceCulture);
             }
         }
         
@@ -859,6 +886,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Struct {
             get {
                 return ResourceManager.GetString("Struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;struct name&gt;.
+        /// </summary>
+        internal static string StructName {
+            get {
+                return ResourceManager.GetString("StructName", resourceCulture);
             }
         }
         

@@ -9,15 +9,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public class PartialCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public PartialCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public PartialMethodCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
         internal override CompletionProvider CreateCompletionProvider()
         {
-            return new PartialCompletionProvider();
+            return new PartialMethodCompletionProvider();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
