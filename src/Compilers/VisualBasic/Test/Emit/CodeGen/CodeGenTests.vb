@@ -49,24 +49,24 @@ End Structure
     </file>
 </compilation>).
             VerifyIL("Program.M",
-            <![CDATA[
+            "
 {
   // Code size       37 (0x25)
   .maxstack  2
   IL_0000:  ldc.i4.1
-  IL_0001:  newarr     "Object"
+  IL_0001:  newarr     ""Object""
   IL_0006:  starg.s    V_0
   IL_0008:  ldarg.0
   IL_0009:  ldc.i4.0
   IL_000a:  ldelem.ref
-  IL_000b:  unbox      "OuterStruct"
-  IL_0010:  ldflda     "OuterStruct.z As DoubleAndStruct"
-  IL_0015:  ldflda     "DoubleAndStruct.y As TwoInteger"
-  IL_001a:  ldfld      "TwoInteger.x As Integer"
-  IL_001f:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  unbox      ""OuterStruct""
+  IL_0010:  ldflda     ""OuterStruct.z As DoubleAndStruct""
+  IL_0015:  ldflda     ""DoubleAndStruct.y As TwoInteger""
+  IL_001a:  ldfld      ""TwoInteger.x As Integer""
+  IL_001f:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_0024:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
@@ -104,24 +104,24 @@ End Class
     </file>
 </compilation>).
             VerifyIL("Program.M",
-            <![CDATA[
+            "
 {
   // Code size       37 (0x25)
   .maxstack  2
   IL_0000:  ldc.i4.1
-  IL_0001:  newarr     "Object"
+  IL_0001:  newarr     ""Object""
   IL_0006:  starg.s    V_0
   IL_0008:  ldarg.0
   IL_0009:  ldc.i4.0
   IL_000a:  ldelem.ref
-  IL_000b:  castclass  "OuterStruct"
-  IL_0010:  ldflda     "OuterStruct.z As DoubleAndStruct"
-  IL_0015:  ldflda     "DoubleAndStruct.y As TwoInteger"
-  IL_001a:  ldfld      "TwoInteger.x As Integer"
-  IL_001f:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  castclass  ""OuterStruct""
+  IL_0010:  ldflda     ""OuterStruct.z As DoubleAndStruct""
+  IL_0015:  ldflda     ""DoubleAndStruct.y As TwoInteger""
+  IL_001a:  ldfld      ""TwoInteger.x As Integer""
+  IL_001f:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_0024:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -162,30 +162,30 @@ End Structure
     </file>
 </compilation>).
             VerifyIL("Program.M",
-            <![CDATA[
+            "
 {
   // Code size       51 (0x33)
   .maxstack  4
   IL_0000:  ldc.i4.1
-  IL_0001:  newarr     "Object"
+  IL_0001:  newarr     ""Object""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
   IL_0008:  ldc.i4.1
-  IL_0009:  newobj     "Sub OuterStruct..ctor(Integer)"
-  IL_000e:  box        "OuterStruct"
+  IL_0009:  newobj     ""Sub OuterStruct..ctor(Integer)""
+  IL_000e:  box        ""OuterStruct""
   IL_0013:  stelem.ref
   IL_0014:  starg.s    V_0
   IL_0016:  ldarg.0
   IL_0017:  ldc.i4.0
   IL_0018:  ldelem.ref
-  IL_0019:  unbox      "OuterStruct"
-  IL_001e:  ldfld      "OuterStruct.z As DoubleAndStruct"
-  IL_0023:  ldflda     "DoubleAndStruct.y As TwoInteger"
-  IL_0028:  ldfld      "TwoInteger.x As Integer"
-  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0019:  unbox      ""OuterStruct""
+  IL_001e:  ldfld      ""OuterStruct.z As DoubleAndStruct""
+  IL_0023:  ldflda     ""DoubleAndStruct.y As TwoInteger""
+  IL_0028:  ldfld      ""TwoInteger.x As Integer""
+  IL_002d:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_0032:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
@@ -222,17 +222,17 @@ End Class
     </file>
 </compilation>).
             VerifyIL("Program.M",
-            <![CDATA[
+           "
 {
   // Code size       21 (0x15)
   .maxstack  1
-  IL_0000:  ldsflda    "OuterStruct.z As DoubleAndStruct"
-  IL_0005:  ldflda     "DoubleAndStruct.y As TwoInteger"
-  IL_000a:  ldfld      "TwoInteger.x As Integer"
-  IL_000f:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0000:  ldsflda    ""OuterStruct.z As DoubleAndStruct""
+  IL_0005:  ldflda     ""DoubleAndStruct.y As TwoInteger""
+  IL_000a:  ldfld      ""TwoInteger.x As Integer""
+  IL_000f:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_0014:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(545724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545724")>
@@ -330,41 +330,41 @@ expectedOutput:=<![CDATA[
 0
 ]]>).
             VerifyIL("RedimTest.Main",
-            <![CDATA[
+            "
 {
   // Code size       73 (0x49)
   .maxstack  4
   IL_0000:  ldc.i4.4
-  IL_0001:  newarr     "Integer"
+  IL_0001:  newarr     ""Integer""
   IL_0006:  dup
   IL_0007:  ldc.i4.1
   IL_0008:  ldc.i4     0xea
   IL_000d:  stelem.i4
   IL_000e:  ldc.i4.6
-  IL_000f:  newarr     "Integer"
-  IL_0014:  call       "Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array"
-  IL_0019:  castclass  "Integer()"
+  IL_000f:  newarr     ""Integer""
+  IL_0014:  call       ""Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array""
+  IL_0019:  castclass  ""Integer()""
   IL_001e:  dup
   IL_001f:  ldc.i4.1
   IL_0020:  ldelem.i4
-  IL_0021:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0021:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_0026:  ldc.i4.4
   IL_0027:  ldelem.i4
-  IL_0028:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0028:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_002d:  ldc.i4.3
-  IL_002e:  newarr     "Integer"
+  IL_002e:  newarr     ""Integer""
   IL_0033:  pop
   IL_0034:  ldc.i4.4
-  IL_0035:  newarr     "Integer"
+  IL_0035:  newarr     ""Integer""
   IL_003a:  pop
   IL_003b:  ldc.i4.5
-  IL_003c:  newarr     "Integer"
+  IL_003c:  newarr     ""Integer""
   IL_0041:  ldc.i4.1
   IL_0042:  ldelem.i4
-  IL_0043:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0043:  call       ""Sub System.Console.WriteLine(Integer)""
   IL_0048:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -393,23 +393,23 @@ End Module
 </compilation>,
 expectedOutput:=<![CDATA[False]]>).
             VerifyIL("RedimTest.Main",
-            <![CDATA[
+            "
 {
   // Code size       39 (0x27)
   .maxstack  3
   IL_0000:  ldc.i4.0
-  IL_0001:  newarr     "String"
+  IL_0001:  newarr     ""String""
   IL_0006:  ldc.i4.0
-  IL_0007:  newarr     "String"
-  IL_000c:  call       "Function RedimTest.get_X(ParamArray String()) As Integer()"
+  IL_0007:  newarr     ""String""
+  IL_000c:  call       ""Function RedimTest.get_X(ParamArray String()) As Integer()""
   IL_0011:  ldc.i4.1
-  IL_0012:  newarr     "Integer"
-  IL_0017:  call       "Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array"
-  IL_001c:  castclass  "Integer()"
-  IL_0021:  call       "Sub RedimTest.set_X(ParamArray String(), Integer())"
+  IL_0012:  newarr     ""Integer""
+  IL_0017:  call       ""Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array""
+  IL_001c:  castclass  ""Integer()""
+  IL_0021:  call       ""Sub RedimTest.set_X(ParamArray String(), Integer())""
   IL_0026:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
@@ -468,26 +468,26 @@ End Module
 </compilation>,
 expectedOutput:="").
             VerifyIL("Program.Main",
-            <![CDATA[
+            "
 {
   // Code size       31 (0x1f)
   .maxstack  2
   .locals init (Base V_0) //o
-  IL_0000:  newobj     "Sub DerivedA..ctor()"
+  IL_0000:  newobj     ""Sub DerivedA..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  callvirt   "Function Base.get_Kind() As E"
+  IL_0007:  callvirt   ""Function Base.get_Kind() As E""
   IL_000c:  ldc.i4.1
   IL_000d:  bne.un.s   IL_001c
   IL_000f:  ldloc.0
-  IL_0010:  castclass  "DerivedB"
-  IL_0015:  callvirt   "Function DerivedB.get_IsGood() As Boolean"
+  IL_0010:  castclass  ""DerivedB""
+  IL_0015:  callvirt   ""Function DerivedB.get_IsGood() As Boolean""
   IL_001a:  br.s       IL_001d
   IL_001c:  ldc.i4.0
   IL_001d:  pop
   IL_001e:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(529861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529861")>
@@ -522,7 +522,7 @@ Module Program
 End Module
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 0.0000000000000000000000000000
 0.0000000000000000000000000000
 0.0000000000000000000000000000
@@ -540,7 +540,7 @@ expectedOutput:=<![CDATA[
 0.0000000000000000000000000000
 0.0000000000000000000000000000
 0.0000000000000000000000000000
-]]>)
+")
 
         End Sub
 
@@ -609,12 +609,12 @@ Module Program
 End Module
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 10000000000000000000000
 100000000000000000000000
 1000000000000000000000000
 10000000000000000000000000000
-]]>)
+")
         End Sub
 
         ''' <summary>
@@ -645,7 +645,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=XmlReferences, expectedOutput:="
 0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -656,7 +656,7 @@ End Module
 0.0000000000000000000000000000
 
 0.1000000000000000000000000000
-]]>)
+")
 
         End Sub
 
@@ -703,7 +703,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=XmlReferences, expectedOutput:="
 00000000000000000000000000000000
 00000000000000000000000000010000
 00000000000000000000000000020000
@@ -723,7 +723,7 @@ End Module
 000000000000000000000000000a0000
 000000000000000000000000800c0000
 000000000000000000000000801c0000
-]]>)
+")
         End Sub
 
         ''' <summary>
@@ -825,26 +825,26 @@ End Class
 </compilation>,
 expectedOutput:=<![CDATA[Done]]>).
             VerifyIL("Member.get_P",
-            <![CDATA[
+            "
 {
   // Code size       35 (0x23)
   .maxstack  2
   .locals init (Array(Of Field) V_0,
   Field V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Member.C As Container"
-  IL_0006:  ldfld      "Container.D As Descr"
-  IL_000b:  ldfld      "Descr.Fields As Array(Of Field)"
+  IL_0001:  ldfld      ""Member.C As Container""
+  IL_0006:  ldfld      ""Container.D As Descr""
+  IL_000b:  ldfld      ""Descr.Fields As Array(Of Field)""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  ldc.i4.s   123
-  IL_0015:  call       "Function Array(Of Field).get_Item(Integer) As Field"
+  IL_0015:  call       ""Function Array(Of Field).get_Item(Integer) As Field""
   IL_001a:  stloc.1
   IL_001b:  ldloca.s   V_1
-  IL_001d:  call       "Function Field.get_Type() As String"
+  IL_001d:  call       ""Function Field.get_Type() As String""
   IL_0022:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
@@ -945,34 +945,34 @@ End Module
 </compilation>,
 expectedOutput:=<![CDATA[False]]>).
             VerifyIL("RedimTest.Main",
-            <![CDATA[
+            "
 {
   // Code size       53 (0x35)
   .maxstack  5
   .locals init (String V_0)
   IL_0000:  ldc.i4.1
-  IL_0001:  newarr     "String"
+  IL_0001:  newarr     ""String""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
-  IL_0008:  call       "Function RedimTest.get_Y() As String"
+  IL_0008:  call       ""Function RedimTest.get_Y() As String""
   IL_000d:  dup
   IL_000e:  stloc.0
   IL_000f:  stelem.ref
   IL_0010:  ldc.i4.1
-  IL_0011:  newarr     "String"
+  IL_0011:  newarr     ""String""
   IL_0016:  dup
   IL_0017:  ldc.i4.0
   IL_0018:  ldloc.0
   IL_0019:  stelem.ref
-  IL_001a:  call       "Function RedimTest.get_X(ParamArray String()) As Integer()"
+  IL_001a:  call       ""Function RedimTest.get_X(ParamArray String()) As Integer()""
   IL_001f:  ldc.i4.1
-  IL_0020:  newarr     "Integer"
-  IL_0025:  call       "Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array"
-  IL_002a:  castclass  "Integer()"
-  IL_002f:  call       "Sub RedimTest.set_X(ParamArray String(), Integer())"
+  IL_0020:  newarr     ""Integer""
+  IL_0025:  call       ""Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array""
+  IL_002a:  castclass  ""Integer()""
+  IL_002f:  call       ""Sub RedimTest.set_X(ParamArray String(), Integer())""
   IL_0034:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -1006,24 +1006,24 @@ End Module
 </compilation>,
 expectedOutput:=<![CDATA[False]]>).
             VerifyIL("M.Main",
-            <![CDATA[
+            "
 {
   // Code size       32 (0x20)
   .maxstack  2
   .locals init (Integer() V_0)
   IL_0000:  ldc.i4.0
-  IL_0001:  newarr     "String"
-  IL_0006:  call       "Function M.get_X(ParamArray String()) As Integer()"
+  IL_0001:  newarr     ""String""
+  IL_0006:  call       ""Function M.get_X(ParamArray String()) As Integer()""
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
-  IL_000e:  call       "Sub M.M(ByRef Integer())"
+  IL_000e:  call       ""Sub M.M(ByRef Integer())""
   IL_0013:  ldc.i4.0
-  IL_0014:  newarr     "String"
+  IL_0014:  newarr     ""String""
   IL_0019:  ldloc.0
-  IL_001a:  call       "Sub M.set_X(ParamArray String(), Integer())"
+  IL_001a:  call       ""Sub M.set_X(ParamArray String(), Integer())""
   IL_001f:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(545404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545404")>
@@ -1052,15 +1052,15 @@ End Class
 </compilation>,
 expectedOutput:="").
             VerifyIL("CLS.Main",
-            <![CDATA[
+            "
 {
   // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  newobj     "Sub CLS..ctor()"
+  IL_0000:  newobj     ""Sub CLS..ctor()""
   IL_0005:  pop
   IL_0006:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -1125,68 +1125,68 @@ End Class
 
             CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties, TestOptions.ReleaseDll).
             VerifyIL("D3.Test",
-            <![CDATA[
+            "
 {
   // Code size      127 (0x7f)
   .maxstack  2
   .locals init (Integer V_0) //tmp
   IL_0000:  ldarg.0
-  IL_0001:  callvirt   "Function D1.get_P_rw_r_w() As Integer"
+  IL_0001:  callvirt   ""Function D1.get_P_rw_r_w() As Integer""
   IL_0006:  stloc.0
   IL_0007:  ldarg.0
-  IL_0008:  call       "Function D1.get_P_rw_r_w() As Integer"
+  IL_0008:  call       ""Function D1.get_P_rw_r_w() As Integer""
   IL_000d:  stloc.0
   IL_000e:  ldarg.0
-  IL_000f:  call       "Function D1.get_P_rw_r_w() As Integer"
+  IL_000f:  call       ""Function D1.get_P_rw_r_w() As Integer""
   IL_0014:  stloc.0
   IL_0015:  ldarg.0
   IL_0016:  ldloc.0
-  IL_0017:  callvirt   "Sub D3.set_P_rw_r_w(Integer)"
+  IL_0017:  callvirt   ""Sub D3.set_P_rw_r_w(Integer)""
   IL_001c:  ldarg.0
   IL_001d:  ldloc.0
-  IL_001e:  call       "Sub D3.set_P_rw_r_w(Integer)"
+  IL_001e:  call       ""Sub D3.set_P_rw_r_w(Integer)""
   IL_0023:  ldarg.0
   IL_0024:  ldloc.0
-  IL_0025:  call       "Sub D2.set_P_rw_r_w(Integer)"
+  IL_0025:  call       ""Sub D2.set_P_rw_r_w(Integer)""
   IL_002a:  ldarg.0
-  IL_002b:  callvirt   "Function D3.get_P_rw_rw_r() As Integer"
+  IL_002b:  callvirt   ""Function D3.get_P_rw_rw_r() As Integer""
   IL_0030:  stloc.0
   IL_0031:  ldarg.0
-  IL_0032:  call       "Function D3.get_P_rw_rw_r() As Integer"
+  IL_0032:  call       ""Function D3.get_P_rw_rw_r() As Integer""
   IL_0037:  stloc.0
   IL_0038:  ldarg.0
-  IL_0039:  call       "Function D2.get_P_rw_rw_r() As Integer"
+  IL_0039:  call       ""Function D2.get_P_rw_rw_r() As Integer""
   IL_003e:  stloc.0
   IL_003f:  ldarg.0
   IL_0040:  ldloc.0
-  IL_0041:  callvirt   "Sub D1.set_P_rw_rw_r(Integer)"
+  IL_0041:  callvirt   ""Sub D1.set_P_rw_rw_r(Integer)""
   IL_0046:  ldarg.0
   IL_0047:  ldloc.0
-  IL_0048:  call       "Sub D1.set_P_rw_rw_r(Integer)"
+  IL_0048:  call       ""Sub D1.set_P_rw_rw_r(Integer)""
   IL_004d:  ldarg.0
   IL_004e:  ldloc.0
-  IL_004f:  call       "Sub D1.set_P_rw_rw_r(Integer)"
+  IL_004f:  call       ""Sub D1.set_P_rw_rw_r(Integer)""
   IL_0054:  ldarg.0
-  IL_0055:  callvirt   "Function D1.get_P_rw_rw_w() As Integer"
+  IL_0055:  callvirt   ""Function D1.get_P_rw_rw_w() As Integer""
   IL_005a:  stloc.0
   IL_005b:  ldarg.0
-  IL_005c:  call       "Function D1.get_P_rw_rw_w() As Integer"
+  IL_005c:  call       ""Function D1.get_P_rw_rw_w() As Integer""
   IL_0061:  stloc.0
   IL_0062:  ldarg.0
-  IL_0063:  call       "Function D1.get_P_rw_rw_w() As Integer"
+  IL_0063:  call       ""Function D1.get_P_rw_rw_w() As Integer""
   IL_0068:  stloc.0
   IL_0069:  ldarg.0
   IL_006a:  ldloc.0
-  IL_006b:  callvirt   "Sub D3.set_P_rw_rw_w(Integer)"
+  IL_006b:  callvirt   ""Sub D3.set_P_rw_rw_w(Integer)""
   IL_0070:  ldarg.0
   IL_0071:  ldloc.0
-  IL_0072:  call       "Sub D3.set_P_rw_rw_w(Integer)"
+  IL_0072:  call       ""Sub D3.set_P_rw_rw_w(Integer)""
   IL_0077:  ldarg.0
   IL_0078:  ldloc.0
-  IL_0079:  call       "Sub D2.set_P_rw_rw_w(Integer)"
+  IL_0079:  call       ""Sub D2.set_P_rw_rw_w(Integer)""
   IL_007e:  ret
 }
-]]>)
+")
         End Sub
 
         Public Shared ReadOnly AttributesWithReadWriteProperties As XCData = <![CDATA[
@@ -1451,7 +1451,7 @@ End Module
 
             CompileWithCustomILSource(vbSource, AttributesWithReadWriteProperties.Value,
                                       options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
-                                      expectedOutput:=<![CDATA[
+                                      expectedOutput:="
 Void .ctor()(..0..)
 Int32 P_rw_r_w:=(Int32)1
 Int32 P_rw_rw_w:=(Int32)2
@@ -1459,7 +1459,7 @@ Void .ctor()(..0..)
 Int32 P_rw_r_w:=(Int32)1
 Int32 P_rw_rw_w:=(Int32)2
 Int32 P_rw_rw_r:=(Int32)3
-]]>.Value.Replace(vbLf, Environment.NewLine))
+") '.Replace(vbLf, Environment.NewLine))
         End Sub
 
         <Fact()>
@@ -1493,28 +1493,28 @@ End Module
 </compilation>,
 expectedOutput:=<![CDATA[True]]>).
             VerifyIL("M.Main",
-            <![CDATA[
+            "
 {
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (Integer() V_0)
   IL_0000:  ldc.i4.2
-  IL_0001:  newarr     "String"
+  IL_0001:  newarr     ""String""
   IL_0006:  dup
-  IL_0007:  call       "Function M.get_X(ParamArray String()) As Integer()"
+  IL_0007:  call       ""Function M.get_X(ParamArray String()) As Integer()""
   IL_000c:  stloc.0
   IL_000d:  ldloca.s   V_0
-  IL_000f:  call       "Sub M.M(ByRef Integer())"
+  IL_000f:  call       ""Sub M.M(ByRef Integer())""
   IL_0014:  ldloc.0
-  IL_0015:  call       "Sub M.set_X(ParamArray String(), Integer())"
+  IL_0015:  call       ""Sub M.set_X(ParamArray String(), Integer())""
   IL_001a:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub TestByRefMethodWithByRefParamArrayProperty()
-            Dim ilSource = <![CDATA[
+            Dim ilSource = "
 .class public auto ansi sealed TestModule
        extends [mscorlib]System.Object
 {
@@ -1565,7 +1565,7 @@ expectedOutput:=<![CDATA[True]]>).
     .get int32[] TestModule::get_X(string[]&)
   } // end of property RedimTest::X
 } // end of class ClassLibrary1.RedimTest
-]]>
+"
 
             Dim vbSource =
 <compilation>
@@ -1583,37 +1583,37 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
+            CompileWithCustomILSource(vbSource, ilSource, TestOptions.ReleaseDll).
                 VerifyIL("M.Main",
-            <![CDATA[
+            "
                                                {
                                                   // Code size       38 (0x26)
                                                   .maxstack  2
                                                   .locals init (Integer() V_0,
                                                   String() V_1)
                                                   IL_0000:  ldc.i4.0
-                                                  IL_0001:  newarr     "String"
+                                                  IL_0001:  newarr     ""String""
                                                   IL_0006:  stloc.1
                                                   IL_0007:  ldloca.s   V_1
-                                                  IL_0009:  call       "Function TestModule.get_X(ByRef ParamArray String()) As Integer()"
+                                                  IL_0009:  call       ""Function TestModule.get_X(ByRef ParamArray String()) As Integer()""
                                                   IL_000e:  stloc.0
                                                   IL_000f:  ldloca.s   V_0
-                                                  IL_0011:  call       "Sub M.M(ByRef Integer())"
+                                                  IL_0011:  call       ""Sub M.M(ByRef Integer())""
                                                   IL_0016:  ldc.i4.0
-                                                  IL_0017:  newarr     "String"
+                                                  IL_0017:  newarr     ""String""
                                                   IL_001c:  stloc.1
                                                   IL_001d:  ldloca.s   V_1
                                                   IL_001f:  ldloc.0
-                                                  IL_0020:  call       "Sub TestModule.set_X(ByRef ParamArray String(), Integer())"
+                                                  IL_0020:  call       ""Sub TestModule.set_X(ByRef ParamArray String(), Integer())""
                                                   IL_0025:  ret
                                                }
-                                               ]]>)
+                                               ")
         End Sub
 
         <WorkItem(546853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546853")>
         <Fact()>
         Public Sub CallingVirtualFinalMethod()
-            Dim ilSource = <![CDATA[
+            Dim ilSource = "
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
@@ -1650,7 +1650,7 @@ End Module
     .get instance bool B::get_M2()
   }
 }
-]]>
+"
 
             Dim vbSource =
 <compilation>
@@ -1664,28 +1664,28 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
+            CompileWithCustomILSource(vbSource, ilSource, TestOptions.ReleaseDll).
                 VerifyIL("C.S",
-            <![CDATA[
+            "
 {
   // Code size       27 (0x1b)
   .maxstack  1
-  IL_0000:  newobj     "Sub B..ctor()"
-  IL_0005:  callvirt   "Function B.get_M1() As Boolean"
+  IL_0000:  newobj     ""Sub B..ctor()""
+  IL_0005:  callvirt   ""Function B.get_M1() As Boolean""
   IL_000a:  brfalse.s  IL_0018
-  IL_000c:  newobj     "Sub B..ctor()"
-  IL_0011:  call       "Function B.get_M2() As Boolean"
+  IL_000c:  newobj     ""Sub B..ctor()""
+  IL_0011:  call       ""Function B.get_M2() As Boolean""
   IL_0016:  br.s       IL_0019
   IL_0018:  ldc.i4.0
   IL_0019:  pop
   IL_001a:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub TestToStringOnStruct()
-            Dim ilSource = <![CDATA[
+            Dim ilSource = "
 .class sequential ansi sealed public Struct1
          extends [mscorlib]System.ValueType
 {
@@ -1696,7 +1696,7 @@ End Module
       .maxstack  1
       .locals init (string V_0)
       IL_0000:  nop
-      IL_0001:  ldstr      "Struct1 "
+      IL_0001:  ldstr      ""Struct1 ""
       IL_0006:  stloc.0
       IL_0007:  br.s       IL_0009
       IL_0009:  ldloc.0
@@ -1713,15 +1713,14 @@ End Module
       .maxstack  1
       .locals init (string V_0)
       IL_0000:  nop
-      IL_0001:  ldstr      "Struct2 "
+      IL_0001:  ldstr      ""Struct2 ""
       IL_0006:  stloc.0
       IL_0007:  br.s       IL_0009
       IL_0009:  ldloc.0
       IL_000a:  ret
     }
 }
-]]>
-
+"
             Dim vbSource =
 <compilation>
     <file name="a.vb">
@@ -1737,29 +1736,29 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
+            CompileWithCustomILSource(vbSource, ilSource, TestOptions.ReleaseDll).
                 VerifyIL("M.Main",
-            <![CDATA[
+            "
 {
   // Code size       53 (0x35)
   .maxstack  1
   .locals init (Struct1 V_0, //s1
   Struct2 V_1) //s2
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "Struct1"
+  IL_0002:  initobj    ""Struct1""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  constrained. "Struct1"
-  IL_0010:  callvirt   "Function Object.ToString() As String"
-  IL_0015:  call       "Sub System.Console.Write(String)"
+  IL_000a:  constrained. ""Struct1""
+  IL_0010:  callvirt   ""Function Object.ToString() As String""
+  IL_0015:  call       ""Sub System.Console.Write(String)""
   IL_001a:  ldloca.s   V_1
-  IL_001c:  initobj    "Struct2"
+  IL_001c:  initobj    ""Struct2""
   IL_0022:  ldloca.s   V_1
-  IL_0024:  constrained. "Struct2"
-  IL_002a:  callvirt   "Function Object.ToString() As String"
-  IL_002f:  call       "Sub System.Console.Write(String)"
+  IL_0024:  constrained. ""Struct2""
+  IL_002a:  callvirt   ""Function Object.ToString() As String""
+  IL_002f:  call       ""Sub System.Console.Write(String)""
   IL_0034:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -1795,50 +1794,50 @@ Class RedimTest
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 Writing
 Reading
 Reading
 Writing
 Reading
 stored value
-]]>).
+").
             VerifyIL("RedimTest.Main",
-            <![CDATA[
+            "
 {
 // Code size      100 (0x64)
 .maxstack  3
 .locals init (RedimTest V_0)
-IL_0000:  call       "Function RedimTest.Func() As RedimTest"
+IL_0000:  call       ""Function RedimTest.Func() As RedimTest""
 IL_0005:  ldc.i4.3
-IL_0006:  newarr     "Object"
-IL_000b:  callvirt   "Sub RedimTest.set_Prop(Object)"
-IL_0010:  call       "Function RedimTest.Func() As RedimTest"
-IL_0015:  callvirt   "Function RedimTest.get_Prop() As Object"
-IL_001a:  castclass  "Object()"
+IL_0006:  newarr     ""Object""
+IL_000b:  callvirt   ""Sub RedimTest.set_Prop(Object)""
+IL_0010:  call       ""Function RedimTest.Func() As RedimTest""
+IL_0015:  callvirt   ""Function RedimTest.get_Prop() As Object""
+IL_001a:  castclass  ""Object()""
 IL_001f:  ldc.i4.1
-IL_0020:  ldstr      "stored value"
+IL_0020:  ldstr      ""stored value""
 IL_0025:  stelem.ref
-IL_0026:  call       "Function RedimTest.Func() As RedimTest"
+IL_0026:  call       ""Function RedimTest.Func() As RedimTest""
 IL_002b:  dup
 IL_002c:  stloc.0
 IL_002d:  ldloc.0
-IL_002e:  callvirt   "Function RedimTest.get_Prop() As Object"
-IL_0033:  castclass  "System.Array"
+IL_002e:  callvirt   ""Function RedimTest.get_Prop() As Object""
+IL_0033:  castclass  ""System.Array""
 IL_0038:  ldc.i4.6
-IL_0039:  newarr     "Object"
-IL_003e:  call       "Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array"
-IL_0043:  callvirt   "Sub RedimTest.set_Prop(Object)"
-IL_0048:  call       "Function RedimTest.Func() As RedimTest"
-IL_004d:  callvirt   "Function RedimTest.get_Prop() As Object"
-IL_0052:  castclass  "Object()"
+IL_0039:  newarr     ""Object""
+IL_003e:  call       ""Function Microsoft.VisualBasic.CompilerServices.Utils.CopyArray(System.Array, System.Array) As System.Array""
+IL_0043:  callvirt   ""Sub RedimTest.set_Prop(Object)""
+IL_0048:  call       ""Function RedimTest.Func() As RedimTest""
+IL_004d:  callvirt   ""Function RedimTest.get_Prop() As Object""
+IL_0052:  castclass  ""Object()""
 IL_0057:  ldc.i4.1
 IL_0058:  ldelem.ref
-IL_0059:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-IL_005e:  call       "Sub System.Console.WriteLine(Object)"
+IL_0059:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+IL_005e:  call       ""Sub System.Console.WriteLine(Object)""
 IL_0063:  ret
 }
-]]>)
+")
 
         End Sub
 
@@ -1883,24 +1882,24 @@ Class MainClass
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 S1
-]]>).
+").
             VerifyIL("MainClass.Main",
-            <![CDATA[
+            "
 {
   // Code size       25 (0x19)
   .maxstack  1
   .locals init (S1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "S1"
+  IL_0002:  initobj    ""S1""
   IL_0008:  ldloc.0
-  IL_0009:  box        "S1"
-  IL_000e:  call       "Function Object.GetType() As System.Type"
-  IL_0013:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0009:  box        ""S1""
+  IL_000e:  call       ""Function Object.GetType() As System.Type""
+  IL_0013:  call       ""Sub System.Console.WriteLine(Object)""
   IL_0018:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -1924,24 +1923,24 @@ Class MainClass
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 123
-]]>).
+").
             VerifyIL("MainClass.Main",
-            <![CDATA[
+            "
 {
   // Code size       27 (0x1b)
   .maxstack  1
   .locals init (S1 V_0) //s
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "S1"
+  IL_0002:  initobj    ""S1""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  constrained. "S1"
-  IL_0010:  callvirt   "Function Object.ToString() As String"
-  IL_0015:  call       "Sub System.Console.WriteLine(String)"
+  IL_000a:  constrained. ""S1""
+  IL_0010:  callvirt   ""Function Object.ToString() As String""
+  IL_0015:  call       ""Sub System.Console.WriteLine(String)""
   IL_001a:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -1977,22 +1976,22 @@ S1:M
 S1:M
 ]]>).
             VerifyIL("MainClass.Main",
-            <![CDATA[
+            "
 {
   // Code size       32 (0x20)
   .maxstack  1
   .locals init (S1 V_0) //s
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "S1"
+  IL_0002:  initobj    ""S1""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       "Sub S1.M()"
+  IL_000a:  call       ""Sub S1.M()""
   IL_000f:  ldloc.0
-  IL_0010:  box        "S1"
-  IL_0015:  castclass  "I"
-  IL_001a:  callvirt   "Sub I.M()"
+  IL_0010:  box        ""S1""
+  IL_0015:  castclass  ""I""
+  IL_001a:  callvirt   ""Sub I.M()""
   IL_001f:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(531085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531085")>
@@ -2029,13 +2028,13 @@ End Module
 </compilation>,
 expectedOutput:="").
             VerifyIL("Derived.inc",
-            <![CDATA[
+            "
 {
   // Code size       44 (0x2c)
   .maxstack  4
   .locals init (Integer& V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     "Base1.memberee As Integer"
+  IL_0001:  ldflda     ""Base1.memberee As Integer""
   IL_0006:  dup
   IL_0007:  stloc.0
   IL_0008:  ldloc.0
@@ -2045,21 +2044,21 @@ expectedOutput:="").
   IL_000c:  stind.i4
   IL_000d:  ldarg.0
   IL_000e:  ldarg.0
-  IL_000f:  call       "Function Base1.get_xyz() As Integer"
+  IL_000f:  call       ""Function Base1.get_xyz() As Integer""
   IL_0014:  ldc.i4.1
   IL_0015:  add.ovf
-  IL_0016:  call       "Sub Base1.set_xyz(Integer)"
+  IL_0016:  call       ""Sub Base1.set_xyz(Integer)""
   IL_001b:  ldarg.0
   IL_001c:  ldc.i4.0
   IL_001d:  ldarg.0
   IL_001e:  ldc.i4.0
-  IL_001f:  call       "Function Base1.get_this(Integer) As Integer"
+  IL_001f:  call       ""Function Base1.get_this(Integer) As Integer""
   IL_0024:  ldc.i4.1
   IL_0025:  add.ovf
-  IL_0026:  call       "Sub Base1.set_this(Integer, Integer)"
+  IL_0026:  call       ""Sub Base1.set_this(Integer, Integer)""
   IL_002b:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -2077,9 +2076,9 @@ Class MainClass
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[123]]>).
+expectedOutput:="123").
             VerifyIL("MainClass.Main",
-            <![CDATA[
+            "
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -2087,11 +2086,11 @@ expectedOutput:=<![CDATA[123]]>).
   IL_0000:  ldc.i4.s   123
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
-  IL_0005:  call       "Function Integer.ToString() As String"
-  IL_000a:  call       "Sub System.Console.WriteLine(String)"
+  IL_0005:  call       ""Function Integer.ToString() As String""
+  IL_000a:  call       ""Sub System.Console.WriteLine(String)""
   IL_000f:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -2111,16 +2110,16 @@ End Class
     </file>
 </compilation>).
             VerifyIL("MainClass.M",
-            <![CDATA[
+            "
 {
   // Code size        9 (0x9)
   .maxstack  1
   IL_0000:  ldarga.s   V_1
-  IL_0002:  call       "Function System.TypedReference.GetHashCode() As Integer"
+  IL_0002:  call       ""Function System.TypedReference.GetHashCode() As Integer""
   IL_0007:  pop
   IL_0008:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -2146,13 +2145,13 @@ Class MainClass
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 Shade
 False
 Gray
-]]>).
+").
             VerifyIL("MainClass.Main",
-            <![CDATA[
+            "
 {
   // Code size       62 (0x3e)
   .maxstack  2
@@ -2160,23 +2159,23 @@ Gray
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  box        "Shade"
-  IL_0008:  call       "Function Object.GetType() As System.Type"
-  IL_000d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0003:  box        ""Shade""
+  IL_0008:  call       ""Function Object.GetType() As System.Type""
+  IL_000d:  call       ""Sub System.Console.WriteLine(Object)""
   IL_0012:  ldloc.0
-  IL_0013:  box        "Shade"
+  IL_0013:  box        ""Shade""
   IL_0018:  ldc.i4.2
-  IL_0019:  box        "Shade"
-  IL_001e:  call       "Function System.Enum.HasFlag(System.Enum) As Boolean"
-  IL_0023:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0019:  box        ""Shade""
+  IL_001e:  call       ""Function System.Enum.HasFlag(System.Enum) As Boolean""
+  IL_0023:  call       ""Sub System.Console.WriteLine(Boolean)""
   IL_0028:  ldloc.0
-  IL_0029:  box        "Shade"
-  IL_002e:  ldstr      "G"
-  IL_0033:  call       "Function System.Enum.ToString(String) As String"
-  IL_0038:  call       "Sub System.Console.WriteLine(String)"
+  IL_0029:  box        ""Shade""
+  IL_002e:  ldstr      ""G""
+  IL_0033:  call       ""Function System.Enum.ToString(String) As String""
+  IL_0038:  call       ""Sub System.Console.WriteLine(String)""
   IL_003d:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -2214,27 +2213,27 @@ Class MainClass
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 42
 1
-]]>).
+").
             VerifyIL("MainClass.g",
-            <![CDATA[
+            "
 {
   // Code size       23 (0x17)
   .maxstack  1
   .locals init (IB V_0)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000a
-  IL_0003:  newobj     "Sub AB2..ctor()"
+  IL_0003:  newobj     ""Sub AB2..ctor()""
   IL_0008:  br.s       IL_0011
-  IL_000a:  newobj     "Sub AB1..ctor()"
+  IL_000a:  newobj     ""Sub AB1..ctor()""
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
-  IL_0011:  callvirt   "Function IB.f() As Integer"
+  IL_0011:  callvirt   ""Function IB.f() As Integer""
   IL_0016:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
@@ -2278,21 +2277,21 @@ End Module
 </compilation>,
 expectedOutput:="C1").
             VerifyIL("Program.F",
-            <![CDATA[
+            "
 {
   // Code size       17 (0x11)
   .maxstack  2
   .locals init (I V_0)
-  IL_0000:  call       "Function Program.F1() As C1"
+  IL_0000:  call       ""Function Program.F1() As C1""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  dup
   IL_0008:  brtrue.s   IL_0010
   IL_000a:  pop
-  IL_000b:  call       "Function Program.F2() As C2"
+  IL_000b:  call       ""Function Program.F2() As C2""
   IL_0010:  ret
 }
-]]>)
+")
         End Sub
 
         <WorkItem(634407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634407")>
@@ -2328,28 +2327,28 @@ End Class
     </file>
 </compilation>, expectedOutput:="").
             VerifyIL("Program.Main",
-            <![CDATA[
+            "
 {
   // Code size       35 (0x23)
   .maxstack  1
   .locals init (System.Exception() V_0) //f1
   IL_0000:  ldnull
   IL_0001:  stloc.0
-  IL_0002:  call       "Function Program.C() As Boolean"
+  IL_0002:  call       ""Function Program.C() As Boolean""
   IL_0007:  brtrue.s   IL_000c
   IL_0009:  ldnull
   IL_000a:  br.s       IL_000d
   IL_000c:  ldloc.0
-  IL_000d:  call       "Sub System.Console.WriteLine(Object)"
-  IL_0012:  call       "Function Program.C() As Boolean"
+  IL_000d:  call       ""Sub System.Console.WriteLine(Object)""
+  IL_0012:  call       ""Function Program.C() As Boolean""
   IL_0017:  brtrue.s   IL_001c
   IL_0019:  ldloc.0
   IL_001a:  br.s       IL_001d
   IL_001c:  ldnull
-  IL_001d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_001d:  call       ""Sub System.Console.WriteLine(Object)""
   IL_0022:  ret
 }
-]]>)
+")
         End Sub
 
 
@@ -2394,21 +2393,21 @@ End Module
 </compilation>,
 expectedOutput:="C1").
             VerifyIL("Program.F",
-            <![CDATA[
+            "
 {
   // Code size       17 (0x11)
   .maxstack  1
   .locals init (I V_0) //i
-  IL_0000:  call       "Function Program.F1() As C1"
+  IL_0000:  call       ""Function Program.F1() As C1""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  brfalse.s  IL_000b
   IL_0009:  ldloc.0
   IL_000a:  ret
-  IL_000b:  call       "Function Program.F2() As C2"
+  IL_000b:  call       ""Function Program.F2() As C2""
   IL_0010:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -2445,26 +2444,26 @@ Class MainClass
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 42
-]]>).
+").
             VerifyIL("MainClass.g",
-            <![CDATA[
+            "
 {
   // Code size       22 (0x16)
   .maxstack  2
   .locals init (IB V_0)
-  IL_0000:  newobj     "Sub AB1..ctor()"
+  IL_0000:  newobj     ""Sub AB1..ctor()""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_0010
   IL_0008:  pop
-  IL_0009:  newobj     "Sub AB2..ctor()"
+  IL_0009:  newobj     ""Sub AB2..ctor()""
   IL_000e:  stloc.0
   IL_000f:  ldloc.0
-  IL_0010:  callvirt   "Function IB.f() As Integer"
+  IL_0010:  callvirt   ""Function IB.f() As Integer""
   IL_0015:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -2555,7 +2554,7 @@ Class EmitTest
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
     Test01:  <Nothing>
     Test02:  1/1/0001 12:00:00 AM||System.DateTime
     Test03:  if-false||System.String
@@ -2563,50 +2562,50 @@ expectedOutput:=<![CDATA[
     Test05:  0||System.Int32
     Test06:  Infinity||System.Double
     Test07:  str||System.String
-]]>).
+").
             VerifyIL("EmitTest.Test07",
-            <![CDATA[
+            "
 {
   // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldstr      "tr"
-  IL_0006:  call       "Function String.Concat(String, String) As String"
+  IL_0001:  ldstr      ""tr""
+  IL_0006:  call       ""Function String.Concat(String, String) As String""
   IL_000b:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test06",
-            <![CDATA[
+           "
 {
   // Code size       15 (0xf)
   .maxstack  1
   IL_0000:  ldc.r8     Infinity
-  IL_0009:  box        "Double"
+  IL_0009:  box        ""Double""
   IL_000e:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test05",
-            <![CDATA[
+            "
 {
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldc.i4.0
-  IL_0001:  box        "Integer"
+  IL_0001:  box        ""Integer""
   IL_0006:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test04",
-            <![CDATA[
+            "
 {
   // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  ldsfld     "Date.MinValue As Date"
-  IL_0005:  box        "Date"
+  IL_0000:  ldsfld     ""Date.MinValue As Date""
+  IL_0005:  box        ""Date""
   IL_000a:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test03",
-            <![CDATA[
+            "
 {
   // Code size       18 (0x12)
   .maxstack  1
@@ -2615,33 +2614,33 @@ expectedOutput:=<![CDATA[
   IL_0001:  stloc.0
   IL_0002:  ldarg.0
   IL_0003:  brtrue.s   IL_000b
-  IL_0005:  ldstr      "if-false"
+  IL_0005:  ldstr      ""if-false""
   IL_000a:  ret
   IL_000b:  ldloc.0
-  IL_000c:  newobj     "Sub String..ctor(Char())"
+  IL_000c:  newobj     ""Sub String..ctor(Char())""
   IL_0011:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test02",
-            <![CDATA[
+            "
 {
   // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  ldsfld     "Date.MinValue As Date"
-  IL_0005:  box        "Date"
+  IL_0000:  ldsfld     ""Date.MinValue As Date""
+  IL_0005:  box        ""Date""
   IL_000a:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test01",
-            <![CDATA[
+            "
 {
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  callvirt   "Function EmitTest.get_StrProp() As String"
+  IL_0001:  callvirt   ""Function EmitTest.get_StrProp() As String""
   IL_0006:  ret
 }
-]]>)
+")
 
         End Sub
 
@@ -2765,7 +2764,7 @@ Class EmitTest
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
     Test01:  1/1/0001 12:00:00 AM||System.DateTime
     Test02:  abc||System.String
     Test03:  cde||System.String
@@ -2782,18 +2781,18 @@ expectedOutput:=<![CDATA[
     Test14:  b||System.String
     Test15:  b||System.String
     Test16:  else-branch||System.String
-]]>).
+").
             VerifyIL("EmitTest.Test16",
-            <![CDATA[
+            "
 {
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  ldstr      "else-branch"
+  IL_0000:  ldstr      ""else-branch""
   IL_0005:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test15",
-            <![CDATA[
+            "
 {
   // Code size       18 (0x12)
   .maxstack  1
@@ -2802,140 +2801,140 @@ expectedOutput:=<![CDATA[
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  brtrue.s   IL_000b
-  IL_0005:  ldstr      "b"
+  IL_0005:  ldstr      ""b""
   IL_000a:  ret
   IL_000b:  ldloc.0
-  IL_000c:  newobj     "Sub String..ctor(Char())"
+  IL_000c:  newobj     ""Sub String..ctor(Char())""
   IL_0011:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test14",
-            <![CDATA[
+            "
 {
   // Code size       16 (0x10)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0009
-  IL_0003:  ldstr      "b"
+  IL_0003:  ldstr      ""b""
   IL_0008:  ret
   IL_0009:  ldarg.0
-  IL_000a:  newobj     "Sub String..ctor(Char())"
+  IL_000a:  newobj     ""Sub String..ctor(Char())""
   IL_000f:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test13",
-            <![CDATA[
+            "
 {
   // Code size       27 (0x1b)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      "b"
-  IL_0006:  call       "Function String.Concat(String, String) As String"
+  IL_0001:  ldstr      ""b""
+  IL_0006:  call       ""Function String.Concat(String, String) As String""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_001a
   IL_000e:  pop
   IL_000f:  ldarg.0
-  IL_0010:  callvirt   "Function EmitTest.get_CharArrProp() As Char()"
-  IL_0015:  newobj     "Sub String..ctor(Char())"
+  IL_0010:  callvirt   ""Function EmitTest.get_CharArrProp() As Char()""
+  IL_0015:  newobj     ""Sub String..ctor(Char())""
   IL_001a:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test12",
-            <![CDATA[
+            "
 {
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (Char() V_0)
   IL_0000:  ldarg.0
-  IL_0001:  callvirt   "Function EmitTest.get_CharArrProp() As Char()"
+  IL_0001:  callvirt   ""Function EmitTest.get_CharArrProp() As Char()""
   IL_0006:  dup
   IL_0007:  stloc.0
   IL_0008:  brtrue.s   IL_0016
   IL_000a:  ldarg.1
-  IL_000b:  ldstr      "b"
-  IL_0010:  call       "Function String.Concat(String, String) As String"
+  IL_000b:  ldstr      ""b""
+  IL_0010:  call       ""Function String.Concat(String, String) As String""
   IL_0015:  ret
   IL_0016:  ldloc.0
-  IL_0017:  newobj     "Sub String..ctor(Char())"
+  IL_0017:  newobj     ""Sub String..ctor(Char())""
   IL_001c:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test11",
-            <![CDATA[
+            "
 {
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (EmitTest.I1 V_0) //i
   IL_0000:  ldnull
   IL_0001:  stloc.0
-  IL_0002:  newobj     "Sub EmitTest.CLS..ctor()"
+  IL_0002:  newobj     ""Sub EmitTest.CLS..ctor()""
   IL_0007:  dup
   IL_0008:  brtrue.s   IL_000c
   IL_000a:  pop
   IL_000b:  ldloc.0
   IL_000c:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test10",
-            <![CDATA[
+            "
 {
   // Code size       15 (0xf)
   .maxstack  2
-  IL_0000:  ldstr      "abc"
+  IL_0000:  ldstr      ""abc""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_000e
   IL_0008:  pop
-  IL_0009:  ldstr      "No Value"
+  IL_0009:  ldstr      ""No Value""
   IL_000e:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test09",
-            <![CDATA[
+           "
 {
   // Code size       26 (0x1a)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  callvirt   "Function EmitTest.get_StrProp() As String"
-  IL_0006:  ldstr      "abc"
-  IL_000b:  call       "Function String.Concat(String, String) As String"
+  IL_0001:  callvirt   ""Function EmitTest.get_StrProp() As String""
+  IL_0006:  ldstr      ""abc""
+  IL_000b:  call       ""Function String.Concat(String, String) As String""
   IL_0010:  dup
   IL_0011:  brtrue.s   IL_0019
   IL_0013:  pop
-  IL_0014:  ldstr      "xyz"
+  IL_0014:  ldstr      ""xyz""
   IL_0019:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test08",
-            <![CDATA[
+            "
 {
   // Code size       21 (0x15)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  callvirt   "Function EmitTest.get_StrProp() As String"
+  IL_0001:  callvirt   ""Function EmitTest.get_StrProp() As String""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0014
   IL_0009:  pop
-  IL_000a:  ldsfld     "Date.MinValue As Date"
-  IL_000f:  box        "Date"
+  IL_000a:  ldsfld     ""Date.MinValue As Date""
+  IL_000f:  box        ""Date""
   IL_0014:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test07",
-            <![CDATA[
+            "
 {
   // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  callvirt   "Function EmitTest.get_ObjProp() As Object"
+  IL_0001:  callvirt   ""Function EmitTest.get_ObjProp() As Object""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_000f
   IL_0009:  pop
-  IL_000a:  newobj     "Sub Object..ctor()"
+  IL_000a:  newobj     ""Sub Object..ctor()""
   IL_000f:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test06",
-            <![CDATA[
+            "
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -2943,57 +2942,57 @@ expectedOutput:=<![CDATA[
   IL_0001:  dup
   IL_0002:  brtrue.s   IL_000a
   IL_0004:  pop
-  IL_0005:  ldstr      "No Value"
+  IL_0005:  ldstr      ""No Value""
   IL_000a:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test05",
-            <![CDATA[
+           "
 {
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldnull
   IL_0001:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test04",
-            <![CDATA[
+            "
 {
   // Code size       12 (0xc)
   .maxstack  2
-  IL_0000:  ldstr      "a"
+  IL_0000:  ldstr      ""a""
   IL_0005:  ldarg.0
-  IL_0006:  call       "Function String.Concat(String, String) As String"
+  IL_0006:  call       ""Function String.Concat(String, String) As String""
   IL_000b:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test03",
-            <![CDATA[
+            "
 {
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  ldstr      "cde"
+  IL_0000:  ldstr      ""cde""
   IL_0005:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test02",
-            <![CDATA[
+            "
 {
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  ldstr      "abc"
+  IL_0000:  ldstr      ""abc""
   IL_0005:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test01",
-            <![CDATA[
+            "
 {
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  ldsfld     "Date.MinValue As Date"
+  IL_0000:  ldsfld     ""Date.MinValue As Date""
   IL_0005:  ret
 }
-]]>)
+")
 
         End Sub
 
@@ -3056,75 +3055,75 @@ End Structure
 
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
     Test01:  +||SS
     Test02:  +||SS
     Test03:  +||SS
     Test04:  ++||SS
-]]>).
+").
             VerifyIL("EmitTest.Test01",
-            <![CDATA[
+            "
 {
   // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  ldstr      "+"
-  IL_0005:  call       "Function SS.op_Implicit(String) As SS"
+  IL_0000:  ldstr      ""+""
+  IL_0005:  call       ""Function SS.op_Implicit(String) As SS""
   IL_000a:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test02",
-            <![CDATA[
+            "
 {
   // Code size       27 (0x1b)
   .maxstack  1
   .locals init (String V_0) //s
-  IL_0000:  ldstr      "+"
+  IL_0000:  ldstr      ""+""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  brtrue.s   IL_0014
-  IL_0009:  ldstr      "-"
-  IL_000e:  newobj     "Sub SS..ctor(String)"
+  IL_0009:  ldstr      ""-""
+  IL_000e:  newobj     ""Sub SS..ctor(String)""
   IL_0013:  ret
   IL_0014:  ldloc.0
-  IL_0015:  call       "Function SS.op_Implicit(String) As SS"
+  IL_0015:  call       ""Function SS.op_Implicit(String) As SS""
   IL_001a:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test03",
-            <![CDATA[
+            "
 {
   // Code size       21 (0x15)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000e
-  IL_0003:  ldstr      "-"
-  IL_0008:  newobj     "Sub SS..ctor(String)"
+  IL_0003:  ldstr      ""-""
+  IL_0008:  newobj     ""Sub SS..ctor(String)""
   IL_000d:  ret
   IL_000e:  ldarg.0
-  IL_000f:  call       "Function SS.op_Implicit(String) As SS"
+  IL_000f:  call       ""Function SS.op_Implicit(String) As SS""
   IL_0014:  ret
 }
-]]>).
+").
             VerifyIL("EmitTest.Test04",
-            <![CDATA[
+            "
 {
   // Code size       33 (0x21)
   .maxstack  2
   .locals init (String V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldstr      "+"
-  IL_0006:  call       "Function String.Concat(String, String) As String"
+  IL_0001:  ldstr      ""+""
+  IL_0006:  call       ""Function String.Concat(String, String) As String""
   IL_000b:  dup
   IL_000c:  stloc.0
   IL_000d:  brtrue.s   IL_001a
-  IL_000f:  ldstr      "-"
-  IL_0014:  newobj     "Sub SS..ctor(String)"
+  IL_000f:  ldstr      ""-""
+  IL_0014:  newobj     ""Sub SS..ctor(String)""
   IL_0019:  ret
   IL_001a:  ldloc.0
-  IL_001b:  call       "Function SS.op_Implicit(String) As SS"
+  IL_001b:  call       ""Function SS.op_Implicit(String) As SS""
   IL_0020:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -3153,7 +3152,7 @@ End Module</file>
 </compilation>,
         expectedOutput:="Val ").
         VerifyIL("Program.Main",
-            <![CDATA[{
+            "{
   // Code size       41 (0x29)
   .maxstack  2
   .locals init (Program.IFoo(Of String) V_0, //i
@@ -3162,20 +3161,20 @@ End Module</file>
   IL_0001:  ldnull
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    "Program.FooVal"
+  IL_0005:  initobj    ""Program.FooVal""
   IL_000b:  ldc.i4.1
   IL_000c:  bgt.s      IL_001b
   IL_000e:  ldloc.1
-  IL_000f:  box        "Program.FooVal"
-  IL_0014:  castclass  "Program.IFoo(Of String)"
+  IL_000f:  box        ""Program.FooVal""
+  IL_0014:  castclass  ""Program.IFoo(Of String)""
   IL_0019:  br.s       IL_001c
   IL_001b:  ldloc.0
   IL_001c:  stloc.0
   IL_001d:  ldloc.0
-  IL_001e:  callvirt   "Function Program.IFoo(Of String).Foo() As String"
-  IL_0023:  call       "Sub System.Console.Write(String)"
+  IL_001e:  callvirt   ""Function Program.IFoo(Of String).Foo() As String""
+  IL_0023:  call       ""Sub System.Console.Write(String)""
   IL_0028:  ret
-}]]>)
+}")
         End Sub
 
         <Fact>
@@ -3208,7 +3207,7 @@ End Module</file>
 </compilation>,
         expectedOutput:="Val Val ").
         VerifyIL("Program.Main",
-            <![CDATA[
+            "
 {
   // Code size       90 (0x5a)
   .maxstack  2
@@ -3218,39 +3217,39 @@ End Module</file>
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
-  IL_0004:  initobj    "Program.FooVal"
+  IL_0004:  initobj    ""Program.FooVal""
   IL_000a:  ldloca.s   V_2
   IL_000c:  ldloc.1
-  IL_000d:  call       "Sub Program.FooVal?..ctor(Program.FooVal)"
+  IL_000d:  call       ""Sub Program.FooVal?..ctor(Program.FooVal)""
   IL_0012:  ldloc.0
   IL_0013:  dup
   IL_0014:  brtrue.s   IL_0022
   IL_0016:  pop
   IL_0017:  ldloc.1
-  IL_0018:  box        "Program.FooVal"
-  IL_001d:  castclass  "Program.IFoo(Of String)"
+  IL_0018:  box        ""Program.FooVal""
+  IL_001d:  castclass  ""Program.IFoo(Of String)""
   IL_0022:  stloc.0
   IL_0023:  ldloc.0
-  IL_0024:  callvirt   "Function Program.IFoo(Of String).Foo() As String"
-  IL_0029:  call       "Sub System.Console.Write(String)"
+  IL_0024:  callvirt   ""Function Program.IFoo(Of String).Foo() As String""
+  IL_0029:  call       ""Sub System.Console.Write(String)""
   IL_002e:  ldnull
   IL_002f:  stloc.0
   IL_0030:  ldloca.s   V_2
-  IL_0032:  call       "Function Program.FooVal?.get_HasValue() As Boolean"
+  IL_0032:  call       ""Function Program.FooVal?.get_HasValue() As Boolean""
   IL_0037:  brtrue.s   IL_003c
   IL_0039:  ldloc.0
   IL_003a:  br.s       IL_004d
   IL_003c:  ldloca.s   V_2
-  IL_003e:  call       "Function Program.FooVal?.GetValueOrDefault() As Program.FooVal"
-  IL_0043:  box        "Program.FooVal"
-  IL_0048:  castclass  "Program.IFoo(Of String)"
+  IL_003e:  call       ""Function Program.FooVal?.GetValueOrDefault() As Program.FooVal""
+  IL_0043:  box        ""Program.FooVal""
+  IL_0048:  castclass  ""Program.IFoo(Of String)""
   IL_004d:  stloc.0
   IL_004e:  ldloc.0
-  IL_004f:  callvirt   "Function Program.IFoo(Of String).Foo() As String"
-  IL_0054:  call       "Sub System.Console.Write(String)"
+  IL_004f:  callvirt   ""Function Program.IFoo(Of String).Foo() As String""
+  IL_0054:  call       ""Sub System.Console.Write(String)""
   IL_0059:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -3276,9 +3275,9 @@ Class EmitTest
 End Class
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[
+expectedOutput:="
 Test01:  123||System.Int32
-]]>)
+")
         End Sub
 
         <Fact()>
@@ -3312,9 +3311,12 @@ Module M1
 End Module
     </file>
 </compilation>,
-            expectedOutput:="ThenPart" & vbCrLf & "After" & vbCrLf).
+            expectedOutput:=
+"ThenPart
+After
+").
             VerifyIL("M1.Main",
-            <![CDATA[
+            "
 {
   // Code size       70 (0x46)
   .maxstack  2
@@ -3326,26 +3328,26 @@ End Module
   IL_0003:  ldc.i4.1
   IL_0004:  stloc.1
   IL_0005:  brfalse.s  IL_0013
-  IL_0007:  ldstr      "ThenPart"
-  IL_000c:  call       "Sub System.Console.WriteLine(String)"
+  IL_0007:  ldstr      ""ThenPart""
+  IL_000c:  call       ""Sub System.Console.WriteLine(String)""
   IL_0011:  br.s       IL_003b
   IL_0013:  ldloc.0
   IL_0014:  brfalse.s  IL_0022
-  IL_0016:  ldstr      "ElseIf1Part"
-  IL_001b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0016:  ldstr      ""ElseIf1Part""
+  IL_001b:  call       ""Sub System.Console.WriteLine(String)""
   IL_0020:  br.s       IL_003b
   IL_0022:  ldloc.1
   IL_0023:  brfalse.s  IL_0031
-  IL_0025:  ldstr      "ElseIf2Part"
-  IL_002a:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ldstr      ""ElseIf2Part""
+  IL_002a:  call       ""Sub System.Console.WriteLine(String)""
   IL_002f:  br.s       IL_003b
-  IL_0031:  ldstr      "ElsePart"
-  IL_0036:  call       "Sub System.Console.WriteLine(String)"
-  IL_003b:  ldstr      "After"
-  IL_0040:  call       "Sub System.Console.WriteLine(String)"
+  IL_0031:  ldstr      ""ElsePart""
+  IL_0036:  call       ""Sub System.Console.WriteLine(String)""
+  IL_003b:  ldstr      ""After""
+  IL_0040:  call       ""Sub System.Console.WriteLine(String)""
   IL_0045:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
