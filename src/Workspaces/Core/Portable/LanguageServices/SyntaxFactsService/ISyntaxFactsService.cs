@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
 
         string GetText(int kind);
+        bool IsKeyword(string text);
 
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);

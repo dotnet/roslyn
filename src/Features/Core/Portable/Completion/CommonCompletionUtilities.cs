@@ -224,7 +224,18 @@ namespace Microsoft.CodeAnalysis.Completion
                 string nameWithoutAttribute;
                 if (name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out nameWithoutAttribute))
                 {
-                    return nameWithoutAttribute;
+                    // If we're in C# then we can't use the trimmed down name if it would be a 
+                    // keyword.  This is because adding the @ in front of they keyword tells the
+                    // langauge to not add 'Attribute' when searching.
+                    //
+                    // VB does not have this problem and allows unescaped keywords in attributes.
+                    var isKeywordInCSharp = context.SemanticModel.Language == LanguageNames.CSharp &&
+                        syntaxFacts.IsKeyword(nameWithoutAttribute);
+
+                    if (!isKeywordInCSharp)
+                    {
+                        return nameWithoutAttribute;
+                    }
                 }
             }
 

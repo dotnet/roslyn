@@ -440,6 +440,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
         Friend Class PickySemanticFactsService
             Implements ISyntaxFactsService
 
+            Public Function IsKeyword(text As String) As Boolean Implements ISyntaxFactsService.IsKeyword
+                Throw New NotImplementedException
+            End Function
+
             Public ReadOnly Property IsCaseSensitive As Boolean Implements ISyntaxFactsService.IsCaseSensitive
                 Get
                     Throw New NotImplementedException()

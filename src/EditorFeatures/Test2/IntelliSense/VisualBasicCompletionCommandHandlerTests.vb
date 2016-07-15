@@ -2435,7 +2435,7 @@ End Class]]></Document>)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
-        Public Sub TestObjectCreationQualifiedName()
+        Public Async Function TestObjectCreationQualifiedName() As Task
             Using state = TestState.CreateCSharpTestState(
                            <Document><![CDATA[
 Class A
@@ -2449,9 +2449,11 @@ Namespace B
     End Class
 End Namespace]]></Document>)
 
-                state.SendTypeChars(" (")
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("(")
                 state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(Of Integer)(")
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -446,6 +446,11 @@ class C
         [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp, ServiceLayer.Host), System.Composition.Shared]
         internal class PickySemanticFactsService : ISyntaxFactsService
         {
+            public bool IsKeyword(string text)
+            {
+                throw new NotImplementedException();
+            }
+
             public bool IsCaseSensitive
             {
                 get
