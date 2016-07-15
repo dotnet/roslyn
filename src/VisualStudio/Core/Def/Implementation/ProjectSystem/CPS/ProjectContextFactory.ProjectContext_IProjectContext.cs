@@ -56,9 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             #endregion
 
             #region Source files
-            public void AddSourceFile(string filePath, bool isFromSharedProject = false, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+            public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
             {
-                AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => !isFromSharedProject, folderNames: folderNames.ToImmutableArrayOrEmpty());
+                AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => isInCurrentContext, folderNames: folderNames.ToImmutableArrayOrEmpty());
             }
 
             public void RemoveSourceFile(string filePath)
