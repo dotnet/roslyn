@@ -340,7 +340,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var position = SymbolCompletionItem.GetContextPosition(selectedItem);
                 var context = await this.CreateContext(document, position, cancellationToken).ConfigureAwait(false);
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
+                var symbols = await SymbolCompletionItem.GetSymbolsAsync(
+                    document, selectedItem, context.SemanticModel.Compilation, cancellationToken).ConfigureAwait(false);
+
                 if (symbols.Length > 0)
                 {
                     insertionText = GetInsertionText(symbols[0], context, ch.Value);

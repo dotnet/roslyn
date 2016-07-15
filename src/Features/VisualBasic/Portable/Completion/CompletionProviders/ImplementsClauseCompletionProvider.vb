@@ -276,9 +276,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If ch Is Nothing Then
                     insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
                 Else
-                    Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
                     Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
                     Dim context = Await CreateContext(document, position, cancellationToken).ConfigureAwait(False)
+                    Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(
+                        document, selectedItem, context.SemanticModel.Compilation, cancellationToken).ConfigureAwait(False)
+
                     If symbols.Length > 0 Then
                         insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value)
                     Else
