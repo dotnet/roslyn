@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (declaredSymbol != null)
                 {
                     var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
-                    var items = symbols?.Select(symbol => CreateCompletionItem(symbol, completionContext.CompletionListSpan, position, syntaxContext));
+                    var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 
                     if (items != null)
                     {
@@ -47,19 +47,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private CompletionItem CreateCompletionItem(INamedTypeSymbol symbol, TextSpan textSpan, int position, AbstractSyntaxContext context)
+        private CompletionItem CreateCompletionItem(
+            INamedTypeSymbol symbol, AbstractSyntaxContext context)
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
-            return SymbolCompletionItem.Create(
+            var item = SymbolCompletionItem.Create(
                 displayText: displayAndInsertionText.Item1,
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
                 contextPosition: context.Position,
-                descriptionPosition: position,
+                descriptionPosition: context.Position,
                 rules: CompletionItemRules.Default);
+
+            item = AddAdditionalProperties(item, symbol, context);
+            return item;
         }
 
+        protected abstract CompletionItem AddAdditionalProperties(
+            CompletionItem item, INamedTypeSymbol symbol, AbstractSyntaxContext context);
         protected abstract Task<AbstractSyntaxContext> CreateSyntaxContextAsync(
             Document document,
             SemanticModel semanticModel,
