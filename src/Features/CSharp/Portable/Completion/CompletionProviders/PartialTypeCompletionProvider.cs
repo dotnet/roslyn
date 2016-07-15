@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch == '<')
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbols = await SymbolCompletionItem.GetSymbolsAsync(document, selectedItem, compilation, cancellationToken).ConfigureAwait(false);
 
                 if (symbols.Length > 0)
                 {

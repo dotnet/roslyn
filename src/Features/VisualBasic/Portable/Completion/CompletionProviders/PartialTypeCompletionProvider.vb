@@ -52,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             If ch = "("c Then
-                Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
+                Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
+                Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
+                Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(document, selectedItem, semanticModel.Compilation, cancellationToken).ConfigureAwait(False)
                 If symbols.Length > 0 Then
-                    Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
-                    Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
                     Dim insertionText = symbols(0).ToMinimalDisplayString(semanticModel, position, format:=_insertionTextFormatWithoutGenerics)
                     Return New TextChange(selectedItem.Span, insertionText)
                 End If
@@ -63,6 +63,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
         End Function
-
     End Class
 End Namespace

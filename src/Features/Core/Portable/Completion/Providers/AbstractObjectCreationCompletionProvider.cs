@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)type));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+            ISymbol symbol, AbstractSyntaxContext context)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);

@@ -74,12 +74,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var namespaces = GetAllSymbols(containingSymbolResolution).SelectMany(
-                    s => Resolve(s, metadataName));
+                    s => Resolve(reader, s, metadataName));
 
                 return CreateSymbolInfo(namespaces);
             }
 
-            private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
+            private static IEnumerable<INamespaceSymbol> Resolve(
+                SymbolKeyReader reader, ISymbol container, string metadataName)
             {
                 if (container is IAssemblySymbol)
                 {

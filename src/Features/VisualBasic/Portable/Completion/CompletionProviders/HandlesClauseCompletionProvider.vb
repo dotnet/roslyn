@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                               context As VisualBasicSyntaxContext) As CompletionItem
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                symbol, context, nameOnly:=True)
 
             Return SymbolCompletionItem.Create(
                 displayText:=displayAndInsertionText.Item1,
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol,
                                                                 context As AbstractSyntaxContext) As ValueTuple(Of String, String)
 
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, isWithinAsyncMethod:=DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context, nameOnly:=True)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
@@ -150,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch, nameOnly:=True)
         End Function
-
     End Class
 End Namespace

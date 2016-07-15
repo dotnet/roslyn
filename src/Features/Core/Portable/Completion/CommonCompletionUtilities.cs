@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -206,22 +207,39 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, bool isAttributeNameContext, ISyntaxFactsService syntaxFacts, out string name)
+        public static string GetAppropriateNameInContext(
+            ISymbol symbol,
+            AbstractSyntaxContext context,
+            bool nameOnly)
         {
-            if (!isAttributeNameContext)
+            var displayService = context.GetLanguageService<ISymbolDisplayService>();
+            var name = nameOnly
+                ? symbol.Name
+                : displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
+
+            if (context.IsAttributeNameContext && symbol.IsAttribute())
             {
-                name = null;
-                return false;
+                var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+
+                string nameWithoutAttribute;
+                if (name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out nameWithoutAttribute))
+                {
+                    // If we're in C# then we can't use the trimmed down name if it would be a 
+                    // keyword.  This is because adding the @ in front of they keyword tells the
+                    // langauge to not add 'Attribute' when searching.
+                    //
+                    // VB does not have this problem and allows unescaped keywords in attributes.
+                    var isKeywordInCSharp = context.SemanticModel.Language == LanguageNames.CSharp &&
+                        syntaxFacts.IsKeyword(nameWithoutAttribute);
+
+                    if (!isKeywordInCSharp)
+                    {
+                        return nameWithoutAttribute;
+                    }
+                }
             }
 
-            // Do the symbol textual check first. Then the more expensive symbolic check.
-            if (!symbol.Name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out name) ||
-                !symbol.IsAttribute())
-            {
-                return false;
-            }
-
-            return true;
+            return name;
         }
     }
 }

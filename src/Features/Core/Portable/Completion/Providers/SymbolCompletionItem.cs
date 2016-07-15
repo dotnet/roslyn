@@ -124,7 +124,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly char[] s_symbolSplitters = new[] { '|' };
 
-        public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
+            Document document, CompletionItem item, Compilation compilation, CancellationToken cancellationToken)
         {
             string symbolIds;
             if (item.Properties.TryGetValue("Symbols", out symbolIds))
@@ -132,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
                 var symbols = new List<ISymbol>();
 
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 DecodeSymbols(idList, compilation, symbols);
 
                 // merge in symbols from other linked documents
@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var symbols = await GetSymbolsAsync(contextDocument, item, semanticModel.Compilation, cancellationToken).ConfigureAwait(false);
             if (symbols.Length > 0)
             {
                 return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);

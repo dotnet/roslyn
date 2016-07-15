@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractSyntaxFactsService
         Implements ISyntaxFactsService
 
+        Public Function IsKeyword(text As String) As Boolean Implements ISyntaxFactsService.IsKeyword
+            Return SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None
+        End Function
+
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
             Return token.Kind = SyntaxKind.AwaitKeyword
         End Function
