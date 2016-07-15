@@ -449,6 +449,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DimStatement.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DoLoop.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Erase.vb" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_TupleLiteralExpression.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Exit.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ExpressionStatement.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_FieldAccess.vb" />

@@ -258,6 +258,76 @@ End Module
 ]]>)
         End Sub
 
+
+        <Fact()>
+        Public Sub TupleLiteralBinding()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (Integer, Integer) = (1, 2)
+        console.writeline(t)            
+    End Sub
+End Module
+
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+(1, 2)
+            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0007:  box        "System.ValueTuple(Of Integer, Integer)"
+  IL_000c:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0011:  ret
+}
+]]>)
+        End Sub
+
+
+        <Fact()>
+        Public Sub TupleLiteralBindingNamed()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim t = (A := 1, B := "hello")
+        console.writeline(t.B)            
+    End Sub
+End Module
+
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+hello
+            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldstr      "hello"
+  IL_0006:  newobj     "Sub System.ValueTuple(Of Integer, String)..ctor(Integer, String)"
+  IL_000b:  ldfld      "System.ValueTuple(Of Integer, String).Item2 As String"
+  IL_0010:  call       "Sub System.Console.WriteLine(String)"
+  IL_0015:  ret
+}
+]]>)
+        End Sub
+
     End Class
 
 End Namespace

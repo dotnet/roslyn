@@ -713,13 +713,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' validate name if we have one
                         countOfExplicitNames += 1
-                        CheckTupleMemberName(binder, name, i, nameSyntax, diagnostics, uniqueFieldNames)
+                        Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
                         locations.Add(nameSyntax.GetLocation)
                     Else
                         locations.Add(argumentSyntax.GetLocation)
                     End If
 
-                    CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
+                    Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
                 Next
 
                 uniqueFieldNames.Free()
@@ -744,42 +744,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             binder.Compilation,
                                             syntax,
                                             diagnostics)
-            End Function
-
-            Private Shared Sub CollectTupleFieldMemberNames(name As String, position As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
-                ' add the name to the list
-                ' names would typically all be there Or none at all
-                ' but in case we need to handle this in error cases
-                If elementNames IsNot Nothing Then
-                    elementNames.Add(If(name, TupleTypeSymbol.TupleMemberName(position)))
-                Else
-                    If name IsNot Nothing Then
-                        elementNames = ArrayBuilder(Of String).GetInstance(tupleSize)
-                        For j As Integer = 1 To position - 1
-                            elementNames.Add(TupleTypeSymbol.TupleMemberName(j))
-                        Next
-                        elementNames.Add(name)
-                    End If
-                End If
-            End Sub
-
-            Private Shared Function CheckTupleMemberName(binder As Binder, name As String, position As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As PooledHashSet(Of String)) As Boolean
-                Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
-                If reserved = 0 Then
-                    Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberNameAnyPosition, name)
-                    Return False
-
-                ElseIf reserved > 0 AndAlso reserved <> position + 1 Then
-                    Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberName, name, reserved)
-                    Return False
-
-                ElseIf (Not uniqueFieldNames.Add(name)) Then
-                    Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateMemberName)
-                    Return False
-
-                End If
-
-                Return True
             End Function
 
             Private Shared Sub AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult As LookupResult,
