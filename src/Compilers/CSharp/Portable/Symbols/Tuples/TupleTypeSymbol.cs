@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeSymbol TransformToTupleIfCompatible(TypeSymbol target)
         {
-            if (target.IsTupleCompatible())
+            if (!target.IsErrorType() && target.IsTupleCompatible())
             {
                 return TupleTypeSymbol.Create((NamedTypeSymbol)target);
             }
