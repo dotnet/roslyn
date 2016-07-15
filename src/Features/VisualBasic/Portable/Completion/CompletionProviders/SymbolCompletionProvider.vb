@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractRecommendationServiceBasedCompletionProvider
 
         Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch, nameOnly:=True)
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context, nameOnly:=True)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)

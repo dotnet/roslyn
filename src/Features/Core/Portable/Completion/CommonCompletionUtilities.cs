@@ -209,10 +209,13 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static string GetAppropriateNameInContext(
             ISymbol symbol,
-            AbstractSyntaxContext context)
+            AbstractSyntaxContext context,
+            bool nameOnly)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var name = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
+            var name = nameOnly
+                ? symbol.Name
+                : displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
 
             if (context.IsAttributeNameContext && symbol.IsAttribute())
             {

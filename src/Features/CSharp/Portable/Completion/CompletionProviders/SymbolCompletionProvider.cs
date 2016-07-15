@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
         {
-            var name = CommonCompletionUtilities.GetAppropriateNameInContext(symbol, context);
+            var name = CommonCompletionUtilities.GetAppropriateNameInContext(symbol, context, nameOnly: true);
             return name.EscapeIdentifier(isQueryContext: context.IsInQuery);
         }
 

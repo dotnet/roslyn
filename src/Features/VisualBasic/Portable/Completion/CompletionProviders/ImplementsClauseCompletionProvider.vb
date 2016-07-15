@@ -251,7 +251,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
                 insertionText = displayText
             Else
-                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
+                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
+                    symbol, context, nameOnly:=True)
 
                 displayText = displayAndInsertionText.Item1
                 insertionText = displayAndInsertionText.Item2
@@ -282,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         document, selectedItem, context.SemanticModel.Compilation, cancellationToken).ConfigureAwait(False)
 
                     If symbols.Length > 0 Then
-                        insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value)
+                        insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value, nameOnly:=True)
                     Else
                         insertionText = selectedItem.DisplayText
                     End If
@@ -294,9 +295,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
-        End Function
+        Protected Overrides Function GetInsertionText(
+                symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
 
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch, nameOnly:=True)
+        End Function
     End Class
 End Namespace
