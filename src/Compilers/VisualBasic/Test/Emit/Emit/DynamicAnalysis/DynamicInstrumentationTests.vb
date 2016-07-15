@@ -137,6 +137,57 @@ True
         End Sub
 
         <Fact>
+        Public Sub MyTemplateNotCovered()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+    End Sub
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+8
+True
+True
+True
+9
+True
+12
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            ' Explicitly define the "_MyType" pre-processor definition so that the "My" template code is added to
+            ' the compilation. The "My" template code returns a special "VisualBasicSyntaxNode" that reports an invalid
+            ' path. The "DynamicAnalysisInjector" skips instrumenting such code.
+            Dim preprocessorSymbols = ImmutableArray.Create(New KeyValuePair(Of String, Object)("_MyType", "Console"))
+            Dim parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
+
+            CompileAndVerify(source, expectedOutput, TestOptions.ReleaseExe.WithParseOptions(parseOptions))
+        End Sub
+
+        <Fact>
         Public Sub MethodsOfGenericTypesCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[                                             
