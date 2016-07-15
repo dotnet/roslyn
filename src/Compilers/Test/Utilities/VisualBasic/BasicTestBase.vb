@@ -470,7 +470,7 @@ Public MustInherit Class BasicTestBaseBase
 
     Public Shared Shadows Function GetSequencePoints(pdbXml As XElement) As XElement
         Return <sequencePoints>
-                   <%= From entry In pdbXml.<methods>.<method>.<sequencePoints>.<entry>
+                   <%= From entry In pdbXml.<methods>.<method>.<sequencePoints>.<entry>.AsParallel
                        Select <entry
                                   startLine=<%= entry.@startLine %>
                                   startColumn=<%= entry.@startColumn %>
@@ -696,9 +696,8 @@ Public MustInherit Class BasicTestBaseBase
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
             Dim name = TryCast(node, NameSyntax)
             If name IsNot Nothing Then
-                Me._names.Add(name)
+                _names.Add(name)
             End If
-
             MyBase.DefaultVisit(node)
         End Sub
 
@@ -721,7 +720,7 @@ Public MustInherit Class BasicTestBaseBase
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
             Dim expr = TryCast(node, ExpressionSyntax)
             If expr IsNot Nothing Then
-                Me._expressions.Add(expr)
+                _expressions.Add(expr)
             End If
 
             MyBase.DefaultVisit(node)
@@ -744,18 +743,18 @@ Public MustInherit Class BasicTestBaseBase
         End Sub
 
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
-            If node IsNot Nothing AndAlso Me._kinds.Contains(node.Kind) Then
-                Me._nodes.Add(node)
+            If node IsNot Nothing AndAlso _kinds.Contains(node.Kind) Then
+                _nodes.Add(node)
             End If
 
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private ReadOnly _nodes As New List(Of SyntaxNode)
+        Private ReadOnly _nodes As New List(Of SyntaxNode)(16)
         Private ReadOnly _kinds As New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer)
 
         Public Shared Function FindNodes(Of T As SyntaxNode)(node As SyntaxNode, ParamArray kinds() As SyntaxKind) As List(Of T)
-            Return New List(Of T)(From s In FindNodes(node, kinds) Select DirectCast(s, T))
+            Return New List(Of T)(From s In FindNodes(node, kinds).AsParallel Select DirectCast(s, T))
         End Function
 
         Public Shared Function FindNodes(node As SyntaxNode, ParamArray kinds() As SyntaxKind) As List(Of SyntaxNode)
