@@ -7879,26 +7879,27 @@ DERIVED: f(x As Integer, Optional y As Integer = 0)
 DERIVED: f(x As Integer, Optional y As String = """")
 ")
         End Sub
+
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",
-"
+            <![CDATA[
 using System;
 
 public class OverloadsUsingOptional
 {
     public static void M(int k, int l = 0)
     {
-        Console.Write(""M(int k, Int l = 0),"""");
+        Console.Write("M(int k, int l = 0);");
     }
     public static void M(int k, int l = 0, int m = 0)
     {
-        Console.Write(""M(int k, int l = 0, int m = 0),"""");
+        Console.Write("M(int k, int l = 0, int m = 0);");
     }
 }
-",
+]]>,
                 compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
 
@@ -8840,14 +8841,14 @@ End Class
 
         <Fact>
         Public Sub PartiallyInitializedValue_NoParameterlessConstructor_Fields()
-            Dim ilSource = <![CDATA[
+            Dim ilSource = "
 .class public sequential ansi sealed beforefieldinit S
        extends [mscorlib]System.ValueType
 {
   .pack 0
   .size 1
 }
-]]>
+"
 
             Dim vbSource =
 <compilation>
@@ -8871,44 +8872,44 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
+            CompileWithCustomILSource(vbSource, ilSource, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
-            <![CDATA[
+"
 {
   // Code size       77 (0x4d)
   .maxstack  2
   .locals init (System.Exception V_0) //ex
   IL_0000:  ldarg.0   
-  IL_0001:  ldflda     "C.Fld As S"
-  IL_0006:  initobj    "S"
+  IL_0001:  ldflda     ""C.Fld As S""
+  IL_0006:  initobj    ""S""
   IL_000c:  ldarg.0   
-  IL_000d:  ldfld      "C.FldArr As S()"
+  IL_000d:  ldfld      ""C.FldArr As S()""
   IL_0012:  ldc.i4.1  
-  IL_0013:  ldelema    "S"
-  IL_0018:  initobj    "S"
+  IL_0013:  ldelema    ""S""
+  IL_0018:  initobj    ""S""
   .try
   {
     IL_001e:  ldarg.0   
-    IL_001f:  ldflda     "C.Fld As S"
-    IL_0024:  initobj    "S"
+    IL_001f:  ldflda     ""C.Fld As S""
+    IL_0024:  initobj    ""S""
     IL_002a:  ldarg.0   
-    IL_002b:  ldfld      "C.FldArr As S()"
+    IL_002b:  ldfld      ""C.FldArr As S()""
     IL_0030:  ldc.i4.1  
-    IL_0031:  ldelema    "S"
-    IL_0036:  initobj    "S"
+    IL_0031:  ldelema    ""S""
+    IL_0036:  initobj    ""S""
     IL_003c:  leave.s    IL_004c
   }
   catch System.Exception
   {
     IL_003e:  dup       
-    IL_003f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_003f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
     IL_0044:  stloc.0   
-    IL_0045:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0045:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
     IL_004a:  leave.s    IL_004c
   }
   IL_004c:  ret       
 }
-]]>)
+")
         End Sub
 
         <Fact>
