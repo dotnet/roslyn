@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ExplicitInterfaceCompletionProvider : CommonCompletionProvider
     {
+        private const string InsertionTextForOpenParen = nameof(InsertionTextForOpenParen);
+
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -93,13 +95,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var displayText = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                context.AddItem(SymbolCompletionItem.Create(
+                var completionItem = SymbolCompletionItem.Create(
                     displayText,
                     insertionText: insertionText,
                     symbol: member,
                     contextPosition: position,
                     descriptionPosition: position,
-                    rules: CompletionItemRules.Default));
+                    rules: CompletionItemRules.Default);
+                completionItem = completionItem.AddProperty(InsertionTextForOpenParen, member.Name);
+
+                context.AddItem(completionItem);
             }
         }
 
@@ -108,19 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
         {
-#if false
             if (ch.HasValue && ch.Value == '(')
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length > 0)
+                string insertionText;
+                if (item.Properties.TryGetValue(InsertionTextForOpenParen, out insertionText))
                 {
-                    return new TextChange(selectedItem.Span, symbols[0].Name);
+                    return Task.FromResult<TextChange?>(new TextChange(item.Span, insertionText));
                 }
             }
-#endif
-            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
+
+            return Task.FromResult<TextChange?>(new TextChange(item.Span, item.DisplayText));
         }
     }
 }
