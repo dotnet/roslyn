@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider
     {
+        private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
+
         private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -72,20 +75,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
         }
 
-        public async override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override CompletionItem AddAdditionalProperties(
+            ISymbol symbol, AbstractSyntaxContext context, CompletionItem completionItem)
+        {
+            return completionItem.AddProperty(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
+        }
+
+        public async override Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
         {
             if (ch == '<')
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
-
-                if (symbols.Length > 0)
+                string insertionText;
+                if (item.Properties.TryGetValue(InsertionTextOnLessThan, out insertionText))
                 {
-                    var insertionText = symbols[0].Name.EscapeIdentifier();
-                    return new TextChange(selectedItem.Span, insertionText);
+                    return new TextChange(item.Span, insertionText);
                 }
             }
 
-            return await base.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(false);
+            return await base.GetTextChangeAsync(document, item, ch, cancellationToken).ConfigureAwait(false);
         }
     }
 }

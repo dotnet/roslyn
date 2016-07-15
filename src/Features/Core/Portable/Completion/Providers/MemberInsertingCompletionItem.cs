@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        public static Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken);
-        }
-
         public static DeclarationModifiers GetModifiers(CompletionItem item)
         {
             string text;

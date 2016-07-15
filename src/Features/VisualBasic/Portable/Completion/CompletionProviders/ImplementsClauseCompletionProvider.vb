@@ -272,7 +272,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionItemRules.Default
         End Function
 
-        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+            Return Task.FromResult(Of TextChange?)(
+                New TextChange(selectedItem.Span, SymbolCompletionItem.GetInsertionText(selectedItem)))
+#If False Then
             If SymbolCompletionItem.HasSymbols(selectedItem) Then
                 Dim insertionText As String
 
@@ -293,11 +296,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
+#End If
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+        Protected Overrides Function GetInsertionText(item As CompletionItem, symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
-
     End Class
 End Namespace

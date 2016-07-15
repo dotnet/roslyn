@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
@@ -204,14 +205,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            if (symbols.Length > 0)
-            {
-                return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
-            }
-            else
+            if (symbols.Length == 0)
             {
                 return CompletionDescription.Empty;
             }
+
+            return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
         private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData supportedPlatforms)

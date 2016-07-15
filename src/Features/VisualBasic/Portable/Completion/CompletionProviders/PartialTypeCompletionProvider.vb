@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class PartialTypeCompletionProvider
         Inherits AbstractPartialTypeCompletionProvider
 
+        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
+
         Private Shared ReadOnly _insertionTextFormatWithGenerics As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -50,19 +52,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Protected Overrides Function AddAdditionalProperties(
+                symbol As ISymbol, context As AbstractSyntaxContext, completionItem As CompletionItem) As CompletionItem
+
+            Return completionItem.AddProperty(
+                InsertionTextOnOpenParen,
+                symbol.ToMinimalDisplayString(
+                    context.SemanticModel, context.Position, format:=_insertionTextFormatWithoutGenerics))
+        End Function
+
+        Public Overrides Async Function GetTextChangeAsync(document As Document, item As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             If ch = "("c Then
-                Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
-                If symbols.Length > 0 Then
-                    Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
-                    Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
-                    Dim insertionText = symbols(0).ToMinimalDisplayString(semanticModel, position, format:=_insertionTextFormatWithoutGenerics)
-                    Return New TextChange(selectedItem.Span, insertionText)
+                Dim insertionText As String = Nothing
+                If item.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                    Return New TextChange(item.Span, insertionText)
                 End If
             End If
 
-            Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
+            Return Await MyBase.GetTextChangeAsync(document, item, ch, cancellationToken).ConfigureAwait(False)
         End Function
-
     End Class
 End Namespace
