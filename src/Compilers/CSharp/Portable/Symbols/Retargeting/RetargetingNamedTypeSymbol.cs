@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces = default(ImmutableArray<NamedTypeSymbol>);
+        private TypeSymbol _lazyExtendedType = ErrorTypeSymbol.UnknownResultType;
 
         private NamedTypeSymbol _lazyDeclaredBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyDeclaredInterfaces;
@@ -271,6 +272,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase, type);
             return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable, info, true);
+        }
+
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                if (ReferenceEquals(_lazyExtendedType, ErrorTypeSymbol.UnknownResultType))
+                {
+                    var underlyingExtendedType = _underlyingType.ExtensionClassTypeNoUseSiteDiagnostics;
+                    if ((object)underlyingExtendedType != null)
+                    {
+                        underlyingExtendedType = this.RetargetingTranslator.Retarget(underlyingExtendedType, RetargetOptions.RetargetPrimitiveTypesByName);
+                    }
+                    Interlocked.CompareExchange(ref _lazyExtendedType, underlyingExtendedType, ErrorTypeSymbol.UnknownResultType);
+                }
+                return _lazyExtendedType;
+            }
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics

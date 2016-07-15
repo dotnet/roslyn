@@ -1022,59 +1022,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Will always leave at least one symbol left.
-        private static void BestExtensionReceiverResolution<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-            where TMember : Symbol
-        {
-            // Items whose index is less than `checking` are in the candidate, "already accepted" set.
-            // The item at index `checking` is compared among the ones in the accepted set,
-            //   and actions taken depending on which is more specific.
-            //   (removal of the accepted item, removal of current item, or keeping both)
-            // The items above index `checking` are ignored until they are reached by the outer loop.
-            for (int checking = 0; checking < results.Count; checking++)
-            {
-                var checkingItem = results[checking];
-                if (!checkingItem.IsValid)
-                {
-                    continue;
-                }
-                for (int alreadyAccepted = 0; alreadyAccepted < checking; alreadyAccepted++)
-                {
-                    var alreadyAcceptedItem = results[alreadyAccepted];
-                    if (!alreadyAcceptedItem.IsValid)
-                    {
-                        continue;
-                    }
-                    // PROTOTYPE: Might want to use .ReceiverType if that ever gets created
-                    var result = MoreSpecificType(ReceiverType(alreadyAcceptedItem.Member), ReceiverType(checkingItem.Member), ref useSiteDiagnostics);
-                    if (result == BetterResult.Left)
-                    {
-                        // The existing accepted item was more specific than the current one. Remove the current.
-                        results[checking] = new MemberResolutionResult<TMember>(checkingItem.Member, checkingItem.LeastOverriddenMember, MemberAnalysisResult.Worse());
-                        break;
-                    }
-                    else if (result == BetterResult.Right || result == BetterResult.Equal)
-                    {
-                        // The currently-being-checked item was more specific than an accepted item. Remove the accepted one.
-                        results[alreadyAccepted] = new MemberResolutionResult<TMember>(alreadyAcceptedItem.Member, alreadyAcceptedItem.LeastOverriddenMember, MemberAnalysisResult.Worse());
-                    }
-                    // Else, neither was more applicable. Leave them both in the now-accepted set.
-                }
-            }
-        }
-
-        //private BetterResult BetterExtensionReceiver(TypeSymbol left, TypeSymbol right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        //{
-        //    var conversion = Conversions.ClassifyImplicitConversion(left, right, ref useSiteDiagnostics);
-        //    Conversions.IsValidExtensionMethodThisArgConversion(conversion);
-        //}
-
-        private static TypeSymbol ReceiverType(Symbol symbol)
-        {
-            var containing = symbol.ContainingType;
-            return containing.ExtensionClassType ?? containing;
-        }
-
         // Perform instance constructor overload resolution, storing the results into "results". If
         // completeResults is false, then invalid results don't have to be stored. The results will
         // still contain all possible successful resolution.
@@ -1670,6 +1617,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // UNDONE: Otherwise if one member is a non-lifted operator and  the other is a lifted
             // operator, the non-lifted one is better.
+
+            // Not spec'd yet: if two members are static extension methods, the more specific type that they
+            // are extending wins (even though it appears nowhere in the signature).
+            if (m1.Member.IsInExtensionClass && m2.Member.IsInExtensionClass && !m1.Member.IsUnreducedExtensionMember && !m2.Member.IsUnreducedExtensionMember)
+            {
+                var m1type = m1.Member.ContainingType.ExtensionClassType;
+                var m2type = m2.Member.ContainingType.ExtensionClassType;
+
+                // PROTOTYPE: What if they are extending static classes, etc? (That might never happen due to lookup rules)
+                result = BetterConversionTarget(m1type, m2type, ref useSiteDiagnostics);
+                if (result != BetterResult.Neither)
+                {
+                    return result;
+                }
+            }
 
             // The penultimate rule: Position in interactive submission chain. The last definition wins.
             if (m1.Member.ContainingType.TypeKind == TypeKind.Submission && m2.Member.ContainingType.TypeKind == TypeKind.Submission)

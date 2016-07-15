@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             getResultMethod = ((BoundCall)getResultCall).Method;
-            if (getResultMethod.IsExtensionMethod)
+            if (getResultMethod.IsExtensionMethod || getResultMethod.IsInExtensionClass)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
                 getResultMethod = null;

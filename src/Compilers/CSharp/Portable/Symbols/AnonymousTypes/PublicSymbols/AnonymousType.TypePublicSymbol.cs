@@ -241,6 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this.Manager.System_Object; }
             }
 
+            internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+            {
+                get { return null; }
+            }
+
             public override TypeKind TypeKind
             {
                 get { return TypeKind.Class; }

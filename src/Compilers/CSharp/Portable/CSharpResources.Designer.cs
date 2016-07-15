@@ -8027,6 +8027,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A replacement method cannot be defined in an extension class..
+        /// </summary>
+        internal static string ERR_ReplaceMethodInExtensionClass {
+            get {
+                return ResourceManager.GetString("ERR_ReplaceMethodInExtensionClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session.
         /// </summary>
         internal static string ERR_ReservedAssemblyName {

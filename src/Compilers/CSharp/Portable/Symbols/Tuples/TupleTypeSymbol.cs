@@ -618,6 +618,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get { return _underlyingType.ExtensionClassTypeNoUseSiteDiagnostics; }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get

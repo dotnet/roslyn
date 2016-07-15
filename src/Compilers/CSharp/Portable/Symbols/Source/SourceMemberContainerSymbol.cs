@@ -402,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CheckBase(DiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(DiagnosticBag diagnostics);
+        protected abstract void CheckExtensionClass(DiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
@@ -422,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             CheckBase(diagnostics);
+                            CheckExtensionClass(diagnostics); // PROTOTYPE: either bases or extension class does a short-circuit, so is this okay to call both here?
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
                             diagnostics.Free();
@@ -673,11 +675,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExtensionClass
+        {
+            get
+            {
+                return (_flags.DeclarationModifiers & DeclarationModifiers.Extension) != 0;
+            }
+        }
+
         public override bool IsStatic
         {
             get
             {
-                return (_flags.DeclarationModifiers & DeclarationModifiers.Static) != 0;
+                return (_flags.DeclarationModifiers & (DeclarationModifiers.Static | DeclarationModifiers.Extension)) != 0;
             }
         }
 
@@ -3244,11 +3254,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         #region Extension Methods
-
-        public override bool IsExtensionClass
-        {
-            get { return this.declaration.IsExtensionClass; }
-        }
 
         internal bool ContainsExtensionMembers
         {

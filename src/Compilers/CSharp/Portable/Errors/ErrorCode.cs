@@ -1402,5 +1402,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // extension everything errors
         ERR_ExtensionBadAbstractSealedStatic = 8207,
         ERR_ExtensionMethodInExtensionClass = 8208,
+        ERR_ReplaceMethodInExtensionClass = 8209,
     }
 }

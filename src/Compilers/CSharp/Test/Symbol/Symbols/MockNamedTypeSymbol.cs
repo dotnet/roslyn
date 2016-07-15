@@ -229,6 +229,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get { throw new NotImplementedException(); }

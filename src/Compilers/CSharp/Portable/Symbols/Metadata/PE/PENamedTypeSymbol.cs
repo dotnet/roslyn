@@ -371,6 +371,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // PROTOTYPE: Implement this
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get { return null; }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get

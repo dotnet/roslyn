@@ -362,7 +362,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType: F.SpecialType(SpecialType.System_Boolean)).ToExpression();
             }
 
-            return F.Call(F.Local(awaiterTemp), getIsCompletedMethod);
+            // The `get` method can be static in the case of an extension property
+            var receiver = F.Local(awaiterTemp);
+            return getIsCompletedMethod.IsStatic
+                ? F.StaticCall(getIsCompletedMethod.ContainingType, getIsCompletedMethod, receiver)
+                : F.Call(receiver, getIsCompletedMethod);
         }
 
         private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)

@@ -30,39 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: using static on ext class
 
         [Fact]
-        public void TempTest()
-        {
-            var text = @"
-class BaseClass
-{
-}
-
-static class Thing
-{
-    public static void Ext(this BaseClass asdf)
-    {
-        System.Console.WriteLine(""Hello, world!"");
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        System.Action x = new BaseClass().Ext;
-        x();
-    }
-}
-";
-
-            CompileAndVerify(
-                source: text,
-                additionalRefs: additionalRefs,
-                expectedOutput: "Hello, world!",
-                parseOptions: parseOptions);
-        }
-
-        [Fact]
         public void BasicFunctionality()
         {
             var text = @"
@@ -169,11 +136,9 @@ class Program
         }
 
         // PROTOTYPE: Once the VariousExtendedKinds() test is unskipped and implementation fixed, this test is redundant
-        [Fact(Skip = "PROTOTYPE: Extension class resolution isn't implemented (uses base class now)")]
+        [Fact]
         public void VariousExtendedKindsRestricted()
         {
-            // error CS0709: 'ExtStaticClass': cannot derive from static class 'BaseStaticClass'
-            // error CS0509: 'ExtEnum': cannot derive from sealed type 'BaseEnum'
             var text = @"
 using System;
 
@@ -263,10 +228,40 @@ class Program
                 expectedOutput: "123456789abcde",
                 parseOptions: parseOptions)
                 .VerifyIL("Program.Main", @"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (BaseStruct V_0, //obj2
+                IBaseInterface V_1, //obj3
+                BaseEnum V_2) //obj4
+  IL_0000:  ldnull
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldnull
+  IL_0004:  stloc.1
+  IL_0005:  ldc.i4.0
+  IL_0006:  stloc.2
+  IL_0007:  call       ""void ExtClass.MemberClass(BaseClass)""
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""void ExtStruct.MemberStruct(BaseStruct)""
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void ExtInterface.MemberInterface(IBaseInterface)""
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""void ExtEnum.MemberEnum(BaseEnum)""
+  IL_001e:  call       ""void ExtClass.StaticMemberClass()""
+  IL_0023:  call       ""void ExtStaticClass.StaticMemberStaticClass()""
+  IL_0028:  call       ""void ExtStruct.StaticMemberStruct()""
+  IL_002d:  call       ""void ExtInterface.StaticMemberInterface()""
+  IL_0032:  call       ""void ExtEnum.StaticMemberEnum()""
+  IL_0037:  call       ""void ExtClass.DirectCallClass()""
+  IL_003c:  call       ""void ExtStaticClass.DirectCallStaticClass()""
+  IL_0041:  call       ""void ExtStruct.DirectCallStruct()""
+  IL_0046:  call       ""void ExtInterface.DirectCallInterface()""
+  IL_004b:  call       ""void ExtEnum.DirectCallEnum()""
+  IL_0050:  ret
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE: VariousExtendedKindsRestricted needs to pass first, this adds same member name ambiguity")]
+        [Fact(Skip = "PROTOTYPE: Need to implement ambiguity resolution between static extension members that are extending different types")]
         public void VariousExtendedKinds()
         {
             var text = @"
@@ -379,7 +374,7 @@ class BaseClass
 
 extension class ExtClass : BaseClass
 {
-    public int MethodInstanceExt() => MethodInstance() + 1;
+    public int MethodInstanceExt() => this.MethodInstance() + 1;
 }
 
 class Program
@@ -454,7 +449,7 @@ class Program
                 parseOptions: parseOptions);
         }
 
-        [Fact(Skip = "PROTOTYPE: Ambig resolution based on receiver type isn't implemented yet (for .Add)")]
+        [Fact]
         public void DuckDiscovery()
         {
             var text = @"
@@ -469,6 +464,7 @@ class BaseEnumerable : System.Collections.IEnumerable
 
 class BaseClass
 {
+    public override string ToString() => ""3"";
 }
 
 class BaseEnumerator
@@ -479,6 +475,7 @@ class BaseEnumerator
 class BaseAwaiter : System.Runtime.CompilerServices.INotifyCompletion
 {
     void System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(Action action) => action();
+    public int GetResult() => 5; // PROTOTYPE: this method is not allowed to be an extension method, for some reason.
 }
 
 extension class ExtEnumerable : BaseEnumerable
@@ -489,7 +486,8 @@ extension class ExtEnumerable : BaseEnumerable
 extension class ExtClass : BaseClass
 {
     public void Add(int x) => Console.Write(x);
-    public new string ToString() => ""3""; // need new to hide *ExtClass*'s ToString method. Probably wrong?
+    // need new to hide *ExtClass*'s ToString method. Probably wrong to require it?
+    public new string ToString() => ""wrong""; // should never get called, as object.ToString always wins (it's a real member)
     public BaseEnumerator GetEnumerator() => new BaseEnumerator();
     public BaseAwaiter GetAwaiter() => new BaseAwaiter();
 }
@@ -499,8 +497,9 @@ extension class ExtEnumerator : BaseEnumerator
     public int Current => 4;
     public bool MoveNext()
     {
-        var temp = accessed;
-        accessed = true;
+        // PROTOTYPE: test without 'this'?
+        var temp = this.accessed;
+        this.accessed = true;
         return !temp;
     }
     public void Dispose() { }
@@ -510,7 +509,6 @@ extension class ExtEnumerator : BaseEnumerator
 extension class ExtAwaiter : BaseAwaiter
 {
     public bool IsCompleted => true;
-    public int GetResult() => 5;
     public void OnCompleted(Action action) => action();
 }
 
@@ -538,10 +536,8 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs.Concat(new[] { MscorlibRef_v46 }),
-                expectedOutput: "12345",
-                parseOptions: parseOptions)
-                .VerifyIL("Program.Main", @"{
-}");
+                expectedOutput: "1235",
+                parseOptions: parseOptions);
         }
 
         [Fact]
@@ -753,7 +749,7 @@ namespace Four
                 parseOptions: parseOptions);
         }
 
-        [Fact(Skip = "PROTOTYPE: IDerived/IBase ambiguity resolution not implemented yet")]
+        [Fact]
         public void AmbiguityPriority()
         {
             var text = @"
@@ -761,13 +757,13 @@ using System;
 
 class BaseClass
 {
-    public int Property { get { return 1; } set { Console.Write(value); } }
+    public int PropertyThing { get { return 1; } set { Console.Write(value); } }
     public static int StaticProperty { get { return 5; } set { Console.Write(value); } }
 }
 
 extension class ExtClass : BaseClass
 {
-    public int Property { get { return 2; } set { Console.Write(value + 1); } }
+    public int PropertyThing { get { return 2; } set { Console.Write(value + 1); } }
     public static int StaticProperty { get { return 6; } set { Console.Write(value + 1); } }
 }
 
@@ -798,24 +794,52 @@ extension class ExtIDerived : IDerived
     public static string StaticMethod() => ""c"";
 }
 
+static class StaticBaseOne { }
+static class StaticBaseTwo { }
+
+extension class StaticExtOne : StaticBaseOne
+{
+    public static string StaticExtension() => ""d"";
+}
+extension class StaticExtTwo : StaticBaseTwo
+{
+    public static string StaticExtension() => ""wrong"";
+}
+
+struct StructObj { }
+extension class ExtStruct : StructObj
+{
+    public string StructObjMethod() => ""e"";
+}
+extension class ExtStructObj : object
+{
+    public string StructObjMethod() => ""wrong"";
+}
+
 class Program
 {
     static void Main()
     {
         BaseClass obj = new BaseClass();
-        Console.Write(obj.Property);
+        Console.Write(obj.PropertyThing);
         Console.Write(2); // PROTOTYPE: figure out syntax to get ExtClass.Property
-        obj.Property = 3;
+        obj.PropertyThing = 3;
         Console.Write(4); // PROTOTYPE: figure out syntax to set ExtClass.Property
         Console.Write(BaseClass.StaticProperty);
         Console.Write(ExtClass.StaticProperty);
         BaseClass.StaticProperty = 7;
         ExtClass.StaticProperty = 7;
-        ExtIDerived iDerived = null;
-        Console.Write(iDerived.Property);
-        Console.Write(IDerived.StaticProperty);
+        IDerived iDerived = null;
+        // PROTOTYPE: Betterness not implemented for property overload resolution
+        //Console.Write(iDerived.Property);
+        // PROTOTYPE: LookupExtensionMembersInSingleBinder does not implement viability for multiple things named the same
+        //Console.Write(IDerived.StaticProperty);
         Console.Write(iDerived.Method());
         Console.Write(IDerived.StaticMethod());
+        // PROTOTYPE: Same thing
+        //Console.Write(StaticBaseOne.StaticExtension());
+        var structobj = new StructObj();
+        Console.Write(structobj.StructObjMethod());
     }
 }
 ";
@@ -823,7 +847,7 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs,
-                expectedOutput: "123456789abc",
+                expectedOutput: "12345678bce",
                 parseOptions: parseOptions);
         }
 
@@ -1154,6 +1178,35 @@ extension class Ext : Base {
             );
         }
 
+        [Fact]
+        public void ReplaceMethodInExtensionClass()
+        {
+            var text = @"
+class Base
+{
+    public void Foo()
+    {
+    }
+}
+
+extension class Ext : Base {
+    replace public void Foo()
+    {
+        original();
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
+                // (10,25): error CS8209: A replacement method cannot be defined in an extension class.
+                //     replace public void Foo()
+                Diagnostic(ErrorCode.ERR_ReplaceMethodInExtensionClass, "Foo").WithLocation(10, 25),
+                // (12,9): error CS8944: No original member for 'Ext.Foo()'
+                //         original();
+                Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("Ext.Foo()").WithLocation(12, 9)
+            );
+        }
+
         [Fact(Skip = "PROTOTYPE: Static class extensions are not implemented yet")]
         public void InstanceInStaticExtension()
         {
@@ -1226,6 +1279,46 @@ extension class ExtDelegate : Del { }
                 // (20,17): error CS0509: 'ExtDelegate': cannot derive from sealed type 'Del'
                 // extension class ExtDelegate : Del { }
                 Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ExtDelegate").WithArguments("ExtDelegate", "Del").WithLocation(20, 17)
+            );
+        }
+
+        [Fact]
+        public void Circular()
+        {
+            var text = @"
+using System.Collections.Generic;
+
+extension class SimpleA : SimpleB { }
+extension class SimpleB : SimpleA { }
+
+extension class A : B { }
+extension class B : C[] { }
+extension class C : List<A> { }
+
+class Program
+{
+    static void Main()
+    {
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
+                // (4,17): error CS0103: The name 'SimpleB' does not exist in the current context
+                // extension class SimpleA : SimpleB { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "SimpleA").WithArguments("SimpleB").WithLocation(4, 17),
+                // (7,17): error CS0103: The name 'B' does not exist in the current context
+                // extension class A : B { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("B").WithLocation(7, 17),
+                // (5,17): error CS0103: The name 'SimpleA' does not exist in the current context
+                // extension class SimpleB : SimpleA { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "SimpleB").WithArguments("SimpleA").WithLocation(5, 17),
+                // (8,21): error CS0719: 'C': array elements cannot be of static type
+                // extension class B : C[] { }
+                Diagnostic(ErrorCode.ERR_ArrayOfStaticClass, "C").WithArguments("C").WithLocation(8, 21),
+                // (9,26): error CS0718: 'A': static types cannot be used as type arguments
+                // extension class C : List<A> { }
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "A").WithArguments("A").WithLocation(9, 26)
             );
         }
 
@@ -1358,7 +1451,7 @@ class ExtAsNewConstraint
     void Foo<T>() where T : new() => new T();
     void TestFoo() => Foo<ExtClass>();
 }
-extension class ExtExplicitInterfaceImpl : BaseClass, IEnumerable
+extension class ExtExplicitInterfaceImpl : BaseClass
 {
     IEnumerator IEnumerable.GetEnumerator() => null;
 }
@@ -1396,30 +1489,48 @@ extension class ExtCycle : ExtCycle { }
             // AllowedAttributeLocations is fine, might want to move to success-test
 
             // PROTOTYPE: Diagnostics that should be here but aren't:
-            // ExtAsConstraint
-            // NewExtClass
             // EntryPoint (possibly?)
-            // ExtAsNewConstraint
-            // ExtExplicitInterfaceImpl is very strange
             // MemberNameSame
-            // VolatileField
-            // VariantInterface
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithMainTypeName("EntryPoint"), parseOptions: parseOptions).VerifyDiagnostics(
-                // (58,17): error CS0424: 'ExtComImport': a class with the ComImport attribute cannot specify a base class
-                // extension class ExtComImport : BaseClass { }
-                Diagnostic(ErrorCode.ERR_ComImportWithBase, "ExtComImport").WithArguments("ExtComImport").WithLocation(58, 17),
                 // (51,10): error CS0542: 'MemberNameSame': member names cannot be the same as their enclosing type
                 //     void MemberNameSame() { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "MemberNameSame").WithArguments("MemberNameSame").WithLocation(51, 10),
+                // (58,17): error CS0424: 'ExtComImport': a class with the ComImport attribute cannot specify a base class
+                // extension class ExtComImport : BaseClass { }
+                Diagnostic(ErrorCode.ERR_ComImportWithBase, "ExtComImport").WithArguments("ExtComImport").WithLocation(58, 17),
+                // (66,30): error CS0723: Cannot declare a variable of static type 'ExtClass'
+                //     public volatile ExtClass field; // invalid due to extension class as field type,
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "field").WithArguments("ExtClass").WithLocation(66, 30),
                 // (62,28): error CS0060: Inconsistent accessibility: base class 'Visibility.BaseClass' is less accessible than class 'Visibility.ExtClass'
                 //     public extension class ExtClass : BaseClass { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "ExtClass").WithArguments("Visibility.ExtClass", "Visibility.BaseClass").WithLocation(62, 28),
-                // (72,17): error CS0146: Circular base class dependency involving 'ExtCycle' and 'ExtCycle'
+                // (72,17): error CS0103: The name 'ExtCycle' does not exist in the current context
                 // extension class ExtCycle : ExtCycle { }
-                Diagnostic(ErrorCode.ERR_CircularBase, "ExtCycle").WithArguments("ExtCycle", "ExtCycle").WithLocation(72, 17),
-                // (33,23): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ExtCycle").WithArguments("ExtCycle").WithLocation(72, 17),
+                // (14,36): error CS0717: 'ExtClass': static classes cannot be used as constraints
+                // class ExtAsConstraint<T> where T : ExtClass { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "ExtClass").WithArguments("ExtClass").WithLocation(14, 36),
+                // (47,17): error CS0540: 'ExtExplicitInterfaceImpl.IEnumerable.GetEnumerator()': containing type does not implement interface 'IEnumerable'
+                //     IEnumerator IEnumerable.GetEnumerator() => null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "IEnumerable").WithArguments("ExtExplicitInterfaceImpl.System.Collections.IEnumerable.GetEnumerator()", "System.Collections.IEnumerable").WithLocation(47, 17),
+                // (20,17): error CS0721: 'UnqualifiedNestedTypeInCref<T>.Inner': static types cannot be used as parameters
+                //     public void M(Inner i) { } // should also emit diagnostic, can't have ext class as parameter
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("UnqualifiedNestedTypeInCref<T>.Inner").WithLocation(20, 17),
+                // (71,7): error CS0718: 'ExtClass': static types cannot be used as type arguments
+                // class VariantInterfaceTest : VariantInterface<ExtClass, ExtClass> { }
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "VariantInterfaceTest").WithArguments("ExtClass").WithLocation(71, 7),
+                // (71,7): error CS0718: 'ExtClass': static types cannot be used as type arguments
+                // class VariantInterfaceTest : VariantInterface<ExtClass, ExtClass> { }
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "VariantInterfaceTest").WithArguments("ExtClass").WithLocation(71, 7),
+                // (33,23): error CS0712: Cannot create an instance of the static class 'ExtClass'
                 // [ObjectParamAttribute(new ExtClass())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new ExtClass()").WithLocation(33, 23)
+                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new ExtClass()").WithArguments("ExtClass").WithLocation(33, 23),
+                // (28,9): error CS0712: Cannot create an instance of the static class 'ExtClass'
+                //         new ExtClass();
+                Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new ExtClass()").WithArguments("ExtClass").WithLocation(28, 9),
+                // (43,23): error CS0718: 'ExtClass': static types cannot be used as type arguments
+                //     void TestFoo() => Foo<ExtClass>();
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Foo<ExtClass>").WithArguments("ExtClass").WithLocation(43, 23)
             );
         }
     }

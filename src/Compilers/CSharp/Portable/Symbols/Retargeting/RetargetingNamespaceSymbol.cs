@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             _underlyingNamespace.GetExtensionMembers(underlyingMembers, nameOpt, arity, options);
             foreach (var underlyingMember in underlyingMembers)
             {
+                Debug.Assert(underlyingMember.IsDefinition);
                 if (underlyingMember.Kind == SymbolKind.Method)
                 {
                     var underlyingMethod = (MethodSymbol)underlyingMember;
@@ -230,6 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         var original = underlyingMethod.UnreduceExtensionMethod();
                         var retargeted = this.RetargetingTranslator.Retarget(original);
                         var reduced = retargeted.ReduceExtensionMethod();
+                        Debug.Assert((object)reduced != null);
+                        Debug.Assert(reduced.IsDefinition);
                         members.Add(reduced);
                         continue;
                     }

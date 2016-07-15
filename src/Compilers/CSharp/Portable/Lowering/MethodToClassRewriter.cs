@@ -497,6 +497,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            // All incoming extension methods should be either static originally or unreduced (static in either case)
+            Debug.Assert(!(method.IsInExtensionClass || method.IsExtensionMethod) || method.IsStatic);
+
             if (method.IsTupleMethod)
             {
                 //  Method of a tuple type
@@ -565,6 +568,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return null;
             }
+
+            // All incoming extension properties should be either static originally or unreduced (static in either case)
+            Debug.Assert(!property.IsInExtensionClass || property.IsStatic);
 
             if (!property.ContainingType.IsAnonymousType)
             {

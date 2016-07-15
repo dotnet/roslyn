@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NoLocation.Singleton;
         }
 
+        internal override TypeSymbol ExtensionClassTypeNoUseSiteDiagnostics
+        {
+            get { return null; }
+        }
+
         /// <summary>
         /// Returns null for a submission class.
         /// This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
@@ -69,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Symbol.ReportUseSiteDiagnostic(info, diagnostics, Locations[0]);
             }
+        }
+
+        protected override void CheckExtensionClass(DiagnosticBag diagnostics)
+        {
+            Debug.Assert(!this.IsExtensionClass);
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)

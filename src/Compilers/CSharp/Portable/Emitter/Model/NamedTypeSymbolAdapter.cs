@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsAbstract || this.IsStatic || this.IsExtensionClass;
+                return this.IsAbstract || this.IsStatic;
             }
         }
 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsSealed || this.IsStatic || this.IsExtensionClass;
+                return this.IsSealed || this.IsStatic;
             }
         }
 
