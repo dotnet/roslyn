@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -43,22 +44,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         // internal for testing purposes only.
-        internal static IProjectShim CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectName, string languageName, CommandLineArguments commandLineArguments)
+        internal static IProjectShim CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectFilePath, string language, Guid projectGuid, CommandLineArguments commandLineArguments)
         {
-            return new ProjectShim(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, projectName: projectName,
-                hierarchy: hierarchy, language: languageName, serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null);
+            return new ProjectShim(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
+                serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null, projectFilePath: projectFilePath, projectGuid: projectGuid);
         }
 
-        IProjectShim IProjectShimFactory.CreateProjectShim(string languageName, string projectName, CommandLineArguments commandLineArguments)
+        IProjectShim IProjectShimFactory.CreateProjectShim(string languageName, string projectFilePath, Guid projectGuid, object hostObject, CommandLineArguments commandLineArguments)
         {
-            var vsSolution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
-            IVsHierarchy vsHierarchy;
-            ErrorHandler.ThrowOnFailure(vsSolution.GetProjectOfUniqueName(projectName, out vsHierarchy));
+            var vsHierarchy = hostObject as IVsHierarchy;
             if (vsHierarchy != null)
             {
                 Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
-                return new ProjectShim(commandLineArguments, _projectTracker, getExternalErrorReporter, projectName,
-                    vsHierarchy, languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource);
+                return new ProjectShim(commandLineArguments, _projectTracker, getExternalErrorReporter, vsHierarchy,
+                    languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource, projectFilePath, projectGuid);
             }
 
             return null;

@@ -29,8 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string language,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
-            : base(projectTracker, reportExternalErrorCreatorOpt, projectSystemName, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            string projectFilePath = null,
+            Guid? projectGuid = null,
+            bool? isWebsiteProject = null,
+            bool connectHierarchyEvents = true)
+            : base(projectTracker, reportExternalErrorCreatorOpt, projectSystemName, hierarchy, language, serviceProvider,
+                   visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, projectFilePath, projectGuid, isWebsiteProject, connectHierarchyEvents)
         {
             if (visualStudioWorkspaceOpt != null)
             {

@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
                 // Add source file
                 var sourceFileFullPath = @"c:\source.cs";
-                project1Shim.AddSourceFile(sourceFileFullPath, itemId: 0);
+                project1Shim.AddSourceFile(sourceFileFullPath);
                 Assert.True(project1.GetCurrentDocuments().Any(s => s.FilePath == sourceFileFullPath));
 
                 // Remove source file

@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -16,24 +14,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private sealed partial class ProjectShim : AbstractRoslynProject
         {
-            private string _lastOutputPath;
-
             public ProjectShim(
                 CommandLineArguments commandLineArguments,
                 VisualStudioProjectTracker projectTracker,
                 Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
-                string projectName,
                 IVsHierarchy hierarchy,
                 string language,
                 IServiceProvider serviceProvider,
                 VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-                HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
-                : base(projectTracker, reportExternalErrorCreatorOpt, projectName, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+                HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+                string projectFilePath,
+                Guid projectGuid)
+                : base(projectTracker, reportExternalErrorCreatorOpt, GetProjectDisplayName(projectFilePath), hierarchy, language, serviceProvider,
+                      visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, projectFilePath, projectGuid, isWebsiteProject: false, connectHierarchyEvents: false)
             {
                 // Set the initial options from the command line before we add the project to the project tracker.
                 SetCommandLineArguments(commandLineArguments);
 
                 projectTracker.AddProject(this);
+            }
+
+            private static string GetProjectDisplayName(string projectFilePath)
+            {
+                return PathUtilities.GetFileName(projectFilePath, includeExtension: false);
             }
 
             protected override CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments)
@@ -45,18 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 base.PostSetOptions();
 
-                // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
-                string outputPath;
-                if (!base.TryGetOutputPathFromBuildManager(out outputPath))
+                // If outputPath has changed, then invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
+                var commandLineArguments = GetParsedCommandLineArguments();
+                if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
                 {
-                    // This can happen for tests.
-                    outputPath = null;
-                }
-
-                if (_lastOutputPath == null || outputPath != null && !_lastOutputPath.Equals(outputPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    SetOutputPathAndRelatedData(outputPath);
-                    _lastOutputPath = outputPath;
+                    var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
+                    SetOutputPathAndRelatedData(newOutputPath, hasSameBinAndObjOutputPaths: true);
                 }
             }
         }

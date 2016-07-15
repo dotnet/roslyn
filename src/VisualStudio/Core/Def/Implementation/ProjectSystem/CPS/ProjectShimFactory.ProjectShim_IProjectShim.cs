@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -56,9 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             #endregion
 
             #region Source files
-            public void AddSourceFile(string filePath, uint itemId, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+            public void AddSourceFile(string filePath, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
             {
-                AddFile(filePath, sourceCodeKind, itemId, CanUseTextBuffer);
+                AddFile(filePath, sourceCodeKind, folderNames.ToImmutableArrayOrEmpty(), CanUseTextBuffer);
             }
 
             public void RemoveSourceFile(string filePath)
@@ -69,6 +71,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private bool CanUseTextBuffer(ITextBuffer textBuffer)
             {
                 return true;
+            }
+
+            #endregion
+
+            #region Project property changes
+            public void SetProjectGuid(Guid guid)
+            {
+                Guid = guid;
+            }
+
+            public void SetProjectFilePath(string projectFilePath)
+            {
+                var projectDisplayName = PathUtilities.GetFileName(projectFilePath, includeExtension: false);
+                UpdateProjectDisplayNameAndFilePath(projectDisplayName, projectFilePath);
+            }
+
+            public void SetIsWebsiteProject()
+            {
+                IsWebSite = true;
             }
 
             #endregion

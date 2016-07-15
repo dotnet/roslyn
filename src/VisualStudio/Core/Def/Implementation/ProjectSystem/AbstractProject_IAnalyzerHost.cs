@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -124,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                (uint)VSConstants.VSITEMID.Nil,
+                () => ImmutableArray<string>.Empty,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
                 canUseTextBuffer: _ => true);

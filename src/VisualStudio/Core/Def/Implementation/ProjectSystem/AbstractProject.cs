@@ -81,13 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _pushingChangesToWorkspaceHosts;
 
         /// <summary>
-        /// Guid of the _hierarchy
-        /// 
-        /// it is not readonly since it can be changed while loading project
-        /// </summary>
-        private Guid _guid;
-
-        /// <summary>
         /// string (Guid) of the _hierarchy project type
         /// </summary>
         private readonly string _projectType;
@@ -116,7 +109,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string language,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            string projectFilePath = null,
+            Guid? projectGuid = null,
+            bool? isWebsiteProject = null,
+            bool connectHierarchyEvents = true)
         {
             Contract.ThrowIfNull(projectSystemName);
 
@@ -126,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hierarchy = hierarchy;
 
             // get project id guid
-            _guid = GetProjectIDGuid(hierarchy);
+            Guid = projectGuid ?? GetProjectIDGuid(hierarchy);
 
             // get project type guid
             _projectType = GetProjectType(hierarchy);
@@ -142,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspaceOpt = visualStudioWorkspaceOpt;
             _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSourceOpt;
 
-            UpdateProjectDisplayNameAndFilePath();
+            UpdateProjectDisplayNameAndFilePath(projectSystemName ?? GetProjectDisplayName(hierarchy), projectFilePath ?? GetProjectFilePath(hierarchy));
 
             if (_filePathOpt != null)
             {
@@ -159,9 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _externalErrorReporter = reportExternalErrorCreatorOpt(_id);
             }
 
-            ConnectHierarchyEvents();
+            if (connectHierarchyEvents)
+            {
+                ConnectHierarchyEvents();
+            }
 
-            SetIsWebsite(hierarchy);
+            this.IsWebSite = isWebsiteProject.HasValue ? isWebsiteProject.Value : GetIsWebsiteProject(hierarchy);
         }
 
         private static string GetProjectType(IVsHierarchy hierarchy)
@@ -192,20 +192,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return Guid.Empty;
         }
 
-        private void SetIsWebsite(IVsHierarchy hierarchy)
+        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
         {
             EnvDTE.Project project;
             try
             {
                 if (hierarchy.TryGetProject(out project))
                 {
-                    this.IsWebSite = project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
+                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
                 }
             }
             catch (Exception)
             {
-                this.IsWebSite = false;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -226,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Indicates whether this project is a website type.
         /// </summary>
-        public bool IsWebSite { get; private set; }
+        public bool IsWebSite { get; protected set; }
 
         /// <summary>
         /// A full path to the project obj output binary, or null if the project doesn't have an obj output binary.
@@ -248,7 +249,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IVsHierarchy Hierarchy => _hierarchy;
 
-        public Guid Guid => _guid;
+        /// <summary>
+        /// Guid of the project
+        /// 
+        /// it is not readonly since it can be changed while loading project
+        /// </summary>
+        public Guid Guid { get; protected set; }
 
         public string ProjectType => _projectType;
 
@@ -793,11 +799,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected void AddFile(string filename, SourceCodeKind sourceCodeKind, ImmutableArray<string> folderNames, Func<ITextBuffer, bool> canUseTextBuffer)
+        {
+            AddFile(filename, sourceCodeKind, () => folderNames, canUseTextBuffer);
+        }
+
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind, uint itemId, Func<ITextBuffer, bool> canUseTextBuffer)
+        {
+            AddFile(filename, sourceCodeKind, () => GetFolderNames(itemId), canUseTextBuffer);
+        }
+
+        private void AddFile(string filename, SourceCodeKind sourceCodeKind, Func<IReadOnlyList<string>> getFolderNames, Func<ITextBuffer, bool> canUseTextBuffer)
         {
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                itemId,
+                getFolderNames,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
                 canUseTextBuffer: canUseTextBuffer);
@@ -1289,7 +1305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetOutputPathAndRelatedData(string objOutputPath)
+        protected void SetOutputPathAndRelatedData(string objOutputPath, bool hasSameBinAndObjOutputPaths = false)
         {
             if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(_objOutputPathOpt, objOutputPath, StringComparison.OrdinalIgnoreCase))
             {
@@ -1328,37 +1344,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // refresh final output path
             string newBinOutputPath;
-            if (TryGetOutputPathFromBuildManager(out newBinOutputPath) && newBinOutputPath != null)
+            if (hasSameBinAndObjOutputPaths)
             {
-                if (!string.Equals(_binOutputPathOpt, newBinOutputPath, StringComparison.OrdinalIgnoreCase))
+                newBinOutputPath = objOutputPath;
+            }
+            else if (!TryGetOutputPathFromBuildManager(out newBinOutputPath))
+            {
+                newBinOutputPath = null;
+            }
+
+            if (newBinOutputPath != null && !string.Equals(_binOutputPathOpt, newBinOutputPath, StringComparison.OrdinalIgnoreCase))
+            {
+                string oldBinOutputPath = _binOutputPathOpt;
+
+                // set obj output path if changed
+                _binOutputPathOpt = newBinOutputPath;
+
+                // If the project has been hooked up with the project tracker, then update the bin path with the tracker.
+                if (this.ProjectTracker.GetProject(Id) != null)
                 {
-                    string oldBinOutputPath = _binOutputPathOpt;
-
-                    // set obj output path if changed
-                    _binOutputPathOpt = newBinOutputPath;
-
-                    // If the project has been hooked up with the project tracker, then update the bin path with the tracker.
-                    if (this.ProjectTracker.GetProject(Id) != null)
-                    {
-                        this.ProjectTracker.UpdateProjectBinPath(this, oldBinOutputPath, _binOutputPathOpt);
-                    }
+                    this.ProjectTracker.UpdateProjectBinPath(this, oldBinOutputPath, _binOutputPathOpt);
                 }
             }
         }
 
-        private void UpdateProjectDisplayNameAndFilePath()
+        private static string GetProjectDisplayName(IVsHierarchy hierarchy)
+        {
+            string newDisplayName;
+            return TryGetProjectDisplayName(hierarchy, out newDisplayName) ? newDisplayName : null;
+        }
+
+        private static string GetProjectFilePath(IVsHierarchy hierarchy)
+        {
+            string filePath;
+            return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out filePath)) ? filePath : null;
+        }
+
+        protected void UpdateProjectDisplayNameAndFilePath(string newDisplayName, string newPath)
         {
             bool updateMade = false;
-            string newDisplayName;
-            if (TryGetProjectDisplayName(_hierarchy, out newDisplayName) && this.DisplayName != newDisplayName)
+            
+            if (newDisplayName != null && this.DisplayName != newDisplayName)
             {
                 this.DisplayName = newDisplayName;
                 updateMade = true;
             }
-
-            string newPath;
-            if (ErrorHandler.Succeeded(((IVsProject3)_hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out newPath)) &&
-                File.Exists(newPath) && _filePathOpt != newPath)
+            
+            if (newPath != null && File.Exists(newPath) && _filePathOpt != newPath)
             {
                 Debug.Assert(PathUtilities.IsAbsolute(newPath));
                 _filePathOpt = newPath;

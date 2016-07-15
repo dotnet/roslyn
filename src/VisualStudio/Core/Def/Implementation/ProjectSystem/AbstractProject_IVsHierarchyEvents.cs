@@ -66,14 +66,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                  propid == (int)__VSHPROPID.VSHPROPID_Name) &&
                 itemid == (uint)VSConstants.VSITEMID.Root)
             {
-                UpdateProjectDisplayNameAndFilePath();
+                string newDisplayName = GetProjectDisplayName(_hierarchy);
+                string newPath = GetProjectFilePath(_hierarchy);
+
+                UpdateProjectDisplayNameAndFilePath(newDisplayName, newPath);
             }
 
             if ((propid == (int)__VSHPROPID.VSHPROPID_ProjectIDGuid) &&
                  itemid == (uint)VSConstants.VSITEMID.Root)
             {
                 // this should happen while project loading if it ever happens
-                _guid = GetProjectIDGuid(_hierarchy);
+                Guid = GetProjectIDGuid(_hierarchy);
             }
 
             return VSConstants.S_OK;
