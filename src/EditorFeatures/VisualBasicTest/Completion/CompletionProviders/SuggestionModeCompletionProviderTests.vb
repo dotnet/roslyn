@@ -308,7 +308,7 @@ End Class
         Public Async Function NamespaceDeclarationName_Unqualified() As Task
             Dim markup = <a> 
 Namespace $$
-End Class
+End Namespace
 </a>
             Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
         End Function
@@ -318,8 +318,36 @@ End Class
         Public Async Function NamespaceDeclarationName_Qualified() As Task
             Dim markup = <a> 
 Namespace A.$$
-End Class
+End Namespace
 </a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialClassName() As Task
+            Dim markup = <a>Partial Class $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialStructureName() As Task
+            Dim markup = <a>Partial Structure $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialInterfaceName() As Task
+            Dim markup = <a>Partial Interface $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialModuleName() As Task
+            Dim markup = <a>Partial Module $$</a>
             Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
         End Function
 

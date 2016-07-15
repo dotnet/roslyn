@@ -32,6 +32,20 @@
                     <CheckBox x:Uid="Show_completion_item_filters"
                                   x:Name="Show_completion_item_filters"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_item_filters}" />
+
+                    <Label Content="{x:Static local:IntelliSenseOptionPageStrings.Snippets_behavior}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Snippets_behavior"
+                                          x:Name="Never_include_snippets"
+                                          Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Never_include_snippets}"/>
+                        <RadioButton  GroupName="Snippets_behavior"
+                                          x:Name="Always_include_snippets"
+                                          Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Always_include_snippets}"/>
+                        <RadioButton  GroupName="Snippets_behavior"
+                                          x:Name="Include_snippets_when_question_Tab_is_typed_after_an_identifier"
+                                          Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier}"/>
+                    </StackPanel>
+
                     <Label Content="{x:Static local:IntelliSenseOptionPageStrings.Enter_key_behavior_Title}"/>
                     <StackPanel Margin="15, 0, 0, 0">
                         <RadioButton  GroupName="InsertNewlineOnEnterRadio"

@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "BasicUndo": "0.9.3",
-    "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.2.25123"
+    "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407"
   },
   "frameworks": {
     "net46": {}

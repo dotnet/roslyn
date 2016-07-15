@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
                 new RemoveKeywordRecommender(),
-                new ReplaceKeywordRecommender(),
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),
@@ -169,14 +169,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword)
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
-                shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
+                shouldFormatOnCommit: keyword.ShouldFormatOnCommit,
+                matchPriority: keyword.MatchPriority);
+        }
+
+        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
+        {
+            return CompletionUtilities.GetCompletionItemSpan(text, span.End);
         }
     }
 }

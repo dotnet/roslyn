@@ -392,6 +392,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &lt;class name&gt;.
+        '''</summary>
+        Friend ReadOnly Property ClassName() As String
+            Get
+                Return ResourceManager.GetString("ClassName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
         '''Option Compare {Binary | Text}.
         '''</summary>
@@ -1490,6 +1499,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &lt;interface name&gt;.
+        '''</summary>
+        Friend ReadOnly Property InterfaceName() As String
+            Get
+                Return ResourceManager.GetString("InterfaceName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies an identifier that can serve as a reference to the results of a join or grouping subexpression..
         '''</summary>
         Friend ReadOnly Property IntoQueryKeywordToolTip() As String
@@ -1781,6 +1799,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ModuleKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("ModuleKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;module name&gt;.
+        '''</summary>
+        Friend ReadOnly Property ModuleName() As String
+            Get
+                Return ResourceManager.GetString("ModuleName", resourceCulture)
             End Get
         End Property
         
@@ -2186,24 +2213,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Organize Imports.
-        '''</summary>
-        Friend ReadOnly Property OrganizeImports() As String
-            Get
-                Return ResourceManager.GetString("OrganizeImports", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &amp;Organize Imports.
-        '''</summary>
-        Friend ReadOnly Property OrganizeImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("OrganizeImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Performs an inclusive logical disjunction on two Boolean expressions, or a bitwise disjunction on two numeric expressions. For Boolean expressions, returns True if at least one operand evaluates to True. Both expressions are always evaluated.
         '''&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;.
         '''</summary>
@@ -2477,15 +2486,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &amp;Remove Unnecessary Imports.
-        '''</summary>
-        Friend ReadOnly Property RemoveUnnecessaryImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("RemoveUnnecessaryImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Replace &apos;Return&apos; with &apos;Yield.
         '''</summary>
         Friend ReadOnly Property ReplaceReturnWithYield() As String
@@ -2685,15 +2685,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &amp;Sort Imports.
-        '''</summary>
-        Friend ReadOnly Property SortImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("SortImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Specifies that one or more declared local variables are to remain in existence and retain their latest values after the procedure in which they are declared terminates..
         '''</summary>
         Friend ReadOnly Property StaticKeywordToolTip() As String
@@ -2736,6 +2727,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property StructureKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("StructureKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;structure name&gt;.
+        '''</summary>
+        Friend ReadOnly Property StructureName() As String
+            Get
+                Return ResourceManager.GetString("StructureName", resourceCulture)
             End Get
         End Property
         
@@ -2928,6 +2928,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property TypeANameHereToDeclareANamespace() As String
             Get
                 Return ResourceManager.GetString("TypeANameHereToDeclareANamespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial class..
+        '''</summary>
+        Friend ReadOnly Property TypeANameHereToDeclareAPartialClass() As String
+            Get
+                Return ResourceManager.GetString("TypeANameHereToDeclareAPartialClass", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial interface..
+        '''</summary>
+        Friend ReadOnly Property TypeANameHereToDeclareAPartialInterface() As String
+            Get
+                Return ResourceManager.GetString("TypeANameHereToDeclareAPartialInterface", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial module..
+        '''</summary>
+        Friend ReadOnly Property TypeANameHereToDeclareAPartialModule() As String
+            Get
+                Return ResourceManager.GetString("TypeANameHereToDeclareAPartialModule", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial structure..
+        '''</summary>
+        Friend ReadOnly Property TypeANameHereToDeclareAPartialStructure() As String
+            Get
+                Return ResourceManager.GetString("TypeANameHereToDeclareAPartialStructure", resourceCulture)
             End Get
         End Property
         

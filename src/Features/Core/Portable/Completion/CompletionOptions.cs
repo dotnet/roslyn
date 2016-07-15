@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.Completion
         internal const string FeatureName = "Completion";
 
         public static readonly PerLanguageOption<bool> HideAdvancedMembers = new PerLanguageOption<bool>(FeatureName, "HideAdvancedMembers", defaultValue: false);
-        public static readonly PerLanguageOption<bool> IncludeKeywords = new PerLanguageOption<bool>(FeatureName, "IncludeKeywords", defaultValue: true);
         public static readonly PerLanguageOption<bool> TriggerOnTyping = new PerLanguageOption<bool>(FeatureName, "TriggerOnTyping", defaultValue: true);
 
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(FeatureName, nameof(TriggerOnTypingLetters), defaultValue: true);
@@ -18,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static readonly PerLanguageOption<EnterKeyRule> EnterKeyBehavior =
             new PerLanguageOption<EnterKeyRule>(FeatureName, nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default);
+        public static readonly PerLanguageOption<SnippetsRule> SnippetsBehavior =
+            new PerLanguageOption<SnippetsRule>(FeatureName, nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default);
 
         // Dev15 options
         public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: false);

@@ -1307,7 +1307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var memberNames = ArrayBuilder<string>.GetInstance(membersDictionary.Count);
                     memberNames.AddRange(membersDictionary.Keys);
-                    MergeReplacedMembers(memberNames, membersDictionary, diagnostics);
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
                     if (this.IsExtensionClass)
                     {
@@ -2348,101 +2347,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal Binder GetBinder(CSharpSyntaxNode syntaxNode)
         {
             return this.DeclaringCompilation.GetBinder(syntaxNode);
-        }
-
-        private static void MergeReplacedMembers(
-            ArrayBuilder<string> memberNames,
-            Dictionary<string, ImmutableArray<Symbol>> membersByName,
-            DiagnosticBag diagnostics)
-        {
-            var membersGroupedBySignature = new Dictionary<Symbol, OneOrMany<Symbol>>(MemberSignatureComparer.DuplicateSourceComparer);
-
-            foreach (var name in memberNames)
-            {
-                var members = membersByName[name];
-                if (members.Length < 2)
-                {
-                    continue;
-                }
-
-                membersGroupedBySignature.Clear();
-
-                foreach (var member in members)
-                {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Method:
-                            if (((MethodSymbol)member).IsAsync)
-                            {
-                                continue;
-                            }
-                            goto case SymbolKind.Property;
-
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            OneOrMany<Symbol> group;
-                            if (membersGroupedBySignature.TryGetValue(member, out group))
-                            {
-                                membersGroupedBySignature[member] = group.Add(member);
-                            }
-                            else
-                            {
-                                membersGroupedBySignature.Add(member, OneOrMany.Create(member));
-                            }
-                            break;
-                    }
-                }
-
-                foreach (var group in membersGroupedBySignature.Values)
-                {
-                    if (group.Count < 2)
-                    {
-                        continue;
-                    }
-
-                    Symbol last = null;
-                    foreach (var member in group)
-                    {
-                        var method = member as SourceMethodSymbol;
-                        if ((object)method != null && method.IsPartial)
-                        {
-                            continue;
-                        }
-                        if ((object)last == null)
-                        {
-                            last = member;
-                        }
-                        else
-                        {
-                            var next = member;
-                            if (!last.IsReplace)
-                            {
-                                if (!next.IsReplace)
-                                {
-                                    continue;
-                                }
-                                var temp = last;
-                                last = next;
-                                next = temp;
-                            }
-                            Debug.Assert(last.IsReplace);
-                            if (next.IsReplace)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateReplace, member.Locations[0], member);
-                                next.SetReplaced(last.Replaced);
-                            }
-                            else if ((object)last.Replaced == null)
-                            {
-                                // No need to handle two originals (last.Replaced != null).
-                                // That duplicate member will be reported elsewhere.
-                                last.SetReplaced(next);
-                                next.SetReplacedBy(last);
-                                membersByName[name] = Remove(membersByName[name], next);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private static void MergePartialMembers(

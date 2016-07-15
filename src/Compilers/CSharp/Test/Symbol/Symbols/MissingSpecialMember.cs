@@ -548,7 +548,7 @@ namespace System
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
-            for (var wkt = WellKnownType.First; wkt <= WellKnownType.Last; wkt++)
+            for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
                 switch (wkt)
                 {
@@ -572,7 +572,7 @@ namespace System
         }
 
         [Fact]
-        public void AllWellKnowTypesBeforeCSharp7()
+        public void AllWellKnownTypesBeforeCSharp7()
         {
             foreach (var type in new[] {
                             WellKnownType.System_Math,

@@ -6,8 +6,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
@@ -15,8 +17,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Emit
 {
-    using Roslyn.Reflection;
-
     public class CustomDebugInfoTests
     {
         [Fact]

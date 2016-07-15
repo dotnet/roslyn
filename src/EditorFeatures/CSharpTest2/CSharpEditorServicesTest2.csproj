@@ -129,7 +129,6 @@
     <Compile Include="Recommendations\AssemblyKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\AsyncKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\ExtensionKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ReplaceKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\AwaitKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\BaseKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\BoolKeywordRecommenderTests.cs" />

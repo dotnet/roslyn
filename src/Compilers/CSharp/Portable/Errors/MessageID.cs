@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureReplace = MessageBase + 12712,
-        IDS_FeatureExtensionEverything = MessageBase + 12713,
+        IDS_FeatureOutVar = MessageBase + 12713,
+        IDS_FeatureExtensionEverything = MessageBase + 12714,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
         }
-        
+
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
@@ -185,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePatternMatching:
                 case MessageID.IDS_FeatureTuples:
                 case MessageID.IDS_FeatureReplace:
+                case MessageID.IDS_FeatureOutVar:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.

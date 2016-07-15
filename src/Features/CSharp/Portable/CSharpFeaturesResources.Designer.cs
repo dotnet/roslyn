@@ -125,6 +125,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to type declaration..
+        /// </summary>
+        internal static string AutoselectDisabledDueToTypeDeclaration {
+            get {
+                return ResourceManager.GetString("AutoselectDisabledDueToTypeDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to awaitable.
         /// </summary>
         internal static string Awaitable {
@@ -202,6 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string CheckedStatement {
             get {
                 return ResourceManager.GetString("CheckedStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;class name&gt;.
+        /// </summary>
+        internal static string ClassName {
+            get {
+                return ResourceManager.GetString("ClassName", resourceCulture);
             }
         }
         
@@ -467,6 +485,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;interface name&gt;.
+        /// </summary>
+        internal static string InterfaceName {
+            get {
+                return ResourceManager.GetString("InterfaceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to into clause.
         /// </summary>
         internal static string IntoClause {
@@ -638,15 +665,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Organize Usings.
-        /// </summary>
-        internal static string OrganizeUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("OrganizeUsingsWithAccelerator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources..
         /// </summary>
         internal static string OverrideAFinalizerTodo {
@@ -742,15 +760,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string RemoveUnnecessaryUsingsDiagnosticTitle {
             get {
                 return ResourceManager.GetString("RemoveUnnecessaryUsingsDiagnosticTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Remove Unnecessary Usings.
-        /// </summary>
-        internal static string RemoveUnnecessaryUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("RemoveUnnecessaryUsingsWithAccelerator", resourceCulture);
             }
         }
         
@@ -872,20 +881,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string SortUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("SortUsingsWithAccelerator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to struct.
         /// </summary>
         internal static string Struct {
             get {
                 return ResourceManager.GetString("Struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;struct name&gt;.
+        /// </summary>
+        internal static string StructName {
+            get {
+                return ResourceManager.GetString("StructName", resourceCulture);
             }
         }
         

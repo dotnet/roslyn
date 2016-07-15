@@ -41,7 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x7FFFFF;
+            private const int DeclarationModifiersMask = 0x1FFFFF;
+
+            private const int ReturnsVoidBit = 1 << 26;
+            private const int IsExtensionMethodBit = 1 << 27;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 28;
+            private const int IsMetadataVirtualBit = 1 << 29;
+            private const int IsMetadataVirtualLockedBit = 1 << 30;
 
             private int _flags;
 
@@ -176,9 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
-
-        private SourceMethodSymbol _replacedBy;
-        private SourceMethodSymbol _replaced;
 
         //null if has never been computed. Initial binding diagnostics
         //are stashed here in service of API usage patterns
@@ -519,14 +522,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReplace
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Replace) != 0;
-            }
-        }
-
         internal sealed override Cci.CallingConvention CallingConvention
         {
             get
@@ -684,36 +679,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _lazyOverriddenOrHiddenMembers;
             }
-        }
-
-        public override string MetadataName
-        {
-            get
-            {
-                return (object)_replacedBy == null ?
-                    base.MetadataName :
-                    GeneratedNames.ReplacedMemberName(Name, uniqueId: 0);
-            }
-        }
-
-        internal sealed override Symbol Replaced
-        {
-            get { return _replaced; }
-        }
-
-        internal sealed override Symbol ReplacedBy
-        {
-            get { return _replacedBy; }
-        }
-
-        internal sealed override void SetReplaced(Symbol replaced)
-        {
-            this._replaced = (SourceMethodSymbol)replaced;
-        }
-
-        internal sealed override void SetReplacedBy(Symbol replacedBy)
-        {
-            this._replacedBy = (SourceMethodSymbol)replacedBy;
         }
 
         internal sealed override bool RequiresCompletion
@@ -1005,6 +970,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
             }
+
+            if (ReturnType.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(ReturnType));
+            }
         }
 
         internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -1263,6 +1234,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
             }
         }
 

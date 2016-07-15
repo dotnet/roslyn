@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return False
                 End If
 
-                Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
                 Dim token = tree.FindTokenOnLeftOfPosition(oldCaretPositionInOldSnapshot.Value, cancellationToken)
 
                 If token.IsKind(SyntaxKind.StringLiteralToken) AndAlso token.FullSpan.Contains(oldCaretPositionInOldSnapshot.Value) Then

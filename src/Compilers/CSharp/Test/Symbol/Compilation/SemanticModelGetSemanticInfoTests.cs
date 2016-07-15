@@ -10963,7 +10963,7 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);

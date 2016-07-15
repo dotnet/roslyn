@@ -2556,11 +2556,11 @@ namespace ConsoleApplication46
                 var oldTree = await document.GetSyntaxTreeAsync();
 
                 var commit = await provider.GetChangeAsync(document, completionList.Items.First(i => i.DisplayText == "ToString()"), ' ');
-                var changes = commit.TextChanges;
+                var change = commit.TextChange;
 
                 // If we left the trailing trivia of the close curly of Main alone,
                 // there should only be one change: the replacement of "override " with a method.
-                Assert.Equal(changes.Single().Span, TextSpan.FromBounds(136, 145));
+                Assert.Equal(change.Span, TextSpan.FromBounds(136, 145));
             }
         }
     }

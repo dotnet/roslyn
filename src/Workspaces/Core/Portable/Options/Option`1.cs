@@ -20,17 +20,14 @@ namespace Microsoft.CodeAnalysis.Options
         public string Name { get; }
 
         /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type
-        {
-            get { return typeof(T); }
-        }
-
-        /// <summary>
         /// The default value of the option.
         /// </summary>
         public T DefaultValue { get; }
+
+        /// <summary>
+        /// The type of the option value.
+        /// </summary>
+        public Type Type => typeof(T);
 
         public Option(string feature, string name, T defaultValue = default(T))
         {
@@ -49,20 +46,9 @@ namespace Microsoft.CodeAnalysis.Options
             this.DefaultValue = defaultValue;
         }
 
-        Type IOption.Type
-        {
-            get { return typeof(T); }
-        }
+        object IOption.DefaultValue => this.DefaultValue;
 
-        object IOption.DefaultValue
-        {
-            get { return this.DefaultValue; }
-        }
-
-        bool IOption.IsPerLanguage
-        {
-            get { return false; }
-        }
+        bool IOption.IsPerLanguage => false;
 
         public override string ToString()
         {

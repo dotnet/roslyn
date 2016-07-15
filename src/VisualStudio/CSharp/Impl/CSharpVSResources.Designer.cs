@@ -403,6 +403,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Always include snippets.
+        /// </summary>
+        internal static string Option_Always_include_snippets {
+            get {
+                return ResourceManager.GetString("Option_Always_include_snippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable full solution _analysis.
         /// </summary>
         internal static string Option_ClosedFileDiagnostics {
@@ -511,6 +520,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
+        /// </summary>
+        internal static string Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier {
+            get {
+                return ResourceManager.GetString("Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
         /// </summary>
         internal static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments {
@@ -525,6 +543,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_Never_add_new_line_on_enter {
             get {
                 return ResourceManager.GetString("Option_Never_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never include snippets.
+        /// </summary>
+        internal static string Option_Never_include_snippets {
+            get {
+                return ResourceManager.GetString("Option_Never_include_snippets", resourceCulture);
             }
         }
         
@@ -858,6 +885,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string SetTypeInferencePreferences {
             get {
                 return ResourceManager.GetString("SetTypeInferencePreferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets behavior.
+        /// </summary>
+        internal static string Snippets_behavior {
+            get {
+                return ResourceManager.GetString("Snippets_behavior", resourceCulture);
             }
         }
         

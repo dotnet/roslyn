@@ -157,6 +157,7 @@
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
     <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
+    <Compile Include="Completion\CompletionServiceTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
@@ -185,7 +186,7 @@
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\PartialCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\PartialMethodCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProviderTests.cs" />
@@ -506,6 +507,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
+    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProviderTests.cs" />
     <Content Include="PerfTests\Sources\CSharpPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

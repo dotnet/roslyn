@@ -65,11 +65,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText: uninitializedMember.Name,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: uninitializedMember,
                     descriptionPosition: initializerLocation.SourceSpan.Start,
-                    rules: s_rules
-                    ));
+                    rules: s_rules));
             }
         }
 

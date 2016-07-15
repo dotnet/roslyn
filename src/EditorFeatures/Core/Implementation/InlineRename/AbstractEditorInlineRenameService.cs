@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var token = syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).WaitAndGetResult(cancellationToken);
 

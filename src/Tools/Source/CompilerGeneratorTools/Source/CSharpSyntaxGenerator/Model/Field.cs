@@ -22,6 +22,9 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string New;
 
+        [XmlAttribute]
+        public string Internal;
+
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
 
