@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override CompletionItem AddAdditionalProperties(
-            ISymbol symbol, int position, AbstractSyntaxContext context, CompletionItem completionItem)
+            ISymbol symbol, AbstractSyntaxContext context, CompletionItem completionItem)
         {
             return completionItem.AddProperty(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
         }

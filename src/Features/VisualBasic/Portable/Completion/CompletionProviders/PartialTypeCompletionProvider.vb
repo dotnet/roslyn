@@ -53,12 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function AddAdditionalProperties(
-                symbol As ISymbol, position As Integer,
-                context As AbstractSyntaxContext, completionItem As CompletionItem) As CompletionItem
+                symbol As ISymbol, context As AbstractSyntaxContext, completionItem As CompletionItem) As CompletionItem
 
             Return completionItem.AddProperty(
                 InsertionTextOnOpenParen,
-                symbol.ToMinimalDisplayString(context.SemanticModel, position, format:=_insertionTextFormatWithoutGenerics))
+                symbol.ToMinimalDisplayString(
+                    context.SemanticModel, context.Position, format:=_insertionTextFormatWithoutGenerics))
         End Function
 
         Public Overrides Async Function GetTextChangeAsync(document As Document, item As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
