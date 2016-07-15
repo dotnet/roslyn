@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             this.Key = new DocumentKey(Project, filePath);
             this.Id = DocumentId.CreateNewId(Project.Id, filePath);
-            this.Folders = containedLanguage.Project.GetFolderNames(itemId);
+            this.Folders = (containedLanguage.Project as AbstractLegacyProject)?.GetFolderNames(itemId);
             this.Loader = TextLoader.From(containedLanguage.SubjectBuffer.AsTextContainer(), VersionStamp.Create(), filePath);
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(_containedLanguage.SubjectBuffer);

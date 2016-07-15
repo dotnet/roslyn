@@ -10,23 +10,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class ProjectShimFactory
+    internal partial class ProjectContextFactory
     {
-        private sealed partial class ProjectShim : AbstractRoslynProject
+        private sealed partial class ProjectContext : AbstractProject
         {
-            public ProjectShim(
+            public ProjectContext(
                 CommandLineArguments commandLineArguments,
                 VisualStudioProjectTracker projectTracker,
                 Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
+                string projectDisplayName,
+                string projectFilePath,
+                Guid projectGuid,
+                string projectTypeGuid,
                 IVsHierarchy hierarchy,
                 string language,
                 IServiceProvider serviceProvider,
                 VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-                HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-                string projectFilePath,
-                Guid projectGuid)
-                : base(projectTracker, reportExternalErrorCreatorOpt, GetProjectDisplayName(projectFilePath), hierarchy, language, serviceProvider,
-                      visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, projectFilePath, projectGuid, isWebsiteProject: false, connectHierarchyEvents: false)
+                HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+                : base(projectTracker, reportExternalErrorCreatorOpt, projectDisplayName, projectFilePath, projectGuid,
+                       projectTypeGuid, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
             {
                 // Set the initial options from the command line before we add the project to the project tracker.
                 SetCommandLineArguments(commandLineArguments);
@@ -34,15 +36,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectTracker.AddProject(this);
             }
 
-            private static string GetProjectDisplayName(string projectFilePath)
-            {
-                return PathUtilities.GetFileName(projectFilePath, includeExtension: false);
-            }
-
             protected override CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments)
             {
-                throw new NotSupportedException("We only support setting parsed command line arguments");
+                throw new NotSupportedException();
             }
+
+            protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
+            {
+                throw new NotSupportedException();
+            }
+
+            // TODO: CPS should push design time build status for every design time build.
+            protected sealed override bool DesignTimeBuildStatus => true;
 
             protected override void PostSetOptions()
             {

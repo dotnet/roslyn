@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal interface IProjectShimFactory
+    internal interface IProjectContextFactory
     {
-        IProjectShim CreateProjectShim(string languageName, string projectFilePath, Guid projectGuid, object hostObject, CommandLineArguments commandLineArguments);
+        IProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, string projectTypeGuid, object hostObject, CommandLineArguments commandLineArguments);
     }
 }

@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class AbstractProject : IIntellisenseBuildTarget
+    internal partial class AbstractLegacyProject : IIntellisenseBuildTarget
     {
         private static readonly object s_diagnosticKey = new object();
 
@@ -18,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // implement IIntellisenseBuildTarget
         private bool _intellisenseBuildSucceeded = true;
         private string _intellisenseBuildFailureReason = null;
+
+        protected override bool DesignTimeBuildStatus => _intellisenseBuildSucceeded;
 
         public void SetIntellisenseBuildResult(bool succeeded, string reason)
         {
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             UpdateHostDiagnostics(succeeded, reason);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspaceHosts)
             {
                 // set workspace reference info
                 ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.OnHasAllInformation(Id, succeeded));
@@ -40,12 +42,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // report intellisense build failure to error list
                 this.HostDiagnosticUpdateSource?.UpdateDiagnosticsForProject(
-                    _id, s_diagnosticKey, SpecializedCollections.SingletonEnumerable(CreateIntellisenseBuildFailureDiagnostic(reason)));
+                    Id, s_diagnosticKey, SpecializedCollections.SingletonEnumerable(CreateIntellisenseBuildFailureDiagnostic(reason)));
             }
             else
             {
                 // clear intellisense build failure diagnostic from error list.
-                this.HostDiagnosticUpdateSource?.ClearDiagnosticsForProject(_id, s_diagnosticKey);
+                this.HostDiagnosticUpdateSource?.ClearDiagnosticsForProject(Id, s_diagnosticKey);
             }
         }
 
@@ -71,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetDescription(string reason)
         {
-            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this._filePathOpt)}_*.designtime.log";
+            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this.ProjectFilePath)}_*.designtime.log";
 
             var logFileDescription = string.Format(ServicesVSResources.IntellisenseBuildFailedDescription, logFilePath);
             if (string.IsNullOrWhiteSpace(reason))

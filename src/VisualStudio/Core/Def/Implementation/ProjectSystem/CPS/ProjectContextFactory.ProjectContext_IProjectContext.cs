@@ -2,19 +2,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class ProjectShimFactory
+    internal partial class ProjectContextFactory
     {
-        private sealed partial class ProjectShim : AbstractRoslynProject, IProjectShim
+        private sealed partial class ProjectContext : AbstractProject, IProjectContext
         {
             #region Options
-            void IProjectShim.SetCommandLineArguments(CommandLineArguments commandLineArguments)
+            void IProjectContext.SetCommandLineArguments(CommandLineArguments commandLineArguments)
             {
                 base.SetCommandLineArguments(commandLineArguments);
             }
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(referencePath, properties);
             }
 
-            void IProjectShim.RemoveMetadataReference(string referencePath)
+            void IProjectContext.RemoveMetadataReference(string referencePath)
             {
                 referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
                 base.RemoveMetadataReference(referencePath);
@@ -58,19 +56,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             #endregion
 
             #region Source files
-            public void AddSourceFile(string filePath, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+            public void AddSourceFile(string filePath, bool isFromSharedProject = false, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
             {
-                AddFile(filePath, sourceCodeKind, folderNames.ToImmutableArrayOrEmpty(), CanUseTextBuffer);
+                AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => !isFromSharedProject, folderNames: folderNames.ToImmutableArrayOrEmpty());
             }
 
             public void RemoveSourceFile(string filePath)
             {
                 RemoveFile(filePath);
-            }
-
-            private bool CanUseTextBuffer(ITextBuffer textBuffer)
-            {
-                return true;
             }
 
             #endregion
@@ -81,15 +74,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Guid = guid;
             }
 
-            public void SetProjectFilePath(string projectFilePath)
+            public void SetProjectTypeGuid(string projectTypeGuid)
             {
-                var projectDisplayName = PathUtilities.GetFileName(projectFilePath, includeExtension: false);
-                UpdateProjectDisplayNameAndFilePath(projectDisplayName, projectFilePath);
+                ProjectType = projectTypeGuid;
             }
 
-            public void SetIsWebsiteProject()
+            public void SetProjectDisplayName(string projectDisplayName)
             {
-                IsWebSite = true;
+                UpdateProjectDisplayName(projectDisplayName);
+            }
+
+            public void SetProjectFilePath(string projectFilePath)
+            {
+                UpdateProjectFilePath(projectFilePath);
             }
 
             #endregion

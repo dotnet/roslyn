@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 var project1 = (AbstractProject)CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
                 var project2 = (AbstractProject)CreateCSharpCPSProject(environment, "project2", commandLineArguments: @"/out:c:\project2.dll");
                 var project3 = (AbstractProject)CreateCSharpCPSProject(environment, "project3", commandLineArguments: @"/out:c:\project3.dll");
-                var project3Shim = (IProjectShim)project3;
+                var project3Shim = (IProjectContext)project3;
 
                 // Add project reference
                 project3Shim.AddProjectReference(project1.Id, new MetadataReferenceProperties());
@@ -63,18 +63,18 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             using (var environment = new TestEnvironment())
             {
-                var project1 = (AbstractProject)CreateCSharpCPSProject(environment, "project1");
+                var project = (AbstractProject)CreateCSharpCPSProject(environment, "project1");
 
                 // Add analyzer reference
                 var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
-                project1.AddAnalyzerAssembly(analyzerAssemblyFullPath);
-                Assert.True(project1.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
+                project.AddAnalyzerAssembly(analyzerAssemblyFullPath);
+                Assert.True(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
 
                 // Remove analyzer reference
-                project1.RemoveAnalyzerAssembly(analyzerAssemblyFullPath);
-                Assert.False(project1.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
+                project.RemoveAnalyzerAssembly(analyzerAssemblyFullPath);
+                Assert.False(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
 
-                project1.Disconnect();
+                project.Disconnect();
             }
         }
     }

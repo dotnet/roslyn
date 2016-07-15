@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                () => ImmutableArray<string>.Empty,
+                ImmutableArray<string>.Empty,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
                 canUseTextBuffer: _ => true);

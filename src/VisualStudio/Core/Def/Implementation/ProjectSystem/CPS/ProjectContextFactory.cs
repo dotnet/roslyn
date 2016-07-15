@@ -10,12 +10,11 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    [Export(typeof(IProjectShimFactory))]
-    internal partial class ProjectShimFactory : IProjectShimFactory
+    [Export(typeof(IProjectContextFactory))]
+    internal partial class ProjectContextFactory : IProjectContextFactory
     {
         private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IServiceProvider _serviceProvider;
@@ -30,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             });
 
         [ImportingConstructor]
-        public ProjectShimFactory(
+        public ProjectContextFactory(
             VisualStudioProjectTracker projectTracker,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspace,
@@ -44,20 +43,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         // internal for testing purposes only.
-        internal static IProjectShim CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectFilePath, string language, Guid projectGuid, CommandLineArguments commandLineArguments)
+        internal static IProjectContext CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, string language, Guid projectGuid, string projectTypeGuid, CommandLineArguments commandLineArguments)
         {
-            return new ProjectShim(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
-                serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null, projectFilePath: projectFilePath, projectGuid: projectGuid);
+            return new ProjectContext(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
+                serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null, projectDisplayName: projectDisplayName,
+                projectFilePath: projectFilePath, projectGuid: projectGuid, projectTypeGuid: projectTypeGuid);
         }
 
-        IProjectShim IProjectShimFactory.CreateProjectShim(string languageName, string projectFilePath, Guid projectGuid, object hostObject, CommandLineArguments commandLineArguments)
+        IProjectContext IProjectContextFactory.CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, string projectTypeGuid, object hostObject, CommandLineArguments commandLineArguments)
         {
             var vsHierarchy = hostObject as IVsHierarchy;
             if (vsHierarchy != null)
             {
                 Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
-                return new ProjectShim(commandLineArguments, _projectTracker, getExternalErrorReporter, vsHierarchy,
-                    languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource, projectFilePath, projectGuid);
+                return new ProjectContext(commandLineArguments, _projectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
+                    projectGuid, projectTypeGuid, vsHierarchy, languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource);
             }
 
             return null;

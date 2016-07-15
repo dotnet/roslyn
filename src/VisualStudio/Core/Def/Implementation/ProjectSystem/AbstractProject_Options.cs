@@ -5,51 +5,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal abstract partial class AbstractRoslynProject : AbstractProject, ICompilerOptionsHostObject
+    internal abstract partial class AbstractProject
     {
         private string _lastParsedCompilerOptions;
         private CommandLineArguments _lastParsedCommandLineArguments;
-
-        internal VsENCRebuildableProjectImpl EditAndContinueImplOpt;
-
-        public AbstractRoslynProject(
-            VisualStudioProjectTracker projectTracker,
-            Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
-            string projectSystemName,
-            IVsHierarchy hierarchy,
-            string language,
-            IServiceProvider serviceProvider,
-            VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            string projectFilePath = null,
-            Guid? projectGuid = null,
-            bool? isWebsiteProject = null,
-            bool connectHierarchyEvents = true)
-            : base(projectTracker, reportExternalErrorCreatorOpt, projectSystemName, hierarchy, language, serviceProvider,
-                   visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, projectFilePath, projectGuid, isWebsiteProject, connectHierarchyEvents)
-        {
-            if (visualStudioWorkspaceOpt != null)
-            {
-                this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
-            }
-        }
-
-        public override void Disconnect()
-        {
-            // project is going away
-            this.EditAndContinueImplOpt = null;
-
-            base.Disconnect();
-        }
 
         /// <summary>
         /// Returns the parsed command line arguments (parsed by <see cref="ParseCommandLineArguments"/>) that were set by the project
@@ -69,15 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected abstract CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments);
 
-        int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
-        {
-            SetCommandLineArguments(compilerOptions);
-            supported = true;
-
-            return VSConstants.S_OK;
-        }
-
-        public void SetCommandLineArguments(string commandLine)
+        protected void SetCommandLineArguments(string commandLine)
         {
             if (string.Equals(_lastParsedCompilerOptions, commandLine, StringComparison.OrdinalIgnoreCase))
             {
@@ -97,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             UpdateOptions();
         }
 
-        protected sealed override void UpdateOptions()
+        protected void UpdateOptions()
         {
             var parseOptions = GetParseOptions();
             var compilationOptions = GetCompilationOptions(parseOptions);

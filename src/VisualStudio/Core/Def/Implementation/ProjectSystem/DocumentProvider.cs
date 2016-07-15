@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IVisualStudioHostDocument TryGetDocumentForFile(
             IVisualStudioHostProject hostProject,
-            Func<IReadOnlyList<string>> getFolderNames,
+            IReadOnlyList<string> folderNames,
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer)
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 hostProject,
                 documentKey,
-                getFolderNames,
+                folderNames,
                 sourceCodeKind,
                 _textUndoHistoryRegistry,
                 _fileChangeService,

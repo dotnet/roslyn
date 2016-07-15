@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend MustInherit Class VisualBasicProject
-        Inherits AbstractRoslynProject
+        Inherits AbstractLegacyProject
         Implements IVbCompilerProject
         Implements IVisualStudioHostProject
 
@@ -100,7 +100,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 ' We trust the project system to only tell us about files that we can use.
                 Dim canUseTextBuffer As Func(Of ITextBuffer, Boolean) = Function(t) True
 
-                MyBase.AddFile(wszFileName, SourceCodeKind.Regular, itemid, canUseTextBuffer)
+                MyBase.AddFile(wszFileName, SourceCodeKind.Regular, itemid)
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
