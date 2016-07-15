@@ -10,13 +10,34 @@ namespace Microsoft.CodeAnalysis.Execution
 {
     internal class SnapshotStorages
     {
+        private readonly ConcurrentDictionary<object, Asset> _globalAssets;
         private readonly ConcurrentDictionary<SolutionSnapshot, Storage> _snapshots;
-        public readonly Serializer Serializer;
 
-        public SnapshotStorages(Serializer serializer)
+        public SnapshotStorages()
         {
-            Serializer = serializer;
+            _globalAssets = new ConcurrentDictionary<object, Asset>(concurrencyLevel: 2, capacity: 10);
             _snapshots = new ConcurrentDictionary<SolutionSnapshot, Storage>(concurrencyLevel: 2, capacity: 10);
+        }
+
+        public void AddGlobalAsset(object value, Asset asset, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!_globalAssets.TryAdd(value, asset))
+            {
+                // there is existing one, make sure asset is same
+                Contract.ThrowIfFalse(_globalAssets[value].Checksum == asset.Checksum);
+            }
+        }
+
+        public Asset GetGlobalAsset(object value, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Asset asset;
+            _globalAssets.TryGetValue(value, out asset);
+
+            return asset;
         }
 
         public SnapshotStorage CreateSnapshotStorage(Solution solution)
@@ -26,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public async Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken)
         {
+            // search snapshots we have
             foreach (var storage in _snapshots.Values)
             {
                 var checksumObject = storage.TryGetChecksumObject(checksum, cancellationToken);
@@ -35,13 +57,22 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
+            // search global assets
+            foreach (var asset in _globalAssets.Values)
+            {
+                if (asset.Checksum == checksum)
+                {
+                    return asset;
+                }
+            }
+
             // it looks like checksumObject doesn't exist. probably cache has released.
             // that is okay, we can re-construct same checksumObject from solution
             //
             // REVIEW: right now, there is no MRU implemented, so cache will be there as long as snapshot is there.
             foreach (var storage in _snapshots.Values)
             {
-                var snapshotBuilder = new SnapshotBuilder(Serializer, storage, rebuild: true);
+                var snapshotBuilder = new SnapshotBuilder(storage, rebuild: true);
 
                 // rebuild whole snapshot for this solution
                 await snapshotBuilder.BuildAsync(storage.Solution, cancellationToken).ConfigureAwait(false);
@@ -101,11 +132,23 @@ namespace Microsoft.CodeAnalysis.Execution
             // this is cache since we can always rebuild these.
             private readonly ConcurrentDictionary<object, ChecksumObjectCache> _cache;
 
+            // additional assets that is not part of solution but added explicitly
+            private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
+
             public Storage(SnapshotStorages owner, Solution solution) :
                 base(solution)
             {
                 _owner = owner;
                 _cache = new ConcurrentDictionary<object, ChecksumObjectCache>(concurrencyLevel: 2, capacity: 1);
+            }
+
+            public override void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                LazyInitialization.EnsureInitialized(ref _additionalAssets, () => new ConcurrentDictionary<Checksum, Asset>());
+
+                _additionalAssets.TryAdd(asset.Checksum, asset);
             }
 
             public ChecksumObject TryGetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
@@ -133,6 +176,12 @@ namespace Microsoft.CodeAnalysis.Execution
                         // found one
                         return checksumObject;
                     }
+                }
+
+                Asset asset = null;
+                if (_additionalAssets?.TryGetValue(checksum, out asset) == true)
+                {
+                    return asset;
                 }
 
                 // this storage has no reference to the given checksum
@@ -182,16 +231,16 @@ namespace Microsoft.CodeAnalysis.Execution
                 {
                     // force to re-create all sub checksum objects
                     // save newly created one
-                    var snapshotBuilder = new SnapshotBuilder(_owner.Serializer, GetStorage(key));
-                    var assetBuilder = new AssetBuilder(_owner.Serializer, this);
+                    var snapshotBuilder = new SnapshotBuilder(GetStorage(key));
+                    var assetBuilder = new AssetBuilder(this);
 
                     SaveAndReturn(key, await valueGetterAsync(value, kind, snapshotBuilder, assetBuilder, cancellationToken).ConfigureAwait(false));
                 }
 
                 return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) =>
                 {
-                    var snapshotBuilder = new SnapshotBuilder(_owner.Serializer, GetStorage(key));
-                    var assetBuilder = new AssetBuilder(_owner.Serializer, this);
+                    var snapshotBuilder = new SnapshotBuilder(GetStorage(key));
+                    var assetBuilder = new AssetBuilder(this);
 
                     return valueGetterAsync(v, k, snapshotBuilder, assetBuilder, c);
                 }, cancellationToken).ConfigureAwait(false);
@@ -369,11 +418,15 @@ namespace Microsoft.CodeAnalysis.Execution
     internal abstract class SnapshotStorage
     {
         public readonly Solution Solution;
+        public readonly Serializer Serializer;
 
         protected SnapshotStorage(Solution solution)
         {
             Solution = solution;
+            Serializer = new Serializer(solution.Workspace.Services);
         }
+
+        public abstract void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken);
 
         public abstract Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
             TKey key, TValue value, string kind,

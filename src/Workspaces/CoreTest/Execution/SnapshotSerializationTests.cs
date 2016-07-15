@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = new Serializer(workspace.Services);
-            var snapshotStorages = new SnapshotStorages(serializer);
-            var assetBuilder = new AssetBuilder(serializer, snapshotStorages.CreateSnapshotStorage(workspace.CurrentSolution));
+            var snapshotStorages = new SnapshotStorages();
+            var assetBuilder = new AssetBuilder(snapshotStorages.CreateSnapshotStorage(workspace.CurrentSolution));
 
             var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -52,14 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
-        public override Task<Stream> CreateCodeAnalysisServiceStreamAsync(CancellationToken cancellationToken)
+        protected override async Task<Session> CreateCodeAnalysisServiceSessionAsync(SolutionSnapshot snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
-            return _hubClient.RequestServiceAsync(WellKnownServiceHubServices.CodeAnalysisService, cancellationToken);
-        }
-
-        protected override async Task<Session> CreateSnapshotSessionAsync(SolutionSnapshot snapshot, CancellationToken cancellationToken)
-        {
-            return new JsonRpcSnapshotSession(snapshot, await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.SolutionSnapshotService, cancellationToken).ConfigureAwait(false));
+            return new JsonRpcSnapshotSession(
+                snapshot, await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.SolutionSnapshotService, cancellationToken).ConfigureAwait(false),
+                callbackTarget, await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.CodeAnalysisService, cancellationToken).ConfigureAwait(false));
         }
 
         protected override void OnConnected()

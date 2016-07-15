@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -16,69 +18,110 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private class JsonRpcSnapshotSession : Session
         {
-            private readonly CancellationTokenSource _source;
-            private readonly Stream _stream;
-            private readonly JsonRpc _rpc;
+            // communication channel related to snapshot information
+            private readonly SnapshotJsonRpcClient _snapshotClient;
 
-            public JsonRpcSnapshotSession(SolutionSnapshot snapshot, Stream stream) : base(snapshot)
+            // communication channel related to service information
+            private readonly JsonRpcClient _serviceClient;
+
+            public JsonRpcSnapshotSession(SolutionSnapshot snapshot, Stream snapshotStream, object callbackTarget, Stream serviceStream) : base(snapshot)
             {
-                _source = new CancellationTokenSource();
-                _stream = stream;
-
-                _rpc = JsonRpc.Attach(stream, this);
-                _rpc.Disconnected += OnDisconnected;
+                _snapshotClient = new SnapshotJsonRpcClient(this, snapshotStream);
+                _serviceClient = new JsonRpcClient(serviceStream, callbackTarget);
             }
 
-            public async Task RequestAssetAsync(int serviceId, byte[] checksum, string pipeName)
+            public override Task InvokeAsync(string targetName, params object[] arguments)
             {
-                var stopWatch = Stopwatch.StartNew();
+                return _serviceClient.InvokeAsync(targetName, arguments);
+            }
 
-                var service = SolutionSnapshot.Workspace.Services.GetRequiredService<ISolutionSnapshotService>();
+            public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+            {
+                return _serviceClient.InvokeAsync<T>(targetName, arguments);
+            }
 
-                using (var stream = new SlaveDirectStream(pipeName))
-                {
-                    await stream.ConnectAsync(_source.Token).ConfigureAwait(false);
+            public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+            {
+                return _serviceClient.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+            }
 
-                    using (var writer = new ObjectWriter(stream))
-                    {
-                        writer.WriteInt32(serviceId);
-                        writer.WriteArray(checksum);
-
-                        var checksumObject = await service.GetChecksumObjectAsync(new Checksum(ImmutableArray.Create(checksum)), _source.Token).ConfigureAwait(false);
-                        writer.WriteString(checksumObject.Kind);
-
-                        Debug.WriteLine(checksumObject.Kind);
-
-                        await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
-                    }
-
-                    await stream.FlushAsync(_source.Token).ConfigureAwait(false);
-
-                    // TODO: think of a way this is not needed
-                    // wait for the other side to done reading data I sent over
-                    stream.WaitForMaster();
-                }
-
-                Debug.WriteLine(stopWatch.Elapsed);
+            public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+            {
+                return _serviceClient.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
             }
 
             public override void Dispose()
             {
-                _source.Cancel();
+                _snapshotClient.RaiseCancellation();
+
+                // dispose service channel first
+                _serviceClient.Dispose();
 
                 // we don't care about when this actually run.
                 // make sure we send "done", and close the stream.
-                _rpc.InvokeAsync(WellKnownServiceHubServices.SolutionSnapshotService_Done)
+                _snapshotClient.InvokeAsync(WellKnownServiceHubServices.SolutionSnapshotService_Done)
                     .SafeContinueWith(_ =>
                     {
-                        _rpc.Dispose();
-                        _stream.Dispose();
+                        _snapshotClient.Dispose();
                     }, TaskScheduler.Default);
             }
 
-            private void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+            private class SnapshotJsonRpcClient : JsonRpcClient
             {
-                _source.Cancel();
+                private readonly JsonRpcSnapshotSession _owner;
+                private readonly CancellationTokenSource _source;
+
+                public SnapshotJsonRpcClient(JsonRpcSnapshotSession owner, Stream stream) :
+                    base(stream)
+                {
+                    _owner = owner;
+                    _source = new CancellationTokenSource();
+                }
+
+                private SolutionSnapshot SolutionSnapshot => _owner.SolutionSnapshot;
+
+                public async Task RequestAssetAsync(int serviceId, byte[] checksum, string pipeName)
+                {
+                    var stopWatch = Stopwatch.StartNew();
+
+                    var service = SolutionSnapshot.Workspace.Services.GetRequiredService<ISolutionSnapshotService>();
+
+                    using (var stream = new SlaveDirectStream(pipeName))
+                    {
+                        await stream.ConnectAsync(_source.Token).ConfigureAwait(false);
+
+                        using (var writer = new ObjectWriter(stream))
+                        {
+                            writer.WriteInt32(serviceId);
+                            writer.WriteArray(checksum);
+
+                            var checksumObject = await service.GetChecksumObjectAsync(new Checksum(ImmutableArray.Create(checksum)), _source.Token).ConfigureAwait(false);
+                            writer.WriteString(checksumObject.Kind);
+
+                            Debug.WriteLine(checksumObject.Kind);
+
+                            await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
+                        }
+
+                        await stream.FlushAsync(_source.Token).ConfigureAwait(false);
+
+                        // TODO: think of a way this is not needed
+                        // wait for the other side to finish reading data I sent over
+                        stream.WaitForMaster();
+                    }
+
+                    Debug.WriteLine(stopWatch.Elapsed);
+                }
+
+                public void RaiseCancellation()
+                {
+                    _source.Cancel();
+                }
+
+                protected override void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+                {
+                    RaiseCancellation();
+                }
             }
         }
     }

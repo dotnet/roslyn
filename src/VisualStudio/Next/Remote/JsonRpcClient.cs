@@ -1,38 +1,68 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal class JsonRpcClient : IDisposable
     {
         private readonly Stream _stream;
-        public readonly JsonRpc Rpc;
+        private readonly JsonRpc _rpc;
 
         public JsonRpcClient(Stream stream, object target = null)
         {
             _stream = stream;
-
-            Rpc = JsonRpc.Attach(stream, target ?? this);
+            _rpc = JsonRpc.Attach(stream, target ?? this);
+            _rpc.Disconnected += Disconnected;
         }
 
         public Task InvokeAsync(string targetName, params object[] arguments)
         {
-            return Rpc.InvokeAsync(targetName, arguments);
+            return _rpc.InvokeAsync(targetName, arguments);
         }
 
-        public Task<Result> InvokeAsync<Result>(string targetName, params object[] arguments)
+        public Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
-            return Rpc.InvokeAsync<Result>(targetName, arguments);
+            return _rpc.InvokeAsync<T>(targetName, arguments);
+        }
+
+        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+        {
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+        }
+
+        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+        {
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
         public void Dispose()
         {
-            Rpc.Dispose();
+            OnDisposed();
+
+            _rpc.Dispose();
             _stream.Dispose();
+        }
+
+        private void Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        {
+            OnDisconnected(sender, e);
+        }
+
+        protected virtual void OnDisposed()
+        {
+            // do nothing
+        }
+
+        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        {
+            // do nothing
         }
     }
 }

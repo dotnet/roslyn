@@ -12,7 +12,26 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal interface ISolutionSnapshotService : IWorkspaceService
     {
+        /// <summary>
+        /// Add global <see cref="Asset"/>  which stays alive while host is alive.
+        /// 
+        /// this asset can be something that is not part of <see cref="SolutionSnapshot"/> 
+        /// </summary>
+        void AddGlobalAsset(object value, Asset asset, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get saved global <see cref="Asset"/> associated with given <paramref name="value"/>
+        /// </summary>
+        Asset GetGlobalAsset(object value, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Create <see cref="SolutionSnapshot"/> from <see cref="Solution"/>.
+        /// </summary>
         Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get <see cref="ChecksumObject"/> corresponding to given <see cref="Checksum"/>. 
+        /// </summary>
         Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken);
     }
 
@@ -30,6 +49,13 @@ namespace Microsoft.CodeAnalysis.Execution
             Id = id;
         }
 
+        /// <summary>
+        /// Add asset that is not part of solution to be part of this snapshot.
+        /// 
+        /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
+        ///       this should be changed so that custom serializer can be discoverable by <see cref="ChecksumObject.Kind"/> 
+        /// </summary>
+        public abstract void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken);
         public abstract void Dispose();
     }
 }

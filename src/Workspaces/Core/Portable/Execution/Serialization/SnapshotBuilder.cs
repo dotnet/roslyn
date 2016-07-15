@@ -14,12 +14,11 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly Serializer _serializer;
         private readonly SnapshotStorage _storage;
 
-        public SnapshotBuilder(Serializer serializer, SnapshotStorage storage, bool rebuild = false)
+        public SnapshotBuilder(SnapshotStorage storage, bool rebuild = false)
         {
             _rebuild = rebuild;
-
-            _serializer = serializer;
             _storage = storage;
+            _serializer = storage.Serializer;
         }
 
         public Task<SolutionSnapshotId> BuildAsync(Solution solution, CancellationToken cancellationToken)

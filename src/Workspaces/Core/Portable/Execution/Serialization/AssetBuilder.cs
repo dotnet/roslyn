@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly Serializer _serializer;
         private readonly SnapshotStorage _storage;
 
-        public AssetBuilder(Serializer serializer, SnapshotStorage storage)
+        public AssetBuilder(SnapshotStorage storage)
         {
-            _serializer = serializer;
             _storage = storage;
+            _serializer = storage.Serializer;
         }
 
         public Task<Asset> BuildAsync(Solution solution, CancellationToken cancellationToken)

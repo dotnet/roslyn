@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 {
@@ -44,11 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
             var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
 
-            using (var session = await remoteHost.CreateSnapshotSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-            using (var client = new JsonRpcClient(await remoteHost.CreateCodeAnalysisServiceStreamAsync(cancellationToken).ConfigureAwait(false)))
+            using (var session = await remoteHost.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
                 // TODO: change it to use direct stream rather than returning string
-                var result = await client.InvokeAsync<string>(
+                var result = await session.InvokeAsync<string>(
                     WellKnownServiceHubServices.CodeAnalysisService_GetDiagnostics, session.SolutionSnapshot.Id.Checksum.ToArray(), project.Id.Id, project.Id.DebugName, analyzerMap.Keys.ToArray()).ConfigureAwait(false);
             }
 
