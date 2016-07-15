@@ -1374,6 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructionVarFormDisallowsSpecificType = 8215,
 
         ERR_TupleElementNamesAttributeMissing = 8216,
+        ERR_ExplicitTupleElementNames = 8217,
 
         #endregion tuple diagnostics introduced in C# 7
 

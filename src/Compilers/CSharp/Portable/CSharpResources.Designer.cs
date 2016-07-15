@@ -3968,6 +3968,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot reference &apos;System.Runtime.CompilerServices.TupleElementNamesAttribute&apos; explicitly. Use the tuple syntax to define tuple names..
+        /// </summary>
+        internal static string ERR_ExplicitTupleElementNames {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitTupleElementNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; exported from module &apos;{1}&apos; conflicts with type declared in primary module of this assembly..
         /// </summary>
         internal static string ERR_ExportedTypeConflictsWithDeclaration {

@@ -313,9 +313,6 @@ class A
                 // (5,46): error CS0102: The type 'A' already contains a definition for ''
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,43): error CS8207: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "()").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(5, 43),
                 // (5,43): error CS8200: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
@@ -384,9 +381,6 @@ class A
                 // (5,46): error CS0102: The type 'A' already contains a definition for ''
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,43): error CS8207: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "()").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(5, 43),
                 // (5,43): error CS8200: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
