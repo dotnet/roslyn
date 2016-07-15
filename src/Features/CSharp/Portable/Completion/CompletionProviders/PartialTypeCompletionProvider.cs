@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public async override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
+#if false
             if (ch == '<')
             {
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return new TextChange(selectedItem.Span, insertionText);
                 }
             }
-
+#endif
             return await base.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(false);
         }
     }

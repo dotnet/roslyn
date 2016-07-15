@@ -108,8 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
+#if false
             if (ch.HasValue && ch.Value == '(')
             {
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
@@ -118,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return new TextChange(selectedItem.Span, symbols[0].Name);
                 }
             }
-
-            return new TextChange(selectedItem.Span, selectedItem.DisplayText);
+#endif
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
         }
     }
 }
