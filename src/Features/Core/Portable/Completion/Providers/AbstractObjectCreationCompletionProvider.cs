@@ -13,17 +13,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
     {
+        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
+
         /// <summary>
         /// Return null if not in object creation type context.
         /// </summary>
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
-
-        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
 
         protected override CompletionItem CreateItem(
             string displayText, string insertionText, int position, List<ISymbol> symbols,
@@ -123,11 +124,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)type));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+            ISymbol symbol, AbstractSyntaxContext context)
         {
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
+            string displayString;
+            if (symbol is IAliasSymbol)
+            {
+                displayString = ((IAliasSymbol)symbol).Name;
+            }
+            else
+            {
+                var displayService = context.GetLanguageService<ISymbolDisplayService>();
+                displayString = displayService.ToMinimalDisplayString(
+                    context.SemanticModel, context.Position, symbol);
+            }
+
             return ValueTuple.Create(displayString, displayString);
+        }
+
+        protected override string GetInsertionText(CompletionItem item, ISymbol symbol, AbstractSyntaxContext context, char ch)
+        {
+            return SymbolCompletionItem.GetInsertionText(item);
         }
     }
 }

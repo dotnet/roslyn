@@ -73,7 +73,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function GetDisplayAndInsertionText(
             symbol As ISymbol,
-            isAttributeNameContext As Boolean, isAfterDot As Boolean, isWithinAsyncMethod As Boolean,
+            isAttributeNameContext As Boolean,
+            isAfterDot As Boolean,
+            isWithinAsyncMethod As Boolean,
             syntaxFacts As ISyntaxFactsService
         ) As ValueTuple(Of String, String)
 
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 name = symbol.Name
             End If
 
-            Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod)
+            Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod, typedChar:=Nothing)
             Dim displayText = GetDisplayText(name, symbol)
 
             If symbol.GetArity() > 0 Then
@@ -106,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Function GetInsertionText(
             name As String, symbol As ISymbol,
             isAfterDot As Boolean, isWithinAsyncMethod As Boolean,
-            Optional typedChar As Char? = Nothing
+            typedChar As Char?
         ) As String
 
             name = name.EscapeIdentifier(afterDot:=isAfterDot, symbol:=symbol, withinAsyncMethod:=isWithinAsyncMethod)

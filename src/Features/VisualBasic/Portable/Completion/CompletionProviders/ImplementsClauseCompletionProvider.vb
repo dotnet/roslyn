@@ -299,9 +299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 #End If
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+        Protected Overrides Function GetInsertionText(item As CompletionItem, symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
-
     End Class
 End Namespace

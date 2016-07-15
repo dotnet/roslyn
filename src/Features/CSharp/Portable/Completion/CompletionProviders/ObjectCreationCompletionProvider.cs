@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,17 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
     {
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
-        {
-            if (symbol is IAliasSymbol)
-            {
-                return ((IAliasSymbol)symbol).Name;
-            }
-
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            return displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-        }
-
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
