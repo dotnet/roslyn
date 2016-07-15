@@ -52,17 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return this.Visit((SyntaxNodeOrToken)node);
+            return this.Visit(this.VisitNode((CSharpSyntaxNode)node)).AsNode();
         }
 
         public SyntaxToken Visit(SyntaxToken token)
         {
-            return (SyntaxToken)this.VisitToken(token).Transform();
+            return this.Visit(this.VisitToken(token)).AsToken();
         }
 
-        private SyntaxNode Visit(SyntaxNodeOrToken nodeOrToken)
+        private SyntaxNodeOrToken Visit(Chunk chunk)
         {
-            Chunk chunk = this.VisitNode((CSharpSyntaxNode)nodeOrToken);
             var nodesToRewriteStack = new Stack<Chunk>();
             nodesToRewriteStack.Push(chunk);
             Queue<Chunk> rewriterQueue = new Queue<Chunk>();
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException();
             }
 
-            return this.RewrittenStack.Pop().AsNode();
+            return this.RewrittenStack.Pop();
         }
 
         protected virtual Chunk CreateChunk(SyntaxNodeOrToken nodeOrToken, Func<SyntaxNodeOrToken> transform, params SyntaxNodeOrToken[] children)
