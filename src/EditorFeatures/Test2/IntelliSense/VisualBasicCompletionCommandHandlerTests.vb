@@ -2436,7 +2436,7 @@ End Class]]></Document>)
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
         Public Async Function TestObjectCreationQualifiedName() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestState.CreateVisualBasicTestState(
                            <Document><![CDATA[
 Class A
     Sub Test()
