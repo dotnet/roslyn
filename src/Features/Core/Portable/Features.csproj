@@ -187,7 +187,8 @@
     <Compile Include="Completion\Providers\AbstractMemberInsertingCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractOverrideCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractOverrideCompletionProvider.ItemGetter.cs" />
-    <Compile Include="Completion\Providers\AbstractPartialCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\AbstractPartialTypeCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\AbstractPartialMethodCompletionProvider.cs" />
     <Compile Include="Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\Providers\MemberInsertingCompletionItem.cs" />

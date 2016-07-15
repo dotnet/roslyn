@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class PartialCompletionProvider : AbstractPartialCompletionProvider
+    internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
     {
-        public PartialCompletionProvider()
+        public PartialMethodCompletionProvider()
         {
         }
 
@@ -50,29 +50,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ch == ' ' || (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
         }
 
-        protected override bool IsPartial(IMethodSymbol m)
+        protected override bool IsPartial(IMethodSymbol method)
         {
-            if (m.DeclaredAccessibility != Accessibility.NotApplicable &&
-                m.DeclaredAccessibility != Accessibility.Private)
+            if (method.DeclaredAccessibility != Accessibility.NotApplicable &&
+                method.DeclaredAccessibility != Accessibility.Private)
             {
                 return false;
             }
 
-            if (!m.ReturnsVoid)
+            if (!method.ReturnsVoid)
             {
                 return false;
             }
 
-            if (m.IsVirtual)
+            if (method.IsVirtual)
             {
                 return false;
             }
 
-            var declarations = m.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<MethodDeclarationSyntax>();
+            var declarations = method.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<MethodDeclarationSyntax>();
             return declarations.Any(d => d.Body == null && d.Modifiers.Any(SyntaxKind.PartialKeyword));
         }
 
-        protected override bool IsPartialCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token)
+        protected override bool IsPartialMethodCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token)
         {
             var touchingToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var targetToken = touchingToken.GetPreviousTokenIfTouchingWord(position);

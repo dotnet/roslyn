@@ -97,9 +97,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
             If syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken) Then
 
                 description = VBFeaturesResources.TypeANameHereToDeclareANamespace & vbCrLf &
-                              VBFeaturesResources.NoteSpaceAndCompletion
+                              VBFeaturesResources.NoteSpaceCompletionIsDisa
 
                 Return CreateSuggestionModeItem(VBFeaturesResources.NamespaceName, description)
+            End If
+
+            Dim statementSyntax As TypeStatementSyntax = Nothing
+
+            ' Builder after Partial (Class|Structure|Interface|Module) 
+            If syntaxTree.IsPartialTypeDeclarationNameContext(position, cancellationToken, statementSyntax) Then
+
+                Select Case statementSyntax.DeclarationKeyword.Kind()
+                    Case SyntaxKind.ClassKeyword
+                        Return CreateSuggestionModeItem(
+                            VBFeaturesResources.ClassName,
+                            VBFeaturesResources.TypeANameHereToDeclareAPartialClass & vbCrLf &
+                            VBFeaturesResources.NoteSpaceCompletionIsDisa)
+
+                    Case SyntaxKind.InterfaceKeyword
+                        Return CreateSuggestionModeItem(
+                            VBFeaturesResources.InterfaceName,
+                            VBFeaturesResources.TypeANameHereToDeclareAPartialInterface & vbCrLf &
+                            VBFeaturesResources.NoteSpaceCompletionIsDisa)
+
+                    Case SyntaxKind.StructureKeyword
+                        Return CreateSuggestionModeItem(
+                            VBFeaturesResources.StructureName,
+                            VBFeaturesResources.TypeANameHereToDeclareAPartialStructure & vbCrLf &
+                            VBFeaturesResources.NoteSpaceCompletionIsDisa)
+
+                    Case SyntaxKind.ModuleKeyword
+                        Return CreateSuggestionModeItem(
+                            VBFeaturesResources.ModuleName,
+                            VBFeaturesResources.TypeANameHereToDeclareAPartialModule & vbCrLf &
+                            VBFeaturesResources.NoteSpaceCompletionIsDisa)
+
+                End Select
+
             End If
 
             Return Nothing
