@@ -82,12 +82,6 @@ namespace Microsoft.CodeAnalysis
             private static IEnumerable<INamespaceSymbol> Resolve(
                 SymbolKeyReader reader, ISymbol container, string metadataName)
             {
-                var namespaces = ResolveWorker(container, metadataName);
-                return namespaces.Select(n => reader.Compilation.GetCompilationNamespace(n) ?? n);
-            }
-
-            private static IEnumerable<INamespaceSymbol> ResolveWorker(ISymbol container, string metadataName)
-            {
                 if (container is IAssemblySymbol)
                 {
                     Debug.Assert(metadataName == string.Empty);
