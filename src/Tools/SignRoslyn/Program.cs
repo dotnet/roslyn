@@ -37,7 +37,7 @@ namespace SignRoslyn
                 var serializer = new JsonSerializer();
                 var fileJson = (Json.FileJson)serializer.Deserialize(file, typeof(Json.FileJson));
                 var map = new Dictionary<string, FileSignData>();
-                var allGood = false;
+                var allGood = true;
                 foreach (var item in fileJson.SignList)
                 {
                     var data = new FileSignData(certificate: item.Certificate, strongName: item.StrongName);
