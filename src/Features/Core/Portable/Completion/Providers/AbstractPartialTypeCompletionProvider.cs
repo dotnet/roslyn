@@ -47,18 +47,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private CompletionItem CreateCompletionItem(INamedTypeSymbol symbol, TextSpan textSpan, int position, AbstractSyntaxContext context)
+        private CompletionItem CreateCompletionItem(
+            INamedTypeSymbol symbol, TextSpan textSpan, int position, AbstractSyntaxContext context)
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
-            return SymbolCompletionItem.Create(
+            return AddAdditionalProperties(symbol, position, context,
+                SymbolCompletionItem.Create(
                 displayText: displayAndInsertionText.Item1,
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
                 contextPosition: context.Position,
                 descriptionPosition: position,
-                rules: CompletionItemRules.Default);
+                rules: CompletionItemRules.Default));
         }
+
+        protected abstract CompletionItem AddAdditionalProperties(
+            ISymbol symbol, int position, AbstractSyntaxContext context, CompletionItem completionItem);
 
         protected abstract Task<AbstractSyntaxContext> CreateSyntaxContextAsync(
             Document document,
