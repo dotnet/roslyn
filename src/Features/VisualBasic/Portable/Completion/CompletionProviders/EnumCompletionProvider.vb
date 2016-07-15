@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return ValueTuple.Create(text, text)
             End If
 
-            Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol, context, nameOnly:=False)
+            Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol, context, nameOnly:=True)
             Return result
         End Function
 
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch, nameOnly:=False)
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch, nameOnly:=True)
         End Function
     End Class
 End Namespace
