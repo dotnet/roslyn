@@ -22,7 +22,7 @@ Friend Module MetadataTestHelpers
     End Function
 
     Friend Function GetSymbolsForReferences(references As Object(), Optional importInternals As Boolean = False) As AssemblySymbol()
-        Dim refs As New List(Of MetadataReference)
+        Dim refs As New List(Of MetadataReference)(references.Length)
 
         For Each r In references
             Dim bytes = TryCast(r, Byte())

@@ -230,14 +230,10 @@ Friend Module CompilationUtils
                                                     Optional options As VisualBasicCompilationOptions = Nothing,
                                                     Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
                                                     Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Dim assemblyName As String = sources.@name
-        If assemblyName Is Nothing Then
-            assemblyName = GetUniqueName()
-        End If
-
+        Dim assemblyName As String = If(sources.@name, GetUniqueName())
         Dim sourcesTreesAndSpans = From f In sources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
-        Dim sourceTrees = From t In sourcesTreesAndSpans Select t.Item1
-        spans = From t In sourcesTreesAndSpans Select t.Item2
+        Dim sourceTrees = From t In sourcesTreesAndSpans.AsParallel.AsOrdered Select t.Item1
+        spans = From t In sourcesTreesAndSpans.AsParallel.AsOrdered Select t.Item2
 
         Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
     End Function
@@ -793,7 +789,10 @@ Friend Module CompilationUtils
     Public Sub AssertTheseDeclarationDiagnostics(compilation As VisualBasicCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
         AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(), errs, suppressInfos)
     End Sub
-
+    <Extension()>
+    Public Sub AssertTheseDeclarationDiagnostics(compilation As VisualBasicCompilation, errs As string, Optional suppressInfos As Boolean = True)
+        AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(), errs, suppressInfos)
+    End Sub
     <Extension()>
     Public Sub AssertTheseParseDiagnostics(compilation As VisualBasicCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
         AssertTheseDiagnostics(compilation.GetParseDiagnostics(), errs, suppressInfos)
@@ -933,9 +932,9 @@ Friend Module CompilationUtils
         Dim expectedReader As New StringReader(expected)
         Dim actualReader As New StringReader(actual)
 
-        Static expectedBuilder As StringBuilder = Nothing : expectedBuilder = If(expectedBuilder, New StringBuilder())
+        Static expectedBuilder As StringBuilder = Nothing : expectedBuilder = If(expectedBuilder, New StringBuilder(64))
         expectedBuilder.Length = 0
-        Dim actualBuilder As StringBuilder = Nothing : actualBuilder = If(actualBuilder, New StringBuilder())
+        Dim actualBuilder As StringBuilder = Nothing : actualBuilder = If(actualBuilder, New StringBuilder(64))
         actualBuilder.Length = 0
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
@@ -1212,9 +1211,9 @@ $"{message}
         Loop
 
         If (isDistinct) Then
-            symType = (From temp In symType Distinct Order By temp.ToDisplayString()).ToList()
+            symType = (From temp In symType.AsParallel.AsOrdered Distinct Order By temp.ToDisplayString()).ToList()
         Else
-            symType = (From temp In symType Order By temp.ToDisplayString()).ToList()
+            symType = (From temp In symType.AsParallel.AsOrdered Order By temp.ToDisplayString()).ToList()
         End If
         Return symType
 

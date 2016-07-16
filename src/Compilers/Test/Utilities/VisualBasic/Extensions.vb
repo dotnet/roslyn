@@ -65,9 +65,9 @@ Friend Module Extensions
         Dim lastContainer As NamespaceOrTypeSymbol = Nothing
         Dim members = GetMembers(container, qualifiedName, lastContainer)
         If members.Length = 0 Then
-            Assert.True(False, "Available members:" & vbCrLf + String.Join(vbCrLf, lastContainer.GetMembers()))
+            Assert.True(False, "Available members:" & vbCrLf & String.Join(vbCrLf, lastContainer.GetMembers()))
         ElseIf members.Length > 1 Then
-            Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
+            Assert.True(False, "Found multiple members of specified name:" & vbCrLf & String.Join(vbCrLf, members))
         End If
 
         Return members.Single()
@@ -117,7 +117,7 @@ Friend Module Extensions
     <Extension>
     Friend Function GetFieldNamesAndTypes(this As ModuleSymbol, qualifiedTypeName As String) As String()
         Dim type = DirectCast(this.GlobalNamespace.GetMember(qualifiedName:=qualifiedTypeName), NamedTypeSymbol)
-        Return type.GetMembers().OfType(Of FieldSymbol)().Select(Of String)(Function(f) f.Name + ": " + f.Type.ToDisplayString(SymbolDisplayFormat.TestFormat)).ToArray()
+        Return type.GetMembers().OfType(Of FieldSymbol)().AsParallel.AsOrdered.Select(Of String)(Function(f) f.Name & ": " & f.Type.ToDisplayString(SymbolDisplayFormat.TestFormat)).ToArray()
     End Function
 
     <Extension>
