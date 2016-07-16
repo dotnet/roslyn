@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a list of symbols, creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
-            int position,
             IEnumerable<ISymbol> symbols,
             AbstractSyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, context)
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, position, g.ToList(), context, invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), context, invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
-            int position,
             IEnumerable<ISymbol> symbols,
             Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, position, g.ToList(), originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -81,7 +79,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private CompletionItem CreateItem(
             string displayText, 
             string insertionText,
-            int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
@@ -108,12 +105,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return CreateItem(displayText, insertionText, position, symbols, context, preselect, supportedPlatformData);
+            return CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData);
         }
 
         protected virtual CompletionItem CreateItem(
             string displayText, string insertionText,
-            int position, List<ISymbol> symbols,
+            List<ISymbol> symbols,
             AbstractSyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
@@ -122,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 contextPosition: context.Position,
-                descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
@@ -180,7 +176,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
+            Document document, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
             var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
@@ -209,7 +206,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
 
                 itemsForCurrentDocument = itemsForCurrentDocument ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-                return CreateItems(position, itemsForCurrentDocument, context, null, null, preselect);
+                return CreateItems(itemsForCurrentDocument, context,
+                    invalidProjectMap: null, 
+                    totalProjects: null, 
+                    preselect: preselect);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
 
-            return CreateItems(position, unionedSymbolsList, originatingContextMap, missingSymbolsMap, totalProjects, preselect);
+            return CreateItems(unionedSymbolsList, originatingContextMap, missingSymbolsMap, totalProjects, preselect);
         }
 
         protected virtual bool IsExclusive()
@@ -328,7 +328,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return missingSymbols;
         }
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override async Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             string insertionText;
 

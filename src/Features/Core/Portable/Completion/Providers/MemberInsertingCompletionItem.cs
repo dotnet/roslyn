@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: displayText,
                 symbol: symbol,
                 glyph: glyph,
-                descriptionPosition: descriptionPosition,
+                contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);
         }

@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     insertionText: insertionText,
                     symbol: member,
                     contextPosition: position,
-                    descriptionPosition: position,
                     rules: CompletionItemRules.Default);
                 item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
 
