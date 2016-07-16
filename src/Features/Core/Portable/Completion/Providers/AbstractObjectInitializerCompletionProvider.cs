@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     displayText: uninitializedMember.Name,
                     insertionText: null,
                     symbol: uninitializedMember,
-                    descriptionPosition: initializerLocation.SourceSpan.Start,
+                    contextPosition: initializerLocation.SourceSpan.Start,
                     rules: s_rules));
             }
         }

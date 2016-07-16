@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
                        symbol: p,
-                       descriptionPosition: token.SpanStart,
+                       contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
                        symbol: p,
-                       descriptionPosition: token.SpanStart,
+                       contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);
         }

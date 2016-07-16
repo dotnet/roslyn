@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(string displayText, string insertionText, List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             var rules = GetCompletionItemRules(symbols, context, preselect);
@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 contextPosition: context.Position,
-                descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: matchPriority,

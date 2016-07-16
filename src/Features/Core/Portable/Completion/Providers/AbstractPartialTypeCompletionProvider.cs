@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
                 contextPosition: context.Position,
-                descriptionPosition: context.Position,
                 rules: CompletionItemRules.Default);
 
             item = AddAdditionalProperties(item, symbol, context);

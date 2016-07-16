@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
 
         protected override CompletionItem CreateItem(
-            string displayText, string insertionText, int position, List<ISymbol> symbols,
+            string displayText, string insertionText, List<ISymbol> symbols,
             AbstractSyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 contextPosition: context.Position,
-                descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: MatchPriority.Preselect, // Always preselect

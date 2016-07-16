@@ -121,7 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 insertionText:=displayAndInsertionText.Item2,
                 symbol:=symbol,
                 contextPosition:=context.Position,
-                descriptionPosition:=position,
                 rules:=CompletionItemRules.Default)
         End Function
 
