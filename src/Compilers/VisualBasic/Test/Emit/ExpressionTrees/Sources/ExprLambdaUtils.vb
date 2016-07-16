@@ -72,7 +72,7 @@ simplecases:
                 Case 14 : sb = sb.Append(spc14)
                 Case Else
                     While level >= 16
-                        sb.Append(spc16)
+                        sb.Append(spc16) : level -= 16
                     End While
                     GoTo simplecases
             End Select
