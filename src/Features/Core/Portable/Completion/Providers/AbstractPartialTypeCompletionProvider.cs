@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,19 +53,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
-            var item = SymbolCompletionItem.Create(
+            return SymbolCompletionItem.Create(
                 displayText: displayAndInsertionText.Item1,
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
                 contextPosition: context.Position,
+                properties: GetProperties(symbol, context),
                 rules: CompletionItemRules.Default);
-
-            item = AddAdditionalProperties(item, symbol, context);
-            return item;
         }
 
-        protected abstract CompletionItem AddAdditionalProperties(
-            CompletionItem item, INamedTypeSymbol symbol, AbstractSyntaxContext context);
+        protected abstract ImmutableDictionary<string, string> GetProperties(
+            INamedTypeSymbol symbol, AbstractSyntaxContext context);
+
         protected abstract Task<AbstractSyntaxContext> CreateSyntaxContextAsync(
             Document document,
             SemanticModel semanticModel,

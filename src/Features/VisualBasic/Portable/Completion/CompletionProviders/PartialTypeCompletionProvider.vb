@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -49,8 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Protected Overrides Function AddAdditionalProperties(item As CompletionItem, symbol As INamedTypeSymbol, context As AbstractSyntaxContext) As CompletionItem
-            Return item.AddProperty(InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
+        Protected Overrides Function GetProperties(symbol As INamedTypeSymbol,
+                                                   context As AbstractSyntaxContext) As ImmutableDictionary(Of String, String)
+            Return ImmutableDictionary(Of String, String).Empty.Add(
+                InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
         End Function
 
         Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)

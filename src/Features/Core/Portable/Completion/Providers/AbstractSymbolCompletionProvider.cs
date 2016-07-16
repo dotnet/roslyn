@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
                 if (symbols.Length > 0)
                 {
-                    insertionText = GetInsertionText(symbols[0], context, ch.Value);
+                    insertionText = GetInsertionText(selectedItem, symbols[0], context, ch.Value);
                 }
                 else
                 {
@@ -355,6 +355,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new TextChange(selectedItem.Span, insertionText);
         }
 
-        protected abstract string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch);
+        protected abstract string GetInsertionText(CompletionItem item, ISymbol symbol, AbstractSyntaxContext context, char ch);
     }
 }
