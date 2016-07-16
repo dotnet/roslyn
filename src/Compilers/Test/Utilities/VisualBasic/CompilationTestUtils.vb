@@ -242,9 +242,12 @@ Friend Module CompilationUtils
         Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
     End Function
 
-    Public Function ToSourceTrees(compilationSources As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As IEnumerable(Of SyntaxTree)
-        Dim sourcesTreesAndSpans = From f In compilationSources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
-        Return From t In sourcesTreesAndSpans Select t.Item1
+    Public Function ToSourceTrees(
+                                   compilationSources As XElement,
+                          Optional parseOptions As VisualBasicParseOptions = Nothing
+                                 ) As IEnumerable(Of SyntaxTree)
+        Dim sourcesTreesAndSpans = From f In compilationSources.<file>.AsParallel.AsOrdered Select CreateParseTreeAndSpans(f, parseOptions)
+        Return From t In sourcesTreesAndSpans.AsParallel.AsOrdered Select t.Item1
     End Function
 
     Public Function CreateCompilationWithReferences(sourceTree As SyntaxTree,
@@ -448,7 +451,7 @@ Friend Module CompilationUtils
                                     Optional which As Integer = 0
                                            ) As Integer
 
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
 
         Dim bindMarker As String
         If which > 0 Then
@@ -497,7 +500,7 @@ Friend Module CompilationUtils
                                                          Optional which As Integer = 0
                                                                 ) As TNode
 
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -620,7 +623,7 @@ Friend Module CompilationUtils
     End Function
 
     Public Function GetSemanticModel(compilation As Compilation, fileName As String) As VBSemanticModel
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
         Return DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
     End Function
 
@@ -692,7 +695,7 @@ Friend Module CompilationUtils
 
     ' Get the syntax tree with a given name.
     Public Function GetTree(compilation As Compilation, name As String) As SyntaxTree
-        Return (From t In compilation.SyntaxTrees Where t.FilePath = name).First()
+        Return (From t In compilation.SyntaxTrees Where t.FilePath = name).AsParallel.AsOrdered.First()
     End Function
 
     ' Get the symbol with a given full name. It must be unambiguous.
@@ -994,24 +997,81 @@ Friend Module CompilationUtils
         Return builder.ToString()
     End Function
 
+    Private Function WS(count As Integer) As String
+        Debug.Assert(count >= 0)
+        Select Case count
+            Case 0 : Return ""
+            Case 1 : Return " "
+            Case 2 : Return "  "
+            Case 3 : Return "   "
+            Case 4 : Return "    "
+            Case 5 : Return "     "
+            Case 6 : Return "      "
+            Case 7 : Return "       "
+            Case 8 : Return "        "
+            Case 9 : Return "         "
+            Case 10 : Return "          "
+            Case 11 : Return "           "
+            Case 12 : Return "            "
+            Case 13 : Return "             "
+            Case 14 : Return "              "
+            Case 15 : Return "               "
+            Case 16 : Return "                "
+            Case 17 : Return "                 "
+            Case 18 : Return "                  "
+            Case 19 : Return "                   "
+            Case 20 : Return "                    "
+        End Select
+        Return New String(" "c, count)
+    End Function
+    Private Function Tilde(count As Integer) As String
+        Debug.Assert(count >= 0)
+        Select Case count
+            Case 0 : Return ""
+            Case 1 : Return "~"
+            Case 2 : Return "~~"
+            Case 3 : Return "~~~"
+            Case 4 : Return "~~~~"
+            Case 5 : Return "~~~~~"
+            Case 6 : Return "~~~~~~"
+            Case 7 : Return "~~~~~~~"
+            Case 8 : Return "~~~~~~~~"
+            Case 9 : Return "~~~~~~~~~"
+            Case 10 : Return "~~~~~~~~~~"
+            Case 11 : Return "~~~~~~~~~~~"
+            Case 12 : Return "~~~~~~~~~~~~"
+            Case 13 : Return "~~~~~~~~~~~~~"
+            Case 14 : Return "~~~~~~~~~~~~~~"
+            Case 15 : Return "~~~~~~~~~~~~~~~"
+            Case 16 : Return "~~~~~~~~~~~~~~~~"
+            Case 17 : Return "~~~~~~~~~~~~~~~~~"
+            Case 18 : Return "~~~~~~~~~~~~~~~~~~"
+            Case 19 : Return "~~~~~~~~~~~~~~~~~~~"
+            Case 20 : Return "~~~~~~~~~~~~~~~~~~~~"
+        End Select
+        Return New String("~"c, count)
+    End Function
+
     ' Get the text of a diagnostic. For source error, includes the text of the line itself, with the 
     ' span underlined.
     Private Function ErrorText(e As Diagnostic) As String
-        Dim message = e.Id + ": " + e.GetMessage(EnsureEnglishUICulture.PreferredOrNull)
+        Dim message = e.Id & ": " & e.GetMessage(EnsureEnglishUICulture.PreferredOrNull)
         If e.Location.IsInSource Then
             Dim sourceLocation = e.Location
             Dim offsetInLine As Integer = 0
             Dim lineText As String = GetLineText(sourceLocation.SourceTree.GetText(), sourceLocation.SourceSpan.Start, offsetInLine)
-            Return message + vbCrLf +
-                lineText + vbCrLf +
-                New String(" "c, offsetInLine) +
-                New String("~"c, Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1)) + vbCrLf
+            Return _
+$"{message}
+{lineText}
+{WS(offsetInLine)}{Tilde(Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1))}
+"
         ElseIf e.Location.IsInMetadata Then
-            Return message + vbCrLf +
-                String.Format("in metadata assembly '{0}'" + vbCrLf,
-                              e.Location.MetadataModule.ContainingAssembly.Identity.Name)
+            Return _
+ $"{message}
+ in metadata assembly '{e.Location.MetadataModule.ContainingAssembly.Identity.Name}'
+"
         Else
-            Return message + vbCrLf
+            Return message & vbCrLf
         End If
     End Function
 
