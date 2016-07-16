@@ -55,8 +55,8 @@ Namespace Global
         <System.Runtime.CompilerServices.Extension>
         Friend Function Indent(ByRef sb As StringBuilder, level As Integer) As StringBuilder
             While level > 0
-                'If level >= 32 Then sb = sb.Append(spc32) : level -= 32
-                'If level >= 16 Then sb = sb.Append(spc16) : level -= 16
+                If level >= 32 Then sb = sb.Append(spc32) : level -= 32
+                If level >= 16 Then sb = sb.Append(spc16) : level -= 16
                 If level >= 8 Then sb = sb.Append(spc08) : level -= 8
                 If level >= 4 Then sb = sb.Append(spc04) : level -= 4
                 If level >= 2 Then sb = sb.Append(spc02) : level -= 2
