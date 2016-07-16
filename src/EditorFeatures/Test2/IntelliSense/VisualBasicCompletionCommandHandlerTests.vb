@@ -2432,5 +2432,28 @@ End Class]]></Document>)
                 Await state.AssertSelectedCompletionItem("value", isHardSelected:=False, isSoftSelected:=True).ConfigureAwait(True)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
+        Public Async Function TestObjectCreationQualifiedName() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+ Class A
+     Sub Test()
+         Dim b As B.C(Of Integer) = New$$
+     End Sub
+ End Class
+ 
+ Namespace B
+     Class C(Of T)
+     End Class
+ End Namespace]]></Document>)
+
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("(")
+                state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(Of Integer)(")
+            End Using
+        End Function
     End Class
 End Namespace
