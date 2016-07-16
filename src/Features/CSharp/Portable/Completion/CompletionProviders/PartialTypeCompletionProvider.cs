@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider
     {
+        private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
+
         private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -51,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult<AbstractSyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, AbstractSyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+            INamedTypeSymbol symbol, AbstractSyntaxContext context)
         {
             var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
             return ValueTuple.Create(displayAndInsertionText, displayAndInsertionText);
@@ -68,19 +72,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
         {
-            var declarationSyntax  = syntax as BaseTypeDeclarationSyntax;
+            var declarationSyntax = syntax as BaseTypeDeclarationSyntax;
             return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
         }
 
-        public async override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override CompletionItem AddAdditionalProperties(CompletionItem item, INamedTypeSymbol symbol, AbstractSyntaxContext context)
+        {
+            return item.AddProperty(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
+        }
+
+        public async override Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             if (ch == '<')
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
-
-                if (symbols.Length > 0)
+                string insertionText;
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnLessThan, out insertionText))
                 {
-                    var insertionText = symbols[0].Name.EscapeIdentifier();
                     return new TextChange(selectedItem.Span, insertionText);
                 }
             }

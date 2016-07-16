@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Resolve member and type in our new, forked, solution
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
-            var symbols = MemberInsertionCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
             var overriddenMember = symbols.First();
 
             // CodeGenerationOptions containing before and after
