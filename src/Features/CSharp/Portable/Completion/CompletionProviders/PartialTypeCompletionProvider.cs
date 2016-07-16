@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,9 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
         }
 
-        protected override CompletionItem AddAdditionalProperties(CompletionItem item, INamedTypeSymbol symbol, AbstractSyntaxContext context)
+        protected override ImmutableDictionary<string, string> GetProperties(
+            INamedTypeSymbol symbol, AbstractSyntaxContext context)
         {
-            return item.AddProperty(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
+            return ImmutableDictionary<string, string>.Empty.Add(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
         }
 
         public async override Task<TextChange?> GetTextChangeAsync(
