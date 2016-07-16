@@ -47,20 +47,35 @@ Namespace Global
     End Module
 
     Module ext
-        Const spc32 = "                              "
-        Const spc16 = "               "
+        '                       1         2         3
+        '              12345678901234567890123456789012
+        Const spc32 = "                                "
+        Const spc16 = "                "
+        Const spc14 = "              "
+        Const spc12 = "            "
+        Const spc10 = "          "
         Const spc08 = "        "
+        Const spc06 = "      "
         Const spc04 = "    "
         Const spc02 = "  "
         <System.Runtime.CompilerServices.Extension>
         Friend Function Indent(ByRef sb As StringBuilder, level As Integer) As StringBuilder
-            While level > 0
-                If level >= 32 Then sb = sb.Append(spc32) : level -= 32
-                If level >= 16 Then sb = sb.Append(spc16) : level -= 16
-                If level >= 8 Then sb = sb.Append(spc08) : level -= 8
-                If level >= 4 Then sb = sb.Append(spc04) : level -= 4
-                If level >= 2 Then sb = sb.Append(spc02) : level -= 2
-            End While
+simplecases:
+            Select Case level
+                Case 0 : Return sb
+                Case 2 : sb = sb.Append(spc02)
+                Case 4 : sb = sb.Append(spc04)
+                Case 6 : sb = sb.Append(spc06)
+                Case 8 : sb = sb.Append(spc08)
+                Case 10 : sb = sb.Append(spc10)
+                Case 12 : sb = sb.Append(spc12)
+                Case 14 : sb = sb.Append(spc14)
+                Case Else
+                    While level >= 16
+                        sb.Append(spc16)
+                    End While
+                    GoTo simplecases
+            End Select
             Return sb
         End Function
     End Module
@@ -68,7 +83,7 @@ Namespace Global
     Friend Class ExpressionPrinter
         Inherits System.Linq.Expressions.ExpressionVisitor
 
-        Private ReadOnly _s As StringBuilder = New StringBuilder(256)
+        Private ReadOnly _s As New StringBuilder(256)
 
         Private ReadOnly _IndentStep As Integer = 2
         Private _indent As Integer = 0
