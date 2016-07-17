@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (boundRHS.Kind == BoundKind.TupleLiteral)
                 {
-                    // let's fix it up by making a merged type from the LHS and RHS
+                    // Let's fix the literal up by figuring out its type
+                    // For declarations, that means merging type information from the LHS and RHS
+                    // For assignments, only the LHS side matters since it is necessarily typed
                     TypeSymbol lhsAsTuple = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, node, diagnostics, Compilation);
                     if (lhsAsTuple != null)
                     {
@@ -288,7 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// For cases where the RHS of a deconstruction-assignment is a tuple literal, we merge type information from both the LHS and RHS.
+        /// For cases where the RHS of a deconstruction-declaration is a tuple literal, we merge type information from both the LHS and RHS.
+        /// For cases where the RHS of a deconstruction-assignment is a tuple literal, the type information from the LHS determines the merged type, since all variables have a type.
         /// Returns null if a merged tuple type could not be fabricated.
         /// </summary>
         private static TypeSymbol MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundTupleLiteral rhsLiteral, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, CSharpCompilation compilation)
