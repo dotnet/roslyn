@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 name = symbol.Name
             End If
 
-            Return GetInsertionText(name, symbol, context.IsRightOfNameSeparator, DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, ch)
+            Return GetInsertionText(name, symbol, context.IsRightOfNameSeparator, context.IsWithinAsyncMethod, ch)
         End Function
     End Module
 End Namespace

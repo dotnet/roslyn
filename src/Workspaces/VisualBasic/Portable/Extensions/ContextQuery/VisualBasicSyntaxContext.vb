@@ -48,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsQueryOperatorContext As Boolean
         Public ReadOnly EnclosingNamedType As CancellableLazy(Of INamedTypeSymbol)
         Public ReadOnly IsCustomEventContext As Boolean
-        Public ReadOnly WithinAsyncMethod As Boolean
 
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
         Public ReadOnly IsWithinPreprocessorContext As Boolean
@@ -95,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
                 isInImportsDirective:=isInImportsDirective,
+                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -120,12 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
-            Me.WithinAsyncMethod = IsWithinAsyncMethod(targetToken, cancellationToken)
 
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
         End Sub
 
-        Private Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function

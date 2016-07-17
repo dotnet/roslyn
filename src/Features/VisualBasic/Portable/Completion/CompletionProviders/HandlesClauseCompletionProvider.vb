@@ -110,10 +110,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateCompletionItem(position As Integer,
                                               symbol As ISymbol,
-                                              context As VisualBasicSyntaxContext) As CompletionItem
+                                              context As AbstractSyntaxContext) As CompletionItem
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.IsWithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
 
             Return SymbolCompletionItem.Create(
                 displayText:=displayAndInsertionText.Item1,
@@ -135,7 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol,
                                                                 context As AbstractSyntaxContext) As ValueTuple(Of String, String)
 
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, isWithinAsyncMethod:=DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))
+            Return CompletionUtilities.GetDisplayAndInsertionText(
+                symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.IsWithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)

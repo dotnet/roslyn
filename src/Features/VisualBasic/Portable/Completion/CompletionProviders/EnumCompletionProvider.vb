@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol,
                                                                   context.IsAttributeNameContext,
                                                                   context.IsRightOfNameSeparator,
-                                                                  DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod,
+                                                                  context.IsWithinAsyncMethod,
                                                                   context.GetLanguageService(Of ISyntaxFactsService)())
             Return result
         End Function
