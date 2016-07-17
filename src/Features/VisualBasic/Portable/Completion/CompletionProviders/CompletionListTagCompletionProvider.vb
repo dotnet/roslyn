@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CompletionListTagCompletionProvider
         Inherits EnumCompletionProvider
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetPreselectedSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                                     m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)))
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
         End Function
 
@@ -60,13 +60,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
             Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithKindOptions(SymbolDisplayKindOptions.None)
             Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat)
             Return ValueTuple.Create(text, text)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As AbstractSyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.Create(
                 displayText:=displayText,
                 insertionText:=insertionText,

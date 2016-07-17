@@ -50,19 +50,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out declaration) ? declaration : null;
         }
 
-        protected override Task<AbstractSyntaxContext> CreateSyntaxContextAsync(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        protected override Task<SyntaxContext> CreateSyntaxContextAsync(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            return Task.FromResult<AbstractSyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
+            return Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
         }
 
         protected override ValueTuple<string, string> GetDisplayAndInsertionText(
-            INamedTypeSymbol symbol, AbstractSyntaxContext context)
+            INamedTypeSymbol symbol, SyntaxContext context)
         {
             var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
             return ValueTuple.Create(displayAndInsertionText, displayAndInsertionText);
         }
 
-        protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(AbstractSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             var candidates = base.LookupCandidateSymbols(context, declaredSymbol, cancellationToken);
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, AbstractSyntaxContext context)
+            INamedTypeSymbol symbol, SyntaxContext context)
         {
             return ImmutableDictionary<string, string>.Empty.Add(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
         }

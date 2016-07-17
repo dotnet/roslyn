@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private CompletionItem CreateCompletionItem(
-            INamedTypeSymbol symbol, AbstractSyntaxContext context)
+            INamedTypeSymbol symbol, SyntaxContext context)
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected abstract ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, AbstractSyntaxContext context);
+            INamedTypeSymbol symbol, SyntaxContext context);
 
-        protected abstract Task<AbstractSyntaxContext> CreateSyntaxContextAsync(
+        protected abstract Task<SyntaxContext> CreateSyntaxContextAsync(
             Document document,
             SemanticModel semanticModel,
             int position,
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, AbstractSyntaxContext context);
+        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
 
-        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(AbstractSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             if (declaredSymbol == null)
             {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
         }
 
-        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, AbstractSyntaxContext context)
+        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(reference => reference.GetSyntax())
