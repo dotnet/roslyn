@@ -77,13 +77,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             symbol As ISymbol,
             context As SyntaxContext) As ValueTuple(Of String, String)
 
-            Dim isAttributeNameContext = context.IsAttributeNameContext
             Dim isAfterDot = context.IsRightOfNameSeparator
             Dim isWithinAsyncMethod = context.IsWithinAsyncMethod
-            Dim syntaxFacts = context.GetLanguageService(Of ISyntaxFactsService)()
 
             Dim name As String = Nothing
-            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, isAttributeNameContext, syntaxFacts, name) Then
+            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, name) Then
                 name = symbol.Name
             End If
 
@@ -142,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function GetInsertionTextAtInsertionTime(symbol As ISymbol, context As SyntaxContext, ch As Char) As String
             Dim name As String = Nothing
-            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService(Of ISyntaxFactsService), name) Then
+            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, name) Then
                 name = symbol.Name
             End If
 

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             string name;
 
-            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService<ISyntaxFactsService>(), out name))
+            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, out name))
             {
                 // Cannot escape Attribute name with the suffix removed. Only use the name with
                 // the suffix removed if it does not need to be escaped.
