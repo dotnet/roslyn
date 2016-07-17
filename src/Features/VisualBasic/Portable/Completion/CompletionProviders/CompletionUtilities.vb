@@ -87,10 +87,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 name = symbol.Name
             End If
 
-            Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod)
             Dim displayText = GetDisplayText(name, symbol)
+            ' Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod)
 
-            Return ValueTuple.Create(displayText, insertionText)
+            Return ValueTuple.Create(displayText, displayText)
         End Function
 
         Public Function GetDisplayText(name As String, symbol As ISymbol) As String
