@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function GetDisplayAndInsertionText(
             symbol As ISymbol,
-            context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+            context As SyntaxContext) As ValueTuple(Of String, String)
 
             Dim isAttributeNameContext = context.IsAttributeNameContext
             Dim isAfterDot = context.IsRightOfNameSeparator
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ""
         End Function
 
-        Public Function GetInsertionTextAtInsertionTime(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+        Public Function GetInsertionTextAtInsertionTime(symbol As ISymbol, context As SyntaxContext, ch As Char) As String
             Dim name As String = Nothing
             If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService(Of ISyntaxFactsService), name) Then
                 name = symbol.Name

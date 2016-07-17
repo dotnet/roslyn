@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     ''' Helper structure to store some context about a position for keyword completion
     ''' </summary>
     Friend NotInheritable Class VisualBasicSyntaxContext
-        Inherits AbstractSyntaxContext
+        Inherits SyntaxContext
 
         ''' <summary>
         ''' True if position is after a colon, or an

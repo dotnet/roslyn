@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
-    internal sealed class CSharpSyntaxContext : AbstractSyntaxContext
+    internal sealed class CSharpSyntaxContext : SyntaxContext
     {
         public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
         public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class HandlesClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             Dim vbContext = DirectCast(context, VisualBasicSyntaxContext)
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateCompletionItem(position As Integer,
                                               symbol As ISymbol,
-                                              context As AbstractSyntaxContext) As CompletionItem
+                                              context As SyntaxContext) As CompletionItem
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
 
@@ -132,22 +132,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndInsertionText(
-                symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+                symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
 
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
+        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
             Return CompletionItemRules.Default
         End Function
 
         Protected Overrides Function GetInsertionText(
-                item As CompletionItem, symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+                item As CompletionItem, symbol As ISymbol, context As SyntaxContext, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
     End Class

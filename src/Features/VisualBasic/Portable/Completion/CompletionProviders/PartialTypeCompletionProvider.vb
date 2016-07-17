@@ -40,18 +40,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return If(tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, statement), statement, Nothing)
         End Function
 
-        Protected Overrides Async Function CreateSyntaxContextAsync(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
+        Protected Overrides Async Function CreateSyntaxContextAsync(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As INamedTypeSymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As ValueTuple(Of String, String)
             Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_displayTextFormat)
             Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_insertionTextFormatWithGenerics)
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
         Protected Overrides Function GetProperties(symbol As INamedTypeSymbol,
-                                                   context As AbstractSyntaxContext) As ImmutableDictionary(Of String, String)
+                                                   context As SyntaxContext) As ImmutableDictionary(Of String, String)
             Return ImmutableDictionary(Of String, String).Empty.Add(
                 InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
         End Function

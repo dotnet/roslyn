@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, Task<AbstractSyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, Task<AbstractSyntaxContext>>();
+        private static readonly ConditionalWeakTable<Document, Task<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, Task<SyntaxContext>>();
         private static int s_cachedPosition;
         private static readonly object s_cacheGate = new object();
 
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context);
-        protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context);
+        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
+        protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context);
 
         /// <summary>
         /// Given a list of symbols, creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
             IEnumerable<ISymbol> symbols,
-            AbstractSyntaxContext context,
+            SyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
             IEnumerable<ISymbol> symbols,
-            Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap,
+            Dictionary<ISymbol, SyntaxContext> originatingContextMap,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayText, 
             string insertionText,
             List<ISymbol> symbols,
-            AbstractSyntaxContext context,
+            SyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual CompletionItem CreateItem(
             string displayText, string insertionText,
             List<ISymbol> symbols,
-            AbstractSyntaxContext context, bool preselect,
+            SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
             return SymbolCompletionItem.Create(
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        protected virtual string GetFilterText(ISymbol symbol, string displayText, AbstractSyntaxContext context)
+        protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
         {
             return (displayText == symbol.Name) ||
                 (displayText.Length > 0 && displayText[0] == '@') ||
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : symbol.Name;
         }
 
-        protected abstract Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract Task<IEnumerable<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
 
-        protected virtual Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyEnumerable<ISymbol>();
         }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Invalidate the cache if it's for a different position or a different set of Documents.
                 // It's fairly likely that we'll only have to check the first document, unless someone
                 // specially constructed a Solution with mismatched linked files.
-                Task<AbstractSyntaxContext> value;
+                Task<SyntaxContext> value;
                 if (s_cachedPosition != position ||
                     !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out value)))
                 {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
 
-            Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap = null;
+            Dictionary<ISymbol, SyntaxContext> originatingContextMap = null;
             var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out originatingContextMap);
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
@@ -232,17 +232,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.True;
         }
 
-        private Task<IEnumerable<ISymbol>> GetSymbolsWorker(int position, bool preselect, AbstractSyntaxContext context, OptionSet options, CancellationToken cancellationToken)
+        private Task<IEnumerable<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
             return preselect
                 ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
                 : GetSymbolsWorker(context, position, options, cancellationToken);
         }
 
-        private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists, out Dictionary<ISymbol, AbstractSyntaxContext> originDictionary)
+        private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, SyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists, out Dictionary<ISymbol, SyntaxContext> originDictionary)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
-            originDictionary = new Dictionary<ISymbol, AbstractSyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
+            originDictionary = new Dictionary<ISymbol, SyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
             var set = new HashSet<ISymbol>(LinkedFilesSymbolEquivalenceComparer.Instance);
@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return set;
         }
 
-        protected async Task<List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>>> GetPerContextSymbols(Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
+        protected async Task<List<Tuple<DocumentId, SyntaxContext, IEnumerable<ISymbol>>>> GetPerContextSymbols(Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
         {
-            var perContextSymbols = new List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>>();
+            var perContextSymbols = new List<Tuple<DocumentId, SyntaxContext, IEnumerable<ISymbol>>>();
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return perContextSymbols;
         }
 
-        private bool IsCandidateProject(AbstractSyntaxContext context, CancellationToken cancellationToken)
+        private bool IsCandidateProject(SyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
             return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
@@ -296,9 +296,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
 
-        protected abstract Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);
 
-        private Task<AbstractSyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
+        private Task<SyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
         {
             lock (s_cacheGate)
             {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="expectedSymbols">The symbols recommended in the active context.</param>
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-        protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(HashSet<ISymbol> expectedSymbols, IEnumerable<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists)
+        protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(HashSet<ISymbol> expectedSymbols, IEnumerable<Tuple<DocumentId, SyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists)
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
@@ -355,6 +355,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new TextChange(selectedItem.Span, insertionText);
         }
 
-        protected abstract string GetInsertionText(CompletionItem item, ISymbol symbol, AbstractSyntaxContext context, char ch);
+        protected abstract string GetInsertionText(CompletionItem item, ISymbol symbol, SyntaxContext context, char ch);
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override string GetInsertionText(
-            CompletionItem item, ISymbol symbol, AbstractSyntaxContext context, char ch)
+            CompletionItem item, ISymbol symbol, SyntaxContext context, char ch)
         {
             return GetInsertionText(symbol, context);
         }
 
-        public static string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        public static string GetInsertionText(ISymbol symbol, SyntaxContext context)
         {
             string name;
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.Kind() != SyntaxKind.NumericLiteralToken;
         }
 
-        protected override async Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
             var span = new TextSpan(position, 0);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
             var insertionText = GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
@@ -117,14 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_itemRules_preselect = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect)
+        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
             return context.IsInImportsDirective
                 ? preselect ? s_importDirectiveRules_preselect : s_importDirectiveRules
                 : preselect ? s_itemRules_preselect : s_itemRules;
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
         {
             // Unused
             throw new NotImplementedException();

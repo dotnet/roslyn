@@ -8,11 +8,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 {
-    internal abstract class AbstractSyntaxContext
+    internal abstract class SyntaxContext
     {
         private ISet<INamedTypeSymbol> _outerTypes;
 
-        protected AbstractSyntaxContext(
+        protected SyntaxContext(
             Workspace workspace,
             SemanticModel semanticModel,
             int position,
