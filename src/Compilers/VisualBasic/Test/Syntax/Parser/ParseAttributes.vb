@@ -13,23 +13,23 @@ Public Class Attributes
 
     <Fact>
     Public Sub ParseAssemblyAttribute()
-        ParseModuleOrAssemblyAttribute(<![CDATA[
+        ParseModuleOrAssemblyAttribute("
             <Assembly:clscompliant(true)>
             Module Module1
             End Module
-        ]]>.Value, isFullWidth:=False)
+        ", isFullWidth:=False)
     End Sub
 
     <Fact>
     Public Sub ParseModuleAttribute()
-        ParseModuleOrAssemblyAttribute(<![CDATA[
+        ParseModuleOrAssemblyAttribute("
             <Module:clscompliant(true)>
             Module Module1
             End Module
-        ]]>.Value, isFullWidth:=False)
+        ", isFullWidth:=False)
     End Sub
 
-    <WorkItem(570756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
+    <WorkItem(570756, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
     <Fact()>
     Public Sub ParseFullWidthModuleAndAssemblyAttributes()
         ParseModuleOrAssemblyAttribute("<Assembly:A>".ToFullWidth(), isFullWidth:=True)
@@ -48,26 +48,26 @@ Public Class Attributes
 
     <Fact>
     Public Sub ParseModuleAndAssemblyAttributesWithTrivia()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <Assembly : A>
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 <Module _
 : _
 A>
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 <Assembly : A>
-]]>.Value.Replace(":"c, FULLWIDTH_COLON))
+".Replace(":"c, FULLWIDTH_COLON))
     End Sub
 
     <Fact>
     Public Sub BC30183ERR_InvalidUseOfKeyword_FileNotAssemblyOrModuleAttribute()
-        Dim tree = ParseAndVerify(<![CDATA[
-            <Dim:clscompliant(true)>
-            Module Module1
-            End Module
-        ]]>,
+        Dim tree = ParseAndVerify("
+<Dim:clscompliant(true)>
+Module Module1
+End Module
+",
             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Dim"),
             Diagnostic(ERRID.ERR_ExpectedGreater, ""),
             Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "clscompliant(true)"),
@@ -82,52 +82,52 @@ A>
 
     <Fact>
     Public Sub Bug862162()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Imports System.Runtime.InteropServices
             Structure Struct1
               <MarshalAs(UnmanagedType.ByValArray, sizeconst:=4)> Public A() As Integer
             End Structure
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862165()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Public Class Attr
                 Inherits Attribute
             End Class
             <Attr(CByte(2))> Class Class1
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862181()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             <AttributeUsageAttribute(System.AttributeTargets.Class), Obsolete()> Public Class Attr
                                           Inherits Attribute
                   End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862462()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
             Partial Class UserControl2
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(863443, "DevDiv/Personal")>
     <Fact>
     Public Sub BC32017ERR_ArgumentSyntax()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             <attr(i+=1)> Class c9
             <attr(l-=1)> Sub test()
                          End Sub
             End Class
-        ]]>,
+        ",
         <errors>
             <error id="32017"/>
             <error id="32017"/>
@@ -154,7 +154,7 @@ A>
             Class Class1
             End Class
         ]]>, <errors>
-                 <error id="32035" message="Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement." start="13" end="33"/>
+                 <error id="32035" message="Attribute specifier Is Not a complete statement. Use a line continuation To apply the attribute To the following statement." start="13" end="33"/>
              </errors>)
     End Sub
 
