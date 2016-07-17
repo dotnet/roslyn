@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
         Private Const UnicodeEllipsis = ChrW(&H2026)
+        Private Const GenericSuffix = "(Of " & UnicodeEllipsis & ")"
 
         Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
 
@@ -93,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If symbol.IsConstructor() Then
                 Return "New"
             ElseIf symbol.GetArity() > 0 Then
-                Return name & "(Of " & UnicodeEllipsis & ")"
+                Return name & GenericSuffix
             Else
                 Return name
             End If
