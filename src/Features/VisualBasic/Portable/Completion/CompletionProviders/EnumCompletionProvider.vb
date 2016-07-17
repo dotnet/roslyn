@@ -97,12 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return ValueTuple.Create(text, text)
             End If
 
-            Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol,
-                                                                  context.IsAttributeNameContext,
-                                                                  context.IsRightOfNameSeparator,
-                                                                  context.IsWithinAsyncMethod,
-                                                                  context.GetLanguageService(Of ISyntaxFactsService)())
-            Return result
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)

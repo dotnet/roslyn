@@ -75,9 +75,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function GetDisplayAndInsertionText(
             symbol As ISymbol,
-            isAttributeNameContext As Boolean, isAfterDot As Boolean, isWithinAsyncMethod As Boolean,
-            syntaxFacts As ISyntaxFactsService
-        ) As ValueTuple(Of String, String)
+            context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+
+            Dim isAttributeNameContext = context.IsAttributeNameContext
+            Dim isAfterDot = context.IsRightOfNameSeparator
+            Dim isWithinAsyncMethod = context.IsWithinAsyncMethod
+            Dim syntaxFacts = context.GetLanguageService(Of ISyntaxFactsService)()
 
             Dim name As String = Nothing
             If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, isAttributeNameContext, syntaxFacts, name) Then

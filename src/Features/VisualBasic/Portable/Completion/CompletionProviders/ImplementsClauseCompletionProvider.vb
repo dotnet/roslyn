@@ -251,10 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
                 insertionText = displayText
             Else
-                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                    symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator,
-                    isWithinAsyncMethod:=False,
-                    syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
 
                 displayText = displayAndInsertionText.Item1
                 insertionText = displayAndInsertionText.Item2
