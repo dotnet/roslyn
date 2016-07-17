@@ -22271,7 +22271,7 @@ class Test
         var p = null ?? null; //CS0019
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"));
         }
@@ -22295,7 +22295,7 @@ public class MyClass
         var test = new Top<int>.Outer<string>();
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (13,33): error CS0122: 'Top<int>.Outer<string>' is inaccessible due to its protection level
                 //          var test = new Top<int>.Outer<string>();
                 Diagnostic(ErrorCode.ERR_BadAccess, "new Top<int>.Outer<string>()").WithArguments("Top<int>.Outer<string>"));
@@ -22321,7 +22321,7 @@ class Test
         Method1(10, 20); //CS0121
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Method1(int, long)' and 'Test.Method1(long, int)'
                 //          Method1(10, 20)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method1").WithArguments("Test.Method1(int, long)", "Test.Method1(long, int)"));
@@ -22350,7 +22350,7 @@ class Test
         var i1 = new Class1(10, 20);  //CS0121
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (17,18): error CS0121: The call is ambiguous between the following methods or properties: 'Class1.Class1(int, long)' and 'Class1.Class1(long, int)'
                 //          new Class1(10, 20)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Class1").WithArguments("Class1.Class1(int, long)", "Class1.Class1(long, int)"));

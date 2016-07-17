@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In C# 6 and earlier, we use the old binder. In C# 7 and later, we use the new binder which
                 // is capable of binding both the old and new syntax. However, the new binder does not yet
                 // lead to a translation that fully supports edit-and-continue, so it delegates to the C# 6
-                // binder when it can. The "typeswitch" feature flag forces the use of the C# 7 switch binder
+                // binder when it can. The "testV7SwitchBinder" feature flag forces the use of the C# 7 switch binder
                 // for all operations; we use it to enhance test coverage.
-                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false || parseOptions?.Features.ContainsKey("typeswitch") != false)
+                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false || parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false)
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
@@ -461,12 +461,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!switchExpression.HasAnyErrors)
             {
-                if (PatternsEnabled)
+                if ((object)switchExpression.Type == null || switchExpression.Type.SpecialType == SpecialType.System_Void)
                 {
                     diagnostics.Add(ErrorCode.ERR_PatternValueExpected, node.Location, switchExpression.Display);
                 }
                 else
                 {
+                    Debug.Assert(!PatternsEnabled);
                     diagnostics.Add(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, node.Location);
                 }
             }
