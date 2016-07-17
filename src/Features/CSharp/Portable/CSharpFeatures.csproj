@@ -315,6 +315,7 @@
     <Compile Include="GenerateType\CSharpGenerateTypeService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassService.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceService.cs" />
+    <Compile Include="InternalUtilities\InternalExtensions.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.Rewriter.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceField.cs" />

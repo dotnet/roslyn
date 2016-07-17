@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     // Get the Method symbol for the Delegate to be created
                     if (generateTypeServiceStateOptions.IsDelegateAllowed &&
                         objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1 &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression != null)
+                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression.Kind() != SyntaxKind.DeclarationExpression)
                     {
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression, cancellationToken);
                     }
