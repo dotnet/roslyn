@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
-    internal sealed class CSharpSyntaxContext : AbstractSyntaxContext
+    internal sealed class CSharpSyntaxContext : SyntaxContext
     {
         public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
         public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, cancellationToken)
+                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -248,6 +248,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var inferenceService = new CSharpTypeInferenceService();
             var types = inferenceService.InferTypes(semanticModel, position, cancellationToken);
             return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
+        }
+
+        private new static bool IsWithinAsyncMethod()
+        {
+            // TODO: Implement this if any C# completion code needs to know if it is in an async 
+            // method or not.
+            return false;
         }
 
         public bool IsTypeAttributeContext(CancellationToken cancellationToken)

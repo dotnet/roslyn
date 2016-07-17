@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return newExpression
         End Function
 
-        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
+        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 matchPriority:=MatchPriority.Preselect,
                 selectionBehavior:=CompletionItemSelectionBehavior.HardSelection)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
             Return s_rules
         End Function
     End Class
