@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -17,8 +19,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        protected abstract bool IsPartial(TTypeDeclarationSyntax typeDeclaration);
-
         protected virtual SyntaxNode GetNodetoAnalyze(SyntaxNode root, TextSpan span)
         {
             return root.FindNode(span);
@@ -64,10 +64,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             var actions = new List<CodeAction>();
             var targetFileName = state.TargetFileNameCandidate + state.TargetFileExtension;
             var uiRequired = ProjectContainsTargetFile(state.SemanticDocument.Project, targetFileName, state.DocumentName, state.TypeName);
-            var isPartial = IsPartial(state.TypeNode);
             var isNestedType = IsNestedType(state.TypeNode);
             var singleType = IsSingleTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
-            var typeSymbol = state.SemanticDocument.SemanticModel.GetDeclaredSymbol(state.TypeNode, cancellationToken) as INamedTypeSymbol;
+            var typeSymbol = (ITypeSymbol)state.SemanticDocument.SemanticModel.GetDeclaredSymbol(state.TypeNode, cancellationToken);
+            var semanticFacts = state.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+            var isPartial = semanticFacts.IsPartial(typeSymbol);
 
             if (singleType)
             {

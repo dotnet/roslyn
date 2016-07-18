@@ -10,14 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
     <ExportLanguageService(GetType(IMoveTypeService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicMoveTypeService
         Inherits AbstractMoveTypeService(Of VisualBasicMoveTypeService, TypeBlockSyntax, NamespaceBlockSyntax, MethodBaseSyntax, CompilationUnitSyntax)
-
-        ''' <summary>
-        ''' Determines if the given TypeBlock definition has a partial identifier.
-        ''' </summary>
-        Protected Overrides Function IsPartial(typeDeclaration As TypeBlockSyntax) As Boolean
-            Return typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword)
-        End Function
-
         ''' <summary>
         ''' Gets the TypeBlock node to analyze
         ''' </summary>
@@ -26,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
             If node.IsKind(SyntaxKind.ModuleStatement,
                            SyntaxKind.ClassStatement,
                            SyntaxKind.StructureStatement,
-                           SyntaxKind.InterfaceStatement) Then
+                           SyntaxKind.InterfaceStatement,
+                           SyntaxKind.EnumStatement) Then
                 Return node.Parent
             End If
 

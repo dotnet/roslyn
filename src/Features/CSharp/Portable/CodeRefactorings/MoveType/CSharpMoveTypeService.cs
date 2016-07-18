@@ -11,9 +11,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveType
     internal class CSharpMoveTypeService :
         AbstractMoveTypeService<CSharpMoveTypeService, BaseTypeDeclarationSyntax, NamespaceDeclarationSyntax, MemberDeclarationSyntax, CompilationUnitSyntax>
     {
-        protected override bool IsPartial(BaseTypeDeclarationSyntax typeDeclaration)
-        {
-            return typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
-        }
     }
 }

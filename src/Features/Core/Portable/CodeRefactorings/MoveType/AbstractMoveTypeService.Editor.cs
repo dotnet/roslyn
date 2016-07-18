@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private async Task<IEnumerable<CodeActionOperation>> RenameTypeToMatchFileAsync(Solution solution)
             {
-                var symbol = _state.SemanticDocument.SemanticModel.GetDeclaredSymbol(_state.TypeNode, _cancellationToken) as INamedTypeSymbol;
+                var symbol = _state.SemanticDocument.SemanticModel.GetDeclaredSymbol(_state.TypeNode, _cancellationToken);
                 var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, _state.DocumentName, SemanticDocument.Document.Options, _cancellationToken).ConfigureAwait(false);
                 return new CodeActionOperation[] { new ApplyChangesOperation(newSolution) };
             }
@@ -236,6 +237,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private void AddPartialModifiersToTypeChain(DocumentEditor documentEditor, TTypeDeclarationSyntax typeNode)
             {
+                var semanticFacts = _state.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+
                 if (_makeOuterTypesPartial)
                 {
                     var typeChain = typeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -247,7 +250,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                     foreach (var node in typeChain)
                     {
-                        if (!_service.IsPartial(node))
+                        var symbol = (ITypeSymbol)_state.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, _cancellationToken);
+                        if (!semanticFacts.IsPartial(symbol))
                         {
                             documentEditor.SetModifiers(node, DeclarationModifiers.Partial);
                         }
