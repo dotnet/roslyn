@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index = 0,
             bool compareTokens = true, bool isLine = true)
         {
-            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine);
-            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine);
+            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, parseOptions: null, compilationOptions: null, compareTokens: compareTokens, isLine: isLine);
+            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), compilationOptions: null, compareTokens: compareTokens, isLine: isLine);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
