@@ -721,15 +721,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to .
-        '''</summary>
-        Friend ReadOnly Property EmptyString1() As String
-            Get
-                Return ResourceManager.GetString("EmptyString1", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Enables reporting of specified warnings in the portion of the source file below the current line..
         '''</summary>
         Friend ReadOnly Property EnableKeywordToolTip() As String

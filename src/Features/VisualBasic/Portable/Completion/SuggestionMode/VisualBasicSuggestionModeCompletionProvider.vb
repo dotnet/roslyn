@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
             If semanticModel.OptionExplicit = False AndAlso (syntaxTree.IsExpressionContext(position, targetToken, cancellationToken) OrElse syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken)) Then
-                Return CreateSuggestionModeItem(VBFeaturesResources.EmptyString1, VBFeaturesResources.EmptyString1)
+                Return CreateSuggestionModeItem("", "")
             End If
 
             ' Builder if we're typing a field

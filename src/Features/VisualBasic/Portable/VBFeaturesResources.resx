@@ -150,9 +150,6 @@
   <data name="RemoveUnnecessaryImports" xml:space="preserve">
     <value>Remove Unnecessary Imports</value>
   </data>
-  <data name="EmptyString1" xml:space="preserve">
-    <value />
-  </data>
   <data name="TypeANameHereToDeclareA" xml:space="preserve">
     <value>Type a name here to declare a new field.</value>
   </data>
