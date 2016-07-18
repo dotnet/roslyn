@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
 
         protected override CompletionItem CreateItem(
-            string displayText, string insertionText, int position, List<ISymbol> symbols,
-            AbstractSyntaxContext context, bool preselect,
+            string displayText, string insertionText, List<ISymbol> symbols,
+            SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
             return SymbolCompletionItem.Create(
@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 contextPosition: context.Position,
-                descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: MatchPriority.Preselect, // Always preselect
@@ -43,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: GetCompletionItemRules(symbols, context));
         }
 
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyEnumerable<ISymbol>();
         }
 
-        protected override Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
@@ -123,11 +122,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)type));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+            ISymbol symbol, SyntaxContext context)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
             return ValueTuple.Create(displayString, displayString);
+        }
+
+        protected override string GetInsertionText(
+            CompletionItem item, ISymbol symbol, SyntaxContext context, char ch)
+        {
+            // The insertion text we put in the completion item is already the right text
+            // to insert.
+            return SymbolCompletionItem.GetInsertionText(item);
         }
     }
 }

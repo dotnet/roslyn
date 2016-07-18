@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: displayText,
                 symbol: symbol,
                 glyph: glyph,
-                descriptionPosition: descriptionPosition,
+                contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);
         }
@@ -40,17 +40,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        public static Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken);
-        }
-
         public static DeclarationModifiers GetModifiers(CompletionItem item)
         {
             string text;
             DeclarationModifiers modifiers;
-            if (item.Properties.TryGetValue("Modifiers", out text)
-                && DeclarationModifiers.TryParse(text, out modifiers))
+            if (item.Properties.TryGetValue("Modifiers", out text) &&
+                DeclarationModifiers.TryParse(text, out modifiers))
             {
                 return modifiers;
             }

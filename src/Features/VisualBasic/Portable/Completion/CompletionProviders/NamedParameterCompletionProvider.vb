@@ -66,15 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
             For Each parameter In unspecifiedParameters
-                context.AddItem(
-                    SymbolCompletionItem.Create(
-                        displayText:=parameter.Name & s_colonEquals,
-                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                        symbol:=parameter,
-                        descriptionPosition:=position,
-                        contextPosition:=position,
-                        isArgumentName:=True,
-                        rules:=s_itemRules))
+                context.AddItem(SymbolCompletionItem.Create(
+                    displayText:=parameter.Name & s_colonEquals,
+                    insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                    symbol:=parameter,
+                    contextPosition:=position,
+                    rules:=s_itemRules))
             Next
         End Function
 

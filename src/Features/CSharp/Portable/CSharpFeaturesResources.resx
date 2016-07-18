@@ -452,4 +452,16 @@
   <data name="NamespaceName" xml:space="preserve">
     <value>&lt;namespace name&gt;</value>
   </data>
+  <data name="AutoselectDisabledDueToTypeDeclaration" xml:space="preserve">
+    <value>Autoselect disabled due to type declaration.</value>
+  </data>
+  <data name="ClassName" xml:space="preserve">
+    <value>&lt;class name&gt;</value>
+  </data>
+  <data name="InterfaceName" xml:space="preserve">
+    <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="StructName" xml:space="preserve">
+    <value>&lt;struct name&gt;</value>
+  </data>
 </root>

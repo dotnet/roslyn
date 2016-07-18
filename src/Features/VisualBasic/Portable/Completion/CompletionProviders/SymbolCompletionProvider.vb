@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+        Protected Overrides Function GetInsertionText(item As CompletionItem, symbol As ISymbol, context As SyntaxContext, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
 
@@ -61,16 +61,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, context.GetLanguageService(Of ISyntaxFactsService))
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
+        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetFilterText(symbol As ISymbol, displayText As String, context As AbstractSyntaxContext) As String
+        Protected Overrides Function GetFilterText(symbol As ISymbol, displayText As String, context As SyntaxContext) As String
             ' Filter on New if we have a ctor
             If symbol.IsConstructor() Then
                 Return "New"
@@ -91,13 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Shared ReadOnly s_itemRules_preselect As CompletionItemRules = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As AbstractSyntaxContext, preselect As Boolean) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean) As CompletionItemRules
             Return If(context.IsInImportsDirective,
                 If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules),
                 If(preselect, s_itemRules_preselect, s_itemRules))
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
             ' Unused
             Throw New NotImplementedException
         End Function

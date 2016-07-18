@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -40,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
 
+                TypeDeclarationSyntax typeDeclaration;
+
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
@@ -63,6 +63,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
+                }
+                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out typeDeclaration))
+                {
+                    switch (typeDeclaration.Keyword.Kind())
+                    {
+                        case SyntaxKind.ClassKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.ClassName, CSharpFeaturesResources.AutoselectDisabledDueToTypeDeclaration);
+
+                        case SyntaxKind.StructKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.StructName, CSharpFeaturesResources.AutoselectDisabledDueToTypeDeclaration);
+
+                        case SyntaxKind.InterfaceKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.InterfaceName, CSharpFeaturesResources.AutoselectDisabledDueToTypeDeclaration);
+                    }
                 }
             }
 

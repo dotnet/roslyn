@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -206,8 +207,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, bool isAttributeNameContext, ISyntaxFactsService syntaxFacts, out string name)
+        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
         {
+            var isAttributeNameContext = context.IsAttributeNameContext;
+            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+
             if (!isAttributeNameContext)
             {
                 name = null;

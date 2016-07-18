@@ -1198,4 +1198,28 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="TypeANameHereToDeclareANamespace" xml:space="preserve">
     <value>Type a name here to declare a namespace.</value>
   </data>
+  <data name="TypeANameHereToDeclareAPartialClass" xml:space="preserve">
+    <value>Type a name here to declare a partial class.</value>
+  </data>
+  <data name="ClassName" xml:space="preserve">
+    <value>&lt;class name&gt;</value>
+  </data>
+  <data name="InterfaceName" xml:space="preserve">
+    <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="ModuleName" xml:space="preserve">
+    <value>&lt;module name&gt;</value>
+  </data>
+  <data name="StructureName" xml:space="preserve">
+    <value>&lt;structure name&gt;</value>
+  </data>
+  <data name="TypeANameHereToDeclareAPartialInterface" xml:space="preserve">
+    <value>Type a name here to declare a partial interface.</value>
+  </data>
+  <data name="TypeANameHereToDeclareAPartialModule" xml:space="preserve">
+    <value>Type a name here to declare a partial module.</value>
+  </data>
+  <data name="TypeANameHereToDeclareAPartialStructure" xml:space="preserve">
+    <value>Type a name here to declare a partial structure.</value>
+  </data>
 </root>

@@ -191,11 +191,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayString = builder.ToString()
 
-            Return SymbolCompletionItem.Create(displayText:=displayString,
-                                               insertionText:=Nothing,
-                                               symbol:=symbol,
-                                               descriptionPosition:=position,
-                                               rules:=GetRules(displayString))
+            Return SymbolCompletionItem.Create(
+                displayText:=displayString,
+                insertionText:=Nothing,
+                symbol:=symbol,
+                contextPosition:=position,
+                rules:=GetRules(displayString))
         End Function
 
         Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)

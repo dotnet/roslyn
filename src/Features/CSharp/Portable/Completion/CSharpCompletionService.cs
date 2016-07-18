@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new SnippetCompletionProvider(),
                 new ExternAliasCompletionProvider(),
                 new OverrideCompletionProvider(),
-                new PartialCompletionProvider(),
+                new PartialMethodCompletionProvider(),
+                new PartialTypeCompletionProvider(),
                 new XmlDocCommentCompletionProvider()
             );
 

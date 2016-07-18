@@ -7,10 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -20,14 +17,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayText,
             IReadOnlyList<ISymbol> symbols,
             int contextPosition = -1,
-            int descriptionPosition = -1,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
             int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
@@ -44,11 +39,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (contextPosition >= 0)
             {
                 props = props.Add("ContextPosition", contextPosition.ToString());
-            }
-
-            if (descriptionPosition >= 0)
-            {
-                props = props.Add("DescriptionPosition", descriptionPosition.ToString());
             }
 
             var item = CommonCompletionItem.Create(
@@ -69,14 +59,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayText,
             ISymbol symbol,
             int contextPosition = -1,
-            int descriptionPosition = -1,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
             int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             CompletionItemRules rules = null)
         {
@@ -84,14 +72,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: displayText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: contextPosition,
-                descriptionPosition: descriptionPosition,
                 sortText: sortText,
                 insertionText: insertionText,
                 glyph: glyph,
                 filterText: filterText,
                 matchPriority: matchPriority.GetValueOrDefault(),
                 supportedPlatforms: supportedPlatforms,
-                isArgumentName: isArgumentName,
                 properties: properties,
                 rules: rules);
         }
@@ -262,16 +248,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetDescriptionPosition(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("DescriptionPosition", out text) && int.TryParse(text, out number))
-            {
-                return number;
-            }
-            else
-            {
-                return -1;
-            }
+            return GetContextPosition(item);
         }
 
         public static string GetInsertionText(CompletionItem item)
