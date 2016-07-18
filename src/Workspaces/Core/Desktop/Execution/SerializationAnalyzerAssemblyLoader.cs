@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void AddPath(string displayPath, string assemblyPath)
         {
+            AddDependencyLocation(assemblyPath);
+
             _map[displayPath] = assemblyPath;
         }
 

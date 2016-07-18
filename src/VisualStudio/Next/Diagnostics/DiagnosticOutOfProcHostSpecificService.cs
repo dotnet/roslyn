@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,8 +20,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
     [ExportHostSpecificService(typeof(ICompilerDiagnosticExecutor), HostKinds.OutOfProc), Shared]
     internal class DiagnosticOutOfProcHostSpecificService : ICompilerDiagnosticExecutor
     {
+        private readonly IDiagnosticAnalyzerService _analyzerService;
+
         // TODO: solution snapshot tracking for current solution should be its own service
         private SolutionSnapshot _lastSnapshot;
+
+        [ImportingConstructor]
+        public DiagnosticOutOfProcHostSpecificService(IDiagnosticAnalyzerService analyzerService)
+        {
+            _analyzerService = analyzerService;
+        }
 
         public async Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
@@ -40,16 +49,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
                 return new CompilerAnalysisResult(ImmutableDictionary<DiagnosticAnalyzer, CodeAnalysis.Diagnostics.EngineV2.AnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
             }
 
+            var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
             var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
 
             using (var session = await remoteHost.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
                 // TODO: change it to use direct stream rather than returning string
                 var result = await session.InvokeAsync<string>(
-                    WellKnownServiceHubServices.CodeAnalysisService_GetDiagnostics, session.SolutionSnapshot.Id.Checksum.ToArray(), project.Id.Id, project.Id.DebugName, analyzerMap.Keys.ToArray()).ConfigureAwait(false);
+                    WellKnownServiceHubServices.CodeAnalysisService_GetDiagnostics,
+                    session.SolutionSnapshot.Id.Checksum.ToArray(),
+                    project.Id.Id,
+                    project.Id.DebugName,
+                    hostChecksums.ToArray(),
+                    analyzerMap.Keys.ToArray()).ConfigureAwait(false);
             }
 
             return new CompilerAnalysisResult(ImmutableDictionary<DiagnosticAnalyzer, CodeAnalysis.Diagnostics.EngineV2.AnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+        }
+
+        private ImmutableArray<byte[]> GetHostAnalyzerReferences(ISolutionSnapshotService snapshotService, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
+        {
+            // TODO: cache this to somewhere
+            var builder = ImmutableArray.CreateBuilder<byte[]>();
+            foreach (var reference in references)
+            {
+                var asset = snapshotService.GetGlobalAsset(reference, cancellationToken);
+                builder.Add(asset.Checksum.ToArray());
+            }
+
+            return builder.ToImmutable();
         }
 
         private Dictionary<string, DiagnosticAnalyzer> CreateAnalyzerMap(ImmutableArray<DiagnosticAnalyzer> analyzers)

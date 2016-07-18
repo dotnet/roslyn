@@ -40,6 +40,14 @@ namespace Microsoft.CodeAnalysis.Execution
             return asset;
         }
 
+        public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Asset asset;
+            _globalAssets.TryRemove(value, out asset);
+        }
+
         public SnapshotStorage CreateSnapshotStorage(Solution solution)
         {
             return new Storage(this, solution);

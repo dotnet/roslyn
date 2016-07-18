@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -11,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly Serializer _serializer;
         private readonly SnapshotStorage _storage;
+
+        public AssetBuilder(Solution solution) : this(new AssetOnlyStorage(solution))
+        {
+        }
 
         public AssetBuilder(SnapshotStorage storage)
         {
@@ -165,6 +171,35 @@ namespace Microsoft.CodeAnalysis.Execution
 
             // no source
             return SourceCodeKind.Regular;
+        }
+
+        private sealed class AssetOnlyStorage : SnapshotStorage
+        {
+            public AssetOnlyStorage(Solution solution) :
+                base(solution)
+            {
+            }
+
+            public override void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
+            {
+                Contract.Fail("shouldn't be called");
+            }
+
+            public override Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
+                TKey key, TValue value, string kind,
+                Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, bool rebuild,
+                CancellationToken cancellationToken)
+            {
+                return Contract.FailWithReturn<Task<TChecksumObject>>("shouldn't be called");
+            }
+
+            public override Task<TAsset> GetOrCreateAssetAsync<TKey, TValue, TAsset>(
+                TKey key, TValue value, string kind,
+                Func<TValue, string, CancellationToken, Task<TAsset>> valueGetterAsync, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfNull(key);
+                return valueGetterAsync(value, kind, cancellationToken);
+            }
         }
     }
 }

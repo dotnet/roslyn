@@ -13,9 +13,12 @@ namespace Microsoft.CodeAnalysis.Execution
     internal interface ISolutionSnapshotService : IWorkspaceService
     {
         /// <summary>
-        /// Add global <see cref="Asset"/>  which stays alive while host is alive.
+        /// Add global <see cref="Asset"/> which stays alive while host is alive.
         /// 
         /// this asset can be something that is not part of <see cref="SolutionSnapshot"/> 
+        /// 
+        /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
+        ///       this should be changed so that custom serializer can be discoverable by <see cref="ChecksumObject.Kind"/> 
         /// </summary>
         void AddGlobalAsset(object value, Asset asset, CancellationToken cancellationToken);
 
@@ -23,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Execution
         /// Get saved global <see cref="Asset"/> associated with given <paramref name="value"/>
         /// </summary>
         Asset GetGlobalAsset(object value, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Remove saved global <see cref="Asset"/> associated with given <paramref name="value"/>
+        /// </summary>
+        void RemoveGlobalAsset(object value, CancellationToken cancellationToken);
 
         /// <summary>
         /// Create <see cref="SolutionSnapshot"/> from <see cref="Solution"/>.

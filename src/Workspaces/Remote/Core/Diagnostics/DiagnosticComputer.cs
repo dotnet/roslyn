@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,12 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     internal class DiagnosticComputer
     {
         public async Task<CompilerAnalysisResult> GetDiagnosticsAsync(
-            SolutionSnapshotId solutionSnapshotId, ProjectId projectId, string[] analyzerIds, CancellationToken cancellationToken)
+            Solution solution, ProjectId projectId, IEnumerable<AnalyzerReference> hostAnalyzers, IEnumerable<string> analyzerIds, CancellationToken cancellationToken)
         {
-            var solution = await RoslynServices.SolutionService.GetSolutionAsync(solutionSnapshotId, cancellationToken).ConfigureAwait(false);
             var project = solution.GetProject(projectId);
 
-            var analyzerMap = CreateAnalyzerMap(project, analyzerIds);
+            var analyzerMap = CreateAnalyzerMap(hostAnalyzers, project);
 
             var analyzers = GetAnalyzers(analyzerMap, analyzerIds);
             if (analyzers.Length == 0)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return analyzerId;
         }
 
-        private ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, string[] analyzerIds)
+        private ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<string> analyzerIds)
         {
             // TODO: this probably need to be cached as well in analyzer service?
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -74,14 +74,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return builder.ToImmutable();
         }
 
-        private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(Project project, string[] analyzerIds)
+        private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<AnalyzerReference> hostAnalyzers, Project project)
         {
-            // TODO: we need to include host analyzers here
-            //       probably need something like analyzer service so that we don't do this repeatedly?
+            // TODO: probably need something like analyzer service so that we don't do this repeatedly?
             return new BidirectionalMap<string, DiagnosticAnalyzer>(
-                project.AnalyzerReferences
+                hostAnalyzers.Concat(project.AnalyzerReferences)
                        .SelectMany(r => r.GetAnalyzers(project.Language))
-                       .Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)));
+                       .Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)).Where(kv => kv.Key.IndexOf("Feature") < 0));
         }
 
         internal struct CompilerAnalysisResult

@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Execution
                 return _storages.GetGlobalAsset(value, cancellationToken);
             }
 
+            public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
+            {
+                _storages.RemoveGlobalAsset(value, cancellationToken);
+            }
+
             public async Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
                 // TODO: remove stop watch and use logger
