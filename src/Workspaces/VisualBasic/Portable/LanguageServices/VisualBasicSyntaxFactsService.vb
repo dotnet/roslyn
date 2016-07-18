@@ -19,10 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
+
         Private Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
-        Public Sub New()
+
+        Private Sub New()
 
         End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return Instance
         End Function
@@ -34,7 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Class VisualBasicSyntaxFactsService
             Inherits AbstractSyntaxFactsService
-            Implements ISyntaxFactsService, ILanguageService
+
+            Implements ISyntaxFactsService
 
             Friend Sub New()
             End Sub
