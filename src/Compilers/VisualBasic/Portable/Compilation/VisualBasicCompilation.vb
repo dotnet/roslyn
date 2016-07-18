@@ -2594,11 +2594,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol), elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
-            Throw New NotSupportedException(VBResources.TuplesNotSupported)
+            Dim vbElementTypes = elementTypes.SelectAsArray(Function(t) t.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementTypes)))
+
+            Return TupleTypeSymbol.Create(locationOpt:=Nothing, elementTypes:=vbElementTypes, elementLocations:=Nothing, elementNames:=elementNames, compilation:=Me)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
-            Throw New NotSupportedException(VBResources.TuplesNotSupported)
+            Return TupleTypeSymbol.Create(
+                locationOpt:=Nothing,
+                tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
+                elementLocations:=Nothing,
+                elementNames:=elementNames)
         End Function
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
