@@ -184,7 +184,7 @@
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Telemetry\CodeMarkerLogger.cs" />
-    <Compile Include="Telemetry\HostContextService.cs" />
+    <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
     <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
     <Compile Include="Telemetry\RoslynTelemetrySetup.cs" />
     <Compile Include="Telemetry\VSTelemetryActivityLogger.cs" />

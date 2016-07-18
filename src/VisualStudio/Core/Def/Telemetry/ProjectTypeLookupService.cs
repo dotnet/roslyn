@@ -10,8 +10,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    [ExportWorkspaceService(typeof(IHostContextService), ServiceLayer.Host), Shared]
-    internal class HostContextService : IHostContextService
+    [ExportWorkspaceService(typeof(IProjectTypeLookupService), ServiceLayer.Host), Shared]
+    internal class ProjectTypeLookupService : IProjectTypeLookupService
     {
         public string GetProjectType(Workspace workspace, ProjectId projectId)
         {

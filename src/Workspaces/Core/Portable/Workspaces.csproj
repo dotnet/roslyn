@@ -659,8 +659,8 @@
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
     <Compile Include="Workspace\Host\Caching\IWorkspaceCacheService.cs" />
     <Compile Include="Workspace\Host\CommandLine\ICommandLineParserService.cs" />
-    <Compile Include="Workspace\Host\HostContext\HostContextService.cs" />
-    <Compile Include="Workspace\Host\HostContext\IHostContextService.cs" />
+    <Compile Include="Workspace\Host\HostContext\ProjectTypeLookupService.cs" />
+    <Compile Include="Workspace\Host\HostContext\IProjectTypeLookupService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\CodeChangeProviderMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\IMefHostExportProvider.cs" />
