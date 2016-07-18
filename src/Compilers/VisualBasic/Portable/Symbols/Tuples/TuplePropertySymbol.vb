@@ -99,14 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Function CreateParameters() As ImmutableArray(Of ParameterSymbol)
-            Dim parameters As ImmutableArray(Of ParameterSymbol) = Me._underlyingProperty.Parameters
-            Dim instance As ArrayBuilder(Of ParameterSymbol) = ArrayBuilder(Of ParameterSymbol).GetInstance(parameters.Length)
-            Dim enumerator As ImmutableArray(Of ParameterSymbol).Enumerator = parameters.GetEnumerator()
-            While enumerator.MoveNext()
-                Dim current As ParameterSymbol = enumerator.Current
-                instance.Add(New TupleParameterSymbol(Me, current))
-            End While
-            Return instance.ToImmutableAndFree()
+            Return Me._underlyingProperty.Parameters.SelectAsArray(Of ParameterSymbol)(Function(p) New TupleParameterSymbol(Me, p))
         End Function
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
