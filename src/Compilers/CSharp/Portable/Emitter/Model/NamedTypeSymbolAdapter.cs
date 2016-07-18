@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
@@ -430,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (ushort)this.Arity; }
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(EmitContext context)
+        IEnumerable<Cci.InterfaceImplementation> Cci.ITypeDefinition.Interfaces(EmitContext context)
         {
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
 
@@ -438,10 +440,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (NamedTypeSymbol @interface in this.GetInterfacesToEmit())
             {
-                yield return moduleBeingBuilt.Translate(@interface,
-                                                        syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                        diagnostics: context.Diagnostics,
-                                                        fromImplements: true);
+                var translated = moduleBeingBuilt.Translate(
+                    @interface,
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    diagnostics: context.Diagnostics,
+                    fromImplements: true);
+
+                ImmutableArray<Cci.ICustomAttribute> attrs;
+                if (@interface.ContainsTuple())
+                {
+                    var attr = DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(@interface);
+                    attrs = attr == null
+                        ? ImmutableArray<Cci.ICustomAttribute>.Empty
+                        : ImmutableArray.Create<ICustomAttribute>(attr);
+                }
+                else
+                {
+                    attrs = ImmutableArray<Cci.ICustomAttribute>.Empty;
+                }
+
+                yield return new Cci.InterfaceImplementation(translated, attrs);
             }
         }
 
