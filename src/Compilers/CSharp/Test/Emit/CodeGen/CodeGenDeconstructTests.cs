@@ -3808,7 +3808,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs:  new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -4760,6 +4760,102 @@ class C
 ";
             var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VariableDeclarationValidationErrors()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int variableDeclaration1 = 1;
+        var (x1, y1) = (1, 1);
+        (var (x2, y2), var z2) = ((2, 2), 2);
+        (int x3, int y3) = (3, 3);
+    }
+}
+";
+
+            var tree = Parse(source);
+
+            var variableDeclaration1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().First();
+            var deconstruction1 = tree.GetRoot().DescendantNodes().OfType<VariableDeconstructionDeclaratorSyntax>().First();
+            Assert.Equal("int variableDeclaration1 = 1", variableDeclaration1.ToString());
+            Assert.Equal("(x1, y1) = (1, 1)", deconstruction1.ToString());
+            Assert.Throws<ArgumentException>(() => variableDeclaration1.WithDeconstruction(deconstruction1));
+
+            var variableDeclaration2 = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().Skip(1).First();
+            var deconstruction2 = tree.GetRoot().DescendantNodes().OfType<VariableDeconstructionDeclaratorSyntax>().Skip(1).First();
+            Assert.Equal("var (x1, y1) = (1, 1)", variableDeclaration2.ToString());
+            Assert.Equal("(var (x2, y2), var z2) = ((2, 2), 2)", deconstruction2.ToString());
+            Assert.Throws<ArgumentException>(() => variableDeclaration2.WithDeconstruction(deconstruction2));
+
+            var deconstruction3 = tree.GetRoot().DescendantNodes().OfType<VariableDeconstructionDeclaratorSyntax>().Skip(3).First();
+            Assert.Equal("(int x3, int y3) = (3, 3)", deconstruction3.ToString());
+            Assert.Throws<ArgumentException>(() => variableDeclaration2.WithDeconstruction(deconstruction3));
+
+            var variableDeclaration3 = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().Skip(9).First();
+            Assert.Equal("(int x3, int y3) = (3, 3)", variableDeclaration3.ToString());
+            Assert.Throws<ArgumentException>(() => variableDeclaration3.WithDeconstruction(null));
+        }
+
+        [Fact]
+        public void VariableDeconstructionDeclaratorValidationErrors()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int variableDeclaration1 = 1;
+        var (x1, y1) = (1, 1);
+    }
+}
+";
+
+            var tree = Parse(source);
+
+            var variableDeclaration1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().First();
+            var dDeclarator1 = tree.GetRoot().DescendantNodes().OfType<VariableDeconstructionDeclaratorSyntax>().First();
+            Assert.Equal("int variableDeclaration1 = 1", variableDeclaration1.ToString());
+            Assert.Equal("(x1, y1) = (1, 1)", dDeclarator1.ToString());
+            // the VariableDeclarations that you can set in a VariableDeconstructionDeclarator are restricted (only simple ones like `int x` or `x`)
+            Assert.Throws<ArgumentException>(() => dDeclarator1.WithVariables(SyntaxFactory.SeparatedList(new[] { variableDeclaration1 })));
+        }
+
+        [Fact]
+        public void ForEachStatementValidationErrors()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x1 in list) { }
+        var (y1, z1) = (1, 1);
+
+        foreach ((int x2, int y2) in list) { }
+        int z2 = 1;
+    }
+}
+";
+
+            var tree = Parse(source);
+
+            var forEach1 = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+            var variableDeclaration1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().First();
+            Assert.Equal("foreach (var x1 in list) { }", forEach1.ToString());
+            Assert.Equal("var (y1, z1) = (1, 1)", variableDeclaration1.ToString());
+            Assert.Throws<ArgumentException>(() => forEach1.WithDeconstructionVariables(variableDeclaration1));
+
+            var forEach2 = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Skip(1).First();
+            var variableDeclaration2 = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().Skip(6).First();
+            Assert.Equal("foreach ((int x2, int y2) in list) { }", forEach2.ToString());
+            Assert.Equal("int z2 = 1", variableDeclaration2.ToString());
+            Assert.Throws<ArgumentException>(() => forEach2.WithType(variableDeclaration2.Type));
+            Assert.Throws<ArgumentException>(() => forEach2.WithIdentifier(variableDeclaration2.Variables[0].Identifier));
         }
     }
 }

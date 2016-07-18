@@ -2532,6 +2532,74 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
         }
 
+        static partial void ValidateVariableDeclarationParts(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables, VariableDeconstructionDeclaratorSyntax deconstruction)
+        {
+            if (deconstruction != null)
+            {
+                if (!variables.IsEmpty())
+                {
+                    throw new ArgumentException(nameof(variables));
+                }
+
+                if (type.IsVar)
+                {
+                    ValidateVariableDeconstructionDeclaratorHasNoTypes(deconstruction);
+                }
+            }
+            else
+            {
+                if (type == null)
+                {
+                    throw new ArgumentException(nameof(type));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Throws if we find any VariableDeclaration with a non-null Type within the nested deconstruction
+        /// </summary>
+        private static void ValidateVariableDeconstructionDeclaratorHasNoTypes(VariableDeconstructionDeclaratorSyntax deconstruction)
+        {
+            foreach (var variable in deconstruction.Variables)
+            {
+                if (variable.Type != null)
+                {
+                    throw new ArgumentException(nameof(deconstruction));
+                }
+
+                if (variable.Deconstruction != null)
+                {
+                    ValidateVariableDeconstructionDeclaratorHasNoTypes(variable.Deconstruction);
+                }
+            }
+        }
+
+        static partial void ValidateVariableDeconstructionDeclaratorParts(SyntaxToken openParenToken, SeparatedSyntaxList<VariableDeclarationSyntax> variables, SyntaxToken closeParenToken, SyntaxToken equalsToken, ExpressionSyntax value)
+        {
+            foreach (var variable in variables)
+            {
+                if (variable.Deconstruction == null)
+                {
+                    // the variable declarators are limited in a deconstruction
+                    // for instance, we can have "int x" or "x", but nothing more complex
+                    if (variable.Variables.Count != 1 ||
+                        variable.Variables[0].Initializer != null ||
+                        variable.Variables[0].ArgumentList != null)
+                    {
+                        throw new ArgumentException(nameof(variable));
+                    }
+                }
+            }
+        }
+
+        static partial void ValidateForEachStatementParts(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, VariableDeclarationSyntax deconstructionVariables, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (deconstructionVariables != null && (type != null || identifier.Kind() != SyntaxKind.None))
+            {
+                throw new ArgumentException(nameof(deconstructionVariables));
+            }
+        }
+
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
         {
