@@ -2,8 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.MoveType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
@@ -24,11 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         protected override string GetLanguage()
         {
             return LanguageNames.CSharp;
-        }
-
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new MoveTypeCodeRefactoringProvider();
         }
     }
 }

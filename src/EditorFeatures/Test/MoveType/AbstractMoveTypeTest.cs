@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -22,6 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         {
             var index = text.IndexOf(SpanMarker);
             return text.Remove(index, SpanMarker.Length);
+        }
+
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        {
+            return new MoveTypeCodeRefactoringProvider();
         }
 
         protected async Task TestRenameTypeToMatchFileAsync(

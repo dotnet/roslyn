@@ -1,12 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
-    internal abstract partial class AbstractMoveTypeCodeRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+        Name = PredefinedCodeRefactoringProviderNames.MoveTypeToFile), Shared]
+    internal class MoveTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

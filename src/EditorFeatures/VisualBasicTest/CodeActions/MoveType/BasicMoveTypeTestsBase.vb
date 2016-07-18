@@ -2,17 +2,13 @@
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Public Class BasicMoveTypeTestsBase
         Inherits AbstractMoveTypeTest
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
-            Return New MoveTypeCodeRefactoringProvider()
-        End Function
 
         Protected Overrides Function CreateWorkspaceFromFileAsync(
             definition As String,
