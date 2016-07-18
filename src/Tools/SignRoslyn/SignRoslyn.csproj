@@ -35,6 +35,7 @@
     <Compile Include="RealSignTool.cs" />
     <Compile Include="BatchSignUtil.cs" />
     <Compile Include="BatchSignInput.cs" />
+    <Compile Include="SignTool.cs" />
     <Compile Include="SignToolBase.cs" />
     <Compile Include="TestSignTool.cs" />
     <Compile Include="VsixData.cs" />

@@ -21,9 +21,7 @@ namespace SignRoslyn
                 Environment.Exit(1);
             }
 
-            var signTool = test
-                ? (SignToolBase)new TestSignTool(AppContext.BaseDirectory, binariesPath, sourcePath)
-                : new RealSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
+            var signTool = SignToolFactory.Create(AppContext.BaseDirectory, binariesPath, sourcePath, test);
             var batchData = ReadBatchSignInput(binariesPath);
             var util = new BatchSignUtil(signTool, batchData);
             util.Go();

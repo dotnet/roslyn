@@ -17,10 +17,10 @@ namespace SignRoslyn
         internal static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
 
         private readonly BatchSignInput _batchData;
-        private readonly SignToolBase _signTool;
+        private readonly ISignTool _signTool;
         private readonly ContentUtil _contentUtil = new ContentUtil();
 
-        internal BatchSignUtil(SignToolBase signTool, BatchSignInput batchData)
+        internal BatchSignUtil(ISignTool signTool, BatchSignInput batchData)
         {
             _signTool = signTool;
             _batchData = batchData;
