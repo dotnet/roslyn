@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SignRoslyn
 {
-    internal struct FileSignData
+    internal struct SignInfo
     {
         /// <summary>
         /// The authenticode certificate which should be used to sign the binary.
@@ -18,7 +18,7 @@ namespace SignRoslyn
         /// </summary>
         internal string StrongName { get; }
 
-        internal FileSignData(string certificate, string strongName)
+        internal SignInfo(string certificate, string strongName)
         {
             Certificate = certificate;
             StrongName = strongName;

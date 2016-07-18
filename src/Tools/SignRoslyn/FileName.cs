@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SignRoslyn
 {
-    internal struct BinaryName : IEquatable<BinaryName>
+    internal struct FileName : IEquatable<FileName>
     {
         internal string Name { get; }
         internal string FullPath { get; }
@@ -16,18 +16,18 @@ namespace SignRoslyn
         internal bool IsAssembly => PathUtil.IsAssembly(Name);
         internal bool IsVsix => PathUtil.IsVsix(Name);
 
-        internal BinaryName(string rootBinaryPath, string relativePath)
+        internal FileName(string rootBinaryPath, string relativePath)
         {
             Name = Path.GetFileName(relativePath);
             FullPath = Path.Combine(rootBinaryPath, relativePath);
             RelativePath = relativePath;
         }
 
-        public static bool operator ==(BinaryName left, BinaryName right) => left.FullPath == right.FullPath;
-        public static bool operator !=(BinaryName left, BinaryName right) => !(left == right);
-        public bool Equals(BinaryName other) => this == other;
+        public static bool operator ==(FileName left, FileName right) => left.FullPath == right.FullPath;
+        public static bool operator !=(FileName left, FileName right) => !(left == right);
+        public bool Equals(FileName other) => this == other;
         public override int GetHashCode() => FullPath.GetHashCode();
         public override string ToString() => RelativePath;
-        public override bool Equals(object obj) => obj is BinaryName && Equals((BinaryName)obj);
+        public override bool Equals(object obj) => obj is FileName && Equals((FileName)obj);
     }
 }
