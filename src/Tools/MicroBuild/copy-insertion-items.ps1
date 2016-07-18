@@ -18,7 +18,6 @@ try
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
-        "Microsoft.CodeAnalysis.VisualStudio.Telemetry.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveWindow.json",
         "Microsoft.CodeAnalysis.LanguageServices.vsman",
