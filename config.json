@@ -1,0 +1,66 @@
+{
+    "settings": {
+        "Project": {
+            "description": "Project where the commands are going to be applied.",
+            "valueType": "passThrough",
+            "values": [],
+            "defaultValue": ""
+        }
+    },
+
+    "commands": {
+        "build": {
+            "alias": {
+                "compilers": {
+                    "description": "build the compilers",
+                    "settings": {
+                        "Project": "./Compilers.sln"
+                    }
+                }
+            },
+            "defaultValues": {
+                "toolName": "msbuild",
+                "settings": {
+                    "Project": "./Roslyn.sln"
+                }
+            }
+        },
+        "sync": {
+            "alias": { },
+            "defaultValues": {
+                "toolName": "terminal",
+                "Project": "./restore",
+                "settings": { }
+            }
+        },
+        "clean": {
+            "alias": { },
+            "defaultValues": {
+                "toolName": "terminal",
+                "Project": "./clean",
+                "settings": { }
+            }
+        }
+    },
+
+    "tools": {
+        "msbuild": {
+            "run": {
+                "windows": "Tools/msbuild.cmd",
+                "unix": "Tools/msbuild.sh"
+            },
+            "valueTypes": {
+                "property": "/p:{name}={value}",
+                "target": "/t:{name}",
+                "internal": "/{name}"
+            }
+        },
+        "terminal": {
+            "run": {
+                "windows": "cmd",
+                "unix": "sh"
+            },
+            "valueTypes": {}
+        }
+    }
+}
