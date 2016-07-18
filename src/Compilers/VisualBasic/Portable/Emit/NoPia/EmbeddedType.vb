@@ -86,7 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                                                             DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
                                                             context.Diagnostics)
 
-                ' TODO: Add support for tuple attributes on interface implementations
+                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
+                ' Add support for tuple attributes on interface implementations
                 Yield New Cci.InterfaceImplementation(translated, ImmutableArray(Of Cci.ICustomAttribute).Empty)
             Next
         End Function

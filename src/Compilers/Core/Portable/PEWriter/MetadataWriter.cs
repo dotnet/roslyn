@@ -1903,7 +1903,7 @@ namespace Microsoft.Cci
             this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
             this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // TODO: attributes on interface implementation entries 5
+            // Attributes on interface implementation entries 5
             foreach (ITypeDefinition typeDef in typeDefs)
             {
                 var interfaceImpls = typeDef.Interfaces(Context);

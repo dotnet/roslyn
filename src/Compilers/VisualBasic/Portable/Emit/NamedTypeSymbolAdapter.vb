@@ -403,7 +403,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                             diagnostics:=context.Diagnostics,
                                                             fromImplements:=True)
 
-                ' TODO: Add support for tuple attributes on interface implementations
+                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
+                ' Add support for tuple attributes on interface implementations
                 Yield New Cci.InterfaceImplementation(translated, ImmutableArray(Of Cci.ICustomAttribute).Empty)
             Next
         End Function
