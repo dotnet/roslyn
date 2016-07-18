@@ -5,7 +5,7 @@ Public Class ParseSpecifiers
 
     <Fact>
     Public Sub ParseSpecifiersOnClass()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 public class c1
                 End class
 
@@ -29,7 +29,7 @@ Public Class ParseSpecifiers
 
                 public notinheritable class c8
                 end class
-            ]]>)
+            ")
     End Sub
 
 End Class
