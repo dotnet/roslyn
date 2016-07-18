@@ -214,6 +214,17 @@ namespace SignRoslyn
                     continue;
                 }
 
+                // Ensure we don't attempt to sign a VSIX with a non-VSIX certificate or vice versa. 
+                var fileSignInfo = _batchData.BinarySignDataMap[binaryName];
+                if (binaryName.IsVsix != IsVsixCertificate(fileSignInfo.Certificate))
+                {
+                    var msg = binaryName.IsVsix
+                        ? $"Vsix {binaryName} must be signed with a VSIX certificate"
+                        : $"Non-Vsix {binaryName} must not be signed with a VSIX certificate";
+                    Console.WriteLine(msg);
+                    allGood = false;
+                }
+
                 var checksum = _contentUtil.GetChecksum(binaryName.FullPath);
                 checksumToNameMap[checksum] = binaryName;
             }
@@ -354,8 +365,13 @@ namespace SignRoslyn
                     }
                 }
             }
+
             return allGood;
         }
 
+        private static bool IsVsixCertificate(string certificate)
+        {
+            return certificate.StartsWith("Vsix", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
