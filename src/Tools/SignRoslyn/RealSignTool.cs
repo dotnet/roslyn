@@ -14,7 +14,7 @@ namespace SignRoslyn
     /// <summary>
     /// The signing implementation which actually signs binaries.
     /// </summary>
-    internal sealed class RealSignTool : SignTool
+    internal sealed class RealSignTool : SignToolBase
     {
         /// <summary>
         /// The number of bytes from the start of the <see cref="CorHeader"/> to its <see cref="CorFlags"/>.

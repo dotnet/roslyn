@@ -7,14 +7,14 @@ using static SignRoslyn.PathUtil;
 
 namespace SignRoslyn
 {
-    internal abstract class SignTool 
+    internal abstract class SignToolBase 
     {
         internal string MSBuildPath { get; }
         internal string BinariesPath { get; }
         internal string SourcePath { get; }
         internal string AppPath { get; }
 
-        internal SignTool(string appPath, string binariesPath, string sourcePath)
+        internal SignToolBase(string appPath, string binariesPath, string sourcePath)
         {
             BinariesPath = binariesPath;
             SourcePath = sourcePath;
@@ -34,7 +34,7 @@ namespace SignRoslyn
 
         protected abstract int RunMSBuild(ProcessStartInfo startInfo);
 
-        internal void Sign(IEnumerable<BinarySignData> filesToSign)
+        internal void Sign(IEnumerable<FileSignInfo> filesToSign)
         {
             var buildFilePath = Path.Combine(AppPath, "build.proj");
             var commandLine = new StringBuilder();
@@ -67,7 +67,7 @@ namespace SignRoslyn
             }
         }
 
-        private string GenerateBuildFileContent(IEnumerable<BinarySignData> filesToSign)
+        private string GenerateBuildFileContent(IEnumerable<FileSignInfo> filesToSign)
         {
             var builder = new StringBuilder();
             AppendLine(builder, depth: 0, text: @"<?xml version=""1.0"" encoding=""utf-8""?>");
@@ -82,7 +82,7 @@ namespace SignRoslyn
 
             foreach (var fileToSign in filesToSign)
             {
-                AppendLine(builder, depth: 2, text: $@"<FilesToSign Include=""{fileToSign.BinaryName.FullPath}"">");
+                AppendLine(builder, depth: 2, text: $@"<FilesToSign Include=""{fileToSign.FileName.FullPath}"">");
                 AppendLine(builder, depth: 3, text: $@"<Authenticode>{fileToSign.Certificate}</Authenticode>");
                 if (fileToSign.StrongName != null)
                 {

@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace SignRoslyn
 {
     /// <summary>
-    /// The <see cref="SignTool"/> implementation used for test / validation runs.  Does not actually 
+    /// The <see cref="SignToolBase"/> implementation used for test / validation runs.  Does not actually 
     /// change the sign state of the binaries.
     /// </summary>
-    internal sealed class TestSignTool : SignTool
+    internal sealed class TestSignTool : SignToolBase
     {
         internal TestSignTool(string appPath, string binariesPath, string sourcePath) 
             :base(appPath, binariesPath, sourcePath)

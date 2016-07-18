@@ -12,18 +12,18 @@ using static SignRoslyn.PathUtil;
 
 namespace SignRoslyn
 {
-    internal sealed class RunSignUtil
+    internal sealed class BatchSignUtil
     {
         internal static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
 
-        private readonly SignData _signData;
-        private readonly SignTool _signTool;
+        private readonly BatchSignInput _batchData;
+        private readonly SignToolBase _signTool;
         private readonly ContentUtil _contentUtil = new ContentUtil();
 
-        internal RunSignUtil(SignTool signTool, SignData signData)
+        internal BatchSignUtil(SignToolBase signTool, BatchSignInput batchData)
         {
             _signTool = signTool;
-            _signData = signData;
+            _batchData = batchData;
         }
 
         internal void Go()
@@ -48,7 +48,7 @@ namespace SignRoslyn
         private void RemovePublicSign()
         {
             Console.WriteLine("Removing public sign");
-            foreach (var name in _signData.AssemblyNames)
+            foreach (var name in _batchData.AssemblyNames)
             {
                 Console.WriteLine($"\t{name}");
                 _signTool.RemovePublicSign(name.FullPath);
@@ -61,27 +61,27 @@ namespace SignRoslyn
         private void SignAssemblies()
         {
             Console.WriteLine("Signing assemblies");
-            foreach (var name in _signData.AssemblyNames)
+            foreach (var name in _batchData.AssemblyNames)
             {
                 Console.WriteLine($"\t{name.RelativePath}");
             }
 
-            _signTool.Sign(_signData.AssemblyNames.Select(x => _signData.BinarySignDataMap[x]));
+            _signTool.Sign(_batchData.AssemblyNames.Select(x => _batchData.BinarySignDataMap[x]));
         }
 
         /// <summary>
         /// Sign all of the VSIX files.  It is possible for VSIX to nest other VSIX so we must consider this when 
         /// picking the order.
         /// </summary>
-        private void SignVsixes(Dictionary<BinaryName, VsixData> vsixDataMap)
+        private void SignVsixes(Dictionary<FileName, VsixData> vsixDataMap)
         {
             var round = 0;
-            var signedSet = new HashSet<BinaryName>(_signData.AssemblyNames);
-            var toSignList = _signData.VsixNames.ToList();
+            var signedSet = new HashSet<FileName>(_batchData.AssemblyNames);
+            var toSignList = _batchData.VsixNames.ToList();
             do
             {
                 Console.WriteLine($"Signing VSIX round {round}");
-                var list = new List<BinaryName>();
+                var list = new List<FileName>();
                 var i = 0;
                 var progress = false;
                 while (i < toSignList.Count)
@@ -109,7 +109,7 @@ namespace SignRoslyn
                 }
 
                 Console.WriteLine($"\tSigning ...");
-                _signTool.Sign(list.Select(x => _signData.BinarySignDataMap[x]));
+                _signTool.Sign(list.Select(x => _batchData.BinarySignDataMap[x]));
 
                 // Signing is complete so now we can update the signed set.
                 list.ForEach(x => signedSet.Add(x));
@@ -147,12 +147,12 @@ namespace SignRoslyn
         /// <summary>
         /// Get the name of all VSIX which are nested inside this VSIX.
         /// </summary>
-        private IEnumerable<string> GetNestedVsixRelativeNames(BinaryName vsixName)
+        private IEnumerable<string> GetNestedVsixRelativeNames(FileName vsixName)
         {
             return GetVsixPartRelativeNames(vsixName).Where(x => IsVsix(x));
         }
 
-        private bool AreNestedVsixSigned(BinaryName vsixName, HashSet<string> signedSet)
+        private bool AreNestedVsixSigned(FileName vsixName, HashSet<string> signedSet)
         {
             foreach (var relativeName in GetNestedVsixRelativeNames(vsixName))
             {
@@ -169,7 +169,7 @@ namespace SignRoslyn
         /// <summary>
         /// Return all the assembly and VSIX contents nested in the VSIX
         /// </summary>
-        private List<string> GetVsixPartRelativeNames(BinaryName vsixName)
+        private List<string> GetVsixPartRelativeNames(FileName vsixName)
         {
             var list = new List<string>();
             using (var package = Package.Open(vsixName.FullPath, FileMode.Open, FileAccess.Read))
@@ -184,7 +184,7 @@ namespace SignRoslyn
             return list;
         }
 
-        private Dictionary<BinaryName, VsixData> VerifyBeforeSign()
+        private Dictionary<FileName, VsixData> VerifyBeforeSign()
         {
             var allGood = true;
             var map = VerifyBinariesBeforeSign(ref allGood);
@@ -202,10 +202,10 @@ namespace SignRoslyn
         /// Validate all of the binaries which are specified to be signed exist on disk.  Compute their
         /// checksums at this time so we can use it for VSIX content validation.
         /// </summary>
-        private Dictionary<string, BinaryName> VerifyBinariesBeforeSign(ref bool allGood)
+        private Dictionary<string, FileName> VerifyBinariesBeforeSign(ref bool allGood)
         {
-            var checksumToNameMap = new Dictionary<string, BinaryName>(StringComparer.Ordinal);
-            foreach (var binaryName in _signData.BinaryNames)
+            var checksumToNameMap = new Dictionary<string, FileName>(StringComparer.Ordinal);
+            foreach (var binaryName in _batchData.BinaryNames)
             {
                 if (!File.Exists(binaryName.FullPath))
                 {
@@ -221,10 +221,10 @@ namespace SignRoslyn
             return checksumToNameMap;
         }
 
-        private Dictionary<BinaryName, VsixData> VerifyVsixContentsBeforeSign(Dictionary<string, BinaryName> checksumToNameMap, ref bool allGood)
+        private Dictionary<FileName, VsixData> VerifyVsixContentsBeforeSign(Dictionary<string, FileName> checksumToNameMap, ref bool allGood)
         {
-            var vsixDataMap = new Dictionary<BinaryName, VsixData>();
-            foreach (var vsixName in _signData.VsixNames)
+            var vsixDataMap = new Dictionary<FileName, VsixData>();
+            foreach (var vsixName in _batchData.VsixNames)
             {
                 var data = VerifyVsixContentsBeforeSign(vsixName, checksumToNameMap, ref allGood);
                 vsixDataMap[vsixName] = data;
@@ -233,7 +233,7 @@ namespace SignRoslyn
             return vsixDataMap;
         }
 
-        private VsixData VerifyVsixContentsBeforeSign(BinaryName vsixName, Dictionary<string, BinaryName> checksumToNameMap, ref bool allGood)
+        private VsixData VerifyVsixContentsBeforeSign(FileName vsixName, Dictionary<string, FileName> checksumToNameMap, ref bool allGood)
         {
             var nestedExternalBinaries = new List<string>();
             var nestedParts = new List<VsixPart>();
@@ -248,13 +248,13 @@ namespace SignRoslyn
                         continue;
                     }
 
-                    if (_signData.ExternalBinaryNames.Contains(name))
+                    if (_batchData.ExternalBinaryNames.Contains(name))
                     {
                         nestedExternalBinaries.Add(name);
                         continue;
                     }
 
-                    if (!_signData.BinaryNames.Any(x => FilePathComparer.Equals(x.Name, name)))
+                    if (!_batchData.BinaryNames.Any(x => FilePathComparer.Equals(x.Name, name)))
                     {
                         allGood = false;
                         Console.WriteLine($"VSIX {vsixName} has part {name} which is not listed in the sign or external list");
@@ -266,7 +266,7 @@ namespace SignRoslyn
                     using (var stream = part.GetStream())
                     {
                         string checksum = _contentUtil.GetChecksum(stream);
-                        BinaryName checksumName;
+                        FileName checksumName;
                         if (!checksumToNameMap.TryGetValue(checksum, out checksumName))
                         {
                             allGood = false;
@@ -300,7 +300,7 @@ namespace SignRoslyn
             return path;
         }
 
-        private void VerifyAfterSign(Dictionary<BinaryName, VsixData> vsixData)
+        private void VerifyAfterSign(Dictionary<FileName, VsixData> vsixData)
         {
             if (!VerifyAssembliesAfterSign() || !VerifyVsixContentsAfterSign(vsixData))
             {
@@ -311,7 +311,7 @@ namespace SignRoslyn
         private bool VerifyAssembliesAfterSign()
         {
             var allGood = true;
-            foreach (var name in _signData.AssemblyNames)
+            foreach (var name in _batchData.AssemblyNames)
             {
                 using (var stream = File.OpenRead(name.FullPath))
                 {
@@ -326,10 +326,10 @@ namespace SignRoslyn
             return allGood;
         }
 
-        private bool VerifyVsixContentsAfterSign(Dictionary<BinaryName, VsixData> vsixDataMap)
+        private bool VerifyVsixContentsAfterSign(Dictionary<FileName, VsixData> vsixDataMap)
         {
             var allGood = true;
-            foreach (var vsixName in _signData.VsixNames)
+            foreach (var vsixName in _batchData.VsixNames)
             {
                 var vsixData = vsixDataMap[vsixName];
                 using (var package = Package.Open(vsixName.FullPath, FileMode.Open, FileAccess.Read))
