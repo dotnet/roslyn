@@ -690,12 +690,11 @@ End Class";
 
             var root = Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseCompilationUnit(code);
             var property = root.FindToken(position).Parent.FirstAncestorOrSelf<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax>();
-            var memberId =  Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory.GetService().GetMethodLevelMemberId(root, property);
+            var memberId = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory.GetService().GetMethodLevelMemberId(root, property);
 
             Assert.Equal(0, memberId);
         }
 
-   
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation_Transitive()
         {
