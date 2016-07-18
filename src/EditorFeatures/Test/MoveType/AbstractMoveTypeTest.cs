@@ -59,8 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 else
                 {
                     var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
-                    var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
-                    Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
+
+                    if (actions != null)
+                    {
+                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
+                        Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
+                    }
                 }
             }
         }
@@ -91,8 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 else
                 {
                     var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
-                    var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
-                    Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
+
+                    if (actions != null)
+                    {
+                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
+                        Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
+                    }
                 }
             }
         }

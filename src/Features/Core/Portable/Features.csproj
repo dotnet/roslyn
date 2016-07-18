@@ -158,12 +158,9 @@
     <Compile Include="CodeRefactorings\MoveType\MoveTypeCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.Editor.cs" />
     <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.MoveTypeCodeAction.cs" />
-    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.MoveTypeCodeActionWithOption.cs" />
     <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.State.cs" />
     <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.cs" />
-    <Compile Include="CodeRefactorings\MoveType\IMoveTypeOptionsService.cs" />
     <Compile Include="CodeRefactorings\MoveType\IMoveTypeService.cs" />
-    <Compile Include="CodeRefactorings\MoveType\MoveTypeOptionsResult.cs" />
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />

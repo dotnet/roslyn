@@ -21,13 +21,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private class Editor
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly MoveTypeOptionsResult _moveTypeOptions;
             private readonly State _state;
             private readonly TService _service;
 
-            private readonly bool _fromDialog;
-            private readonly bool _makeOuterTypesPartial;
-            private readonly bool _makeTypePartial;
             private readonly bool _renameFile;
             private readonly bool _renameType;
 
@@ -36,20 +32,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 State state,
                 bool renameFile,
                 bool renameType,
-                bool makeTypePartial,
-                bool makeOuterTypePartial,
-                MoveTypeOptionsResult moveTypeOptions,
-                bool fromDialog,
                 CancellationToken cancellationToken)
             {
                 _renameFile = renameFile;
-                _makeTypePartial = makeTypePartial;
-                _makeOuterTypesPartial = makeOuterTypePartial || makeTypePartial;
                 _renameType = renameType;
                 _state = state;
                 _service = service;
-                this._moveTypeOptions = moveTypeOptions;
-                this._fromDialog = fromDialog;
                 this._cancellationToken = cancellationToken;
             }
 
@@ -68,11 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return await RenameTypeToMatchFileAsync(solution).ConfigureAwait(false);
                 }
 
-                var documentName = _fromDialog
-                    ? _moveTypeOptions.NewFileName
-                    : _state.TargetFileNameCandidate + _state.TargetFileExtension;
-
-                return await MoveTypeToNewFileAsync(documentName).ConfigureAwait(false);
+                return await MoveTypeToNewFileAsync(_state.TargetFileNameCandidate).ConfigureAwait(false);
             }
 
             private async Task<IEnumerable<CodeActionOperation>> MoveTypeToNewFileAsync(string documentName)
@@ -131,16 +115,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 AddPartialModifiersToTypeChain(documentEditor, typeNode);
 
-                var membersToRemove = GetMembersToRemove(root, typeNode, removeDescendentsOfSelf: _makeTypePartial);
+                var membersToRemove = GetMembersToRemove(root, typeNode);
                 foreach (var member in membersToRemove)
                 {
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
-                }
-
-                var memberToAdd = GetMemberToAdd(documentEditor.Generator, newDocumentName);
-                if (memberToAdd != null)
-                {
-                    documentEditor.AddMember(typeNode, memberToAdd);
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
@@ -162,40 +140,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, cancellationToken).ConfigureAwait(false);
 
                 AddPartialModifiersToTypeChain(documentEditor, typeNode);
-
-                if (!_makeTypePartial)
-                {
-                    documentEditor.RemoveNode(typeNode, SyntaxRemoveOptions.KeepNoTrivia);
-                }
+                documentEditor.RemoveNode(typeNode, SyntaxRemoveOptions.KeepNoTrivia);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
-                // TODO: make this optional -- shouldn't touch other parts of source document unless asked to. 
                 return await CleanUpDocumentAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            private SyntaxNode GetMemberToAdd(SyntaxGenerator generator, string newDocumentName)
-            {
-                if (!_makeOuterTypesPartial)
-                {
-                    return null;
-                }
-
-                // we recognize filenames of that follow the pattern "OuterClass.InnerClass.cs" 
-                // and generate code for this file, which will look like so:
-                // a partial definition of OuterClass and a nested private InnerClass.
-                var nameParts = Path.GetFileNameWithoutExtension(newDocumentName).Split(new char[] { '.' });
-                if (nameParts == null || nameParts.Count() != 2)
-                {
-                    return null;
-                }
-
-                var innerTypeName = nameParts[1];
-                return generator.ClassDeclaration(innerTypeName, accessibility: Accessibility.Private);
-            }
-
-            // TODO: look to optimize the number of Ancestors and Descendants calls here.
+            // TODO: document this better and simplify code.
             private static IEnumerable<SyntaxNode> GetMembersToRemove(
-                SyntaxNode root, TTypeDeclarationSyntax typeNode, bool removeDescendentsOfSelf)
+                SyntaxNode root, TTypeDeclarationSyntax typeNode)
             {
                 var ancestorsAndSelfToKeep = typeNode
                     .AncestorsAndSelf()
@@ -214,18 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var membersOfAncestorsKept = ancestorsKept
                     .SelectMany(a => a.DescendantNodes().OfType<TMemberDeclarationSyntax>().Where(t => !t.Equals(typeNode) && t.Parent.Equals(a)));
 
-                var membersToRemove = topLevelMembersToRemove.Concat(membersOfAncestorsKept);
-
-                if (removeDescendentsOfSelf)
-                {
-                    var descendentsOfSelf = typeNode
-                        .DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
-                        .OfType<TMemberDeclarationSyntax>();
-
-                    membersToRemove = membersToRemove.Concat(descendentsOfSelf);
-                }
-
-                return membersToRemove;
+                return topLevelMembersToRemove.Concat(membersOfAncestorsKept);
             }
 
             private static bool IsTopLevelNamespaceOrTypeNode(SyntaxNode node)
@@ -239,14 +181,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 var semanticFacts = _state.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
-                if (_makeOuterTypesPartial)
+                // If this is a nested type and if we're moving its definition to a new file
+                // we need to make the parent types partial in the origination file.
+                if (typeNode.Parent is TTypeDeclarationSyntax)
                 {
                     var typeChain = typeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
-
-                    if (_makeTypePartial)
-                    {
-                        typeChain = typeChain.Concat(typeNode);
-                    }
 
                     foreach (var node in typeChain)
                     {

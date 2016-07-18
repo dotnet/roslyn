@@ -45,7 +45,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" /> 
+    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -85,11 +85,6 @@
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
-    <Compile Include="Implementation\MoveType\MoveTypeDialog.xaml.cs">
-      <DependentUpon>MoveTypeDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Implementation\MoveType\MoveTypeDialogViewModel.cs" />
-    <Compile Include="Implementation\MoveType\VisualStudioMoveTypeOptionsServiceFactory.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -699,10 +694,6 @@
     <Page Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\MoveType\MoveTypeDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Implementation\PreviewPane\PreviewPane.xaml">
       <SubType>Designer</SubType>

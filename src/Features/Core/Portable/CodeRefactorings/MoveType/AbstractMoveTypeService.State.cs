@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public string TypeName { get; set; }
             public string DocumentName { get; set; }
             public string TargetFileNameCandidate { get; set; }
-            public string TargetFileExtension { get; set; }
 
             private State(TService service,SemanticDocument document)
             {
@@ -72,8 +71,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TypeNode = typeDeclaration;
                 TypeName = typeSymbol.Name;
                 DocumentName = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
-                TargetFileNameCandidate = typeSymbol.Name;
-                TargetFileExtension = this.SemanticDocument.Document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
+
+                if (string.Equals(DocumentName, TypeName, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    // if type name matches document name, we have nothing more to do.
+                    return false;
+                }
+
+                TargetFileNameCandidate = 
+                    typeSymbol.Name + (SemanticDocument.Document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb");
 
                 return true;
             }
