@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
-    class ValueTupleTests : CompilingTestBase
+    public class ValueTupleTests : CompilingTestBase
     {
         [Fact]
         public void TestWellKnownMembersForValueTuple()
