@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithExtensionEverythingFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature("extensionEverything", "true");
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("extensionEverything", "true") }));
         }
 
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)

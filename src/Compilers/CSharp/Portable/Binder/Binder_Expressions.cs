@@ -5193,23 +5193,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
                 }
 
-                if (!invoked)
-                {
-                    options |= LookupOptions.IncludeExtensionMethods;
-                    flags |= BoundMethodGroupFlags.ExtensionMethodsAlreadyIncluded;
-
-                    useSiteDiagnostics = null;
-                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
-                    diagnostics.Add(right, useSiteDiagnostics);
-
-                    if (lookupResult.IsMultiViable)
-                    {
-                        return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
-                    }
-                }
-
                 if (searchExtensionMethodsIfNecessary)
                 {
+                    if (!invoked)
+                    {
+                        options |= LookupOptions.IncludeExtensionMethods;
+                        flags |= BoundMethodGroupFlags.ExtensionMethodsAlreadyIncluded;
+
+                        useSiteDiagnostics = null;
+                        this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
+                        diagnostics.Add(right, useSiteDiagnostics);
+
+                        if (lookupResult.IsMultiViable)
+                        {
+                            return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
+                        }
+                    }
+
                     return new BoundMethodGroup(
                         node,
                         typeArguments,

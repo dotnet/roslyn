@@ -41,13 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x1FFFFF;
-
-            private const int ReturnsVoidBit = 1 << 26;
-            private const int IsExtensionMethodBit = 1 << 27;
-            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 28;
-            private const int IsMetadataVirtualBit = 1 << 29;
-            private const int IsMetadataVirtualLockedBit = 1 << 30;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
 
             private int _flags;
 

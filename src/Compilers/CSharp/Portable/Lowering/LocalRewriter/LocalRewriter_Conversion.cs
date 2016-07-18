@@ -112,12 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (_inExpressionLambda && (explicitCastInCode || DistinctSpecialTypes(rewrittenOperand.Type, rewrittenType)) ||
                 NeedsChecked(rewrittenOperand.Type, rewrittenType));
 
-            if (isExtensionMethod)
+            if (conversion.IsExtensionMethod)
             {
                 // PROTOTYPE: Is this the right place to put this?
-                Debug.Assert(symbolOpt != null);
-                Debug.Assert(symbolOpt.IsInExtensionClass || symbolOpt.MethodKind == MethodKind.ReducedExtension);
-                symbolOpt = symbolOpt.UnreduceExtensionMethod();
+                var symbol = conversion.Method;
+                Debug.Assert(symbol != null);
+                Debug.Assert(symbol.IsInExtensionClass || symbol.MethodKind == MethodKind.ReducedExtension);
+                symbol = symbol.UnreduceExtensionMethod();
+                conversion = new Conversion(conversion.Kind, symbol, true);
             }
 
             switch (conversion.Kind)

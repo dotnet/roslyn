@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral)
+                else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
                 {
                     var tupleLiteralConversion = (BoundConversion)highestBoundExpr;
                     var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;

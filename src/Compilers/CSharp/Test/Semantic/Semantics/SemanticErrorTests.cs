@@ -12779,9 +12779,9 @@ static class C
     static void M2<T>(this I<T> o, params object[] args) { }
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (6,11): error CS1501: No overload for method 'M1' takes 1 arguments
+                // (6,11): error CS1501: No overload for method 'M1' takes 2 arguments
                 //         o.M1(o, o);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "1").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(6, 11),
                 // (7,11): error CS1061: 'object' does not contain a definition for 'M2' and no extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         o.M2(o, o);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("object", "M2").WithLocation(7, 11));

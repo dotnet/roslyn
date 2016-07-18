@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.Succeeded)
             {
-                if (analyzedArguments.HasErrors)
+                if (analyzedArguments.HasErrors || methodGroup.Receiver?.HasErrors == true)
                 {
                     // Errors for arguments have already been reported, except for unbound lambdas.
                     // We report those now.

@@ -701,10 +701,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var target = (object)typeContainingConstructor ?? (object)delegateTypeBeingInvoked ?? name;
 
             int argCount = arguments.Arguments.Count;
-            if (arguments.IsExtensionMethodInvocation)
-            {
-                argCount--;
-            }
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 code,

@@ -446,9 +446,6 @@ class NameofLocal
                 // (74,9): error CS0079: The event 'NameofEvent.nameof' can only appear on the left hand side of += or -=
                 //         nameof(Class.var);
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "nameof").WithArguments("NameofEvent.nameof").WithLocation(74, 9),
-                // (74,9): error CS1593: Delegate 'System.Action' does not take 1 arguments
-                //         nameof(Class.var);
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "nameof").WithArguments("System.Action", "1").WithLocation(74, 9),
                 // (81,27): error CS0149: Method name expected
                 //         Console.WriteLine(nameof(Class.var));
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "nameof").WithLocation(81, 27),

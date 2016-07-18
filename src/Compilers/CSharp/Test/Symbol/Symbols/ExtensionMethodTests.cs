@@ -2747,9 +2747,9 @@ class Program
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
 
-                // (5,11): error CS1501: No overload for method 'M' takes 1 arguments
+                // (5,11): error CS1501: No overload for method 'M' takes 2 arguments
                 //         x.M(x, y);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
                 // (6,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'object.M(object)'
                 //         x.M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "object.M(object)").WithLocation(6, 11),

@@ -223,13 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-            else if (this.IsInExtensionClass)
-            {
-                if (this.IsReplace)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ReplaceMethodInExtensionClass, location);
-                }
-            }
 
             if (this.MethodKind == MethodKind.UserDefinedOperator)
             {
