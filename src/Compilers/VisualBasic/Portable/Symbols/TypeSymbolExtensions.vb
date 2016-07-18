@@ -176,6 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
 
+            If t1.IsTupleType Then
+                t1 = t1.TupleUnderlyingType
+            End If
+
+            If t2.IsTupleType Then
+                t2 = t2.TupleUnderlyingType
+            End If
+
             If t1 Is t2 Then
                 Return True
             End If

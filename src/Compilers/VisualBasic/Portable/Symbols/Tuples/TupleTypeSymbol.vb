@@ -888,8 +888,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim myNames = Me.TupleElementNames
             Dim otherNames = otherTuple.TupleElementNames
 
-            If myNames.IsDefaultOrEmpty AndAlso otherNames.IsDefaultOrEmpty Then
-                Return True
+            If myNames.IsDefaultOrEmpty Then
+                Return otherNames.IsDefaultOrEmpty
+            End If
+
+            If otherNames.IsDefaultOrEmpty Then
+                Return False
             End If
 
             Return myNames.SequenceEqual(otherNames)
@@ -954,7 +958,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
-            Throw ExceptionUtilities.Unreachable
+            Dim substitutedUnderlying = DirectCast(Me.TupleUnderlyingType.InternalSubstituteTypeParameters(substitution).Type, NamedTypeSymbol)
+            Dim tupleType = TupleTypeSymbol.Create(Me._locations, substitutedUnderlying, Me._elementLocations, Me._elementNames)
+
+            Return New TypeWithModifiers(tupleType, Nothing)
         End Function
 
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol

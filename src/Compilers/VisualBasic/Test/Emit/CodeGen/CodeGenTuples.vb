@@ -205,6 +205,61 @@ End Namespace
 ]]>)
         End Sub
 
+
+        <Fact()>
+        Public Sub TupleDefaultFieldBinding()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Module1
+    Sub Main()
+        Dim t As (Integer, Integer) = nothing
+
+        t.Item1 = 42
+        t.Item2 = t.Item1
+
+        Console.WriteLine(t.Item2)
+
+        Dim t1 = (A:=1, B:=123)
+        Console.WriteLine(t1.B)
+    End Sub
+End Module
+
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+42
+123
+            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //t
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "System.ValueTuple(Of Integer, Integer)"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.s   42
+  IL_000c:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0019:  stfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_001e:  ldloc.0
+  IL_001f:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0024:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0029:  ldc.i4.1
+  IL_002a:  ldc.i4.s   123
+  IL_002c:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0031:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0036:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_003b:  ret
+}
+]]>)
+        End Sub
+
         <Fact()>
         Public Sub TupleNamedFieldBindingLong()
 
@@ -258,7 +313,6 @@ End Module
 ]]>)
         End Sub
 
-
         <Fact()>
         Public Sub TupleLiteralBinding()
 
@@ -293,7 +347,6 @@ End Module
 ]]>)
         End Sub
 
-
         <Fact()>
         Public Sub TupleLiteralBindingNamed()
 
@@ -327,6 +380,69 @@ hello
 }
 ]]>)
         End Sub
+
+        <Fact()>
+        Public Sub TupleLiteralSample()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+
+        Dim t As (Integer, Integer) = Nothing
+        t.Item1 = 42
+        t.Item2 = t.Item1
+        Console.WriteLine(t.Item2)
+
+        Dim t1 = (A:=1, B:=123)
+        Console.WriteLine(t1.B)
+
+        Dim numbers = {1, 2, 3, 4}
+
+        Dim t2 = Tally(numbers).Result
+        System.Console.WriteLine($"Sum: {t2.Sum}, Count: {t2.Count}")
+
+    End Sub
+
+    Public Async Function Tally(values As IEnumerable(Of Integer)) As Task(Of (Sum As Integer, Count As Integer))
+        Dim s = 0, c = 0
+
+        For Each n In values
+            s += n
+            c += 1
+        Next
+
+        'Await Task.Yield()
+
+        Return (Sum:=s, Count:=c)
+    End Function
+End Module
+
+
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Sub New(item1 as T1, item2 as T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+    End Structure
+End Namespace
+
+    </file>
+</compilation>, useLatestFramework:=True, expectedOutput:="42
+123
+Sum: 10, Count: 4")
+
+        End Sub
+
 
     End Class
 
