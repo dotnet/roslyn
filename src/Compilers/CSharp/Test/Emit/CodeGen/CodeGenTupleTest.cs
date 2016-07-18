@@ -1090,12 +1090,9 @@ class C
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
+                // (6,29): error CS0029: Cannot implicitly convert type '(int, string, int c)' to '(int, string a)'
                 //         (int, string a) x = (1, "hello", c: 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
-                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (1, "hello", c: 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(1, ""hello"", c: 2)").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", c: 2)").WithArguments("(int, string, int c)", "(int, string a)").WithLocation(6, 29)
                 );
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1103,15 +1100,15 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(1, ""hello"", c: 2)", node.ToString());
-            Assert.Equal("(System.Int32 Item1, System.String Item2, System.Int32 c)", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String, System.Int32 c)", model.GetTypeInfo(node).Type.ToTestDisplayString());
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
-            Assert.Equal("(System.Int32 Item1, System.String a)", xSymbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String a)", xSymbol.ToTestDisplayString());
             Assert.True(xSymbol.IsTupleType);
 
             Assert.Equal(new[] { "System.Int32", "System.String" }, xSymbol.TupleElementTypes.SelectAsArray(t => t.ToTestDisplayString()));
-            Assert.Equal(new[] { "Item1", "a" }, xSymbol.TupleElementNames);
+            Assert.Equal(new[] { null, "a" }, xSymbol.TupleElementNames);
         }
 
         [Fact]
@@ -1133,26 +1130,20 @@ hello");
         }
 
         [Fact]
-        public void TupleWithOnlySomeNames()
+        public void TupleTypeWithOnlySomeNames()
         {
             var source = @"
 class C
 {
     static void Main()
     {
-        (int, string a) x = (b: 1, ""hello"", 2);
+        (int, string a, int Item3) x = (1, ""hello"", 3);
+        System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.a + "" "" + x.Item3);
     }
 }
 " + trivial2uple + trivial3uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
-                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29)
-                );
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
         }
 
         [Fact]

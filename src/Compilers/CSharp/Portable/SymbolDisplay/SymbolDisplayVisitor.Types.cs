@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < elementNames.Length; i++)
                 {
-                    if (elementNames[i] != TupleTypeSymbol.TupleMemberName(i + 1))
+                    if (elementNames[i] != null || elementNames[i] != TupleTypeSymbol.TupleMemberName(i + 1))
                     {
                         return true;
                     }
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 first = false;
 
                 elementTypes[i].Accept(this.NotFirstVisitor);
-                if (hasNames)
+                if (hasNames && elementNames[i] != null)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));
