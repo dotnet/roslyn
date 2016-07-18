@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 {
-    public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTestsBase
+    public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTest
     {
         protected override ParseOptions GetScriptOptions()
         {

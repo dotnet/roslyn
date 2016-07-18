@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Public Class BasicMoveTypeTestsBase
-        Inherits AbstractMoveTypeTestsBase
+        Inherits AbstractMoveTypeTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
             Return New MoveTypeCodeRefactoringProvider()

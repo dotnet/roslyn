@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
-    public abstract class AbstractMoveTypeTestsBase : AbstractCodeActionTest
+    public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
     {
         private const string SpanMarker = "[||]";
         private const string RenameFileCodeActionTitle = "Rename File";
