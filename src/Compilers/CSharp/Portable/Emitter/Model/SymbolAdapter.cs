@@ -126,5 +126,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        internal Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(TypeSymbol type, Cci.ITypeReference typeRef)
+        {
+            ImmutableArray<Cci.ICustomAttribute> attrs;
+            if (type.ContainsTuple())
+            {
+                var attr = DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
+                attrs = attr == null
+                    ? ImmutableArray<Cci.ICustomAttribute>.Empty
+                    : ImmutableArray.Create<Cci.ICustomAttribute>(attr);
+            }
+            else
+            {
+                attrs = ImmutableArray<Cci.ICustomAttribute>.Empty;
+            }
+
+            return new Cci.TypeReferenceWithAttributes(typeRef, attrs);
+        }
     }
 }

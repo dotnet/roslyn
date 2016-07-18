@@ -125,7 +125,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of classes or interfaces. All type arguments matching this parameter must be derived from all of the classes and implement all of the interfaces.
         /// </summary>
-        IEnumerable<ITypeReference> GetConstraints(EmitContext context);
+        IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context);
 
         /// <summary>
         /// True if all type arguments matching this parameter are constrained to be reference types.
@@ -397,23 +397,23 @@ namespace Microsoft.Cci
         ITypeReference GetTargetType(EmitContext context);
     }
 
-    internal struct InterfaceImplementation
+    internal struct TypeReferenceWithAttributes
     {
         /// <summary>
-        /// The interface being implemented.
+        /// The type reference.
         /// </summary>
-        public ITypeReference Interface { get; }
+        public ITypeReference TypeRef { get; }
 
         /// <summary>
-        /// The attributes on the interface implementation itself.
+        /// The attributes on the type reference itself.
         /// </summary>
         public ImmutableArray<ICustomAttribute> Attributes { get; }
 
-        public InterfaceImplementation(
-            ITypeReference iface,
+        public TypeReferenceWithAttributes(
+            ITypeReference typeRef,
             ImmutableArray<ICustomAttribute> attributes)
         {
-            Interface = iface;
+            TypeRef = typeRef;
             Attributes = attributes;
         }
     }
@@ -476,7 +476,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more interfaces implemented by this type.
         /// </summary>
-        IEnumerable<InterfaceImplementation> Interfaces(EmitContext context);
+        IEnumerable<TypeReferenceWithAttributes> Interfaces(EmitContext context);
 
         /// <summary>
         /// True if the type may not be instantiated.
