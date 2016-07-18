@@ -32,12 +32,12 @@
     <Compile Include="SignInfo.cs" />
     <Compile Include="PathUtil.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="RealSignTool.cs" />
+    <Compile Include="SignTool.RealSignTool.cs" />
     <Compile Include="BatchSignUtil.cs" />
     <Compile Include="BatchSignInput.cs" />
     <Compile Include="SignTool.cs" />
-    <Compile Include="SignToolBase.cs" />
-    <Compile Include="TestSignTool.cs" />
+    <Compile Include="SignTool.SignToolBase.cs" />
+    <Compile Include="SignTool.TestSignTool.cs" />
     <Compile Include="VsixData.cs" />
   </ItemGroup>
   <ItemGroup>
