@@ -532,7 +532,8 @@ class C
                     expectedElementNames: expectedTupleNames);
             }
 
-            private void ValidateTupleNameAttribute(Symbol symbol,
+            private void ValidateTupleNameAttribute(
+                Symbol symbol,
                 bool expectedTupleNamesAttribute,
                 string[] expectedElementNames = null,
                 bool forReturnType = false)
