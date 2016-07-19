@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private IEnumerable<EncapsulateFieldCodeAction> EncapsulateAllFields(Document document, TextSpan span)
         {
-            var action1Text = FeaturesResources.EncapsulateFieldsUsages;
-            var action2Text = FeaturesResources.EncapsulateFields;
+            var action1Text = FeaturesResources.Encapsulate_fields_and_use_property;
+            var action2Text = FeaturesResources.Encapsulate_fields_but_still_use_field;
 
             return new[]
             {
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private IEnumerable<EncapsulateFieldCodeAction> EncapsulateOneField(Document document, TextSpan span, IFieldSymbol field, int index)
         {
-            var action1Text = string.Format(FeaturesResources.EncapsulateFieldUsages, field.Name);
-            var action2Text = string.Format(FeaturesResources.EncapsulateField, field.Name);
+            var action1Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name);
+            var action2Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name);
 
             return new[]
             {

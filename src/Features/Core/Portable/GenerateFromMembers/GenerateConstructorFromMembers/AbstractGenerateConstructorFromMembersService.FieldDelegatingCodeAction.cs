@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMemb
 
                     if (_state.DelegatedConstructor == null)
                     {
-                        return string.Format(FeaturesResources.GenerateConstructor,
+                        return string.Format(FeaturesResources.Generate_constructor_0_1,
                             _state.ContainingType.Name, parameterString);
                     }
                     else
                     {
-                        return string.Format(FeaturesResources.GenerateFieldAssigningConstructor,
+                        return string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1,
                             _state.ContainingType.Name, parameterString);
                     }
                 }

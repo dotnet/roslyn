@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly Project _project;
 
             protected AbstractGlobalSuppressMessageCodeAction(AbstractSuppressionCodeFixProvider fixer, Project project)
-                : base(fixer, title: FeaturesResources.SuppressWithGlobalSuppressMessage)
+                : base(fixer, title: FeaturesResources.in_Suppression_File)
             {
                 _project = project;
             }

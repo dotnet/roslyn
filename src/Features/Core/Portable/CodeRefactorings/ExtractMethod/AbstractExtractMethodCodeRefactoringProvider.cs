@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
                 var description = document.Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
-                                      FeaturesResources.ExtractMethodLocal : FeaturesResources.ExtractMethod;
+                                      FeaturesResources.Extract_Method_plus_Local : FeaturesResources.Extract_Method;
 
                 var codeAction = new MyCodeAction(description, (c) => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
                 var methodBlock = result.MethodDeclarationNode;

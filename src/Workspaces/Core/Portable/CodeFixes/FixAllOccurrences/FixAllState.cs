@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnosticIds.Any(d => d == null))
             {
-                throw new ArgumentException(WorkspacesResources.DiagnosticCannotBeNull, nameof(diagnosticIds));
+                throw new ArgumentException(WorkspacesResources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
             }
 
             if (fixAllDiagnosticProvider == null)

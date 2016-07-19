@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 if (_currentWindow != null)
                 {
-                    throw new NotSupportedException(InteractiveEditorFeaturesResources.WindowSetAgainException);
+                    throw new NotSupportedException(InteractiveEditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
                 _currentWindow = value;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = _currentWindow;
             if (window == null)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.EngineMustBeAttachedToAnInteractiveWindow);
+                throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
             }
 
             return window;
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = GetCurrentWindowOrThrow();
             Debug.Assert(_interactiveCommands.CommandPrefix == CommandPrefix);
             window.AddInput(CommandPrefix + ResetCommand.CommandName);
-            window.WriteLine(InteractiveEditorFeaturesResources.ResettingExecutionEngine);
+            window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
 
             return ResetAsyncWorker(initialize);

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                     Return suffixParts
                 End If
 
-                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, Result))
+                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.result))
             End If
 
             Return suffixParts

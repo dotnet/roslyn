@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
 
         Public ReadOnly Property SortAndRemoveUnusedImportsDisplayStringWithAccelerator As String Implements IOrganizeImportsService.SortAndRemoveUnusedImportsDisplayStringWithAccelerator
             Get
-                Return VBFeaturesResources.RemoveAndSortImportsWithAccelerator
+                Return VBFeaturesResources.Remove_and_Sort_Imports
             End Get
         End Property
     End Class

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (currentType == null || !currentType.Equals(typeParameter))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
-                        string.Format(FeaturesResources.TypeParameterIsHiddenByAnother,
+                        string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
                 }

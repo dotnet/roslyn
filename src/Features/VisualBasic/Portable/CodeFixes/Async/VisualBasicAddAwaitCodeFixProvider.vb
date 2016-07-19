@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Resources = Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources.VBFeaturesResources
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
@@ -31,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         End Property
 
         Protected Overrides Function GetDescription(diagnostic As Diagnostic, node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As String
-            Return Resources.InsertAwait
+            Return VBFeaturesResources.Insert_Await
         End Function
 
         Protected Overrides Function GetNewRoot(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)

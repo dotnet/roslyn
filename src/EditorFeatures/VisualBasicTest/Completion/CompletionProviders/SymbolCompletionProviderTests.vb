@@ -1532,7 +1532,7 @@ Class SomeClass(Of T)
 End Class
                        ]]></Text>
 
-            Await VerifyItemExistsAsync(test.Value, "T", $"T {FeaturesResources.In} SomeClass(Of T)")
+            Await VerifyItemExistsAsync(test.Value, "T", $"T {FeaturesResources.in_} SomeClass(Of T)")
         End Function
 
         <WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
@@ -2846,7 +2846,7 @@ End Class</Code>.Value
             Dim description =
 $"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
 Doc Comment!
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo()"
 
             Await VerifyItemWithMscorlib45Async(code, "Foo", description, LanguageNames.VisualBasic)
@@ -5593,7 +5593,7 @@ end class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.Field}) C.x As Integer")
+            Await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.field}) C.x As Integer")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5616,7 +5616,7 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"({FeaturesResources.Field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext
+            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 

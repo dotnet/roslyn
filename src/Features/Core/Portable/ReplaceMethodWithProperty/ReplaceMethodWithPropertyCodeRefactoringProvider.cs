@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
-                string.Format(FeaturesResources.Replace0WithProperty, methodName),
+                string.Format(FeaturesResources.Replace_0_with_property, methodName),
                 c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName));
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 if (setMethod != null)
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
-                        string.Format(FeaturesResources.Replace0and1WithProperty, methodName, setMethod.Name),
+                        string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
                         c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"));
                 }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     {
                         // Warn the user that we can't properly replace this method with a property.
                         editor.ReplaceNode(nameToken.Parent, nameToken.Parent.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(FeaturesResources.MethodReferencedImplicitly)));
+                            ConflictAnnotation.Create(FeaturesResources.Method_referenced_implicitly)));
                     }
                     else
                     {
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     {
                         // Warn the user that we can't properly replace this method with a property.
                         editor.ReplaceNode(nameToken.Parent, nameToken.Parent.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(FeaturesResources.MethodReferencedImplicitly)));
+                            ConflictAnnotation.Create(FeaturesResources.Method_referenced_implicitly)));
                     }
                     else
                     {

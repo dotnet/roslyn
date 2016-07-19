@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -142,11 +142,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (_left == null)
             {
-                pbstrText = ServicesVSResources.PreviewChangesAddedPrefix + _right.Name;
+                pbstrText = ServicesVSResources.bracket_plus_bracket + _right.Name;
             }
             else if (_right == null)
             {
-                pbstrText = ServicesVSResources.PreviewChangesDeletedPrefix + _left.Name;
+                pbstrText = ServicesVSResources.bracket_bracket + _left.Name;
             }
             else
             {

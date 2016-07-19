@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                     childItems:=rightHandMemberItems)
             Else
                 Return New NavigationBarActionlessItem(
-                    String.Format(VBEditorResources.Events, containingType.Name),
+                    String.Format(VBEditorResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
                     spans:=allMethodSpans,
@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim indentSize = newDocument.Options.GetOption(FormattingOptions.IndentationSize)
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
 
-            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.GenerateMember, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
+            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
                 ' WARNING: now that we've edited, nothing can check the cancellation token from here

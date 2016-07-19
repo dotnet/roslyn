@@ -32,7 +32,7 @@ End Class</File>
         Dim a = new [|Fooa|].ToString()
     End Sub
 End Class</File>
-            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Fooa", "Foo")})
+            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Fooa", "Foo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -43,7 +43,7 @@ End Class</File>
     End Sub
 End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue,
-                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
+                {String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -54,7 +54,7 @@ End Class</File>
     End Sub
 End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue,
-                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
+                {String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -64,7 +64,7 @@ End Class</File>
     End Sub
 End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue,
-                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
+                {String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -75,7 +75,7 @@ End Class</File>
         Dim y = 2 + [|zza|]
     End Sub
 End Module</File>
-            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "zza", "zzz")})
+            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -88,7 +88,7 @@ Public Class Class1
         End If
     End Sub
 End Class</File>
-            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
+            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -101,7 +101,7 @@ Public Class Class1
         End If
     End Sub
 End Class</File>
-            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
+            Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>

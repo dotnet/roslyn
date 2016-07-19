@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
             If context.IsSingleLineStatementContext OrElse context.CanDeclareCustomEventAccessor(SyntaxKind.AddHandlerAccessorBlock) Then
                 Return SpecializedCollections.SingletonEnumerable(
                                 CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.AddHandlerKeyword,
-                                                                             VBFeaturesResources.AddhandlerStatement,
+                                                                             VBFeaturesResources.AddHandler_statement,
                                                                              Glyph.Keyword,
                                                                              New AddHandlerStatementDocumentation()))
             Else

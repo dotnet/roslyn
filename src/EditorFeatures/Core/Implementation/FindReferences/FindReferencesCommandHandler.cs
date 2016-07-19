@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
         {
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FindReferences,
-                message: EditorFeaturesResources.FindingReferences,
+                title: EditorFeaturesResources.Find_References,
+                message: EditorFeaturesResources.Finding_references,
                 action: context =>
             {
                 Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
