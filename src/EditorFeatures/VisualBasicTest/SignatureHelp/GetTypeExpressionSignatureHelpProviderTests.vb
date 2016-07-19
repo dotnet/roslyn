@@ -30,8 +30,8 @@ End Class
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
                                      $"GetType({VBWorkspaceResources.Typename}) As System.Type",
-                                     ReturnsSystemTypeObject,
-                                     TypeToReturnObjectFor,
+                                     VBWorkspaceResources.ReturnsSystemTypeObject,
+                                     VBWorkspaceResources.TypeToReturnObjectFor,
                                      currentParameterIndex:=0))
             Await TestAsync(markup, expectedOrderedItems)
         End Function

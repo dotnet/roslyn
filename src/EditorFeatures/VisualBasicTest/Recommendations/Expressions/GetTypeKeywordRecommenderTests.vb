@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         Public Async Function GetTypeHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "GetType",
 $"{VBFeaturesResources.GettypeFunction}
-{ReturnsSystemTypeObject}
+{VBWorkspaceResources.ReturnsSystemTypeObject}
 GetType({VBWorkspaceResources.Typename}) As Type")
         End Function
 

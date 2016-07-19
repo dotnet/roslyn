@@ -1076,23 +1076,23 @@ End Module
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestBinaryConditionalExpression() As Task
             Await TestInMethodAsync("Dim x = If$$(True, False)",
-                MainDescription($"If({Expression1}, {ExpressionIfNothing}) As Boolean"),
-                Documentation(ExpressionEvalReturns))
+                MainDescription($"If({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.ExpressionIfNothing}) As Boolean"),
+                Documentation(VBWorkspaceResources.ExpressionEvalReturns))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTernaryConditionalExpression() As Task
             Await TestInMethodAsync("Dim x = If$$(True, ""Foo"", ""Bar"")",
-                MainDescription($"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As String"),
-                Documentation(IfConditionReturnsResults))
+                MainDescription($"If({VBWorkspaceResources.Condition} As Boolean, {VBWorkspaceResources.ExpressionIfTrue}, {VBWorkspaceResources.ExpressionIfFalse}) As String"),
+                Documentation(VBWorkspaceResources.IfConditionReturnsResults))
         End Function
 
         <WorkItem(957082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAddHandlerStatement() As Task
             Await TestInMethodAsync("$$AddHandler foo, bar",
-                MainDescription($"AddHandler {Event1}, {Handler}"),
-                Documentation(AssociatesAnEvent),
+                MainDescription($"AddHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}"),
+                Documentation(VBWorkspaceResources.AssociatesAnEvent),
                 SymbolGlyph(Glyph.Keyword))
         End Function
 
@@ -1100,8 +1100,8 @@ End Module
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestRemoveHandlerStatement() As Task
             Await TestInMethodAsync("$$RemoveHandler foo, bar",
-                MainDescription($"RemoveHandler {Event1}, {Handler}"),
-                Documentation(RemovesEventAssociation),
+                MainDescription($"RemoveHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}"),
+                Documentation(VBWorkspaceResources.RemovesEventAssociation),
                 SymbolGlyph(Glyph.Keyword))
         End Function
 
@@ -1109,7 +1109,7 @@ End Module
         Public Async Function TestGetTypeExpression() As Task
             Await TestInMethodAsync("Dim x = GetType$$(String)",
                 MainDescription("GetType(String) As Type"),
-                Documentation(ReturnsSystemTypeObject))
+                Documentation(VBWorkspaceResources.ReturnsSystemTypeObject))
         End Function
 
         <WorkItem(544140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544140")>
@@ -1124,155 +1124,155 @@ class C
 end class
                 </text>.NormalizedValue,
                 {GetType(System.Xml.XmlAttribute).Assembly.Location, GetType(System.Xml.Linq.XAttribute).Assembly.Location},
-                MainDescription($"GetXmlNamespace([{XmlNamespacePrefix}]) As Xml.Linq.XNamespace"),
-                Documentation(ReturnsXNamespaceObject))
+                MainDescription($"GetXmlNamespace([{VBWorkspaceResources.XmlNamespacePrefix}]) As Xml.Linq.XNamespace"),
+                Documentation(VBWorkspaceResources.ReturnsXNamespaceObject))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTryCastExpression() As Task
             Await TestInMethodAsync("Dim x = TryCast$$(a, String)",
-                MainDescription($"TryCast({Expression1}, String) As String"),
-                Documentation(IntroducesSafeTypeConversion))
+                MainDescription($"TryCast({VBWorkspaceResources.Expression1}, String) As String"),
+                Documentation(VBWorkspaceResources.IntroducesSafeTypeConversion))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDirectCastExpression() As Task
             Await TestInMethodAsync("Dim x = DirectCast$$(a, String)",
-                MainDescription($"DirectCast({Expression1}, String) As String"),
-                Documentation(IntroducesTypeConversion))
+                MainDescription($"DirectCast({VBWorkspaceResources.Expression1}, String) As String"),
+                Documentation(VBWorkspaceResources.IntroducesTypeConversion))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCTypeCastExpression() As Task
             Await TestInMethodAsync("Dim x = CType$$(a, String)",
-                MainDescription($"CType({Expression1}, String) As String"),
-                Documentation(ReturnsConvertResult))
+                MainDescription($"CType({VBWorkspaceResources.Expression1}, String) As String"),
+                Documentation(VBWorkspaceResources.ReturnsConvertResult))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCBoolExpression() As Task
             Await TestInMethodAsync("Dim x = CBool$$(a)",
-                MainDescription($"CBool({Expression1}) As Boolean"),
-                Documentation(String.Format(ConvertsToDataType, "Boolean")))
+                MainDescription($"CBool({VBWorkspaceResources.Expression1}) As Boolean"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Boolean")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCByteExpression() As Task
             Await TestInMethodAsync("Dim x = CByte$$(a)",
-                MainDescription($"CByte({Expression1}) As Byte"),
-                Documentation(String.Format(ConvertsToDataType, "Byte")))
+                MainDescription($"CByte({VBWorkspaceResources.Expression1}) As Byte"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Byte")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCCharExpression() As Task
             Await TestInMethodAsync("Dim x = CChar$$(a)",
-                MainDescription($"CChar({Expression1}) As Char"),
-                Documentation(String.Format(ConvertsToDataType, "Char")))
+                MainDescription($"CChar({VBWorkspaceResources.Expression1}) As Char"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Char")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCDateExpression() As Task
             Await TestInMethodAsync("Dim x = CDate$$(a)",
-                MainDescription($"CDate({Expression1}) As Date"),
-                Documentation(String.Format(ConvertsToDataType, "Date")))
+                MainDescription($"CDate({VBWorkspaceResources.Expression1}) As Date"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Date")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCDblExpression() As Task
             Await TestInMethodAsync("Dim x = CDbl$$(a)",
-                MainDescription($"CDbl({Expression1}) As Double"),
-                Documentation(String.Format(ConvertsToDataType, "Double")))
+                MainDescription($"CDbl({VBWorkspaceResources.Expression1}) As Double"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Double")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCDecExpression() As Task
             Await TestInMethodAsync("Dim x = CDec$$(a)",
-                MainDescription($"CDec({Expression1}) As Decimal"),
-                Documentation(String.Format(ConvertsToDataType, "Decimal")))
+                MainDescription($"CDec({VBWorkspaceResources.Expression1}) As Decimal"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Decimal")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCIntExpression() As Task
             Await TestInMethodAsync("Dim x = CInt$$(a)",
-                MainDescription($"CInt({Expression1}) As Integer"),
-                Documentation(String.Format(ConvertsToDataType, "Integer")))
+                MainDescription($"CInt({VBWorkspaceResources.Expression1}) As Integer"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Integer")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCLngExpression() As Task
             Await TestInMethodAsync("Dim x = CLng$$(a)",
-                MainDescription($"CLng({Expression1}) As Long"),
-                Documentation(String.Format(ConvertsToDataType, "Long")))
+                MainDescription($"CLng({VBWorkspaceResources.Expression1}) As Long"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Long")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCObjExpression() As Task
             Await TestInMethodAsync("Dim x = CObj$$(a)",
-                MainDescription($"CObj({Expression1}) As Object"),
-                Documentation(String.Format(ConvertsToDataType, "Object")))
+                MainDescription($"CObj({VBWorkspaceResources.Expression1}) As Object"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Object")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCSByteExpression() As Task
             Await TestInMethodAsync("Dim x = CSByte$$(a)",
-                MainDescription($"CSByte({Expression1}) As SByte"),
-                Documentation(String.Format(ConvertsToDataType, "SByte")))
+                MainDescription($"CSByte({VBWorkspaceResources.Expression1}) As SByte"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "SByte")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCShortExpression() As Task
             Await TestInMethodAsync("Dim x = CShort$$(a)",
-                MainDescription($"CShort({Expression1}) As Short"),
-                Documentation(String.Format(ConvertsToDataType, "Short")))
+                MainDescription($"CShort({VBWorkspaceResources.Expression1}) As Short"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Short")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCSngExpression() As Task
             Await TestInMethodAsync("Dim x = CSng$$(a)",
-                MainDescription($"CSng({Expression1}) As Single"),
-                Documentation(String.Format(ConvertsToDataType, "Single")))
+                MainDescription($"CSng({VBWorkspaceResources.Expression1}) As Single"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "Single")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCStrExpression() As Task
             Await TestInMethodAsync("Dim x = CStr$$(a)",
-                MainDescription($"CStr({Expression1}) As String"),
-                Documentation(String.Format(ConvertsToDataType, "String")))
+                MainDescription($"CStr({VBWorkspaceResources.Expression1}) As String"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "String")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCUIntExpression() As Task
             Await TestInMethodAsync("Dim x = CUInt$$(a)",
-                MainDescription($"CUInt({Expression1}) As UInteger"),
-                Documentation(String.Format(ConvertsToDataType, "UInteger")))
+                MainDescription($"CUInt({VBWorkspaceResources.Expression1}) As UInteger"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "UInteger")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCULngExpression() As Task
             Await TestInMethodAsync("Dim x = CULng$$(a)",
-                MainDescription($"CULng({Expression1}) As ULong"),
-                Documentation(String.Format(ConvertsToDataType, "ULong")))
+                MainDescription($"CULng({VBWorkspaceResources.Expression1}) As ULong"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "ULong")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCUShortExpression() As Task
             Await TestInMethodAsync("Dim x = CUShort$$(a)",
-                MainDescription($"CUShort({Expression1}) As UShort"),
-                Documentation(String.Format(ConvertsToDataType, "UShort")))
+                MainDescription($"CUShort({VBWorkspaceResources.Expression1}) As UShort"),
+                Documentation(String.Format(VBWorkspaceResources.ConvertsToDataType, "UShort")))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMidAssignmentStatement1() As Task
             Await TestInMethodAsync("$$Mid(""foo"", 0) = ""bar""",
-                MainDescription($"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}"),
-                Documentation(ReplacesChars))
+                MainDescription($"Mid({VBWorkspaceResources.StringName}, {VBWorkspaceResources.StartIndex}, [{VBWorkspaceResources.Length}]) = {VBWorkspaceResources.StringExpression}"),
+                Documentation(VBWorkspaceResources.ReplacesChars))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMidAssignmentStatement2() As Task
             Await TestInMethodAsync("$$Mid(""foo"", 0, 0) = ""bar""",
-                MainDescription($"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}"),
-                Documentation(ReplacesChars))
+                MainDescription($"Mid({VBWorkspaceResources.StringName}, {VBWorkspaceResources.StartIndex}, [{VBWorkspaceResources.Length}]) = {VBWorkspaceResources.StringExpression}"),
+                Documentation(VBWorkspaceResources.ReplacesChars))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

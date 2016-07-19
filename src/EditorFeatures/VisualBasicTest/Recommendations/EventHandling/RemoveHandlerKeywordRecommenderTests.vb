@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ev
         Public Async Function RemoveHandlerHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "RemoveHandler",
 $"{VBFeaturesResources.RemovehandlerStatement}
-{RemovesEventAssociation}
-RemoveHandler {Event1}, {Handler}")
+{VBWorkspaceResources.RemovesEventAssociation}
+RemoveHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}")
         End Function
 
         <Fact>

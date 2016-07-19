@@ -1839,7 +1839,7 @@ End Class
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("GetType", VBFeaturesResources.GettypeFunction + vbCrLf +
                     VBWorkspaceResources.ReturnsSystemTypeObject + vbCrLf +
-                    $"GetType({Typename}) As Type")
+                    $"GetType({VBWorkspaceResources.Typename}) As Type")
             End Using
         End Function
 

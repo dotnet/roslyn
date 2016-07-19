@@ -29,9 +29,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
-                                     ReturnsConvertResult,
-                                     ExpressionToConvert,
+                                     $"CType({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.ReturnsConvertResult,
+                                     VBWorkspaceResources.ExpressionToConvert,
                                      currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -49,9 +49,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
-                                     ReturnsConvertResult,
-                                     NameOfTypeToConvert,
+                                     $"CType({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.ReturnsConvertResult,
+                                     VBWorkspaceResources.NameOfTypeToConvert,
                                      currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -70,9 +70,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"DirectCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
-                                     IntroducesTypeConversion,
-                                     ExpressionToConvert,
+                                     $"DirectCast({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.IntroducesTypeConversion,
+                                     VBWorkspaceResources.ExpressionToConvert,
                                      currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -91,9 +91,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"TryCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
-                                     IntroducesSafeTypeConversion,
-                                     ExpressionToConvert,
+                                     $"TryCast({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.IntroducesSafeTypeConversion,
+                                     VBWorkspaceResources.ExpressionToConvert,
                                      currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)

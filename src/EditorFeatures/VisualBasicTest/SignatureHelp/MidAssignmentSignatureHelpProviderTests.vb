@@ -29,9 +29,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
-                                     ReplacesChars,
-                                     NameOfStringVariable,
+                                     $"Mid({VBWorkspaceResources.StringName}, {VBWorkspaceResources.StartIndex}, [{VBWorkspaceResources.Length}]) = {VBWorkspaceResources.StringExpression}",
+                                     VBWorkspaceResources.ReplacesChars,
+                                     VBWorkspaceResources.NameOfStringVariable,
                                      currentParameterIndex:=0))
             Await TestAsync(markup, expectedOrderedItems)
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
@@ -49,9 +49,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
-                                     ReplacesChars,
-                                     OneBasedStartPos,
+                                     $"Mid({VBWorkspaceResources.StringName}, {VBWorkspaceResources.StartIndex}, [{VBWorkspaceResources.Length}]) = {VBWorkspaceResources.StringExpression}",
+                                     VBWorkspaceResources.ReplacesChars,
+                                     VBWorkspaceResources.OneBasedStartPos,
                                      currentParameterIndex:=1))
             Await TestAsync(markup, expectedOrderedItems)
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
@@ -69,9 +69,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
-                                     ReplacesChars,
-                                     NumberOfCharsToReplace,
+                                     $"Mid({VBWorkspaceResources.StringName}, {VBWorkspaceResources.StartIndex}, [{VBWorkspaceResources.Length}]) = {VBWorkspaceResources.StringExpression}",
+                                     VBWorkspaceResources.ReplacesChars,
+                                     VBWorkspaceResources.NumberOfCharsToReplace,
                                      currentParameterIndex:=2))
             Await TestAsync(markup, expectedOrderedItems)
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)

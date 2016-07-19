@@ -20,32 +20,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         Public Async Function DirectCastHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "DirectCast",
 $"{VBFeaturesResources.DirectcastFunction}
-{IntroducesTypeConversion}
-DirectCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
+{VBWorkspaceResources.IntroducesTypeConversion}
+DirectCast({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TryCastHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "TryCast",
 $"{VBFeaturesResources.TrycastFunction}
-{IntroducesSafeTypeConversion}
-TryCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
+{VBWorkspaceResources.IntroducesSafeTypeConversion}
+TryCast({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CTypeHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "CType",
 $"{VBFeaturesResources.CtypeFunction}
-{ReturnsConvertResult}
-CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
+{VBWorkspaceResources.ReturnsConvertResult}
+CType({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.Typename}) As {VBWorkspaceResources.Result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CBoolHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "CBool",
 $"{String.Format(VBFeaturesResources.Function1, "CBool")}
-{String.Format(ConvertsToDataType, "Boolean")}
-CBool({Expression1}) As Boolean")
+{String.Format(VBWorkspaceResources.ConvertsToDataType, "Boolean")}
+CBool({VBWorkspaceResources.Expression1}) As Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

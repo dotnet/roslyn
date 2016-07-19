@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                     Return suffixParts
                 End If
 
-                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, Result))
+                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.Result))
             End If
 
             Return suffixParts

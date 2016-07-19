@@ -7,8 +7,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         Public Async Function MidHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "Mid",
 $"{VBFeaturesResources.MidStatement}
-{ReplacesChars}
-Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}")
+{VBWorkspaceResources.ReplacesChars}
+Mid({VBWorkspaceResources.StringName}, {VBWorkspaceResources.StartIndex}, [{VBWorkspaceResources.Length}]) = {VBWorkspaceResources.StringExpression}")
         End Function
 
         <Fact>

@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         Public Async Function GetXmlNamespaceHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "GetXmlNamespace",
 $"{VBFeaturesResources.GetxmlnamespaceFunction}
-{ReturnsXNamespaceObject}
-GetXmlNamespace([{XmlNamespacePrefix}]) As System.Xml.Linq.XNamespace")
+{VBWorkspaceResources.ReturnsXNamespaceObject}
+GetXmlNamespace([{VBWorkspaceResources.XmlNamespacePrefix}]) As System.Xml.Linq.XNamespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

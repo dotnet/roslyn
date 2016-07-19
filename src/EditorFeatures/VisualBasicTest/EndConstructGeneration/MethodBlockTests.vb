@@ -49,10 +49,10 @@ End Class",
 Class c1
     Sub New()
 
-        ' {ThisCallIsRequiredByTheDesigner}
+        ' {VBEditorResources.ThisCallIsRequiredByTheDesigner}
         InitializeComponent()
 
-        ' {AddAnyInitializationAfter}
+        ' {VBEditorResources.AddAnyInitializationAfter}
 
     End Sub
 

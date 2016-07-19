@@ -32,7 +32,7 @@ End Module
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count({Expression1} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count({VBWorkspaceResources.Expression1} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function

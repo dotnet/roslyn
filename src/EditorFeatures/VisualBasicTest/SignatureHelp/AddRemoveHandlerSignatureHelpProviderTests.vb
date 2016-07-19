@@ -29,9 +29,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"AddHandler {Event1}, {Handler}",
-                                     AssociatesAnEvent,
-                                     EventToAssociate,
+                                     $"AddHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}",
+                                     VBWorkspaceResources.AssociatesAnEvent,
+                                     VBWorkspaceResources.EventToAssociate,
                                      currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -49,9 +49,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"AddHandler {Event1}, {Handler}",
-                                     AssociatesAnEvent,
-                                     EventHandlerToAssociate,
+                                     $"AddHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}",
+                                     VBWorkspaceResources.AssociatesAnEvent,
+                                     VBWorkspaceResources.EventHandlerToAssociate,
                                      currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -71,9 +71,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"RemoveHandler {Event1}, {Handler}",
-                                     RemovesEventAssociation,
-                                     EventToDisassociate,
+                                     $"RemoveHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}",
+                                     VBWorkspaceResources.RemovesEventAssociation,
+                                     VBWorkspaceResources.EventToDisassociate,
                                      currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -91,9 +91,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"RemoveHandler {Event1}, {Handler}",
-                                     RemovesEventAssociation,
-                                     EventHandlerToDisassociate,
+                                     $"RemoveHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}",
+                                     VBWorkspaceResources.RemovesEventAssociation,
+                                     VBWorkspaceResources.EventHandlerToDisassociate,
                                      currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)

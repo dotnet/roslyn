@@ -29,14 +29,14 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"If({Expression1}, {ExpressionIfNothing}) As {Result}",
-                                     ExpressionEvalReturns,
-                                     ReturnedIfINotNothing,
+                                     $"If({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.ExpressionIfNothing}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.ExpressionEvalReturns,
+                                     VBWorkspaceResources.ReturnedIfINotNothing,
                                      currentParameterIndex:=0))
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}",
-                                     IfConditionReturnsResults,
-                                     ExpressionToEvaluate,
+                                     $"If({VBWorkspaceResources.Condition} As Boolean, {VBWorkspaceResources.ExpressionIfTrue}, {VBWorkspaceResources.ExpressionIfFalse}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.IfConditionReturnsResults,
+                                     VBWorkspaceResources.ExpressionToEvaluate,
                                      currentParameterIndex:=0))
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -53,14 +53,14 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"If({Expression1}, {ExpressionIfNothing}) As {Result}",
-                                     ExpressionEvalReturns,
-                                     ReturnedIfNothing,
+                                     $"If({VBWorkspaceResources.Expression1}, {VBWorkspaceResources.ExpressionIfNothing}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.ExpressionEvalReturns,
+                                     VBWorkspaceResources.ReturnedIfNothing,
                                      currentParameterIndex:=1))
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}",
-                                     IfConditionReturnsResults,
-                                     EvaluatedAndReturnedIfTrue,
+                                     $"If({VBWorkspaceResources.Condition} As Boolean, {VBWorkspaceResources.ExpressionIfTrue}, {VBWorkspaceResources.ExpressionIfFalse}) As {VBWorkspaceResources.Result}",
+                                     VBWorkspaceResources.IfConditionReturnsResults,
+                                     VBWorkspaceResources.EvaluatedAndReturnedIfTrue,
                                      currentParameterIndex:=1))
             Await TestAsync(markup, expectedOrderedItems)
         End Function

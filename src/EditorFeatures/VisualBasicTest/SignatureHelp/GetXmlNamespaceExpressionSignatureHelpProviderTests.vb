@@ -29,9 +29,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"GetXmlNamespace([{XmlNamespacePrefix}]) As System.Xml.Linq.XNamespace",
-                                     ReturnsXNamespaceObject,
-                                     XMLNSToReturnObjectFor,
+                                     $"GetXmlNamespace([{VBWorkspaceResources.XmlNamespacePrefix}]) As System.Xml.Linq.XNamespace",
+                                     VBWorkspaceResources.ReturnsXNamespaceObject,
+                                     VBWorkspaceResources.XMLNSToReturnObjectFor,
                                      currentParameterIndex:=0))
             Await TestAsync(markup, expectedOrderedItems)
         End Function

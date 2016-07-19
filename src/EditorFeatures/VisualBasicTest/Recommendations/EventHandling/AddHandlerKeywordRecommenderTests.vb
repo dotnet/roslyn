@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ev
         Public Async Function AddHandlerHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "AddHandler",
 $"{VBFeaturesResources.AddhandlerStatement}
-{AssociatesAnEvent}
-AddHandler {Event1}, {Handler}")
+{VBWorkspaceResources.AssociatesAnEvent}
+AddHandler {VBWorkspaceResources.Event1}, {VBWorkspaceResources.Handler}")
         End Function
 
         <Fact>
