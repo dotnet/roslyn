@@ -2800,7 +2800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!elementNames.IsDefault)
             {
-                if (elementNames.Length != cardinality)
+                if (elementNames.Length != cardinality || elementNames.All(n => n == null))
                 {
                     throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
                 }

@@ -514,7 +514,7 @@
 {0}</value>
   </data>
   <data name="TupleNamesAllOrNone" xml:space="preserve">
-    <value>If names are used in a tuple type, then there must be the same number of names and elements.</value>
+    <value>If names are used in a tuple type, then there must be the same number of names and elements, and the names cannot all be null.</value>
   </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>

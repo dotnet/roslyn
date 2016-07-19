@@ -232,12 +232,6 @@ namespace System
         // = {string[3](""e1"", ""e2"", ""e3"")}
         = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
 
-    // In source, all or no names must be specified for a tuple
-    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> MismatchedNames
-    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
-        // = {string[2](""e1"", null)}
-        = ( 01 00 02 00 00 00 02 65 31 FF )
-
     .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32> 
             TooFewNamesMethod() cil managed
     {
@@ -259,7 +253,7 @@ namespace System
     {
       .param [0]
       .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
-        // = {string[3](""e1"", ""e2"", ""e3"")}
+           // = {string[3](""e1"", ""e2"", ""e3"")}
            = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
       // Code size       8 (0x8)
       .maxstack  8
@@ -269,20 +263,6 @@ namespace System
                                                                                                           !1)
       IL_0007:  ret
     } // end of method C::TooManyNamesMethod
-
-    .method public hidebysig instance void MismatchedNamesMethod(
-        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
-    {
-      .param [1]
-      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
-        // First null is fine (unnamed tuple) but the second is half-named
-        // = {string[3](null, ""e1"", null)}
-        = ( 01 00 03 00 00 00 FF 02 65 31 FF )
-      // Code size       2 (0x2)
-      .maxstack  8
-      IL_0000:  nop
-      IL_0001:  ret
-    } // end of method C::MismatchedNamesMethod
 } // end of class C
 ",
 references: s_valueTupleRefs);
@@ -307,10 +287,6 @@ references: s_valueTupleRefs);
             Assert.True(tooManyNames.Type.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooManyNames.Type);
 
-            var mismatchedNames = c.GetMember<FieldSymbol>("MismatchedNames");
-            Assert.True(mismatchedNames.Type.IsErrorType());
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(mismatchedNames.Type);
-
             var tooFewNamesMethod = c.GetMember<MethodSymbol>("TooFewNamesMethod");
             Assert.True(tooFewNamesMethod.ReturnType.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooFewNamesMethod.ReturnType);
@@ -318,11 +294,105 @@ references: s_valueTupleRefs);
             var tooManyNamesMethod = c.GetMember<MethodSymbol>("TooManyNamesMethod");
             Assert.True(tooManyNamesMethod.ReturnType.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooManyNamesMethod.ReturnType);
+        }
 
-            var mismatchedNamesMethod = c.GetMember<MethodSymbol>("MismatchedNamesMethod");
-            var mismatchedParamType = mismatchedNamesMethod.Parameters.Single().Type;
-            Assert.True(mismatchedParamType.IsErrorType());
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(mismatchedParamType);
+        [Fact]
+        public void MetadataForPartiallyNamedTuples()
+        {
+            var comp = CreateCompilationWithCustomILSource("",
+@"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> ValidField
+
+    .field public int32 ValidFieldWithAttribute
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[1](""name1"")}
+        = ( 01 00 01 00 00 00 05 6E 61 6D 65 31 )
+
+    // In source, all or no names must be specified for a tuple
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> PartialNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[2](""e1"", null)}
+        = ( 01 00 02 00 00 00 02 65 31 FF )
+
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> AllNullNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[2](null, null)}
+        = ( 01 00 02 00 00 00 ff ff 00 00 )
+
+    .method public hidebysig instance void PartialNamesMethod(
+        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
+    {
+      .param [1]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // First null is fine (unnamed tuple) but the second is half-named
+        // = {string[3](null, ""e1"", null)}
+        = ( 01 00 03 00 00 00 FF 02 65 31 FF )
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method C::PartialNamesMethod
+
+    .method public hidebysig instance void AllNullNamesMethod(
+        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
+    {
+      .param [1]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // First null is fine (unnamed tuple) but the second is half-named
+        // = {string[3](null, null, null)}
+        = ( 01 00 03 00 00 00 ff ff ff 00 00 )
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method C::AllNullNamesMethod
+} // end of class C
+",
+references: s_valueTupleRefs);
+
+            var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+            var validField = c.GetMember<FieldSymbol>("ValidField");
+            Assert.False(validField.Type.IsErrorType());
+            Assert.True(validField.Type.IsTupleType);
+            Assert.True(validField.Type.TupleElementNames.IsDefault);
+
+            var validFieldWithAttribute = c.GetMember<FieldSymbol>("ValidFieldWithAttribute");
+            Assert.True(validFieldWithAttribute.Type.IsErrorType());
+            Assert.False(validFieldWithAttribute.Type.IsTupleType);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(validFieldWithAttribute.Type);
+
+            var partialNames = c.GetMember<FieldSymbol>("PartialNames");
+            Assert.False(partialNames.Type.IsErrorType());
+            Assert.True(partialNames.Type.IsTupleType);
+            Assert.Equal("(System.Int32 e1, System.Int32)", partialNames.Type.ToTestDisplayString());
+
+            var allNullNames = c.GetMember<FieldSymbol>("AllNullNames");
+            Assert.False(allNullNames.Type.IsErrorType());
+            Assert.True(allNullNames.Type.IsTupleType);
+            Assert.Equal("(System.Int32, System.Int32)", allNullNames.Type.ToTestDisplayString());
+
+            var partialNamesMethod = c.GetMember<MethodSymbol>("PartialNamesMethod");
+            var partialParamType = partialNamesMethod.Parameters.Single().Type;
+            Assert.False(partialParamType.IsErrorType());
+            Assert.True(partialParamType.IsTupleType);
+            Assert.Equal("((System.Int32 e1, System.Int32))", partialParamType.ToTestDisplayString());
+
+            var allNullNamesMethod = c.GetMember<MethodSymbol>("AllNullNamesMethod");
+            var allNullParamType = allNullNamesMethod.Parameters.Single().Type;
+            Assert.False(allNullParamType.IsErrorType());
+            Assert.True(allNullParamType.IsTupleType);
+            Assert.Equal("((System.Int32, System.Int32))", allNullParamType.ToTestDisplayString());
         }
 
         [Fact]
@@ -4343,6 +4413,17 @@ class C
             try
             {
                 comp.CreateTupleTypeSymbol(vt2, new[] { "Item1" }.AsImmutable());
+                Assert.True(false);
+            }
+            catch (ArgumentException e)
+            {
+                Assert.Contains(CodeAnalysisResources.TupleNamesAllOrNone, e.Message);
+            }
+
+            // if names are provided, they can't all be null
+            try
+            {
+                comp.CreateTupleTypeSymbol(vt2, new string[] { null, null }.AsImmutable());
                 Assert.True(false);
             }
             catch (ArgumentException e)

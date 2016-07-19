@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be the same number of names and elements..
+        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be the same number of names and elements, and the names cannot all be null..
         /// </summary>
         internal static string TupleNamesAllOrNone {
             get {
