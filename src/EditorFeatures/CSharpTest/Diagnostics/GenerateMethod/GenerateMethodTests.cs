@@ -3035,32 +3035,32 @@ class C
 }");
         }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task MethodWithTuple()
-            {
-                await TestAsync(
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task MethodWithTuple()
+        {
+            await TestAsync(
 @"class Class { void Method() { (int, string) d = [|NewMethod|]((1, ""hello"")); } }",
 @"using System; class Class { void Method() { (int, string) d = NewMethod((1, ""hello"")); } private (int, string) NewMethod((int, string) p) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
-            }
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task MethodWithTupleWithNames()
-            {
-                await TestAsync(
+        {
+            await TestAsync(
 @"class Class { void Method() { (int a, string b) d = [|NewMethod|]((c: 1, d: ""hello"")); } }",
 @"using System; class Class { void Method() { (int a, string b) d = NewMethod((c: 1, d: ""hello"")); } private (int a, string b) NewMethod((int c, string d) p) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
-            }
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task MethodWithTupleWithOneName()
-            {
-                await TestAsync(
+        {
+            await TestAsync(
 @"class Class { void Method() { (int a, string) d = [|NewMethod|]((c: 1, ""hello"")); } }",
-@"using System; class Class { void Method() { (int a, string) d = NewMethod((c: 1, ""hello"")); } private (int a, string Item2) NewMethod((int c, string Item2) p) { throw new NotImplementedException(); } }",
+@"using System; class Class { void Method() { (int a, string) d = NewMethod((c: 1, ""hello"")); } private (int a, string) NewMethod((int c, string) p) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
