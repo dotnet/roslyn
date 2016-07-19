@@ -1147,6 +1147,23 @@ class C
         }
 
         [Fact]
+        public void TupleLiteralWithOnlySomeNames()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string, int) x = (1, b: ""hello"", Item3: 3);
+        System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.Item3);
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello 3");
+        }
+
+        [Fact]
         public void TupleDictionary01()
         {
             var source = @"
@@ -4289,9 +4306,6 @@ class C
             {
                 Assert.Contains(CodeAnalysisResources.TupleNamesAllOrNone, e.Message);
             }
-
-            // if names are provided, they can't be null
-            Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(vt2, new[] { "Item1", null }.AsImmutable()));
         }
 
         [Fact]
@@ -4344,6 +4358,23 @@ class C
             Assert.Equal(new[] { "Alice", "Bob" }, tupleWithNames.TupleElementNames);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
+        }
+
+        [Fact]
+        public void CreateTupleTypeSymbol_WithSomeNames()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, stringType, intType);
+            var tupleWithSomeNames = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create(null, "Item2", "Charlie"));
+
+            Assert.True(tupleWithSomeNames.IsTupleType);
+            Assert.Equal("(System.Int32, System.String Item2, System.Int32 Charlie)", tupleWithSomeNames.ToTestDisplayString());
+            Assert.Equal(new[] { null, "Item2", "Charlie" }, tupleWithSomeNames.TupleElementNames);
+            Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, tupleWithSomeNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
         }
 
         [Fact]
@@ -4454,6 +4485,32 @@ class C
         }
 
         [Fact]
+        public void CreateTupleTypeSymbol_Tuple9WithDefaultNames()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
+            comp.CreateTupleTypeSymbol(vt2, new[] { "Item1", "Item2" }.AsImmutable());
+
+            var vt9 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)
+                      .Construct(intType, stringType, intType, stringType, intType, stringType, intType,
+                                 vt2);
+
+            var tuple9WithNames = comp.CreateTupleTypeSymbol(vt9, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"));
+
+            Assert.True(tuple9WithNames.IsTupleType);
+            Assert.Equal("(System.Int32 Item1, System.String Item2, System.Int32 Item3, System.String Item4, System.Int32 Item5, System.String Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)",
+                        tuple9WithNames.ToTestDisplayString());
+
+            Assert.Equal(new[] { "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9" }, tuple9WithNames.TupleElementNames);
+
+            Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.Int32", "System.Int32" },
+                        tuple9WithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+        }
+
+        [Fact]
         public void CreateTupleTypeSymbol_ElementTypeIsError()
         {
             var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
@@ -4539,9 +4596,6 @@ End Class";
 
             // if names are provided, you need one for each element
             Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), new[] { "Item1" }.AsImmutable()));
-
-            // if names are provided, they can't be null
-            Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), new[] { "Item1", null }.AsImmutable()));
 
             // null types aren't allowed
             Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(new[] { intType, null }.AsImmutable(), default(ImmutableArray<string>)));

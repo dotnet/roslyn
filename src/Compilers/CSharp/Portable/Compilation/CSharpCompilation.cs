@@ -2794,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Check that if any names are provided, their number matches the expected cardinality and they are not null.
+        /// Check that if any names are provided, and their number matches the expected cardinality.
         /// </summary>
         private static void CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
         {
@@ -2803,14 +2803,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (elementNames.Length != cardinality)
                 {
                     throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
-                }
-
-                for (int i = 0; i < elementNames.Length; i++)
-                {
-                    if ((object)elementNames[i] == null)
-                    {
-                        throw new ArgumentNullException($"{nameof(elementNames)}[{i}]");
-                    }
                 }
             }
         }
