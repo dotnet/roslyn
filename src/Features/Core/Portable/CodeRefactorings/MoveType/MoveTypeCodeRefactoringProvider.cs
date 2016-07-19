@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
             var workspace = document.Project.Solution.Workspace;
             if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
@@ -35,8 +30,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var service = document.GetLanguageService<IMoveTypeService>();
-            var refactoring = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!service.ShouldAnalyze(root, textSpan))
+            {
+                return;
+            }
+
+            var refactoring = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (refactoring != null)
             {
                 context.RegisterRefactorings(refactoring.Actions);

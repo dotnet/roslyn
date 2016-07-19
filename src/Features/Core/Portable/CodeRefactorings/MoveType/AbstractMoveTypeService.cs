@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -19,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
+        public bool ShouldAnalyze(SyntaxNode root, TextSpan span)
+        {
+            return GetNodetoAnalyze(root, span) is TTypeDeclarationSyntax;
+        }
+
         protected virtual SyntaxNode GetNodetoAnalyze(SyntaxNode root, TextSpan span)
         {
             return root.FindNode(span);

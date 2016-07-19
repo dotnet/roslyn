@@ -9,6 +9,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestForSpans1()
+        {
+            var code =
+@"[|clas|]s Class1 { }
+class Class2 { }";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText = @"class Class1 { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestForSpans2()
+        {
+            var code =
+@"[|class Class1|] { }
+class Class2 { }";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText = @"class Class1 { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestForSpans3()
+        {
+            var code =
+@"class Class1[||] { }
+class Class2 { }";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText = @"class Class1 { }";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithNoContainerNamespace()
         {
             var code = 

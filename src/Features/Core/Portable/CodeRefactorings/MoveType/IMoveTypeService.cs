@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal interface IMoveTypeService : ILanguageService
     {
+        bool ShouldAnalyze(SyntaxNode root, TextSpan textSpan);
         Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }
