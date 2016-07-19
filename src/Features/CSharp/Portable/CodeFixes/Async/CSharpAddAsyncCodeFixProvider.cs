@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            return Resources.MakeAsync;
+            return CSharpFeaturesResources.MakeAsync;
         }
 
         protected override async Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
