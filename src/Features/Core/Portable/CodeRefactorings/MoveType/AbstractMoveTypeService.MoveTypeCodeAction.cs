@@ -58,6 +58,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
         }
-
     }
 }

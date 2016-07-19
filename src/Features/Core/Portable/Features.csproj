@@ -155,6 +155,8 @@
     <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringHelpersService.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringService.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.Editor.RenameType.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.Editor.RenameFile.cs" />
     <Compile Include="CodeRefactorings\MoveType\MoveTypeCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.Editor.cs" />
     <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.MoveTypeCodeAction.cs" />
