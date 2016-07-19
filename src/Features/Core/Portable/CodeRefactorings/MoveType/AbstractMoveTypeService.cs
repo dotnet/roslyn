@@ -33,17 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private bool IsSingleTypeDeclarationInSourceDocument(SyntaxNode root) =>
             root.DescendantNodes().OfType<TTypeDeclarationSyntax>().Count() == 1;
 
-        /// <remarks>
-        /// currently we generate into the same project. 
-        /// so, if type name matches file name, target file name is already present.
-        /// </remarks>
-        private bool ProjectContainsTargetFile(Project project, string targetFileName, string typeName, string sourceDocumentName) =>
-            TypeNameMatchesDocumentName(typeName, sourceDocumentName) ||
-            project.ContainsDocument(DocumentId.CreateNewId(project.Id, targetFileName));
-
-        private bool TypeNameMatchesDocumentName(string fileName, string typeName) =>
-            string.Equals(fileName, typeName, StringComparison.CurrentCultureIgnoreCase);
-
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
