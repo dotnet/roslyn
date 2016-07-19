@@ -62,5 +62,8 @@
     <Compile Include="Shared\ClientDirectStream.cs" />
     <Compile Include="Shared\WellKnownServiceHubServices.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
