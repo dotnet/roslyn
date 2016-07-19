@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override string GetInsertionText(
             CompletionItem item, ISymbol symbol, SyntaxContext context, char ch)
         {
-            return GetInsertionText(symbol, context);
+            return SymbolCompletionItem.GetInsertionText(item);
         }
 
         public static string GetInsertionText(ISymbol symbol, SyntaxContext context)
