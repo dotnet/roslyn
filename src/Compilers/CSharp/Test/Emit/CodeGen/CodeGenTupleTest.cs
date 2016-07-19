@@ -259,7 +259,7 @@ public class C3 : IEnumerable<(int key, int val)>
         }
     }
 
-    public IEnumerator<(int key, int val)> GetEnumerator() => new Inner(_backing);
+    IEnumerator<(int key, int val)> IEnumerable<(int key, int val)>.GetEnumerator() => new Inner(_backing);
 
     IEnumerator IEnumerable.GetEnumerator() => new Inner(_backing);
 } 
