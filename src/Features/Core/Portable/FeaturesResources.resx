@@ -1035,13 +1035,13 @@ This version used in: {2}</value>
   <data name="Convert_to_interpolated_string" xml:space="preserve">
     <value>Convert to interpolated string</value>
   </data>
-  <data name="MoveTypeTo_0" xml:space="preserve">
-    <value>Move Type To {0}</value>
+  <data name="Movetypeto_0" xml:space="preserve">
+    <value>Move type to {0}</value>
   </data>
-  <data name="RenameFileTo_0" xml:space="preserve">
-    <value>Rename File To {0}</value>
+  <data name="Renamefileto_0" xml:space="preserve">
+    <value>Rename file to {0}</value>
   </data>
-  <data name="RenameTypeTo_0" xml:space="preserve">
-    <value>Rename Type To {0}</value>
+  <data name="Renametypeto_0" xml:space="preserve">
+    <value>Rename type to {0}</value>
   </data>
 </root>

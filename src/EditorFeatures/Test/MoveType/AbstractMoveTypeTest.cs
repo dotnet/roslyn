@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
     public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
     {
-        private string RenameFileCodeActionTitle = FeaturesResources.RenameFileTo_0;
-        private string RenameTypeCodeActionTitle = FeaturesResources.RenameTypeTo_0;
+        private string RenameFileCodeActionTitle = FeaturesResources.Renamefileto_0;
+        private string RenameTypeCodeActionTitle = FeaturesResources.Renametypeto_0;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
