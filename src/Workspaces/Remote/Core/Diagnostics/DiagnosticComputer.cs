@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
-using Microsoft.CodeAnalysis.Execution;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
@@ -20,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var project = solution.GetProject(projectId);
 
             var analyzerMap = CreateAnalyzerMap(hostAnalyzers, project);
-
             var analyzers = GetAnalyzers(analyzerMap, analyzerIds);
+
             if (analyzers.Length == 0)
             {
                 return new CompilerAnalysisResult(ImmutableDictionary<string, CompilerResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);

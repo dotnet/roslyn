@@ -252,13 +252,13 @@ namespace Microsoft.CodeAnalysis.Execution
             return SolutionId.CreateFromSerialized(guid, debugName);
         }
 
-        public void Serialize(ProjectId projectId, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void Serialize(ProjectId projectId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteArray(projectId.Id.ToByteArray());
             writer.WriteString(projectId.DebugName);
         }
 
-        private ProjectId DeserializeProjectId(ObjectReader reader, CancellationToken cancellationToken)
+        public static ProjectId DeserializeProjectId(ObjectReader reader, CancellationToken cancellationToken)
         {
             var guid = new Guid(reader.ReadArray<byte>());
             var debugName = reader.ReadString();
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return ProjectId.CreateFromSerialized(guid, debugName);
         }
 
-        public void Serialize(DocumentId documentId, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void Serialize(DocumentId documentId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             Serialize(documentId.ProjectId, writer, cancellationToken);
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(documentId.DebugName);
         }
 
-        private DocumentId DeserializeDocumentId(ObjectReader reader, CancellationToken cancellationToken)
+        public static DocumentId DeserializeDocumentId(ObjectReader reader, CancellationToken cancellationToken)
         {
             var projectId = DeserializeProjectId(reader, cancellationToken);
 

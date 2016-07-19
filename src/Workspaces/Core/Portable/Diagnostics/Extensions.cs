@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var result = new CompilerResultBuilder(project, version);
 
-                foreach (var tree in analysisResult.SyntaxDiagnostics.Keys.Concat(analysisResult.SemanticDiagnostics.Keys))
+                foreach (var tree in analysisResult.SyntaxDiagnostics.Keys)
                 {
                     if (analysisResult.SyntaxDiagnostics.TryGetValue(tree, out diagnosticsByAnalyzerMap) &&
                         diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
@@ -189,7 +189,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
+                }
 
+                foreach (var tree in analysisResult.SemanticDiagnostics.Keys)
+                {
                     if (analysisResult.SemanticDiagnostics.TryGetValue(tree, out diagnosticsByAnalyzerMap) &&
                         diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {

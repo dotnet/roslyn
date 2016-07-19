@@ -80,13 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 private SolutionSnapshot SolutionSnapshot => _owner.SolutionSnapshot;
 
-                public async Task RequestAssetAsync(int serviceId, byte[] checksum, string pipeName)
+                public async Task RequestAssetAsync(int serviceId, byte[] checksum, string streamName)
                 {
                     var stopWatch = Stopwatch.StartNew();
 
                     var service = SolutionSnapshot.Workspace.Services.GetRequiredService<ISolutionSnapshotService>();
 
-                    using (var stream = new SlaveDirectStream(pipeName))
+                    using (var stream = new SlaveDirectStream(streamName))
                     {
                         await stream.ConnectAsync(_source.Token).ConfigureAwait(false);
 
