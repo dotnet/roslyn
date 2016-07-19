@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Let's fix the literal up by figuring out its type
                     // For declarations, that means merging type information from the LHS and RHS
                     // For assignments, only the LHS side matters since it is necessarily typed
-                    TypeSymbol lhsAsTuple = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, node, diagnostics, Compilation);
+                    TypeSymbol lhsAsTuple = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, node, Compilation, diagnostics);
                     if (lhsAsTuple != null)
                     {
                         boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For cases where the RHS of a deconstruction-assignment is a tuple literal, the type information from the LHS determines the merged type, since all variables have a type.
         /// Returns null if a merged tuple type could not be fabricated.
         /// </summary>
-        private static TypeSymbol MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundTupleLiteral rhsLiteral, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        private static TypeSymbol MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundTupleLiteral rhsLiteral, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             int leftLength = lhsVariables.Count;
             int rightLength = rhsLiteral.Arguments.Length;
@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (element.Kind == BoundKind.TupleLiteral)
                         {
                             // (variables) on the left and (elements) on the right
-                            mergedType = MakeMergedTupleType(variable.NestedVariables, (BoundTupleLiteral)element, syntax, diagnostics, compilation);
+                            mergedType = MakeMergedTupleType(variable.NestedVariables, (BoundTupleLiteral)element, syntax, compilation, diagnostics);
                         }
-                        else if (element.Type == null)
+                        else if ((object)mergedType == null)
                         {
                             // (variables) on the left and null on the right
                             Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
@@ -323,16 +323,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (variable.Single.Type != null)
+                        if ((object)variable.Single.Type != null)
                         {
                             // typed-variable on the left
                             mergedType = variable.Single.Type;
                         }
-                        else if (element.Type == null)
+                        else if ((object)mergedType == null)
                         {
                             // typeless-variable on the left and typeless-element on the right
                             Error(diagnostics, ErrorCode.ERR_DeconstructCouldNotInferMergedType, syntax, variable.Syntax, element.Syntax);
                         }
+                    }
+                }
+                else
+                {
+                    if ((object)element.Type == null)
+                    {
+                        // a typeless element on the right, matching no variable on the left
+                        Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
                     }
                 }
 

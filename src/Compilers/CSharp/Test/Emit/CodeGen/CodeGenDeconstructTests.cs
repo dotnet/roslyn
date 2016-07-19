@@ -3168,22 +3168,26 @@ class C
         }
 
         [Fact]
-        public void TypeMergingWithTooManyRightVariables()
+        public void TypeMergingWithTooManyRightElements()
         {
             string source = @"
 class C
 {
     static void Main()
     {
-        (string x1, var x2) = (null, ""hello"", 3);
+        (string x1, var y1) = (null, ""hello"", 3);
+        (string x2, var y2) = (null, ""hello"", null);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
-                //         (string x1, var x2) = (null, "hello", 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9)
+                //         (string x1, var y1) = (null, "hello", 3);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9),
+                // (7,47): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (string x2, var y2) = (null, "hello", null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47)
                 );
         }
 
