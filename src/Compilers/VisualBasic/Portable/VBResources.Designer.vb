@@ -11875,6 +11875,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to tuples.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_Tuples() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_Tuples", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to TypeOf IsNot expression.
         '''</summary>
         Friend ReadOnly Property FEATURE_TypeOfIsNot() As String

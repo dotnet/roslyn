@@ -2972,7 +2972,10 @@ checkNullable:
             Dim tupleElements = elementBuilder.ToList
             _pool.Free(elementBuilder)
 
-            Return SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
+            Dim tupleType = SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
+
+            tupleType = CheckFeatureAvailability(Feature.Tuples, tupleType)
+            Return tupleType
         End Function
 
         Private Function ReportUnrecognizedTypeInGeneric(typeName As TypeSyntax) As TypeSyntax
