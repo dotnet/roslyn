@@ -1592,6 +1592,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make Partial Definition For {0}.
+        /// </summary>
+        internal static string MakePartialDefinitionForType {
+            get {
+                return ResourceManager.GetString("MakePartialDefinitionForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make Partial Definition For {0}....
+        /// </summary>
+        internal static string MakePartialDefinitionForTypeInNewFile {
+            get {
+                return ResourceManager.GetString("MakePartialDefinitionForTypeInNewFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {
@@ -1750,6 +1768,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Modules {
             get {
                 return ResourceManager.GetString("Modules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move Type To {0}.
+        /// </summary>
+        internal static string MoveTypeToFileName {
+            get {
+                return ResourceManager.GetString("MoveTypeToFileName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move {0}....
+        /// </summary>
+        internal static string MoveTypeToNewFile {
+            get {
+                return ResourceManager.GetString("MoveTypeToNewFile", resourceCulture);
             }
         }
         
@@ -2110,6 +2146,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string RemovingThatContainsActiveStatement {
             get {
                 return ResourceManager.GetString("RemovingThatContainsActiveStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename File To {0}.
+        /// </summary>
+        internal static string RenameFileToMatchTypeName {
+            get {
+                return ResourceManager.GetString("RenameFileToMatchTypeName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename Type To {0}.
+        /// </summary>
+        internal static string RenameTypeToMatchFileName {
+            get {
+                return ResourceManager.GetString("RenameTypeToMatchFileName", resourceCulture);
             }
         }
         

@@ -88,6 +88,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add File.
+        /// </summary>
+        internal static string AddFile {
+            get {
+                return ResourceManager.GetString("AddFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to _existing file.
         /// </summary>
         internal static string AddToExistingFile {
@@ -944,6 +953,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifiers (must match all).
+        /// </summary>
+        internal static string ModifiersLabel {
+            get {
+                return ResourceManager.GetString("ModifiersLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move {0} below {1}.
         /// </summary>
         internal static string MoveDownAutomationText {
@@ -953,20 +971,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move Type To File....
+        /// </summary>
+        internal static string MoveTypeDialogTitle {
+            get {
+                return ResourceManager.GetString("MoveTypeDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move {0} above {1}.
         /// </summary>
         internal static string MoveUpAutomationText {
             get {
                 return ResourceManager.GetString("MoveUpAutomationText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifiers (must match all).
-        /// </summary>
-        internal static string ModifiersLabel {
-            get {
-                return ResourceManager.GetString("ModifiersLabel", resourceCulture);
             }
         }
         
@@ -1378,6 +1396,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string RemoveSuppressMultipleOccurrences {
             get {
                 return ResourceManager.GetString("RemoveSuppressMultipleOccurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused usings in source file.
+        /// </summary>
+        internal static string RemoveUnusedUsings {
+            get {
+                return ResourceManager.GetString("RemoveUnusedUsings", resourceCulture);
             }
         }
         
