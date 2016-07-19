@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     if (_intoNamespace)
                     {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.GlobalNamespace : _state.NamespaceToGenerateInOpt;
+                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
                         return FormatDisplayText(_state, _inNewFile, isNested: false);
                     }
                     else
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 get
                 {
-                    return FeaturesResources.GenerateNewType;
+                    return FeaturesResources.Generate_new_type;
                 }
             }
 

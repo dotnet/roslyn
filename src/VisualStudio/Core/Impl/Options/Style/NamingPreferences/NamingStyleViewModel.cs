@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,11 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             CapitalizationSchemes = new List<CapitalizationDisplay>
                 {
-                    new CapitalizationDisplay(Capitalization.PascalCase, ServicesVSResources.CapitalizationStyleExample_PascalCase),
-                    new CapitalizationDisplay(Capitalization.CamelCase, ServicesVSResources.CapitalizationStyleExample_CamelCase),
-                    new CapitalizationDisplay(Capitalization.FirstUpper, ServicesVSResources.CapitalizationStyleExample_FirstWordUpper),
-                    new CapitalizationDisplay(Capitalization.AllUpper, ServicesVSResources.CapitalizationStyleExample_AllUpper),
-                    new CapitalizationDisplay(Capitalization.AllLower, ServicesVSResources.CapitalizationStyleExample_AllLower)
+                    new CapitalizationDisplay(Capitalization.PascalCase, ServicesVSResources.Pascal_Case_Name),
+                    new CapitalizationDisplay(Capitalization.CamelCase, ServicesVSResources.camel_Case_Name),
+                    new CapitalizationDisplay(Capitalization.FirstUpper, ServicesVSResources.First_word_upper),
+                    new CapitalizationDisplay(Capitalization.AllUpper, ServicesVSResources.ALL_UPPER),
+                    new CapitalizationDisplay(Capitalization.AllLower, ServicesVSResources.all_lower)
                 };
 
             CapitalizationSchemeIndex = CapitalizationSchemes.IndexOf(CapitalizationSchemes.Single(s => s.Capitalization == style.CapitalizationScheme));
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return _style.CreateName(new[] { ServicesVSResources.IdentifierWord_Example, ServicesVSResources.IdentifierWord_Identifier });
+                return _style.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
             }
             set
             {
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             if (string.IsNullOrWhiteSpace(NamingConventionName))
             {
-                _notificationService.SendNotification(ServicesVSResources.EnterATitleForThisNamingStyle);
+                _notificationService.SendNotification(ServicesVSResources.Enter_a_title_for_this_Naming_Style);
                 return false;
             }
 

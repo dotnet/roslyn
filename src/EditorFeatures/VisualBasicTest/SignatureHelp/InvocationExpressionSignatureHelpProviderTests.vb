@@ -625,15 +625,15 @@ End Module]]></a>.Value
             expectedOrderedItems.Add(New SignatureHelpTestItem(
 $"List(Of 'a).Add(item As 'a)
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} New With {{ .A As Integer, .B As Integer }}",
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}",
                                      String.Empty,
                                      String.Empty,
                                      currentParameterIndex:=0,
                                      description:=$"
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} New With {{ .A As Integer, .B As Integer }}"))
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}"))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -749,7 +749,7 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage, "  Await Foo()")
+            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Await Foo()")
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
                 New SignatureHelpTestItem("C.Foo() As Task", currentParameterIndex:=0, methodDocumentation:=documentation)
@@ -773,7 +773,7 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage, "  Dim r as Integer = Await Foo()")
+            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Dim r as Integer = Await Foo()")
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
                 New SignatureHelpTestItem("C.Foo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=documentation)
@@ -1777,7 +1777,7 @@ end class
                                  <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext, currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context, currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
@@ -1807,7 +1807,7 @@ class C
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
 
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 

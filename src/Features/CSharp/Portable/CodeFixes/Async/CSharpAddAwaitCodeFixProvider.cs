@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
         protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken) =>
-            CSharpFeaturesResources.InsertAwait;
+            CSharpFeaturesResources.Insert_await;
 
         protected override Task<SyntaxNode> GetNewRoot(
             SyntaxNode root,

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
         Protected Overrides Async Function GetDescription(diagnostic As Diagnostic, node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of String)
             Dim methodNode = Await GetMethodFromExpression(node, semanticModel, cancellationToken).ConfigureAwait(False)
-            Return String.Format(VBFeaturesResources.MakeAsyncFunction, methodNode.Item2.BlockStatement)
+            Return String.Format(VBFeaturesResources.Make_0_an_Async_Function, methodNode.Item2.BlockStatement)
         End Function
 
         Protected Overrides Async Function GetRootInOtherSyntaxTree(node As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxTree, SyntaxNode))

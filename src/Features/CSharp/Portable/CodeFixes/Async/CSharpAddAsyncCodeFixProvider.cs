@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            return CSharpFeaturesResources.MakeAsync;
+            return CSharpFeaturesResources.Make_the_containing_scope_async;
         }
 
         protected override async Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)

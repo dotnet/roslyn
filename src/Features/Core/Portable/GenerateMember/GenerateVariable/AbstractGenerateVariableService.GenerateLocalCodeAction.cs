@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 get
                 {
-                    var text = FeaturesResources.GenerateLocal;
+                    var text = FeaturesResources.Generate_local_0;
 
                     return string.Format(
                         text,

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
             // alright, it is in right shape.
             var undoHistory = GetUndoHistory(session.TextView);
-            using (var transaction = undoHistory.CreateTransaction(EditorFeaturesResources.BraceCompletion))
+            using (var transaction = undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion))
             {
                 var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)

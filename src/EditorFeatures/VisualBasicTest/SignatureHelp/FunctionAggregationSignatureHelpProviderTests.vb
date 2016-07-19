@@ -32,7 +32,7 @@ End Module
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count({VBWorkspaceResources.Expression1} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count({VBWorkspaceResources.expression} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -203,7 +203,7 @@ End Module
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
             expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber({VBWorkspaceResources.Expression1} As Double) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber({VBWorkspaceResources.expression} As Double) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,

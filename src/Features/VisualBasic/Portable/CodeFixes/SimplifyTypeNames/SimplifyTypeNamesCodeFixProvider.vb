@@ -70,13 +70,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Friend Shared Function GetCodeActionId(simplifyDiagnosticId As String, nodeText As String) As String
             Select Case simplifyDiagnosticId
                 Case IDEDiagnosticIds.SimplifyNamesDiagnosticId
-                    Return String.Format(VBFeaturesResources.SimplifyName, nodeText)
+                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
 
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
-                    Return String.Format(VBFeaturesResources.SimplifyMemberAccess, nodeText)
+                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
-                    Return VBFeaturesResources.RemoveMeQualification
+                    Return VBFeaturesResources.Remove_Me_qualification
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable

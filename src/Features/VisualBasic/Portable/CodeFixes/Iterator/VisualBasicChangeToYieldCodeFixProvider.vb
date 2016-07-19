@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
             root = root.ReplaceNode(returnStatement, yieldStatement)
 
-            Return Task.FromResult(Of CodeAction)(New MyCodeAction(VBFeaturesResources.ReplaceReturnWithYield, document.WithSyntaxRoot(root)))
+            Return Task.FromResult(Of CodeAction)(New MyCodeAction(VBFeaturesResources.Replace_Return_with_Yield, document.WithSyntaxRoot(root)))
         End Function
 
         Private Class MyCodeAction

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             transitiveNormalAnonymousTypeReferences = OrderAnonymousTypes(transitiveNormalAnonymousTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> anonymousTypeParts = new List<SymbolDisplayPart>();
-            anonymousTypeParts.Add(PlainText(FeaturesResources.AnonymousTypes));
+            anonymousTypeParts.Add(PlainText(FeaturesResources.Anonymous_Types_colon));
             anonymousTypeParts.AddRange(LineBreak());
 
             for (int i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 anonymousTypeParts.AddRange(Space(count: 4));
                 anonymousTypeParts.Add(Part(SymbolDisplayPartKind.ClassName, anonymousType, anonymousType.Name));
                 anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.Add(PlainText(FeaturesResources.Is));
+                anonymousTypeParts.Add(PlainText(FeaturesResources.is_));
                 anonymousTypeParts.AddRange(Space());
                 anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position, displayService));
             }

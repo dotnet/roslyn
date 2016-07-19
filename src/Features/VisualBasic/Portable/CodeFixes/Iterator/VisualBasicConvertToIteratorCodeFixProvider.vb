@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
                     If methodStatementNode IsNot Nothing AndAlso Not methodStatementNode.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
                         root = AddIteratorKeywordToMethod(root, methodStatementNode)
                         Return New MyCodeAction(
-                                        String.Format(VBFeaturesResources.ConvertToIterator, methodStatementNode.Identifier),
+                                        String.Format(VBFeaturesResources.Convert_0_to_Iterator, methodStatementNode.Identifier),
                                         document.WithSyntaxRoot(root))
                     End If
                 Case SyntaxKind.MultiLineFunctionLambdaExpression
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
                     If lambdaNode IsNot Nothing AndAlso Not lambdaNode.SubOrFunctionHeader.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
                         root = AddIteratorKeywordToLambda(root, lambdaNode)
                         Return New MyCodeAction(
-                                    String.Format(VBFeaturesResources.ConvertToIterator, lambdaNode.SubOrFunctionHeader.GetTypeDisplayName()),
+                                    String.Format(VBFeaturesResources.Convert_0_to_Iterator, lambdaNode.SubOrFunctionHeader.GetTypeDisplayName()),
                                     document.WithSyntaxRoot(root))
                     End If
                 Case Else

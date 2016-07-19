@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             string errorMessage = null;
 
             var result = _waitIndicator.Wait(
-                title: EditorFeaturesResources.GoToDefinition,
-                message: EditorFeaturesResources.NavigatingToDefinition,
+                title: EditorFeaturesResources.Go_to_Definition,
+                message: EditorFeaturesResources.Navigating_to_definition,
                 allowCancel: true,
                 action: waitContext =>
                 {
@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                         return;
                     }
 
-                    errorMessage = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                    errorMessage = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
                 });
 
             if (result == WaitIndicatorResult.Completed && errorMessage != null)
             {
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.GoToDefinition, severity: NotificationSeverity.Information);
+                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
 
             return true;

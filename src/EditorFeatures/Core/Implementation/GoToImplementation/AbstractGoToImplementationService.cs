@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 return TryExternalGotoDefinition(document, position, cancellationToken, out message);
             }
 
-            message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+            message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
             return false;
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 }
                 else
                 {
-                    message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                    message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
                     return false;
                 }
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
             if (implementations.Count == 0)
             {
-                message = EditorFeaturesResources.SymbolHasNoImplementations;
+                message = EditorFeaturesResources.The_symbol_has_no_implementations;
                 return false;
             }
             else if (implementations.Count == 1)
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else
             {
-                message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
                 return false;
             }
         }
