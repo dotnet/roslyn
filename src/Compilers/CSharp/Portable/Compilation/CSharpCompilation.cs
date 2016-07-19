@@ -2843,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
             }
 
-            var fields = memberTypes.Select((t, i) => new AnonymousTypeField(memberNames[i], Location.None, (TypeSymbol)t)).ToImmutableArray();
+            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
             var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);

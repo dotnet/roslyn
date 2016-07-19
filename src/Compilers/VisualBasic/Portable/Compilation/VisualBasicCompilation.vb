@@ -2609,15 +2609,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 memberTypes As ImmutableArray(Of ITypeSymbol),
                 memberNames As ImmutableArray(Of String)) As INamedTypeSymbol
 
-            Dim index = 0
+            Dim i = 0
             For Each t In memberTypes
-                t.EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(memberTypes)}({index})")
+                t.EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(memberTypes)}({i})")
 
-                index = index + 1
+                i = i + 1
             Next
 
-            Dim fields = memberTypes.Select(Function(t, i) New AnonymousTypeField(memberNames(i), DirectCast(t, TypeSymbol), Location.None)).
-                                     ToImmutableArray()
+            Dim fields = memberTypes.SelectAsArray(
+                Function(type, index, loc) New AnonymousTypeField(memberNames(index), DirectCast(type, TypeSymbol), loc), Location.None)
 
             Dim descriptor = New AnonymousTypeDescriptor(fields, Location.None, isImplicitlyDeclared:=False)
             Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
