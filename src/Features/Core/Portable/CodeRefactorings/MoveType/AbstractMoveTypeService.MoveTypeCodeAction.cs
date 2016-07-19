@@ -36,17 +36,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 if (_renameFile)
                 {
                     return string.Format(
-                        FeaturesResources.RenameFileToMatchTypeName,
+                        FeaturesResources.RenameFileTo_0,
                         _state.TargetFileNameCandidate);
                 }
                 else if (_renameType)
                 {
                     return string.Format(
-                        FeaturesResources.RenameTypeToMatchFileName, _state.DocumentName);
+                        FeaturesResources.RenameTypeTo_0, _state.DocumentName);
                 }
 
                 return string.Format(
-                    FeaturesResources.MoveTypeToFileName,
+                    FeaturesResources.MoveTypeTo_0,
                     _state.TargetFileNameCandidate);
             }
 
