@@ -4535,6 +4535,30 @@ End Class";
         }
 
         [Fact]
+        public void CreateAnonymousTypeSymbol_VisualBasicElements()
+        {
+            var vbSource = @"Public Class C
+End Class";
+
+            var vbComp = CreateVisualBasicCompilation("VB", vbSource,
+                                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            vbComp.VerifyDiagnostics();
+            var vbType = (ITypeSymbol)vbComp.GlobalNamespace.GetMembers("C").Single();
+
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+            try
+            {
+                comp.CreateAnonymousTypeSymbol(ImmutableArray.Create(vbType), ImmutableArray.Create("m1"));
+                Assert.True(false);
+            }
+            catch (ArgumentException e)
+            {
+                Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
+            }
+        }
+
+        [Fact]
         public void CreateTupleTypeSymbol2_BadArguments()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
