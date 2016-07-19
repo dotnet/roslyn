@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A tuple of {0} elements can have {0} names or none, but not {1}..
+        /// </summary>
+        internal static string A_tuple_of_0_elements_can_have_0_names_or_none_but_not_1 {
+            get {
+                return ResourceManager.GetString("A_tuple_of_0_elements_can_have_0_names_or_none_but_not_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Absolute path expected..
         /// </summary>
         internal static string AbsolutePathExpected {
@@ -1150,15 +1159,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string SymWriterNotDeterministic {
             get {
                 return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be the same number of names and elements, and the names cannot all be null..
-        /// </summary>
-        internal static string TupleNamesAllOrNone {
-            get {
-                return ResourceManager.GetString("TupleNamesAllOrNone", resourceCulture);
             }
         }
         

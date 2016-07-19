@@ -513,8 +513,8 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
-  <data name="TupleNamesAllOrNone" xml:space="preserve">
-    <value>If names are used in a tuple type, then there must be the same number of names and elements, and the names cannot all be null.</value>
+  <data name="A_tuple_of_0_elements_can_have_0_names_or_none_but_not_1" xml:space="preserve">
+    <value>A tuple of {0} elements can have {0} names or none, but not {1}.</value>
   </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
                 {
                     Eat(SymbolKeyType.Null);
-                    return CreateNullForString() ;
+                    return CreateNullForString();
                 }
 
                 EatDoubleQuote();
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
 
         private class GetHashCodeReader : Reader<int, int>
         {
-            private static readonly ObjectPool<GetHashCodeReader> s_pool = 
+            private static readonly ObjectPool<GetHashCodeReader> s_pool =
                 new ObjectPool<GetHashCodeReader>(() => new GetHashCodeReader());
 
             private GetHashCodeReader()

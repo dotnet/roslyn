@@ -2776,7 +2776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
             }
 
-            CheckTupleElementNames(elementTypes.Length, elementNames);
+            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames);
 
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
@@ -2795,16 +2795,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Check that if any names are provided, and their number matches the expected cardinality.
+        /// Returns a normalized version of the element names (empty array if all the names are null).
         /// </summary>
-        private static void CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        private static ImmutableArray<string> CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
         {
             if (!elementNames.IsDefault)
             {
-                if (elementNames.Length != cardinality || elementNames.All(n => n == null))
+                if (elementNames.Length != cardinality)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.A_tuple_of_0_elements_can_have_0_names_or_none_but_not_1, cardinality, elementNames.Length), nameof(elementNames));
+                }
+
+                if (elementNames.All(n => n == null))
+                {
+                    return default(ImmutableArray<string>);
                 }
             }
+
+            return elementNames;
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames)
@@ -2822,7 +2830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
             }
 
-            CheckTupleElementNames(cardinality, elementNames);
+            elementNames = CheckTupleElementNames(cardinality, elementNames);
 
             return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
         }

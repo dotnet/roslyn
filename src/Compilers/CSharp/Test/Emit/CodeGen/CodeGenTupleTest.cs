@@ -4417,18 +4417,7 @@ class C
             }
             catch (ArgumentException e)
             {
-                Assert.Contains(CodeAnalysisResources.TupleNamesAllOrNone, e.Message);
-            }
-
-            // if names are provided, they can't all be null
-            try
-            {
-                comp.CreateTupleTypeSymbol(vt2, new string[] { null, null }.AsImmutable());
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleNamesAllOrNone, e.Message);
+                Assert.Contains("A tuple of 2 elements can have 2 names or none, but not 1.", e.Message);
             }
         }
 
@@ -4441,7 +4430,7 @@ class C
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType);
-            var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, default(ImmutableArray<string>));
+            var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create<string>(null, null));
 
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
@@ -4734,7 +4723,7 @@ End Class";
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
 
-            var tupleWithoutNames = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType), default(ImmutableArray<string>));
+            var tupleWithoutNames = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType), ImmutableArray.Create<string>(null, null));
 
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
