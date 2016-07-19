@@ -50,6 +50,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGen\ItemTokenMap.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="InternalUtilities\IncrementalHash.cs" />
     <Compile Include="PEWriter\ExportedType.cs" />
@@ -145,7 +146,6 @@
     <Compile Include="CodeGen\ReferenceDependencyWalker.cs" />
     <Compile Include="CodeGen\ScopeType.cs" />
     <Compile Include="CodeGen\SequencePointList.cs" />
-    <Compile Include="CodeGen\StringTokenMap.cs" />
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.cs" />
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.SwitchBucket.cs" />
     <Compile Include="CodeGen\SwitchStringJumpTableEmitter.cs" />

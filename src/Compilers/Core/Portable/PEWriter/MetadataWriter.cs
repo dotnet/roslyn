@@ -3026,6 +3026,7 @@ namespace Microsoft.Cci
 
         internal const uint LiteralMethodDefinitionToken = 0x80000000;
         internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
+        internal const uint SourceDocumentIndex = 0x20000000;
         internal const uint ModuleVersionIdStringToken = 0x80000000;
         
         private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
@@ -3064,6 +3065,9 @@ namespace Microsoft.Cci
                                             break;
                                         case LiteralGreatestMethodDefinitionToken:
                                             token = GreatestMethodDefIndex;
+                                            break;
+                                        case SourceDocumentIndex:
+                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(((CommonPEModuleBuilder)module).GetSourceDocumentFromFakeToken((uint)(pseudoToken & 0x00ffffff)));
                                             break;
                                         default:
                                             throw ExceptionUtilities.UnexpectedValue(tokenMask);

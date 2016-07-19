@@ -1,27 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     /// <summary>
-    /// Handles storage of strings referenced via tokens in metadata. When items are stored 
-    /// they are uniquely "associated" with fake token, which is basically a sequential number.
-    /// IL gen will use these fake tokens during codegen and later, when actual token values 
-    /// are known the method bodies will be patched.
-    /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
+    /// Handles storage of items referenced via tokens in metadata. When items are stored 
+    /// they are uniquely "associated" with fake tokens, which are basically sequential numbers.
+    /// IL gen will use these fake tokens during codegen and later, when actual values 
+    /// are known, the method bodies will be patched.
+    /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item. (The second is really just a list).
     /// </summary>
-    internal sealed class StringTokenMap
+    internal sealed class ItemTokenMap<T> where T: class
     {
-        private readonly ConcurrentDictionary<string, uint> _itemToToken = new ConcurrentDictionary<string, uint>(ReferenceEqualityComparer.Instance);
-        private readonly ArrayBuilder<string> _items = new ArrayBuilder<string>();
+        private readonly ConcurrentDictionary<T, uint> _itemToToken = new ConcurrentDictionary<T, uint>(ReferenceEqualityComparer.Instance);
+        private readonly ArrayBuilder<T> _items = new ArrayBuilder<T>();
 
-        public uint GetOrAddTokenFor(string item)
+        public uint GetOrAddTokenFor(T item)
         {
             uint token;
             // NOTE: cannot use GetOrAdd here since items and itemToToken must be in sync
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return AddItem(item);
         }
 
-        private uint AddItem(string item)
+        private uint AddItem(T item)
         {
             uint token;
 
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return token;
         }
 
-        public string GetItem(uint token)
+        public T GetItem(uint token)
         {
             lock (_items)
             {
@@ -61,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public IEnumerable<string> GetAllItems()
+        public IEnumerable<T> GetAllItems()
         {
             lock (_items)
             {
@@ -71,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         //TODO: why is this is called twice during emit?
         //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
-        public IEnumerable<string> GetAllItemsAndCount(out int count)
+        public IEnumerable<T> GetAllItemsAndCount(out int count)
         {
             lock (_items)
             {

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
                                                                <![CDATA[
 Namespace Microsoft.CodeAnalysis.Runtime
     Public Class Instrumentation
-        Public Shared Function CreatePayload(mvid As System.Guid, methodToken As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
+        Public Shared Function CreatePayload(mvid As System.Guid, methodToken As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
             Return payload
         End Function
 

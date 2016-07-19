@@ -1388,6 +1388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitSourceDocumentIndex(BoundSourceDocumentIndex node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitConversion(BoundConversion node)
         {
             if (node.ConversionKind == ConversionKind.MethodGroup)

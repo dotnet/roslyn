@@ -24,16 +24,19 @@ Namespace Microsoft.CodeAnalysis.Runtime
     Public Class Instrumentation
     
         Private Shared _payloads As Boolean()()
+        Private Shared _fileIndices As Integer()
         Private Shared _mvid As System.Guid
 
-        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
+        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
             If _mvid <> mvid Then
                 _payloads = New Boolean(100)() {}
+                _fileIndices = New Integer(100) {}
                 _mvid = mvid
             End If
 
             If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then
                 _payloads(methodIndex) = payload
+                _fileIndices(methodIndex) = fileIndex
                 Return payload
             End If
 
@@ -49,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.Runtime
                 Dim payload As Boolean() = _payloads(i)
                 if payload IsNot Nothing
                     System.Console.WriteLine(i)
+                    System.Console.WriteLine(_fileIndices(i))
                     For j As Integer = 0 To payload.Length - 1
                         System.Console.WriteLine(payload(j))
                         payload(j) = False
@@ -84,15 +88,19 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
 2
+1
 True
 5
+1
 True
 True
 False
+True
 True
 True
 True
@@ -109,31 +117,113 @@ True
                 "Program.TestMain",
             <![CDATA[
 {
-  // Code size       52 (0x34)
-  .maxstack  4
+  // Code size       57 (0x39)
+  .maxstack  5
   .locals init (Boolean() V_0)
   IL_0000:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
   IL_0005:  ldtoken    "Sub Program.TestMain()"
   IL_000a:  ldelem.ref
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
-  IL_000d:  brtrue.s   IL_002f
+  IL_000d:  brtrue.s   IL_0034
   IL_000f:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
   IL_0014:  ldtoken    "Sub Program.TestMain()"
-  IL_0019:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
-  IL_001e:  ldtoken    "Sub Program.TestMain()"
-  IL_0023:  ldelema    "Boolean()"
-  IL_0028:  ldc.i4.1
-  IL_0029:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, ByRef Boolean(), Integer) As Boolean()"
-  IL_002e:  stloc.0
-  IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldc.i4.1
-  IL_0032:  stelem.i1
-  IL_0033:  ret
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0023:  ldtoken    "Sub Program.TestMain()"
+  IL_0028:  ldelema    "Boolean()"
+  IL_002d:  ldc.i4.1
+  IL_002e:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ret
 }
                 ]]>.Value)
 
+        End Sub
+
+        <Fact>
+        Public Sub MultipleFilesCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+        Called()
+    End Sub
+End Module
+]]>
+                                         </file>
+
+            Dim testSource1 As XElement = <file name="d.vb">
+                                              <![CDATA[
+Module More
+    Sub Called()                                                       ' Method 3
+        Another()
+        Another()
+    End Sub
+End Module
+]]>
+                                          </file>
+
+            Dim testSource2 As XElement = <file name="e.vb">
+                                              <![CDATA[
+Module EvenMore
+    Sub Another()                                                       ' Method 4
+    End Sub
+End Module
+]]>
+                                          </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(testSource1)
+            source.Add(testSource2)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+1
+1
+True
+True
+True
+2
+1
+True
+True
+3
+2
+True
+True
+True
+4
+3
+True
+7
+1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
         End Sub
 
         <Fact>
@@ -180,27 +270,33 @@ End Module
 Hello
 Flushing
 1
+1
 True
 True
 2
+1
 True
 True
 True
 True
 3
+1
 True
 True
 True
 4
+1
 True
 True
 True
 True
 True
 7
+1
 True
 True
 False
+True
 True
 True
 True
@@ -217,8 +313,8 @@ True
                 "MyBox(Of T).GetValue",
             <![CDATA[
 {
-  // Code size       95 (0x5f)
-  .maxstack  4
+  // Code size      100 (0x64)
+  .maxstack  5
   .locals init (T V_0, //GetValue
                 Boolean() V_1)
   IL_0000:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
@@ -226,43 +322,44 @@ True
   IL_000a:  ldelem.ref
   IL_000b:  stloc.1
   IL_000c:  ldloc.1
-  IL_000d:  brtrue.s   IL_002f
+  IL_000d:  brtrue.s   IL_0034
   IL_000f:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
   IL_0014:  ldtoken    "Function MyBox(Of T).GetValue() As T"
-  IL_0019:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
-  IL_001e:  ldtoken    "Function MyBox(Of T).GetValue() As T"
-  IL_0023:  ldelema    "Boolean()"
-  IL_0028:  ldc.i4.4
-  IL_0029:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, ByRef Boolean(), Integer) As Boolean()"
-  IL_002e:  stloc.1
-  IL_002f:  ldloc.1
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldc.i4.1
-  IL_0032:  stelem.i1
-  IL_0033:  ldloc.1
-  IL_0034:  ldc.i4.2
-  IL_0035:  ldc.i4.1
-  IL_0036:  stelem.i1
-  IL_0037:  ldarg.0
-  IL_0038:  ldfld      "MyBox(Of T)._value As T"
-  IL_003d:  box        "T"
-  IL_0042:  brtrue.s   IL_0052
-  IL_0044:  ldloc.1
-  IL_0045:  ldc.i4.1
-  IL_0046:  ldc.i4.1
-  IL_0047:  stelem.i1
-  IL_0048:  ldloca.s   V_0
-  IL_004a:  initobj    "T"
-  IL_0050:  br.s       IL_005d
-  IL_0052:  ldloc.1
-  IL_0053:  ldc.i4.3
-  IL_0054:  ldc.i4.1
-  IL_0055:  stelem.i1
-  IL_0056:  ldarg.0
-  IL_0057:  ldfld      "MyBox(Of T)._value As T"
-  IL_005c:  stloc.0
-  IL_005d:  ldloc.0
-  IL_005e:  ret
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0023:  ldtoken    "Function MyBox(Of T).GetValue() As T"
+  IL_0028:  ldelema    "Boolean()"
+  IL_002d:  ldc.i4.4
+  IL_002e:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
+  IL_0033:  stloc.1
+  IL_0034:  ldloc.1
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4.2
+  IL_003a:  ldc.i4.1
+  IL_003b:  stelem.i1
+  IL_003c:  ldarg.0
+  IL_003d:  ldfld      "MyBox(Of T)._value As T"
+  IL_0042:  box        "T"
+  IL_0047:  brtrue.s   IL_0057
+  IL_0049:  ldloc.1
+  IL_004a:  ldc.i4.1
+  IL_004b:  ldc.i4.1
+  IL_004c:  stelem.i1
+  IL_004d:  ldloca.s   V_0
+  IL_004f:  initobj    "T"
+  IL_0055:  br.s       IL_0062
+  IL_0057:  ldloc.1
+  IL_0058:  ldc.i4.3
+  IL_0059:  ldc.i4.1
+  IL_005a:  stelem.i1
+  IL_005b:  ldarg.0
+  IL_005c:  ldfld      "MyBox(Of T)._value As T"
+  IL_0061:  stloc.0
+  IL_0062:  ldloc.0
+  IL_0063:  ret
 }
                 ]]>.Value)
         End Sub
@@ -305,10 +402,12 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[OK
 Flushing
 1
+1
 True
 True
 True
 2
+1
 True
 True
 True
@@ -320,6 +419,7 @@ True
 False
 True
 5
+1
 True
 True
 False
@@ -331,7 +431,7 @@ True
 True
 True
 True
-
+True
 ]]>
 
             CompileAndVerify(source, expectedOutput)
@@ -390,24 +490,29 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[GooGooGlueGooGoo
 Flushing
 1
+1
 True
 True
 True
 2
+1
 True
 True
 3
+1
 True
 True
 True
 True
 4
+1
 True
 True
 True
 False
 True
 5
+1
 True
 True
 True
@@ -415,9 +520,11 @@ False
 True
 True
 8
+1
 True
 True
 False
+True
 True
 True
 True
@@ -513,6 +620,7 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
@@ -529,6 +637,7 @@ False
 True
 True
 2
+1
 True
 True
 True
@@ -545,6 +654,7 @@ True
 True
 True
 3
+1
 True
 True
 True
@@ -556,6 +666,7 @@ True
 True
 True
 4
+1
 True
 True
 True
@@ -563,9 +674,11 @@ True
 True
 True
 7
+1
 True
 True
 False
+True
 True
 True
 True
@@ -622,6 +735,7 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
@@ -633,13 +747,16 @@ False
 True
 True
 2
+1
 True
 True
 True
 5
+1
 True
 True
 False
+True
 True
 True
 True
@@ -699,6 +816,7 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
@@ -715,13 +833,16 @@ True
 True
 False
 2
+1
 True
 True
 True
 5
+1
 True
 True
 False
+True
 True
 True
 True
@@ -766,6 +887,7 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
@@ -775,13 +897,16 @@ False
 True
 True
 2
+1
 True
 True
 True
 5
+1
 True
 True
 False
+True
 True
 True
 True
@@ -843,14 +968,17 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
 2
+1
 True
 True
 True
 5
+1
 True
 True
 False
@@ -862,12 +990,16 @@ True
 True
 True
 True
+True
 9
+1
 True
 True
 14
+1
 True
 15
+1
 True
 True
 True
@@ -875,6 +1007,7 @@ True
 True
 True
 16
+1
 True
 True
 ]]>
@@ -916,6 +1049,7 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
@@ -928,13 +1062,16 @@ True
 True
 True
 2
+1
 True
 True
 True
 5
+1
 True
 True
 False
+True
 True
 True
 True
@@ -994,25 +1131,31 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
 1
+1
 True
 True
 True
 True
 2
+1
 True
 True
 True
 3
+1
 True
 8
+1
 True
 True
 True
 False
 11
+1
 True
 True
 False
+True
 True
 True
 True

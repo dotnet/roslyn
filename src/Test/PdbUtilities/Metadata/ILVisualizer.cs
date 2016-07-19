@@ -391,6 +391,13 @@ namespace Roslyn.Test.MetadataUtilities
                                         break;
                                     }
 
+                                    // Check of an encoding of a source document index.
+                                    if ((pseudoToken & 0xff000000) == 0x20000000)
+                                    {
+                                        sb.Append("Source Document " + (pseudoToken & 0x00ffffff).ToString());
+                                        break;
+                                    }
+
                                     // Check for a raw token value, encoded with a 1 high-order bit.
                                     if ((pseudoToken & 0x80000000) != 0 && pseudoToken != 0xffffffff)
                                     {
