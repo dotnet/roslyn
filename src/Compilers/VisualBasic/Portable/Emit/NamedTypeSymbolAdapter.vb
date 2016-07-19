@@ -392,16 +392,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of ITypeReference) Implements ITypeDefinition.Interfaces
+        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of Cci.InterfaceImplementation) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In GetInterfacesToEmit()
-                Yield moduleBeingBuilt.Translate([interface],
-                                                 syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
-                                                 diagnostics:=context.Diagnostics,
-                                                 fromImplements:=True)
+                Dim translated = moduleBeingBuilt.Translate([interface],
+                                                            syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            diagnostics:=context.Diagnostics,
+                                                            fromImplements:=True)
+
+                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
+                ' Add support for tuple attributes on interface implementations
+                Yield New Cci.InterfaceImplementation(translated, ImmutableArray(Of Cci.ICustomAttribute).Empty)
             Next
         End Function
 
