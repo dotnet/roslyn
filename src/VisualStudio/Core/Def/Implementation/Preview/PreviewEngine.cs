@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public int GetConfirmation(out string pbstrConfirmation)
         {
-            pbstrConfirmation = EditorFeaturesResources.Apply;
+            pbstrConfirmation = EditorFeaturesResources.Apply2;
             return VSConstants.S_OK;
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public int GetTextViewDescription(out string pbstrTextViewDescription)
         {
-            pbstrTextViewDescription = EditorFeaturesResources.PreviewCodeChanges;
+            pbstrTextViewDescription = EditorFeaturesResources.Preview_Code_Changes_colon;
             return VSConstants.S_OK;
         }
 
@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             public override int GetText(out VSTREETEXTOPTIONS tto, out string ppszText)
             {
                 tto = VSTREETEXTOPTIONS.TTO_DEFAULT;
-                ppszText = ServicesVSResources.NoChanges;
+                ppszText = ServicesVSResources.No_Changes;
                 return VSConstants.S_OK;
             }
 

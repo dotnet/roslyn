@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -163,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var text = isGeneric
                 ? overloadCount == 1
-                    ? FeaturesResources.GenericOverload
-                    : FeaturesResources.GenericOverloads
+                    ? FeaturesResources.generic_overload
+                    : FeaturesResources.generic_overloads
                 : overloadCount == 1
-                    ? FeaturesResources.Overload
-                    : FeaturesResources.Overloads;
+                    ? FeaturesResources.overload
+                    : FeaturesResources.overloads_;
 
             textContentBuilder.AddText(NonBreakingSpaceString + text);
         }
@@ -206,8 +207,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, bool isAttributeNameContext, ISyntaxFactsService syntaxFacts, out string name)
+        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
         {
+            var isAttributeNameContext = context.IsAttributeNameContext;
+            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+
             if (!isAttributeNameContext)
             {
                 name = null;

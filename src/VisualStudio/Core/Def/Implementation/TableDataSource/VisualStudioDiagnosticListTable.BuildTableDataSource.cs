@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ChangeStableState(IsStable);
             }
 
-            public override string DisplayName => ServicesVSResources.BuildTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Build_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => IdentifierString;
             public override object GetItemKey(object data) => data;
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case SuppressionStateColumnDefinition.ColumnName:
                             // Build doesn't report suppressed diagnostics.
                             Contract.ThrowIfTrue(data.IsSuppressed);
-                            content = ServicesVSResources.SuppressionStateActive;
+                            content = ServicesVSResources.Active;
                             return true;
                         default:
                             content = null;

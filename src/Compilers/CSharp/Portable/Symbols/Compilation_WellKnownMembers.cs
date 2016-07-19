@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal SynthesizedAttributeData SynthesizeTupleNamesAttribute(TypeSymbol type)
+        internal SynthesizedAttributeData SynthesizeTupleNamesAttributeOpt(TypeSymbol type)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.ContainsTuple());
@@ -499,6 +499,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stringType = GetSpecialType(SpecialType.System_String);
             Debug.Assert((object)stringType != null);
             var names = TupleNamesEncoder.Encode(type, stringType);
+
+            // If there are no names, elide the attribute entirely
+            if (names.IsDefault)
+            {
+                return null;
+            }
+
             var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, stringType, customModifiers: ImmutableArray<CustomModifier>.Empty);
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
@@ -511,6 +518,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var namesBuilder = ArrayBuilder<string>.GetInstance();
                 type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
                 Debug.Assert(namesBuilder.Any());
+
+                // If none of the tuples have names, return a default array
+                if (namesBuilder.All(name => name == null))
+                {
+                    namesBuilder.Free();
+                    return default(ImmutableArray<TypedConstant>);
+                }
 
                 var names = namesBuilder.SelectAsArray((name, constantType) =>
                     new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);

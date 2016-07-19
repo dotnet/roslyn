@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property DocumentationText As String
             Get
-                Return VBWorkspaceResources.IfConditionReturnsResults
+                Return VBWorkspaceResources.If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse
             End Get
         End Property
 
@@ -31,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.ExpressionToEvaluate
+                    Return VBWorkspaceResources.The_expression_to_evaluate
                 Case 1
-                    Return VBWorkspaceResources.EvaluatedAndReturnedIfTrue
+                    Return VBWorkspaceResources.Evaluated_and_returned_if_condition_evaluates_to_True
                 Case 2
-                    Return VBWorkspaceResources.EvaluatedAndReturnedIfFalse
+                    Return VBWorkspaceResources.Evaluated_and_returned_if_condition_evaluates_to_False
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -44,11 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Condition
+                    Return VBWorkspaceResources.condition
                 Case 1
-                    Return VBWorkspaceResources.ExpressionIfTrue
+                    Return VBWorkspaceResources.expressionIfTrue
                 Case 2
-                    Return VBWorkspaceResources.ExpressionIfFalse
+                    Return VBWorkspaceResources.expressionIfFalse
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (string.IsNullOrWhiteSpace(SymbolSpecName))
             {
-                _notificationService.SendNotification(ServicesVSResources.EnterATitleForThisSymbolSpecification);
+                _notificationService.SendNotification(ServicesVSResources.Enter_a_title_for_this_Symbol_Specification);
                 return false;
             }
 

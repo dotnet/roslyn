@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             var parts = new List<SymbolDisplayPart>();
 
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage}\r\n  "));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage_colon}\r\n  "));
 
             var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
             returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;

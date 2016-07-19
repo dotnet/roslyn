@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_memoryMappedInfo != null)
                     {
-                        throw new InvalidOperationException(WorkspacesResources.TemporaryStorageCannotBeWrittenMultipleTimes);
+                        throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
                     if (stream.Length == 0)

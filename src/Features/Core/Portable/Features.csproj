@@ -168,6 +168,7 @@
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionDescription.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
+    <Compile Include="Completion\CompletionHelper.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
     <Compile Include="Completion\CompletionItemFilter.cs" />
     <Compile Include="Completion\CompletionItemRules.cs" />
@@ -186,7 +187,8 @@
     <Compile Include="Completion\Providers\AbstractMemberInsertingCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractOverrideCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractOverrideCompletionProvider.ItemGetter.cs" />
-    <Compile Include="Completion\Providers\AbstractPartialCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\AbstractPartialTypeCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\AbstractPartialMethodCompletionProvider.cs" />
     <Compile Include="Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\Providers\MemberInsertingCompletionItem.cs" />
@@ -211,6 +213,8 @@
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
+    <Compile Include="Shared\Utilities\PatternMatcher.Segment.cs" />
+    <Compile Include="Shared\Utilities\PatternMatcher.TextChunk.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />

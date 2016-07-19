@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal sealed class SuppressionCodeAction : CodeAction.SimpleCodeAction
     {
         public SuppressionCodeAction(Diagnostic diagnostic, IEnumerable<CodeAction> nestedActions)
-            : base(string.Format(FeaturesResources.SuppressionCodeActionTitle, diagnostic.Id), nestedActions.AsImmutableOrEmpty())
+            : base(string.Format(FeaturesResources.Suppress_0, diagnostic.Id), nestedActions.AsImmutableOrEmpty())
         {
         }
     }

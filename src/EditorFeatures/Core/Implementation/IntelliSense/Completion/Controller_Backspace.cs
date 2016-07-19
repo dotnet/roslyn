@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var trigger = CompletionTrigger.CreateDeletionTrigger(deletedChar.GetValueOrDefault());
                 var completionService = this.GetCompletionService();
 
-                this.StartNewModelComputation(completionService, trigger, filterItems: false);
+                this.StartNewModelComputation(
+                    completionService, trigger, filterItems: false, dismissIfEmptyAllowed: true);
 
                 return;
             }
@@ -100,7 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 else if (model != null && model.Trigger.Kind != CompletionTriggerKind.Deletion)
                 {
                     // Filter the model if it wasn't invoked on backspace.
-                    sessionOpt.FilterModel(CompletionFilterReason.BackspaceOrDelete);
+                    sessionOpt.FilterModel(
+                        CompletionFilterReason.BackspaceOrDelete,
+                        recheckCaretPosition: false,
+                        dismissIfEmptyAllowed: true,
+                        filterState: null);
                 }
             }
         }
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the context span and see if we're outside it.
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var contextSpan = GetCompletionService().GetDefaultItemSpan(text, caretPoint);
+            var contextSpan = GetCompletionService().GetDefaultCompletionListSpan(text, caretPoint);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
         }

@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public CommandState GetCommandState(OrganizeDocumentCommandArgs args, Func<CommandState> nextHandler)
         {
-            return GetCommandState(args, nextHandler, _ => EditorFeaturesResources.OrganizeDocument);
+            return GetCommandState(args, nextHandler, _ => EditorFeaturesResources.Organize_Document);
         }
 
         public void ExecuteCommand(OrganizeDocumentCommandArgs args, Action nextHandler)
         {
             this.WaitIndicator.Wait(
-                title: EditorFeaturesResources.OrganizeDocument,
-                message: EditorFeaturesResources.OrganizingDocument,
+                title: EditorFeaturesResources.Organize_Document,
+                message: EditorFeaturesResources.Organizing_document,
                 allowCancel: true,
                 action: waitContext => this.Organize(args.SubjectBuffer, waitContext.CancellationToken));
         }
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         public void ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, Action nextHandler)
         {
             this.WaitIndicator.Wait(
-                title: EditorFeaturesResources.OrganizeDocument,
-                message: EditorFeaturesResources.OrganizingDocument,
+                title: EditorFeaturesResources.Organize_Document,
+                message: EditorFeaturesResources.Organizing_document,
                 allowCancel: true,
                 action: waitContext => this.SortAndRemoveUnusedImports(args.SubjectBuffer, waitContext.CancellationToken));
         }

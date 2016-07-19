@@ -90,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             {
                 return null;
             }
+
+            public override bool IsFunctionPointer()
+            {
+                return true;
+            }
         }
     }
 }

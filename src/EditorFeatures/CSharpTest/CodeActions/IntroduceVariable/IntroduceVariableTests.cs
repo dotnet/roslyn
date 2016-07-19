@@ -901,7 +901,7 @@ class Program
     }
 }";
 
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5") });
 
             await TestAsync(code,
 @"
@@ -941,7 +941,7 @@ class Program
 }";
 
             await TestExactActionSetOfferedAsync(code,
-                new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5"), string.Format(FeaturesResources.IntroduceLocalConstantForAll, "5") });
+                new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5") });
         }
 
         [WorkItem(529795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
@@ -1699,7 +1699,7 @@ b
 c""|];
     }
 }",
-string.Format(FeaturesResources.IntroduceLocalConstantFor, @"@""a b c"""),
+string.Format(FeaturesResources.Introduce_local_constant_for_0, @"@""a b c"""),
 index: 2);
         }
 

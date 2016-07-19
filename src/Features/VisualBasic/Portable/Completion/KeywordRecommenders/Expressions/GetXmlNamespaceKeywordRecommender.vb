@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If context.IsAnyExpressionContext Then
                 Return SpecializedCollections.SingletonEnumerable(
                    CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.GetXmlNamespaceKeyword,
-                                                                VBFeaturesResources.GetxmlnamespaceFunction,
+                                                                VBFeaturesResources.GetXmlNamespace_function,
                                                                 Glyph.MethodPublic,
                                                                 New GetXmlNamespaceExpressionDocumentation(),
                                                                 context.SemanticModel,

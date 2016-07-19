@@ -14,14 +14,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsPreprocessorEndDirectiveKeywordContext AndAlso HasMatchingIfDirective(context, cancellationToken) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("If", VBFeaturesResources.EndIfCCKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("If", VBFeaturesResources.Terminates_the_definition_of_an_SharpIf_block))
             End If
 
             If context.IsPreprocessorStartContext Then
                 Dim innermostKind = context.SyntaxTree.GetInnermostIfPreprocessorKind(context.Position, cancellationToken)
 
                 If innermostKind.HasValue Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#End If", VBFeaturesResources.EndIfCCKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#End If", VBFeaturesResources.Terminates_the_definition_of_an_SharpIf_block))
                 End If
             End If
 

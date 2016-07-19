@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
 
         public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.SuppressWithGlobalSuppressMessage);
+            equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);
         public static bool IsEquivalenceKeyForPragmaWarning(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.SuppressWithPragma);
+            equivalenceKey.StartsWith(FeaturesResources.in_Source);
         public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix);
+            equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
     }
 }

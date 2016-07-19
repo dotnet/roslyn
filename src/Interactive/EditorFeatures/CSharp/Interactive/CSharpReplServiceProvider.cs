@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         {
             get
             {
-                return string.Format(CSharpInteractiveEditorResources.MicrosoftRoslynCSharpCompiler,
+                return string.Format(CSharpInteractiveEditorResources.Microsoft_R_Roslyn_CSharp_Compiler_version_0,
                 FileVersionInfo.GetVersionInfo(typeof(CSharpCommandLineArguments).Assembly.Location).FileVersion);
             }
         }

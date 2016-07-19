@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
             if (previewService != null && result.PreviewChanges)
             {
                 finalSolution = previewService.PreviewChanges(
-                    string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.ChangeSignature),
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                     "vs.csharp.refactoring.preview",
-                    EditorFeaturesResources.ChangeSignatureTitle,
+                    EditorFeaturesResources.Change_Signature_colon,
                     result.Name,
                     result.Glyph.GetValueOrDefault(),
                     result.UpdatedSolution,
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 return;
             }
 
-            using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.ChangeSignature))
+            using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature))
             {
                 if (!workspace.TryApplyChanges(finalSolution))
                 {
