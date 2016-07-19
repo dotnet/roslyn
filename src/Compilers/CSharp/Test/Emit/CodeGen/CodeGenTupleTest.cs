@@ -1147,6 +1147,49 @@ class C
         }
 
         [Fact]
+        public void TupleTypeWithOnlySomeNamesInMetadata()
+        {
+            var source1 = @"
+public class C
+{
+    public static (int, string b, int Item3) M()
+    {
+        return (1, ""hello"", 3);
+    }
+}
+";
+            var source2 = @"
+class D
+{
+    public static void Main()
+    {
+        var t = C.M();
+        System.Console.WriteLine(t.Item1 + "" "" + t.Item2 + "" "" + t.b + "" "" + t.Item3);
+    }
+}
+";
+
+            var comp1 = CreateCompilationWithMscorlib(source2 + source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                     options: TestOptions.ReleaseExe);
+            comp1.VerifyDiagnostics();
+            CompileAndVerify(comp1, expectedOutput: "1 hello hello 3");
+
+            var compLib = CreateCompilationWithMscorlib(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                     options: TestOptions.ReleaseDll);
+            compLib.VerifyDiagnostics();
+            var compLibCompilationRef = compLib.ToMetadataReference();
+            var comp2 = CreateCompilationWithMscorlib45(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, compLibCompilationRef },
+                                                     options: TestOptions.ReleaseExe);
+            comp2.VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "1 hello hello 3");
+
+            var comp3 = CreateCompilationWithMscorlib(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, compLib.EmitToImageReference() },
+                                                     options: TestOptions.ReleaseExe);
+            comp3.VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "1 hello hello 3");
+        }
+
+        [Fact]
         public void TupleLiteralWithOnlySomeNames()
         {
             var source = @"

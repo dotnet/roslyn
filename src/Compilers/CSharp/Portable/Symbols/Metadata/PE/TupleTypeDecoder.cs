@@ -284,13 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // all null
             var start = _namesIndex - numberOfElements;
             bool allNull = true;
-            bool anyNull = false;
 
             for (int i = 0; i < numberOfElements; i++)
             {
                 if (_elementNames[start + i] == null)
                 {
-                    anyNull = true;
                     if (!allNull)
                     {
                         break;
@@ -306,12 +304,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 _namesIndex = start;
                 return default(ImmutableArray<string>);
-            }
-
-            // All tuples must either have names or none may
-            if (anyNull)
-            {
-                throw new InvalidOperationException();
             }
 
             var builder = ArrayBuilder<string>.GetInstance(numberOfElements);

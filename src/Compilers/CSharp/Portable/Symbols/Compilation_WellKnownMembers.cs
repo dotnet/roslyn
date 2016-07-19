@@ -548,7 +548,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(!type.TupleElementNames.Contains(null));
                         namesBuilder.AddRange(type.TupleElementNames);
                     }
                 }
