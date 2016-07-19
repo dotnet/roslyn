@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -161,13 +161,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             if (_selectedSymbolSpecificationIndex < 0 || _namingStyleIndex < 0)
             {
-                SendFailureNotification(ServicesVSResources.ChooseASymbolSpecificationAndNamingStyle);
+                SendFailureNotification(ServicesVSResources.Choose_a_Symbol_Specification_and_a_Naming_Style);
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(Title))
             {
-                SendFailureNotification(ServicesVSResources.EnterATitleForThisNamingRule);
+                SendFailureNotification(ServicesVSResources.Enter_a_title_for_this_Naming_Rule);
                 return false;
             }
             

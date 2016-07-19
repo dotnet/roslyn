@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var index = fixActions.Count() - 1;
                 var action = fixActions.ElementAt(index);
 
-                Assert.Equal(action.Title, FeaturesResources.GenerateNewType);
+                Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
                 var operations = await action.GetOperationsAsync(CancellationToken.None);
                 Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
 

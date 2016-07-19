@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -224,18 +224,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             switch (fixAllState.Scope)
             {
                 case FixAllScope.Custom:
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnostic, diagnosticId);
+                    return string.Format(WorkspacesResources.Fix_all_0, diagnosticId);
 
                 case FixAllScope.Document:
                     var document = fixAllState.Document;
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnosticInScope, diagnosticId, document.Name);
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, document.Name);
 
                 case FixAllScope.Project:
                     var project = fixAllState.Project;
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnosticInScope, diagnosticId, project.Name);
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, project.Name);
 
                 case FixAllScope.Solution:
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnosticInSolution, diagnosticId);
+                    return string.Format(WorkspacesResources.Fix_all_0_in_Solution, diagnosticId);
 
                 default:
                     throw ExceptionUtilities.Unreachable;

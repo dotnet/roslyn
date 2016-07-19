@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal abstract class NamingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.NamingStylesDiagnosticTitle), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.NamingStylesDiagnosticTitle), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorNamingStyle = new DiagnosticDescriptor(
             IDEDiagnosticIds.NamingRuleId,
             s_localizableTitleNamingStyle,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources.NamingViolationDescription, applicableRule.Title, failureReason),
+                         string.Format(FeaturesResources._0_naming_violation_1, applicableRule.Title, failureReason),
                          DiagnosticCategory.Style,
                          applicableRule.EnforcementLevel,
                          isEnabledByDefault: true);

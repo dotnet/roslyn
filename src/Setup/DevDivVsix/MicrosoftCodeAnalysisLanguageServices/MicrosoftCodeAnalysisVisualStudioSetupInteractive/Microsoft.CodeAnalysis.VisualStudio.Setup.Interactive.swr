@@ -17,11 +17,11 @@ vs.payloads
 
 vs.dependencies
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
-                version=[15.0,16.0)
+                version=[$(Version),$(NextVersion))
                 type=Required
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents
-                version=[15.0,16.0)
+                version=[$(Version),$(NextVersion))
                 type=Required
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.InteractiveWindow
-                version=[15.0,16.0)
+                version=[$(Version),$(NextVersion))
                 type=Required

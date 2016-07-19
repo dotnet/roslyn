@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var text = isGeneric
                 ? overloadCount == 1
-                    ? FeaturesResources.GenericOverload
-                    : FeaturesResources.GenericOverloads
+                    ? FeaturesResources.generic_overload
+                    : FeaturesResources.generic_overloads
                 : overloadCount == 1
-                    ? FeaturesResources.Overload
-                    : FeaturesResources.Overloads;
+                    ? FeaturesResources.overload
+                    : FeaturesResources.overloads_;
 
             textContentBuilder.AddText(NonBreakingSpaceString + text);
         }

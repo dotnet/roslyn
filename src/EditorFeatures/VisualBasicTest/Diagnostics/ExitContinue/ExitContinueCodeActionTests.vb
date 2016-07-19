@@ -839,7 +839,7 @@ Class C
 End Class
 </File>
 
-            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
+            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.Change_0_to_1, "Function", "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit Function")})
         End Function
 
         <WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
@@ -854,7 +854,7 @@ Class C
 End Class
 </File>
 
-            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert, "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit")})
+            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert_0, "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit")})
         End Function
     End Class
 End Namespace

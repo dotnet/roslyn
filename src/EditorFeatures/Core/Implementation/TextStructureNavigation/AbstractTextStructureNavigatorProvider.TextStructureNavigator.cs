@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var result = default(TextExtent);
                     _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingWordExtent,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_word_extent,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -122,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingEnclosingSpan,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_enclosing_span,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -153,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingEnclosingSpan,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_enclosing_span,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingSpanOfNextSibling,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_span_of_next_sibling,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -239,8 +239,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingSpanOfPreviousSibling,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_span_of_previous_sibling,
                         allowCancel: true,
                         action: waitContext =>
                     {

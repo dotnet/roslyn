@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             if (workspaceOptionSet == null)
             {
-                throw new ArgumentException(WorkspacesResources.OptionsDidNotComeFromWorkspace, paramName: nameof(optionSet));
+                throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Workspace, paramName: nameof(optionSet));
             }
 
             var changedOptions = new List<OptionChangedEventArgs>();

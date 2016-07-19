@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {

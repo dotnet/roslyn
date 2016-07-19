@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryImports
             End If
 
             context.RegisterCodeFix(
-                New MyCodeAction(VBFeaturesResources.RemoveUnnecessaryImports, newDocument),
+                New MyCodeAction(VBFeaturesResources.Remove_Unnecessary_Imports, newDocument),
                 context.Diagnostics)
         End Function
 

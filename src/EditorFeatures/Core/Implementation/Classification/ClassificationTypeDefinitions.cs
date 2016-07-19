@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private PreprocessorTextFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_PreprocessorText;
+                this.DisplayName = EditorFeaturesResources.Preprocessor_Text;
                 this.ForegroundColor = Colors.Black;
             }
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private PunctuationFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_Punctuation;
+                this.DisplayName = EditorFeaturesResources.Punctuation;
                 this.ForegroundColor = Colors.Black;
             }
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private StringVerbatimFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_StringVerbatim;
+                this.DisplayName = EditorFeaturesResources.String_Verbatim;
                 this.ForegroundColor = Colors.Maroon;
             }
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeClassesFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Classes;
+                this.DisplayName = EditorFeaturesResources.User_Types_Classes;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeDelegatesFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Delegates;
+                this.DisplayName = EditorFeaturesResources.User_Types_Delegates;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeEnumsFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Enums;
+                this.DisplayName = EditorFeaturesResources.User_Types_Enums;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeInterfacesFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Interfaces;
+                this.DisplayName = EditorFeaturesResources.User_Types_Interfaces;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeModulesFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Modules;
+                this.DisplayName = EditorFeaturesResources.User_Types_Modules;
                 this.ForegroundColor = Color.FromRgb(43, 145, 175);
             }
         }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeStructuresFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Structures;
+                this.DisplayName = EditorFeaturesResources.User_Types_Structures;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private UserTypeTypeParametersFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_TypeParameters;
+                this.DisplayName = EditorFeaturesResources.User_Types_Type_Parameters;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentAttributeNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_AttributeName;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Name;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
             }
         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentAttributeQuotesFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_AttributeQuotes;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Quotes;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
             }
         }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentAttributeValueFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_AttributeValue;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Value;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
             }
         }
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentCDataSectionFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_CDataSection;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_CData_Section;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80);    // CIDARKGRAY    
             }
         }
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentCommentFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_Comment;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Comment;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80);    // CIDARKGRAY
             }
         }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentDelimiterFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_Delimiter;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Delimiter;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
             }
         }
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentEntityReferenceFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_EntityReference;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Entity_Reference;
                 this.ForegroundColor = Colors.Green;
             }
         }
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_Name;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Name;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
             }
         }
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentProcessingInstructionFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_ProcessingInstruction;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Processing_Instruction;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
             }
         }
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlDocCommentTextFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_XmlDocComments_Text;
+                this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Text;
                 this.ForegroundColor = Colors.Green;
             }
         }
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralAttributeNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_AttributeName;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Name;
                 this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
             }
         }
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralAttributeQuotesFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_AttributeQuotes;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Quotes;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
             }
         }
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralAttributeValueFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_AttributeValue;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Value;
                 this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
             }
         }
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralCDataSectionFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_CDataSection;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_CData_Section;
                 this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
             }
         }
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralCommentFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_Comment;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Comment;
                 this.ForegroundColor = Color.FromRgb(98, 151, 85); // HC_LIGHTGREEN
             }
         }
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralDelimiterFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_Delimiter;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Delimiter;
                 this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
             }
         }
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralEmbeddedExpressionFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_EmbeddedExpression;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Embedded_Expression;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
                 this.BackgroundColor = Color.FromRgb(255, 254, 191); // HC_LIGHTYELLOW
             }
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralEntityReferenceFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_EntityReference;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Entity_Reference;
                 this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
             }
         }
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_Name;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Name;
                 this.ForegroundColor = Color.FromRgb(132, 70, 70); // HC_LIGHTMAROON
             }
         }
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralProcessingInstructionFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_ProcessingInstruction;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Processing_Instruction;
                 this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
             }
         }
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private XmlLiteralTextFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_VBXmlLiterals_Text;
+                this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Text;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
             }
         }

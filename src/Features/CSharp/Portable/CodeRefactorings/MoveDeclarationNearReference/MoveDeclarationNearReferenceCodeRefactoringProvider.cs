@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.MoveDeclarationNearReference,
+                    CSharpFeaturesResources.Move_declaration_near_reference,
                     (c) => MoveDeclarationNearReferenceAsync(document, state, c)));
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
 
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
             var warningAnnotation = crossesMeaningfulBlock
-                ? WarningAnnotation.Create(CSharpFeaturesResources.WarningDeclarationChangesScope)
+                ? WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
                 : null;
 
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);

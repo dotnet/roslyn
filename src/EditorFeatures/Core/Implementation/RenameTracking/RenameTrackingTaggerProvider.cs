@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // This can run on a background thread.
 
             var message = string.Format(
-                EditorFeaturesResources.RenameTo,
+                EditorFeaturesResources.Rename_0_to_1,
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 

@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
                 else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {
@@ -54,28 +54,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 }
                 else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.ImplicitArrayCreation, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.implicit_array_creation, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_implicit_array_creation);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.range_variable, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_range_variable_declaration);
                 }
                 else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
                 }
                 else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out typeDeclaration))
                 {
                     switch (typeDeclaration.Keyword.Kind())
                     {
                         case SyntaxKind.ClassKeyword:
-                            return CreateSuggestionModeItem(CSharpFeaturesResources.ClassName, CSharpFeaturesResources.AutoselectDisabledDueToTypeDeclaration);
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
 
                         case SyntaxKind.StructKeyword:
-                            return CreateSuggestionModeItem(CSharpFeaturesResources.StructName, CSharpFeaturesResources.AutoselectDisabledDueToTypeDeclaration);
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.struct_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
 
                         case SyntaxKind.InterfaceKeyword:
-                            return CreateSuggestionModeItem(CSharpFeaturesResources.InterfaceName, CSharpFeaturesResources.AutoselectDisabledDueToTypeDeclaration);
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
                     }
                 }
             }

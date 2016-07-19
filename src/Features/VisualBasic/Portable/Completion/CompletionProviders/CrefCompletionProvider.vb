@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create("Of", glyph:=Glyph.Keyword,
-                                      description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip))
+                                      description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
         Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)

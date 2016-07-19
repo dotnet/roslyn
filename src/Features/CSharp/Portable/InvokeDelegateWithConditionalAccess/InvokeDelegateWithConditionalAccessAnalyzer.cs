@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     {
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
             IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-            CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
-            CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
+            CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
+            CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
             DiagnosticCategory.Style,
             DiagnosticSeverity.Hidden,
             isEnabledByDefault: true,

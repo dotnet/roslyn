@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext Then
                 Return SpecializedCollections.SingletonEnumerable(
                    CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.GetTypeKeyword,
-                                                                VBFeaturesResources.GettypeFunction,
+                                                                VBFeaturesResources.GetType_function,
                                                                 Glyph.Keyword,
                                                                 New GetTypeExpressionDocumentation(),
                                                                 context.SemanticModel,

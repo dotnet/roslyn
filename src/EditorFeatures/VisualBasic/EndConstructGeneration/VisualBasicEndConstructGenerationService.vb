@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                                                                  subjectBuffer As ITextBuffer,
                                                                  cancellationToken As CancellationToken) As Boolean
             Using Logger.LogBlock(FunctionId.EndConstruct_DoStatement, cancellationToken)
-                Using transaction = New CaretPreservingEditTransaction(VBEditorResources.EndConstruct, textView, _undoHistoryRegistry, _editorOperationsFactoryService)
+                Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, textView, _undoHistoryRegistry, _editorOperationsFactoryService)
                     transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
 
                     ' The user may have some text selected. In this scenario, we want to guarantee
