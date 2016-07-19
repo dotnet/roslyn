@@ -9,41 +9,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task SingleClassInFile()
+        public async Task SingleClassInFile_RenameType()
         {
             var code =
 @"[||]class Class1 { }";
 
-            var expectedDocumentName = "Class1.cs";
-
-            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-
             var codeWithTypeRenamedToMatchFileName =
-@"class test1 { }";
+@"class [|test1|] { }";
 
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TypeNameMatchesFileName()
+        public async Task TypeNameMatchesFileName_RenameType()
         {
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
             // so type name matches filename here and rename file action should not be offered.
             var code =
 @"[||]class test1 { }";
 
-            await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
             await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MoreThanOneTypeInFile()
+        public async Task MoreThanOneTypeInFile_RenameType()
         {
             var code =
 @"[||]class Class1 { }
 class Class2 { }";
 
-            await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
             await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
         }
     }

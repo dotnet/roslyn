@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,15 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
     public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
     {
-        private const string SpanMarker = "[||]";
-        private const string RenameFileCodeActionTitle = "Rename File";
-        private const string RenameTypeCodeActionTitle = "Rename Type";
-
-        private string StripSpanMarkers(string text)
-        {
-            var index = text.IndexOf(SpanMarker);
-            return text.Remove(index, SpanMarker.Length);
-        }
+        private string RenameFileCodeActionTitle = FeaturesResources.RenameFileTo_0;
+        private string RenameTypeCodeActionTitle = FeaturesResources.RenameTypeTo_0;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
@@ -46,8 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     var documentId = workspace.Documents[0].Id;
                     var documentName = workspace.Documents[0].Name;
 
+                    string expectedText;
+                    TextSpan span;
+                    MarkupTestFile.GetSpan(expectedCode, out expectedText, out span);
+
+                    var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
+
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        workspace, expectedCode, RenameTypeCodeActionTitle, compareTokens);
+                        workspace, expectedText, codeActionTitle, compareTokens);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -82,11 +82,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     Assert.True(expectedDocumentName != null, $"{nameof(expectedDocumentName)} should be present if {nameof(expectedCodeAction)} is true.");
 
                     var oldDocumentId = workspace.Documents[0].Id;
-                    var expectedText = StripSpanMarkers(originalCode);
+
+                    string expectedText;
+                    IList<TextSpan> spans;
+                    MarkupTestFile.GetSpans(originalCode, out expectedText, out spans);
+
+                    var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
 
                     // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        workspace, expectedText, RenameFileCodeActionTitle, compareTokens);
+                        workspace, expectedText, codeActionTitle, compareTokens);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
