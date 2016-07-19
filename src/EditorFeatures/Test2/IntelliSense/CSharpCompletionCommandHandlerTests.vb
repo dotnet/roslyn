@@ -1882,5 +1882,29 @@ class Program
                 Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        Public Async Function TestAnonymousTypeDescription() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        new[] { new { x = 1 } }.ToArr$$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(description:=
+"(extension) 'a[] System.Collections.Generic.IEnumerable<'a>.ToArray<'a>()
+
+Anonymous Types:
+    'a is new { int x }")
+            End Using
+        End Function
     End Class
 End Namespace
