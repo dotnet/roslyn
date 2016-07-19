@@ -4417,7 +4417,7 @@ class C
             }
             catch (ArgumentException e)
             {
-                Assert.Contains("A tuple of 2 elements can have 2 names or none, but not 1.", e.Message);
+                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
             }
         }
 

@@ -2803,7 +2803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (elementNames.Length != cardinality)
                 {
-                    throw new ArgumentException(string.Format(CodeAnalysisResources.A_tuple_of_0_elements_can_have_0_names_or_none_but_not_1, cardinality, elementNames.Length), nameof(elementNames));
+                    throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
                 }
 
                 if (elementNames.All(n => n == null))

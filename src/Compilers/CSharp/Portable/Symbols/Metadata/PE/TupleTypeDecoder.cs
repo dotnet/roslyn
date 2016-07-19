@@ -280,21 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 throw new InvalidOperationException();
             }
 
-            // Check to see if any of the elements are null or if they're
-            // all null
+            // Check to see if all the elements are null
             var start = _namesIndex - numberOfElements;
             bool allNull = true;
 
             for (int i = 0; i < numberOfElements; i++)
             {
-                if (_elementNames[start + i] == null)
-                {
-                    if (!allNull)
-                    {
-                        break;
-                    }
-                }
-                else
+                if (_elementNames[start + i] != null)
                 {
                     allNull = false;
                 }
