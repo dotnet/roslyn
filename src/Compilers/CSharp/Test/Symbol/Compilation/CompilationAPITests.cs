@@ -2161,13 +2161,43 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact()]
-        public void CreateAnonymousType_NothingArgument()
+        public void CreateAnonymousType_NullArgument1()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        default(ImmutableArray<ITypeSymbol>),
+                        ImmutableArray.Create("m1")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument2()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)null),
+                        default(ImmutableArray<string>)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument3()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
             Assert.Throws<ArgumentNullException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                         ImmutableArray.Create((ITypeSymbol)null),
                         ImmutableArray.Create("m1")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument4()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create((string)null)));
         }
 
         [Fact()]

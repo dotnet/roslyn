@@ -857,6 +857,16 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateAnonymousTypeSymbol(
             ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
         {
+            if (memberTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(memberTypes));
+            }
+
+            if (memberNames.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(memberNames));
+            }
+
             if (memberTypes.Length != memberNames.Length)
             {
                 throw new ArgumentException($"{nameof(memberTypes)} and {nameof(memberNames)} must have the same length.");
@@ -867,6 +877,11 @@ namespace Microsoft.CodeAnalysis
                 if (memberTypes[i] == null)
                 {
                     throw new ArgumentNullException($"{nameof(memberTypes)}[{i}]");
+                }
+
+                if (memberNames[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(memberNames)}[{i}]");
                 }
             }
 
