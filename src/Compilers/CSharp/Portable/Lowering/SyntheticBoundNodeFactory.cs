@@ -856,11 +856,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StringLiteral(stringConst);
         }
 
-        public BoundLiteral Literal(ConstantValue value, TypeSymbol type)
-        {
-            return new CSharp.BoundLiteral(Syntax, value, type) { WasCompilerGenerated = true };
-        }
-
         public BoundLiteral StringLiteral(ConstantValue stringConst)
         {
             Debug.Assert(stringConst.IsString || stringConst.IsNull);

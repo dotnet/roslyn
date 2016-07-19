@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class PatternSubsumptionTests : CSharpTestBase
+    public class PatternSwitchTests : CSharpTestBase
     {
         private static readonly CSharpParseOptions s_patternParseOptions = TestOptions.RegularWithPatterns;
 
@@ -971,5 +971,191 @@ decimal 2.1
 null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void DuplicateDouble()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+    }
+    public static void M(double d)
+    {
+        switch (d)
+        {
+            case 0.0:
+            case double.NaN:
+            case 1.01:
+            case 1.01: // duplicate
+            case 2.0:
+            case 3.0:
+            case 1.1:
+            case 1.2:
+            case 2.1:
+            case 3.1:
+            case 11.01:
+            case 12.0:
+            case 13.0:
+            case 11.1:
+            case 11.2:
+            case 12.1:
+            case 13.1:
+            case 21.01:
+            case 22.0:
+            case 23.0:
+            case 21.1:
+            case 21.2:
+            case 22.1:
+            case 23.1:
+            case -0.0: // duplicate
+            case -double.NaN: // duplicate
+                break;
+        }
+    }
+    public static void M(float d)
+    {
+        switch (d)
+        {
+            case 0.0f:
+            case float.NaN:
+            case 1.01f:
+            case 1.01f: // duplicate
+            case 2.0f:
+            case 3.0f:
+            case 1.1f:
+            case 1.2f:
+            case 2.1f:
+            case 3.1f:
+            case 11.01f:
+            case 12.0f:
+            case 13.0f:
+            case 11.1f:
+            case 11.2f:
+            case 12.1f:
+            case 13.1f:
+            case 21.01f:
+            case 22.0f:
+            case 23.0f:
+            case 21.1f:
+            case 21.2f:
+            case 22.1f:
+            case 23.1f:
+            case -0.0f: // duplicate
+            case -float.NaN: // duplicate
+                break;
+        }
+    }
+    public static void M(decimal d)
+    {
+        switch (d)
+        {
+            case 0.0m:
+            case 1.01m:
+            case 1.01m: // duplicate
+            case 2.0m:
+            case 3.0m:
+            case 1.1m:
+            case 1.2m:
+            case 2.1m:
+            case 3.1m:
+            case 11.01m:
+            case 12.0m:
+            case 13.0m:
+            case 11.1m:
+            case 11.2m:
+            case 12.1m:
+            case 13.1m:
+            case 21.01m:
+            case 22.0m:
+            case 23.0m:
+            case 21.1m:
+            case 21.2m:
+            case 22.1m:
+            case 23.1m:
+            case -0.0m: // duplicate
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
+                //             case 1.01: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments("1.01").WithLocation(13, 13),
+                // (34,13): error CS0152: The switch statement contains multiple cases with the label value '0'
+                //             case -0.0: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments("0").WithLocation(34, 13),
+                // (35,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
+                //             case -double.NaN: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments("NaN").WithLocation(35, 13),
+                // (46,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
+                //             case 1.01f: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments("1.01").WithLocation(46, 13),
+                // (67,13): error CS0152: The switch statement contains multiple cases with the label value '0'
+                //             case -0.0f: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments("0").WithLocation(67, 13),
+                // (68,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
+                //             case -float.NaN: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments("NaN").WithLocation(68, 13),
+                // (78,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
+                //             case 1.01m: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments("1.01").WithLocation(78, 13),
+                // (99,13): error CS0152: The switch statement contains multiple cases with the label value '0.0'
+                //             case -0.0m: // duplicate
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments("0.0").WithLocation(99, 13)
+                );
+        }
+
+        [Fact]
+        public void NanValuesAreEqual()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main()
+    {
+        M(0.0);
+        M(-0.0);
+        M(MakeNaN(0));
+        M(MakeNaN(1));
+    }
+    public static void M(double d)
+    {
+        switch (d)
+        {
+            case 0:
+                Console.WriteLine(""zero"");
+                break;
+            case double.NaN:
+                Console.WriteLine(""NaN"");
+                break;
+            case 1: case 2: case 3: case 4: case 5:
+            case 6: case 7: case 8: case 9: case 10:
+                Console.WriteLine(""unexpected"");
+                break;
+            default:
+                Console.WriteLine(""other"");
+                break;
+        }
+    }
+    public static double MakeNaN(int x)
+    {
+        return BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(double.NaN) ^ x);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"zero
+zero
+NaN
+NaN";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
     }
 }
