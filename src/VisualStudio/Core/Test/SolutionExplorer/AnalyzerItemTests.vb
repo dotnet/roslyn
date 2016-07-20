@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single(), Nothing)
                 Dim browseObject = DirectCast(analyzer.GetBrowseObject(), AnalyzerItem.BrowseObject)
 
-                Assert.Equal(expected:=SolutionExplorerShim.AnalyzerItem_PropertyWindowClassName, actual:=browseObject.GetClassName())
+                Assert.Equal(expected:=SolutionExplorerShim.Analyzer_Properties, actual:=browseObject.GetClassName())
                 Assert.Equal(expected:="Foo", actual:=browseObject.GetComponentName())
                 Assert.Equal(expected:="Foo", actual:=browseObject.Name)
                 Assert.Equal(expected:="C:\Users\Bill\Documents\Analyzers\Foo.dll", actual:=browseObject.Path)

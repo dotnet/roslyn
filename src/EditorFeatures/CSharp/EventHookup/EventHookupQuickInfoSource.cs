@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             eventNameRun.FontWeight = FontWeights.Bold;
             textBlock.Inlines.Add(eventNameRun);
 
-            var pressTabRun = new Run(CSharpEditorResources.PressTABToInsert);
+            var pressTabRun = new Run(CSharpEditorResources.Press_TAB_to_insert);
             textBlock.Inlines.Add(pressTabRun);
 
             return textBlock;

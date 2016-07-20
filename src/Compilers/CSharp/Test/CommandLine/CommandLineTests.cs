@@ -1486,7 +1486,8 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { @"/pdb:""""", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(""));
+                // error CS2005: Missing file specification for '/pdb:""' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(@"/pdb:""""").WithLocation(1, 1));
 
             parsedArgs = DefaultParse(new[] { "/pdb:C:\\", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
@@ -8364,6 +8365,109 @@ class C {
             parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+        }
+
+        public class QuotedArgumentTests
+        {
+            private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)
+            {
+                var args = DefaultParse(new[] { $"/{name}:{value}", "a.cs" }, @"c:\");
+                Assert.Equal(0, args.Errors.Length);
+                Assert.Equal(expected, getValue(args));
+
+                args = DefaultParse(new[] { $@"/{name}:""{value}""", "a.cs" }, @"c:\");
+                Assert.Equal(0, args.Errors.Length);
+                Assert.Equal(expected, getValue(args));
+            }
+
+            private void VerifyQuotedInvalid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)
+            {
+                var args = DefaultParse(new[] { $"/{name}:{value}", "a.cs" }, @"c:\");
+                Assert.Equal(0, args.Errors.Length);
+                Assert.Equal(expected, getValue(args));
+
+                args = DefaultParse(new[] { $@"/{name}:""{value}""", "a.cs" }, @"c:\");
+                Assert.True(args.Errors.Length > 0);
+            }
+
+            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [Fact]
+            public void DebugFlag()
+            {
+                var list = new List<Tuple<string, DebugInformationFormat>>()
+                {
+                    Tuple.Create("portable", DebugInformationFormat.PortablePdb),
+                    Tuple.Create("full", DebugInformationFormat.Pdb),
+                    Tuple.Create("pdbonly", DebugInformationFormat.Pdb),
+                    Tuple.Create("embedded", DebugInformationFormat.Embedded)
+                };
+
+                foreach (var tuple in list)
+                {
+                    VerifyQuotedValid("debug", tuple.Item1, tuple.Item2, x => x.EmitOptions.DebugInformationFormat);
+                }
+            }
+
+            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [Fact]
+            public void CodePage()
+            {
+                VerifyQuotedValid("codepage", "1252", 1252, x => x.Encoding.CodePage);
+            }
+
+            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [Fact]
+            public void Target()
+            {
+                var list = new List<Tuple<string, OutputKind>>()
+                {
+                    Tuple.Create("exe", OutputKind.ConsoleApplication),
+                    Tuple.Create("winexe", OutputKind.WindowsApplication),
+                    Tuple.Create("library", OutputKind.DynamicallyLinkedLibrary),
+                    Tuple.Create("module", OutputKind.NetModule),
+                    Tuple.Create("appcontainerexe", OutputKind.WindowsRuntimeApplication),
+                    Tuple.Create("winmdobj", OutputKind.WindowsRuntimeMetadata)
+                };
+
+                foreach (var tuple in list)
+                {
+                    VerifyQuotedInvalid("target", tuple.Item1, tuple.Item2, x => x.CompilationOptions.OutputKind);
+                }
+            }
+
+            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [Fact]
+            public void PlatformFlag()
+            {
+                var list = new List<Tuple<string, Platform>>()
+                {
+                    Tuple.Create("x86", Platform.X86),
+                    Tuple.Create("x64", Platform.X64),
+                    Tuple.Create("itanium", Platform.Itanium),
+                    Tuple.Create("anycpu", Platform.AnyCpu),
+                    Tuple.Create("anycpu32bitpreferred",Platform.AnyCpu32BitPreferred),
+                    Tuple.Create("arm", Platform.Arm)
+                };
+
+                foreach (var tuple in list)
+                {
+                    VerifyQuotedValid("platform", tuple.Item1, tuple.Item2, x => x.CompilationOptions.Platform);
+                }
+            }
+
+            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [Fact]
+            public void WarnFlag()
+            {
+                VerifyQuotedValid("warn", "1", 1, x => x.CompilationOptions.WarningLevel);
+            }
+
+            [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
+            [Fact]
+            public void LangVersionFlag()
+            {
+                VerifyQuotedValid("langversion", "2", LanguageVersion.CSharp2, x => x.ParseOptions.LanguageVersion);
+            }
         }
     }
 

@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly MemberSignatureComparer LambdaReturnInferenceCacheComparer = new MemberSignatureComparer(
             considerName: false,                // valid invoke is always called "Invoke"
             considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: false,          // do not care
+            considerReturnType: true,           // to differentiate Task types
             considerTypeConstraints: false,     // valid invoke is never generic
             considerCallingConvention: false,   // valid invoke is never static
             considerRefOutDifference: true,

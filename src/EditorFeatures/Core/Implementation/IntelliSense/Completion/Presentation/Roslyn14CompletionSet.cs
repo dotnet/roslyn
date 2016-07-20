@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected readonly CompletionPresenterSession CompletionPresenterSession;
         protected Dictionary<PresentationItem, VSCompletion> PresentationItemMap;
 
-        protected IReadOnlyDictionary<CompletionItem, string> CompletionItemToFilterText;
+        protected string FilterText;
 
         public Roslyn14CompletionSet(
             IVisualStudioCompletionSet vsCompletionSet,
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
+            string filterText)
         {
             this.AssertIsForeground();
 
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             PresentationItemMap = PresentationItemMap ?? new Dictionary<PresentationItem, VSCompletion>(completionItems.Count + 1);
-            CompletionItemToFilterText = completionItemToFilterText;
+            FilterText = filterText;
 
             try
             {
@@ -87,11 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 SimplePresentationItem filteredSuggestionModeItem = null;
                 if (selectedItem != null)
                 {
+                    var completionItem = CompletionItem.Create(displayText: applicableToText);
+                    completionItem.Span = VsCompletionSet.ApplicableTo.GetSpan(
+                        VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan();
+
                     filteredSuggestionModeItem = new SimplePresentationItem(
-                        CompletionItem.Create(
-                            displayText: applicableToText,
-                            span: VsCompletionSet.ApplicableTo.GetSpan(
-                                VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan()),
+                        completionItem,
                         selectedItem.CompletionService,
                         isSuggestionModeItem: true);
                 }

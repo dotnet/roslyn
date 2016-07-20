@@ -14,3 +14,14 @@ vs.localizedResources
 
 vs.payloads
   vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.Interactive.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
+                version=[$(Version),$(NextVersion))
+                type=Required
+  vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents
+                version=[$(Version),$(NextVersion))
+                type=Required
+  vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.InteractiveWindow
+                version=[$(Version),$(NextVersion))
+                type=Required

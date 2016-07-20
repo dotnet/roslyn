@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     if (throwOnHiddenDefinition)
                     {
                         const int E_FAIL = -2147467259;
-                        throw new COMException(EditorFeaturesResources.TheDefinitionOfTheObjectIsHidden, E_FAIL);
+                        throw new COMException(EditorFeaturesResources.The_definition_of_the_object_is_hidden, E_FAIL);
                     }
                     else
                     {

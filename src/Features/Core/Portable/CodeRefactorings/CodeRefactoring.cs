@@ -1,8 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             if (_actions.Count == 0)
             {
-                throw new ArgumentException(FeaturesResources.ActionsCanNotBeEmpty, nameof(actions));
+                throw new ArgumentException(FeaturesResources.Actions_can_not_be_empty, nameof(actions));
             }
         }
     }

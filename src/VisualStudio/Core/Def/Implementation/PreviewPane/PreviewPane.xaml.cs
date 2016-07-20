@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             IdHyperlink.IsEnabled = true;
             IdHyperlink.ToolTip = helpLinkToolTipText;
 
-            LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.LearnMoreLinkText, _id));
+            LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.More_about_0, _id));
             LearnMoreHyperlink.NavigateUri = helpLink;
             LearnMoreHyperlink.ToolTip = helpLinkToolTipText;
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
-                        FeaturesResources.ConvertToInterpolatedString,
+                        FeaturesResources.Convert_to_interpolated_string,
                         c => CreateInterpolatedString(invocation, context.Document, syntaxFactsService, c)));
             }
         }

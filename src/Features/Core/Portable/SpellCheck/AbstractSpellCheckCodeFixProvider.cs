@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -97,21 +97,13 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var service = CompletionService.GetService(document);
             var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
 
-            // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
-            if (change.TextChanges.Length == 1)
-            {
-                return change.TextChanges[0].NewText;
-            }
-            else
-            {
-                return item.DisplayText;
-            }
+            return change.TextChange.NewText;
         }
 
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
         {
             return new SpellCheckCodeAction(
-                string.Format(FeaturesResources.ChangeTo, oldName, newName),
+                string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => Update(document, nameNode, newName, c),
                 equivalenceKey: newName);
         }

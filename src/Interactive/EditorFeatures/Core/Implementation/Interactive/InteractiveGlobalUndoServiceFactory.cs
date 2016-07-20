@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 if (!CanUndo(workspace))
                 {
-                    throw new ArgumentException(EditorFeaturesResources.GivenWorkspaceDoesntSupportUndo);
+                    throw new ArgumentException(EditorFeaturesResources.Given_Workspace_doesn_t_support_Undo);
                 }
 
                 ITextUndoHistory textUndoHistory = GetHistory(workspace);

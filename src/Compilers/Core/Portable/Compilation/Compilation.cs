@@ -851,6 +851,46 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames);
 
+        /// <summary>
+        /// Returns a new anonymous type symbol with the given member types member names.
+        /// </summary>
+        public INamedTypeSymbol CreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+        {
+            if (memberTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(memberTypes));
+            }
+
+            if (memberNames.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(memberNames));
+            }
+
+            if (memberTypes.Length != memberNames.Length)
+            {
+                throw new ArgumentException($"{nameof(memberTypes)} and {nameof(memberNames)} must have the same length.");
+            }
+
+            for (int i = 0, n = memberTypes.Length; i < n; i++)
+            {
+                if (memberTypes[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(memberTypes)}[{i}]");
+                }
+
+                if (memberNames[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(memberNames)}[{i}]");
+                }
+            }
+
+            return CommonCreateAnonymousTypeSymbol(memberTypes, memberNames);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames);
+
         #endregion
 
         #region Diagnostics

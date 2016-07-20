@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
             If types.Count > 1 Then
                 Dim contentBuilder = New List(Of SymbolDisplayPart)
-                contentBuilder.AddText(VBEditorResources.MultipleTypes)
+                contentBuilder.AddText(VBEditorResources.Multiple_Types)
                 Return Me.CreateClassifiableDeferredContent(contentBuilder)
             End If
 

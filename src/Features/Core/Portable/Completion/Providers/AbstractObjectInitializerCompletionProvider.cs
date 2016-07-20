@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,11 +64,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText: uninitializedMember.Name,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: uninitializedMember,
-                    descriptionPosition: initializerLocation.SourceSpan.Start,
-                    rules: s_rules
-                    ));
+                    contextPosition: initializerLocation.SourceSpan.Start,
+                    rules: s_rules));
             }
         }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -266,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var parentProjectItem = parentListItem as ProjectListItem;
             if (parentProjectItem != null)
             {
-                builder.Add(new FolderListItem(parentListItem.ProjectId, ServicesVSResources.Library_ProjectReferences));
+                builder.Add(new FolderListItem(parentListItem.ProjectId, ServicesVSResources.Project_References));
             }
 
             var parentTypeItem = parentListItem as TypeListItem;
@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (addBaseTypes)
                 {
-                    builder.Add(new FolderListItem(parentListItem.ProjectId, ServicesVSResources.Library_BaseTypes));
+                    builder.Add(new FolderListItem(parentListItem.ProjectId, ServicesVSResources.Base_Types));
                 }
             }
 

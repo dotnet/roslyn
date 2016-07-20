@@ -8,9 +8,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ev
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "RemoveHandler",
-$"{VBFeaturesResources.RemovehandlerStatement}
-{RemovesEventAssociation}
-RemoveHandler {Event1}, {Handler}")
+$"{VBFeaturesResources.RemoveHandler_statement}
+{VBWorkspaceResources.Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time}
+RemoveHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}")
         End Function
 
         <Fact>

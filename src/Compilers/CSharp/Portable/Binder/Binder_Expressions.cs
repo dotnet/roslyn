@@ -661,7 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
             ArrayBuilder<string> elementNames = null;
-            int countOfExplicitNames = 0;
 
             // prepare and check element names and types
             for (int i = 0; i < numElements; i++)
@@ -675,7 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = nameSyntax.Identifier.ValueText;
                     elementLocations.Add(nameSyntax.Location);
 
-                    countOfExplicitNames++;
                     if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
                     {
                         hasErrors = true;
@@ -701,12 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             uniqueFieldNames.Free();
-
-            if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
-            {
-                hasErrors = true;
-                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
-            }
 
             var elementNamesArray = elementNames == null ?
                                 default(ImmutableArray<string>) :

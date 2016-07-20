@@ -14,3 +14,8 @@ vs.localizedResources
 
 vs.payloads
   vs.payload source=$(OutputPath)ExpressionEvaluatorPackage.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
+                version=[$(Version),$(NextVersion))
+                type=Required

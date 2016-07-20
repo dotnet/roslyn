@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // According to JasonMal, the text undo history is associated with the surface buffer
             // in projection buffer scenarios, so the following line's usage of the surface buffer
             // is correct.
-            using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.InsertNewLine))
+            using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line))
             {
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
                 editorOperations.InsertNewLine();
@@ -567,8 +567,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.DocumentationComment,
-                message: EditorFeaturesResources.InsertingDocumentationComment,
+                title: EditorFeaturesResources.Documentation_Comment,
+                message: EditorFeaturesResources.Inserting_documentation_comment,
                 allowCancel: true,
                 action: w =>
                 {
