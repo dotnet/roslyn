@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
@@ -42,35 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 asyncListeners, FeatureAttribute.FindReferences);
         }
 
-        internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
-        {
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Find_References,
-                message: EditorFeaturesResources.Finding_references,
-                action: context =>
-            {
-                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document != null)
-                {
-                    var service = document.Project.LanguageServices.GetService<IFindReferencesService>();
-                    if (service != null)
-                    {
-                        using (Logger.LogBlock(FunctionId.CommandHandler_FindAllReference, context.CancellationToken))
-                        {
-                            if (!service.TryFindReferences(document, caretPosition, context))
-                            {
-                                foreach (var presenter in _synchronousPresenters)
-                                {
-                                    presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }, allowCancel: true);
-        }
-
         public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
@@ -80,17 +51,65 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
-            if (caretPosition < 0)
+            if (caretPosition >= 0)
             {
-                nextHandler();
-                return;
+                var snapshot = args.SubjectBuffer.CurrentSnapshot;
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                var streamingService = document?.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
+                var synchronousService = document?.Project.LanguageServices.GetService<IFindReferencesService>();
+
+                var asyncPresenter = _asynchronousPresenters.FirstOrDefault();
+
+                if (streamingService != null && asyncPresenter != null)
+                {
+                    AsyncFindReferences(document, streamingService, asyncPresenter, caretPosition);
+                    return;
+                }
+                else if (synchronousService != null)
+                {
+                    FindReferences(document, synchronousService, caretPosition);
+                    return;
+                }
             }
 
-            var snapshot = args.SubjectBuffer.CurrentSnapshot;
+            nextHandler();
+        }
 
+        private async void AsyncFindReferences(
+            Document document, IStreamingFindReferencesService service,
+            IAsyncFindReferencesPresenter presenter, int caretPosition)
+        {
+            using (var token = _asyncListener.BeginAsyncOperation(nameof(AsyncFindReferences)))
+            {
+                var context = presenter.StartSearch();
+                await service.FindReferencesAsync(document, caretPosition, presenter.StartSearch()).ConfigureAwait(false);
+            }
+        }
 
-
-            FindReferences(snapshot, caretPosition);
+        internal void FindReferences(
+            Document document, IFindReferencesService service, int caretPosition)
+        {
+            _waitIndicator.Wait(
+                title: EditorFeaturesResources.Find_References,
+                message: EditorFeaturesResources.Finding_references,
+                action: context =>
+                {
+                    using (Logger.LogBlock(FunctionId.CommandHandler_FindAllReference, context.CancellationToken))
+                    {
+                        if (!service.TryFindReferences(document, caretPosition, context))
+                        {
+                            // The service failed, so just present an empty list of references
+                            foreach (var presenter in _synchronousPresenters)
+                            {
+                                presenter.DisplayResult(
+                                    document.Project.Solution,
+                                    SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
+                                return;
+                            }
+                        }
+                    }
+                }, allowCancel: true);
         }
     }
 }

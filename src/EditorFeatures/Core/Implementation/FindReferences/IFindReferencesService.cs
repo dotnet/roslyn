@@ -11,15 +11,19 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface IFindReferencesService : ILanguageService
     {
         /// <summary>
-        /// Finds the references for the symbol at the specific position in the document.
-        /// </summary>
-        Task<IEnumerable<INavigableItem>> FindReferencesAsync(Document document, int position, IWaitContext waitContext);
-
-        /// <summary>
         /// Finds the references for the symbol at the specific position in the document and then 
         /// presents them.
         /// </summary>
         /// <returns>True if finding references of the symbol at the provided position succeeds.  False, otherwise.</returns>
         bool TryFindReferences(Document document, int position, IWaitContext waitContext);
+    }
+
+    internal interface IStreamingFindReferencesService : ILanguageService
+    {
+        /// <summary>
+        /// Finds the references for the symbol at the specific position in the document,
+        /// pushing the results into the context instance.
+        /// </summary>
+        Task FindReferencesAsync(Document document, int position, FindReferencesContext context);
     }
 }

@@ -94,25 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
         }
 
-        public async Task<IEnumerable<INavigableItem>> FindReferencesAsync(Document document, int position, IWaitContext waitContext)
-        {
-            var cancellationToken = waitContext.CancellationToken;
-
-            var builder = ArrayBuilder<INavigableItem>.GetInstance();
-            await AddExternalReferencesAsync(document, position, builder, cancellationToken).ConfigureAwait(false);
-
-            // TODO: Merging references from SymbolFinder and external providers might lead to duplicate or counter-intuitive results.
-            // TODO: For now, we avoid merging and just display the results either from SymbolFinder or the external result providers but not both.
-            if (builder.Count == 0)
-            {
-                await AddSymbolReferencesAsync(document, position, builder, waitContext).ConfigureAwait(false);
-            }
-
-            // realize the list here so that the consumer await'ing the result doesn't lazily cause
-            // them to be created on an inappropriate thread.
-            return builder.ToArrayAndFree();
-        }
-
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
