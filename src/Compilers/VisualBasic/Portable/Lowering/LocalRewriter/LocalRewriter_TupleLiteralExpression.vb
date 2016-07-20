@@ -84,12 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 End If
 
-                'currentCreation = currentCreation.Update(
-                '    currentCreation.ConstructorOpt,
-                '    methodGroupOpt:=Nothing,
-                '    arguments:=currentCreation.Arguments,
-                '    initializerOpt:=currentCreation.InitializerOpt,
-                '    type:=type)
+                currentCreation = currentCreation.Update(
+                    currentCreation.ConstructorOpt,
+                    methodGroupOpt:=Nothing,
+                    arguments:=currentCreation.Arguments,
+                    initializerOpt:=currentCreation.InitializerOpt,
+                    type:=type)
 
                 Return currentCreation
             Finally

@@ -304,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tupleSymbol"></param>
         ''' <returns></returns>
-        Private Function CanUseTupleTypeName(tupleSymbol As INamedTypeSymbol) As Boolean
+        Private Shared Function CanUseTupleTypeName(tupleSymbol As INamedTypeSymbol) As Boolean
             Dim currentUnderlying As INamedTypeSymbol = tupleSymbol.TupleUnderlyingType
 
             While currentUnderlying.Arity = TupleTypeSymbol.RestPosition
@@ -344,14 +344,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             AddPunctuation(SyntaxKind.OpenParenToken)
 
-            Dim first As Boolean = True
             For i As Integer = 0 To elementTypes.Length - 1
-                If Not first Then
+                If i <> 0 Then
                     AddPunctuation(SyntaxKind.CommaToken)
                     AddSpace()
                 End If
-
-                first = False
 
                 If hasNames Then
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames(i), noEscaping:=False))
@@ -361,7 +358,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 elementTypes(i).Accept(Me.NotFirstVisitor)
-
             Next
 
             AddPunctuation(SyntaxKind.CloseParenToken)
@@ -391,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isFirstSymbolVisited AndAlso format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeTypeKeyword) Then
                 If symbol.IsAnonymousType Then
                     ' NOTE: Not actually a keyword, but it's not worth introducing a new kind just for this.
-                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "AnonymousType"))
+                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "AnonymousType"))
                     AddSpace()
                 ElseIf symbol.IsTupleType Then
                     builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "Tuple"))

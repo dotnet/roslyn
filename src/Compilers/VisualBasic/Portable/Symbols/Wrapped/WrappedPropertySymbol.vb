@@ -18,109 +18,109 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected _underlyingProperty As PropertySymbol
 
-        Public ReadOnly Property UnderlyingProperty() As PropertySymbol
+        Public ReadOnly Property UnderlyingProperty As PropertySymbol
             Get
                 Return Me._underlyingProperty
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return Me._underlyingProperty.IsImplicitlyDeclared
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ReturnsByRef() As Boolean
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
                 Return Me._underlyingProperty.ReturnsByRef
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsDefault() As Boolean
+        Public Overrides ReadOnly Property IsDefault As Boolean
             Get
                 Return Me._underlyingProperty.IsDefault
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CallingConvention() As CallingConvention
+        Friend Overrides ReadOnly Property CallingConvention As CallingConvention
             Get
                 Return Me._underlyingProperty.CallingConvention
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Name() As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Me._underlyingProperty.Name
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return Me._underlyingProperty.HasSpecialName
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._underlyingProperty.Locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Me._underlyingProperty.DeclaringSyntaxReferences
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaredAccessibility() As Accessibility
+        Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 Return Me._underlyingProperty.DeclaredAccessibility
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsShared() As Boolean
+        Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return Me._underlyingProperty.IsShared
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsOverridable() As Boolean
+        Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
                 Return Me._underlyingProperty.IsOverridable
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsOverrides() As Boolean
+        Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
                 Return Me._underlyingProperty.IsOverrides
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsMustOverride() As Boolean
+        Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
                 Return Me._underlyingProperty.IsMustOverride
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsNotOverridable() As Boolean
+        Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
                 Return Me._underlyingProperty.IsNotOverridable
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ObsoleteAttributeData() As ObsoleteAttributeData
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 Return Me._underlyingProperty.ObsoleteAttributeData
             End Get
         End Property
 
-        Public Overrides ReadOnly Property MetadataName() As String
+        Public Overrides ReadOnly Property MetadataName As String
             Get
                 Return Me._underlyingProperty.MetadataName
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasRuntimeSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
                 Return Me._underlyingProperty.HasRuntimeSpecialName
             End Get

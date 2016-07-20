@@ -17,109 +17,109 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected _underlyingField As FieldSymbol
 
-        Public ReadOnly Property UnderlyingField() As FieldSymbol
+        Public ReadOnly Property UnderlyingField As FieldSymbol
             Get
                 Return Me._underlyingField
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return Me._underlyingField.IsImplicitlyDeclared
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaredAccessibility() As Accessibility
+        Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 Return Me._underlyingField.DeclaredAccessibility
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Name() As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Me._underlyingField.Name
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return Me._underlyingField.HasSpecialName
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasRuntimeSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
                 Return Me._underlyingField.HasRuntimeSpecialName
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsNotSerialized() As Boolean
+        Friend Overrides ReadOnly Property IsNotSerialized As Boolean
             Get
                 Return Me._underlyingField.IsNotSerialized
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsMarshalledExplicitly() As Boolean
+        Friend Overrides ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
                 Return Me._underlyingField.IsMarshalledExplicitly
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MarshallingInformation() As MarshalPseudoCustomAttributeData
+        Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
                 Return Me._underlyingField.MarshallingInformation
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MarshallingDescriptor() As ImmutableArray(Of Byte)
+        Friend Overrides ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
             Get
                 Return Me._underlyingField.MarshallingDescriptor
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeLayoutOffset() As Integer?
+        Friend Overrides ReadOnly Property TypeLayoutOffset As Integer?
             Get
                 Return Me._underlyingField.TypeLayoutOffset
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsReadOnly() As Boolean
+        Public Overrides ReadOnly Property IsReadOnly As Boolean
             Get
                 Return Me._underlyingField.IsReadOnly
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsConst() As Boolean
+        Public Overrides ReadOnly Property IsConst As Boolean
             Get
                 Return Me._underlyingField.IsConst
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ObsoleteAttributeData() As ObsoleteAttributeData
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 Return Me._underlyingField.ObsoleteAttributeData
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ConstantValue() As Object
+        Public Overrides ReadOnly Property ConstantValue As Object
             Get
                 Return Me._underlyingField.ConstantValue
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._underlyingField.Locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Me._underlyingField.DeclaringSyntaxReferences
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsShared() As Boolean
+        Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return Me._underlyingField.IsShared
             End Get

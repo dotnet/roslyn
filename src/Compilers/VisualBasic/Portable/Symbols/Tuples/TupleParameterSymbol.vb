@@ -8,12 +8,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Represents a parameter of a method or a property of a tuple type
     ''' </summary>
-    Friend Class TupleParameterSymbol
+    Friend NotInheritable Class TupleParameterSymbol
         Inherits WrappedParameterSymbol
 
         Private _container As Symbol
 
-        Public Overrides ReadOnly Property ContainingSymbol() As Symbol
+        Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._container
             End Get
@@ -35,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleParameterSymbol) As Boolean
-            Dim flag As Boolean = other Is Me
-            Return flag OrElse (other IsNot Nothing AndAlso Me._container Is other._container AndAlso Me._underlyingParameter Is other._underlyingParameter)
+            Return other Is Me OrElse
+                (other IsNot Nothing AndAlso Me._container = other._container AndAlso Me._underlyingParameter = other._underlyingParameter)
         End Function
     End Class
 End Namespace

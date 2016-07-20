@@ -17,31 +17,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
-        Public Overrides ReadOnly Property IsTupleProperty() As Boolean
+        Public Overrides ReadOnly Property IsTupleProperty As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleUnderlyingProperty() As PropertySymbol
+        Public Overrides ReadOnly Property TupleUnderlyingProperty As PropertySymbol
             Get
                 Return Me._underlyingProperty
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Type() As TypeSymbol
+        Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return Me._underlyingProperty.Type
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeCustomModifiers() As ImmutableArray(Of CustomModifier)
+        Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return Me._underlyingProperty.TypeCustomModifiers
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Parameters() As ImmutableArray(Of ParameterSymbol)
+        Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
                 Dim isDefault As Boolean = Me._lazyParameters.IsDefault
                 If isDefault Then
@@ -51,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property GetMethod() As MethodSymbol
+        Public Overrides ReadOnly Property GetMethod As MethodSymbol
             Get
                 Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingProperty.GetMethod)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property SetMethod() As MethodSymbol
+        Public Overrides ReadOnly Property SetMethod As MethodSymbol
             Get
                 Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingProperty.SetMethod)
             End Get
@@ -69,13 +69,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ExplicitInterfaceImplementations() As ImmutableArray(Of PropertySymbol)
+        Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
             Get
                 Return Me._underlyingProperty.ExplicitInterfaceImplementations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ContainingSymbol() As Symbol
+        Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._containingType
             End Get
@@ -117,8 +117,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TuplePropertySymbol) As Boolean
-            Dim flag As Boolean = other Is Me
-            Return flag OrElse (other IsNot Nothing AndAlso Me._containingType Is other._containingType AndAlso Me._underlyingProperty Is other._underlyingProperty)
+            Return other Is Me OrElse
+                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingProperty = other._underlyingProperty)
         End Function
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)

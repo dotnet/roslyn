@@ -1207,13 +1207,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property INamedTypeSymbol_TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
+        Private ReadOnly Property INamedTypeSymbol_TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
             Get
                 Return TupleElementNames
             End Get
         End Property
 
-        Public ReadOnly Property INamedTypeSymbol_TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
+        Private ReadOnly Property INamedTypeSymbol_TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
             Get
                 Return TupleUnderlyingType
             End Get

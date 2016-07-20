@@ -350,8 +350,8 @@ Module Module1
     End Function
 End Module
         ]]>.Value,
-            LanguageVersion.VisualBasic12,
-            Diagnostic(ERRID.ERR_LanguageVersion, "(Integer, Integer)").WithArguments("12.0", "tuples").WithLocation(4, 19),
-            Diagnostic(ERRID.ERR_LanguageVersion, "(A As Integer, B As Integer)").WithArguments("12.0", "tuples").WithLocation(5, 19))
+            LanguageVersion.VisualBasic14,
+            Diagnostic(ERRID.ERR_LanguageVersion, "(Integer, Integer)").WithArguments("14.0", "tuples").WithLocation(4, 19),
+            Diagnostic(ERRID.ERR_LanguageVersion, "(A As Integer, B As Integer)").WithArguments("14.0", "tuples").WithLocation(5, 19))
     End Sub
 End Class

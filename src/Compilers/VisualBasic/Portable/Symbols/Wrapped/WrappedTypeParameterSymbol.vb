@@ -17,67 +17,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected _underlyingTypeParameter As TypeParameterSymbol
 
-        Public ReadOnly Property UnderlyingTypeParameter() As TypeParameterSymbol
+        Public ReadOnly Property UnderlyingTypeParameter As TypeParameterSymbol
             Get
                 Return Me._underlyingTypeParameter
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return Me._underlyingTypeParameter.IsImplicitlyDeclared
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeParameterKind() As TypeParameterKind
+        Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
             Get
                 Return Me._underlyingTypeParameter.TypeParameterKind
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Ordinal() As Integer
+        Public Overrides ReadOnly Property Ordinal As Integer
             Get
                 Return Me._underlyingTypeParameter.Ordinal
             End Get
         End Property
 
-        Public Overrides ReadOnly Property HasConstructorConstraint() As Boolean
+        Public Overrides ReadOnly Property HasConstructorConstraint As Boolean
             Get
                 Return Me._underlyingTypeParameter.HasConstructorConstraint
             End Get
         End Property
 
-        Public Overrides ReadOnly Property HasReferenceTypeConstraint() As Boolean
+        Public Overrides ReadOnly Property HasReferenceTypeConstraint As Boolean
             Get
                 Return Me._underlyingTypeParameter.HasReferenceTypeConstraint
             End Get
         End Property
 
-        Public Overrides ReadOnly Property HasValueTypeConstraint() As Boolean
+        Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
             Get
                 Return Me._underlyingTypeParameter.HasValueTypeConstraint
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Variance() As VarianceKind
+        Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 Return Me._underlyingTypeParameter.Variance
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._underlyingTypeParameter.Locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Me._underlyingTypeParameter.DeclaringSyntaxReferences
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Name() As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Me._underlyingTypeParameter.Name
             End Get

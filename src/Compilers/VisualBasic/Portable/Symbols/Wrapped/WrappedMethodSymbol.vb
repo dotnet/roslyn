@@ -17,69 +17,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class WrappedMethodSymbol
         Inherits MethodSymbol
 
-        Public MustOverride ReadOnly Property UnderlyingMethod() As MethodSymbol
+        Public MustOverride ReadOnly Property UnderlyingMethod As MethodSymbol
 
-        Public Overrides ReadOnly Property IsVararg() As Boolean
+        Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 Return Me.UnderlyingMethod.IsVararg
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsGenericMethod() As Boolean
+        Public Overrides ReadOnly Property IsGenericMethod As Boolean
             Get
                 Return Me.UnderlyingMethod.IsGenericMethod
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Arity() As Integer
+        Public Overrides ReadOnly Property Arity As Integer
             Get
                 Return Me.UnderlyingMethod.Arity
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ReturnsByRef() As Boolean
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
                 Return Me.UnderlyingMethod.ReturnsByRef
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ParameterCount() As Integer
+        Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
                 Return Me.UnderlyingMethod.ParameterCount
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsExtensionMethod() As Boolean
+        Public Overrides ReadOnly Property IsExtensionMethod As Boolean
             Get
                 Return Me.UnderlyingMethod.IsExtensionMethod
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsHiddenBySignature() As Boolean
+        Friend Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
                 Return Me.UnderlyingMethod.IsHiddenBySignature
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me.UnderlyingMethod.Locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Me.UnderlyingMethod.DeclaringSyntaxReferences
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaredAccessibility() As Accessibility
+        Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 Return Me.UnderlyingMethod.DeclaredAccessibility
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsShared() As Boolean
+        Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return Me.UnderlyingMethod.IsShared
             End Get
@@ -91,115 +91,115 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsAsync() As Boolean
+        Public Overrides ReadOnly Property IsAsync As Boolean
             Get
                 Return Me.UnderlyingMethod.IsAsync
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsOverrides() As Boolean
+        Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
                 Return Me.UnderlyingMethod.IsOverrides
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsMustOverride() As Boolean
+        Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
                 Return Me.UnderlyingMethod.IsMustOverride
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsNotOverridable() As Boolean
+        Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
                 Return Me.UnderlyingMethod.IsNotOverridable
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return Me.UnderlyingMethod.IsImplicitlyDeclared
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsMetadataFinal() As Boolean
+        Friend Overrides ReadOnly Property IsMetadataFinal As Boolean
             Get
                 Return Me.UnderlyingMethod.IsMetadataFinal
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ReturnTypeMarshallingInformation() As MarshalPseudoCustomAttributeData
+        Friend Overrides ReadOnly Property ReturnTypeMarshallingInformation As MarshalPseudoCustomAttributeData
             Get
                 Return Me.UnderlyingMethod.ReturnTypeMarshallingInformation
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasDeclarativeSecurity() As Boolean
+        Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
                 Return Me.UnderlyingMethod.HasDeclarativeSecurity
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ObsoleteAttributeData() As ObsoleteAttributeData
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 Return Me.UnderlyingMethod.ObsoleteAttributeData
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Name() As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Me.UnderlyingMethod.Name
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return Me.UnderlyingMethod.HasSpecialName
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ImplementationAttributes() As MethodImplAttributes
+        Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes
             Get
                 Return Me.UnderlyingMethod.ImplementationAttributes
             End Get
         End Property
 
-        Public Overrides ReadOnly Property MethodKind() As MethodKind
+        Public Overrides ReadOnly Property MethodKind As MethodKind
             Get
                 Return Me.UnderlyingMethod.MethodKind
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CallingConvention() As Cci.CallingConvention
+        Friend Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
             Get
                 Return Me.UnderlyingMethod.CallingConvention
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsAccessCheckedOnOverride() As Boolean
+        Friend Overrides ReadOnly Property IsAccessCheckedOnOverride As Boolean
             Get
                 Return Me.UnderlyingMethod.IsAccessCheckedOnOverride
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsExternal() As Boolean
+        Friend Overrides ReadOnly Property IsExternal As Boolean
             Get
                 Return Me.UnderlyingMethod.IsExternal
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasRuntimeSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
                 Return Me.UnderlyingMethod.HasRuntimeSpecialName
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ReturnValueIsMarshalledExplicitly() As Boolean
+        Friend Overrides ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
             Get
                 Return Me.UnderlyingMethod.ReturnValueIsMarshalledExplicitly
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ReturnValueMarshallingDescriptor() As ImmutableArray(Of Byte)
+        Friend Overrides ReadOnly Property ReturnValueMarshallingDescriptor As ImmutableArray(Of Byte)
             Get
                 Return Me.UnderlyingMethod.ReturnValueMarshallingDescriptor
             End Get

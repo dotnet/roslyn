@@ -8,16 +8,16 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Class TupleTypeSymbol
+    Friend NotInheritable Class TupleTypeSymbol
         Inherits WrappedNamedTypeSymbol
 
-        Private _locations As ImmutableArray(Of Location)
+        Private ReadOnly _locations As ImmutableArray(Of Location)
 
-        Private _elementLocations As ImmutableArray(Of Location)
+        Private ReadOnly _elementLocations As ImmutableArray(Of Location)
 
-        Private _elementNames As ImmutableArray(Of String)
+        Private ReadOnly _elementNames As ImmutableArray(Of String)
 
-        Private _elementTypes As ImmutableArray(Of TypeSymbol)
+        Private ReadOnly _elementTypes As ImmutableArray(Of TypeSymbol)
 
         Private _lazyMembers As ImmutableArray(Of Symbol)
 
@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Const TupleTypeName As String = "ValueTuple"
 
-        Private Shared tupleTypes As WellKnownType() = New WellKnownType() {WellKnownType.System_ValueTuple_T1, WellKnownType.System_ValueTuple_T2, WellKnownType.System_ValueTuple_T3, WellKnownType.System_ValueTuple_T4, WellKnownType.System_ValueTuple_T5, WellKnownType.System_ValueTuple_T6, WellKnownType.System_ValueTuple_T7, WellKnownType.System_ValueTuple_TRest}
+        Private Shared ReadOnly tupleTypes As WellKnownType() = New WellKnownType() {WellKnownType.System_ValueTuple_T1, WellKnownType.System_ValueTuple_T2, WellKnownType.System_ValueTuple_T3, WellKnownType.System_ValueTuple_T4, WellKnownType.System_ValueTuple_T5, WellKnownType.System_ValueTuple_T6, WellKnownType.System_ValueTuple_T7, WellKnownType.System_ValueTuple_TRest}
 
-        Private Shared tupleCtors As WellKnownMember() = New WellKnownMember() {WellKnownMember.System_ValueTuple_T1__ctor, WellKnownMember.System_ValueTuple_T2__ctor, WellKnownMember.System_ValueTuple_T3__ctor, WellKnownMember.System_ValueTuple_T4__ctor, WellKnownMember.System_ValueTuple_T5__ctor, WellKnownMember.System_ValueTuple_T6__ctor, WellKnownMember.System_ValueTuple_T7__ctor, WellKnownMember.System_ValueTuple_TRest__ctor}
+        Private Shared ReadOnly tupleCtors As WellKnownMember() = New WellKnownMember() {WellKnownMember.System_ValueTuple_T1__ctor, WellKnownMember.System_ValueTuple_T2__ctor, WellKnownMember.System_ValueTuple_T3__ctor, WellKnownMember.System_ValueTuple_T4__ctor, WellKnownMember.System_ValueTuple_T5__ctor, WellKnownMember.System_ValueTuple_T6__ctor, WellKnownMember.System_ValueTuple_T7__ctor, WellKnownMember.System_ValueTuple_TRest__ctor}
 
-        Private Shared tupleMembers As WellKnownMember()() = New WellKnownMember()() {
+        Private Shared ReadOnly tupleMembers As WellKnownMember()() = New WellKnownMember()() {
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T1__Item1},
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T2__Item1, WellKnownMember.System_ValueTuple_T2__Item2},
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T3__Item1, WellKnownMember.System_ValueTuple_T3__Item2, WellKnownMember.System_ValueTuple_T3__Item3},
@@ -43,49 +43,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T7__Item1, WellKnownMember.System_ValueTuple_T7__Item2, WellKnownMember.System_ValueTuple_T7__Item3, WellKnownMember.System_ValueTuple_T7__Item4, WellKnownMember.System_ValueTuple_T7__Item5, WellKnownMember.System_ValueTuple_T7__Item6, WellKnownMember.System_ValueTuple_T7__Item7},
             New WellKnownMember() {WellKnownMember.System_ValueTuple_TRest__Item1, WellKnownMember.System_ValueTuple_TRest__Item2, WellKnownMember.System_ValueTuple_TRest__Item3, WellKnownMember.System_ValueTuple_TRest__Item4, WellKnownMember.System_ValueTuple_TRest__Item5, WellKnownMember.System_ValueTuple_TRest__Item6, WellKnownMember.System_ValueTuple_TRest__Item7, WellKnownMember.System_ValueTuple_TRest__Rest}}
 
-        Public Overrides ReadOnly Property IsTupleType() As Boolean
+        Public Overrides ReadOnly Property IsTupleType As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleUnderlyingType() As NamedTypeSymbol
+        Public Overrides ReadOnly Property TupleUnderlyingType As NamedTypeSymbol
             Get
                 Return Me._underlyingType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleElementTypes() As ImmutableArray(Of TypeSymbol)
+        Public Overrides ReadOnly Property TupleElementTypes As ImmutableArray(Of TypeSymbol)
             Get
                 Return Me._elementTypes
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleElementNames() As ImmutableArray(Of String)
+        Public Overrides ReadOnly Property TupleElementNames As ImmutableArray(Of String)
             Get
                 Return Me._elementNames
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsReferenceType() As Boolean
+        Public Overrides ReadOnly Property IsReferenceType As Boolean
             Get
                 Return Not Me._underlyingType.IsErrorType() AndAlso Me._underlyingType.IsReferenceType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsValueType() As Boolean
+        Public Overrides ReadOnly Property IsValueType As Boolean
             Get
                 Return Me._underlyingType.IsValueType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementFields() As ImmutableArray(Of FieldSymbol)
+        Public ReadOnly Property TupleElementFields As ImmutableArray(Of FieldSymbol)
             Get
                 Dim isDefault As Boolean = Me._lazyFields.IsDefault
                 If isDefault Then
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend ReadOnly Property UnderlyingDefinitionToMemberMap() As SmallDictionary(Of Symbol, Symbol)
+        Friend ReadOnly Property UnderlyingDefinitionToMemberMap As SmallDictionary(Of Symbol, Symbol)
             Get
                 If Me._lazyUnderlyingDefinitionToMemberMap Is Nothing Then
                     Me._lazyUnderlyingDefinitionToMemberMap = Me.ComputeDefinitionToMemberMap()
@@ -104,43 +104,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property EnumUnderlyingType() As NamedTypeSymbol
+        Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
             Get
                 Return Me._underlyingType.EnumUnderlyingType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Kind() As SymbolKind
+        Public Overrides ReadOnly Property Kind As SymbolKind
             Get
                 Return SymbolKind.NamedType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind() As TypeKind
+        Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return If((Me._underlyingType.TypeKind = TypeKind.[Class]), TypeKind.[Class], TypeKind.Struct)
+                Return If(Me._underlyingType.TypeKind = TypeKind.Class, TypeKind.Class, TypeKind.Struct)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ContainingSymbol() As Symbol
+        Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._underlyingType.ContainingSymbol
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Symbol.GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(Me._locations)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaredAccessibility() As Accessibility
+        Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 Dim result As Accessibility
                 If Me._underlyingType.IsErrorType() Then
@@ -152,73 +152,73 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsMustInherit() As Boolean
+        Public Overrides ReadOnly Property IsMustInherit As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsNotInheritable() As Boolean
+        Public Overrides ReadOnly Property IsNotInheritable As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Arity() As Integer
+        Public Overrides ReadOnly Property Arity As Integer
             Get
                 Return 0
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeParameters() As ImmutableArray(Of TypeParameterSymbol)
+        Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
                 Return ImmutableArray(Of TypeParameterSymbol).Empty
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers() As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
             Get
                 Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers() As Boolean
+        Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics() As ImmutableArray(Of TypeSymbol)
+        Friend Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 Return ImmutableArray(Of TypeSymbol).Empty
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ConstructedFrom() As NamedTypeSymbol
+        Public Overrides ReadOnly Property ConstructedFrom As NamedTypeSymbol
             Get
                 Return Me
             End Get
         End Property
 
-        Public Overrides ReadOnly Property MightContainExtensionMethods() As Boolean
+        Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Name() As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return String.Empty
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MangleName() As Boolean
+        Friend Overrides ReadOnly Property MangleName As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Public Overrides ReadOnly Iterator Property MemberNames() As IEnumerable(Of String)
+        Public Overrides ReadOnly Iterator Property MemberNames As IEnumerable(Of String)
             Get
                 Dim [set] = PooledHashSet(Of String).GetInstance()
                 For Each member In GetMembers()
@@ -232,55 +232,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasSpecialName() As Boolean
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsComImport() As Boolean
+        Friend Overrides ReadOnly Property IsComImport As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsWindowsRuntimeImport() As Boolean
+        Friend Overrides ReadOnly Property IsWindowsRuntimeImport As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ShouldAddWinRTMembers() As Boolean
+        Friend Overrides ReadOnly Property ShouldAddWinRTMembers As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsSerializable() As Boolean
+        Friend Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return Me._underlyingType.IsSerializable
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Layout() As TypeLayout
+        Friend Overrides ReadOnly Property Layout As TypeLayout
             Get
                 Return Me._underlyingType.Layout
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MarshallingCharSet() As CharSet
+        Friend Overrides ReadOnly Property MarshallingCharSet As CharSet
             Get
                 Return Me._underlyingType.MarshallingCharSet
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasDeclarativeSecurity() As Boolean
+        Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
                 Return Me._underlyingType.HasDeclarativeSecurity
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsInterface() As Boolean
+        Friend Overrides ReadOnly Property IsInterface As Boolean
             Get
                 Return False
             End Get
@@ -310,7 +310,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub New(locations As ImmutableArray(Of Location), underlyingType As NamedTypeSymbol, elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String), elementTypes As ImmutableArray(Of TypeSymbol))
             MyBase.New(underlyingType)
-            Debug.Assert(elementLocations.IsDefault OrElse elementNames.IsDefault OrElse elementLocations.Length = elementNames.Length)
             Debug.Assert(elementLocations.IsDefault OrElse elementLocations.Length = elementTypes.Length)
             Debug.Assert(elementNames.IsDefault OrElse elementNames.Length = elementTypes.Length)
             Debug.Assert(Not underlyingType.IsTupleType)
@@ -400,22 +399,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             typeArgumentsBuilder.Clear()
 
             For i As Integer = 0 To TupleTypeSymbol.RestPosition - 1 - 1
-                If Not modifiers.IsDefault AndAlso Not modifiers(i).IsDefaultOrEmpty Then
-                    typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i), modifiers(i)))
-                Else
-                    typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i)))
-                End If
+                typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i), GetModifiers(modifiers, i)))
             Next
 
-            If Not modifiers.IsDefault AndAlso Not modifiers(TupleTypeSymbol.RestPosition - 1).IsDefaultOrEmpty Then
-                typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple, modifiers(TupleTypeSymbol.RestPosition - 1)))
-            Else
-                typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple))
-            End If
+            typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple, GetModifiers(modifiers, TupleTypeSymbol.RestPosition - 1)))
 
             Dim definition = tupleCompatibleType.ConstructedFrom
             Dim subst = TypeSubstitution.Create(definition, definition.TypeParameters, typeArgumentsBuilder.ToImmutable(), False)
             Return definition.Construct(subst)
+        End Function
+
+        Private Shared Function GetModifiers(modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)), i As Integer) As ImmutableArray(Of CustomModifier)
+            Return If(modifiers.IsDefaultOrEmpty, Nothing, modifiers(i))
         End Function
 
         Friend Function WithUnderlyingType(newUnderlyingType As NamedTypeSymbol) As TupleTypeSymbol
@@ -574,8 +569,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Friend Shared Function GetWellKnownMemberInType(type As NamedTypeSymbol, relativeMember As WellKnownMember) As Symbol
-            Debug.Assert(relativeMember >= WellKnownMember.System_Math__RoundDouble AndAlso relativeMember < WellKnownMember.Count)
+        Private Shared Function GetWellKnownMemberInType(type As NamedTypeSymbol, relativeMember As WellKnownMember) As Symbol
+            Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 AndAlso relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor)
             Debug.Assert(type.IsDefinition)
             Dim descriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(relativeMember)
             Return VisualBasicCompilation.GetRuntimeMember(type, descriptor, VisualBasicCompilation.SpecialMembersSignatureComparer.Instance, Nothing)
@@ -678,12 +673,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     End If
 
                                     ' Add a field with the given name
-                                    Dim Location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
+                                    Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
 
                                     If field.Name = namesOfVirtualFields(tupleFieldIndex) Then
-                                        members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex, Location))
+                                        members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex, location))
                                     Else
-                                        members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, Location))
+                                        members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, location))
                                     End If
                                 ElseIf field.Name = namesOfVirtualFields(tupleFieldIndex) Then
                                     members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex,
@@ -753,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim fieldChainLength = NumberOfValueTuples(i + 1, fieldRemainder)
                     Dim container As NamedTypeSymbol = GetNestedTupleUnderlyingType(_underlyingType, fieldChainLength - 1).OriginalDefinition
 
-                    Dim DiagnosticInfo = If(container.IsErrorType(),
+                    Dim diagnosticInfo = If(container.IsErrorType(),
                                                           Nothing,
                                                           ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper,
                                                                                container.Name & "." & TupleMemberName(fieldRemainder)))
@@ -761,13 +756,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim defaultName As String = TupleMemberName(i + 1)
                     ' Add a field with default name if the given name Is different
                     If Name <> defaultName Then
-                        members.Add(New TupleErrorFieldSymbol(Me, defaultName, -members.Count - 1, Nothing, _elementTypes(i), DiagnosticInfo))
+                        members.Add(New TupleErrorFieldSymbol(Me, defaultName, -members.Count - 1, Nothing, _elementTypes(i), diagnosticInfo))
                     End If
 
                     members.Add(New TupleErrorFieldSymbol(Me, Name, i,
                                                       If(_elementLocations.IsDefault, Nothing, _elementLocations(i)),
                                                       _elementTypes(i),
-                                                      DiagnosticInfo))
+                                                      diagnosticInfo))
                 End If
             Next
 
@@ -793,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim kind As SymbolKind = symbol.Kind
                 Select Case kind
                     Case SymbolKind.[Event]
-                        Dim tupleUnderlyingEvent As EventSymbol = (DirectCast(symbol, EventSymbol)).TupleUnderlyingEvent
+                        Dim tupleUnderlyingEvent As EventSymbol = DirectCast(symbol, EventSymbol).TupleUnderlyingEvent
                         Dim associatedField As FieldSymbol = tupleUnderlyingEvent.AssociatedField
 
                         If associatedField IsNot Nothing Then
@@ -805,16 +800,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         smallDictionary.Add(tupleUnderlyingEvent.OriginalDefinition, symbol)
 
                     Case SymbolKind.Field
-                        Dim tupleUnderlyingField As FieldSymbol = (DirectCast(symbol, FieldSymbol)).TupleUnderlyingField
+                        Dim tupleUnderlyingField As FieldSymbol = DirectCast(symbol, FieldSymbol).TupleUnderlyingField
                         If tupleUnderlyingField IsNot Nothing Then
                             smallDictionary(tupleUnderlyingField.OriginalDefinition) = symbol
                         End If
 
                     Case SymbolKind.Method
-                        smallDictionary.Add((DirectCast(symbol, MethodSymbol)).TupleUnderlyingMethod.OriginalDefinition, symbol)
+                        smallDictionary.Add(DirectCast(symbol, MethodSymbol).TupleUnderlyingMethod.OriginalDefinition, symbol)
 
                     Case SymbolKind.Property
-                        smallDictionary.Add((DirectCast(symbol, PropertySymbol)).TupleUnderlyingProperty.OriginalDefinition, symbol)
+                        smallDictionary.Add(DirectCast(symbol, PropertySymbol).TupleUnderlyingProperty.OriginalDefinition, symbol)
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
@@ -836,7 +831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim symbol As Symbol = Nothing
 
                     If Me.UnderlyingDefinitionToMemberMap.TryGetValue(originalDefinition, symbol) Then
-                        result = CType((CObj(symbol)), TMember)
+                        result = CType(symbol, TMember)
                         Return result
                     End If
                 End If
@@ -850,19 +845,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-            ' do Not support nested types at the moment
+            ' do not support nested types at the moment
             Debug.Assert(Not GetMembers().Any(Function(m) m.Kind = SymbolKind.NamedType))
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
-            ' do Not support nested types at the moment
+            ' do not support nested types at the moment
             Debug.Assert(Not GetMembers().Any(Function(m) m.Kind = SymbolKind.NamedType))
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            ' do Not support nested types at the moment
+            ' do not support nested types at the moment
             Debug.Assert(Not GetMembers().Any(Function(m) m.Kind = SymbolKind.NamedType))
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function

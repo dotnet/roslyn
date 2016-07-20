@@ -17,37 +17,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _tupleFieldId As Integer
 
-        Public Overrides ReadOnly Property IsTupleField() As Boolean
+        Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleUnderlyingField() As FieldSymbol
+        Public Overrides ReadOnly Property TupleUnderlyingField As FieldSymbol
             Get
                 Return Me._underlyingField
             End Get
         End Property
 
-        Public ReadOnly Property TupleFieldId() As Integer
+        Public ReadOnly Property TupleFieldId As Integer
             Get
                 Return Me._tupleFieldId
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedSymbol() As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Me._containingTuple.GetTupleMemberSymbolForUnderlyingMember(Of Symbol)(Me._underlyingField.AssociatedSymbol)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ContainingSymbol() As Symbol
+        Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._containingTuple
             End Get
         End Property
 
-        Public Overrides ReadOnly Property CustomModifiers() As ImmutableArray(Of CustomModifier)
+        Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return Me._underlyingField.CustomModifiers
             End Get
@@ -84,8 +84,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleFieldSymbol) As Boolean
-            Dim flag As Boolean = other Is Me
-            Return flag OrElse (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me._containingTuple Is other._containingTuple)
+            Return other Is Me OrElse
+                (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me._containingTuple = other._containingTuple)
         End Function
     End Class
 
@@ -98,25 +98,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _locations As ImmutableArray(Of Location)
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Symbol.GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(Me._locations)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return False
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeLayoutOffset() As Integer?
+        Friend Overrides ReadOnly Property TypeLayoutOffset As Integer?
             Get
                 Dim flag As Boolean = Me._underlyingField.ContainingType IsNot Me._containingTuple.TupleUnderlyingType
                 Dim result As Integer?
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedSymbol() As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Dim flag As Boolean = Me._underlyingField.ContainingType IsNot Me._containingTuple.TupleUnderlyingType
                 Dim result As Symbol
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer, location As Location)
             MyBase.New(container, underlyingField, tupleFieldId)
-            Me._locations = (If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location)))
+            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
         End Sub
     End Class
 
@@ -152,24 +152,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents an element field of a tuple type (such as (int a, byte b).a, or (int a, byte b).b)
     ''' that is backed by a real field with a different name within the tuple underlying type.
     ''' </summary>
-    Friend Class TupleRenamedElementFieldSymbol
+    Friend NotInheritable Class TupleRenamedElementFieldSymbol
         Inherits TupleElementFieldSymbol
 
         Private _name As String
 
-        Public Overrides ReadOnly Property Name() As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Me._name
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeLayoutOffset() As Integer?
+        Friend Overrides ReadOnly Property TypeLayoutOffset As Integer?
             Get
                 Return Nothing
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedSymbol() As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing
             End Get

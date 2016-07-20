@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim elementNames As ArrayBuilder(Of String) = Nothing
             Dim countOfExplicitNames = 0
 
-            ' prepare And check element names And types
+            ' prepare and check element names and types
             For i As Integer = 0 To numElements - 1
                 Dim argumentSyntax As SimpleArgumentSyntax = arguments(i)
                 Dim name As String = Nothing
@@ -382,14 +382,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns the type to be used as a field type generates errors in case the type is not
-        ''' supported for tuple type fields.
+        ''' Returns the type to be used as a field type.
+        ''' Generates errors in case the type is not supported for tuple type fields.
         ''' </summary>
-        Private Function GetTupleFieldType(expression As BoundExpression, errorSyntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, <Out> ByRef hasError As Boolean) As TypeSymbol
+        Private Shared Function GetTupleFieldType(expression As BoundExpression, errorSyntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, <Out> ByRef hasError As Boolean) As TypeSymbol
             Dim expressionType As TypeSymbol = expression.Type
 
             If Not expression.HasErrors Then
-                If expression.Type IsNot Nothing Then
+                If expressionType IsNot Nothing Then
                     If expressionType.SpecialType = SpecialType.System_Void Then
                         expressionType = ErrorTypeSymbol.UnknownResultType
                         hasError = True
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Sub CollectTupleFieldMemberNames(name As String, position As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
             ' add the name to the list
-            ' names would typically all be there Or none at all
+            ' names would typically all be there or none at all
             ' but in case we need to handle this in error cases
             If elementNames IsNot Nothing Then
                 elementNames.Add(If(name, TupleTypeSymbol.TupleMemberName(position)))
@@ -423,13 +423,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Shared Function CheckTupleMemberName(name As String, position As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As PooledHashSet(Of String)) As Boolean
+        Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As PooledHashSet(Of String)) As Boolean
             Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
             If reserved = 0 Then
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberNameAnyPosition, name)
                 Return False
 
-            ElseIf reserved > 0 AndAlso reserved <> position + 1 Then
+            ElseIf reserved > 0 AndAlso reserved <> index + 1 Then
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberName, name, reserved)
                 Return False
 

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' that doesn't have a corresponding backing field within the tuple underlying type.
     ''' Created in response to an error condition.
     ''' </summary>
-    Friend Class TupleErrorFieldSymbol
+    Friend NotInheritable Class TupleErrorFieldSymbol
         Inherits SynthesizedFieldSymbol
 
         ''' <summary>
@@ -19,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' id is an index of the element (zero-based).
         ''' Otherwise, (-1 - [index in members array]);
         ''' </summary>
-        Private _tupleFieldId As Integer
+        Private ReadOnly _tupleFieldId As Integer
 
-        Private _locations As ImmutableArray(Of Location)
+        Private ReadOnly _locations As ImmutableArray(Of Location)
 
-        Private _useSiteDiagnosticInfo As DiagnosticInfo
+        Private ReadOnly _useSiteDiagnosticInfo As DiagnosticInfo
 
-        Public Overrides ReadOnly Property IsTupleField() As Boolean
+        Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
                 Return True
             End Get
@@ -36,31 +36,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' id is an index of the element (zero-based).
         ''' Otherwise, (-1 - [index in members array]);
         ''' </summary>
-        Public ReadOnly Property TupleFieldId() As Integer
+        Public ReadOnly Property TupleFieldId As Integer
             Get
                 Return Me._tupleFieldId
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleUnderlyingField() As FieldSymbol
+        Public Overrides ReadOnly Property TupleUnderlyingField As FieldSymbol
             Get
                 Return Nothing
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Locations() As ImmutableArray(Of Location)
+        Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._locations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DeclaringSyntaxReferences() As ImmutableArray(Of SyntaxReference)
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Return Symbol.GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(Me._locations)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsImplicitlyDeclared() As Boolean
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return False
             End Get
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As NamedTypeSymbol, name As String, tupleFieldId As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo)
             MyBase.New(container, container, type, name)
             Debug.Assert(name <> Nothing)
-            Me._locations = (If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location)))
+            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
             Me._useSiteDiagnosticInfo = useSiteDiagnosticInfo
             Me._tupleFieldId = tupleFieldId
         End Sub
@@ -93,8 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleErrorFieldSymbol) As Boolean
-            Dim flag As Boolean = other Is Me
-            Return flag OrElse (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me.ContainingType Is other.ContainingType)
+            Return other Is Me OrElse
+                (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me.ContainingType = other.ContainingType)
         End Function
     End Class
 End Namespace

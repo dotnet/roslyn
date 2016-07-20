@@ -10,88 +10,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents a method of a tuple type (such as (int, byte).ToString())
     ''' that is backed by a method within the tuple underlying type.
     ''' </summary>
-    Friend Class TupleMethodSymbol
+    Friend NotInheritable Class TupleMethodSymbol
         Inherits WrappedMethodSymbol
 
-        Private _containingType As TupleTypeSymbol
+        Private ReadOnly _containingType As TupleTypeSymbol
 
-        Private _underlyingMethod As MethodSymbol
+        Private ReadOnly _underlyingMethod As MethodSymbol
 
-        Private _typeParameters As ImmutableArray(Of TypeParameterSymbol)
+        Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
 
-        Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
-        Public Overrides ReadOnly Property IsTupleMethod() As Boolean
+        Public Overrides ReadOnly Property IsTupleMethod As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleUnderlyingMethod() As MethodSymbol
+        Public Overrides ReadOnly Property TupleUnderlyingMethod As MethodSymbol
             Get
                 Return Me._underlyingMethod.ConstructedFrom
             End Get
         End Property
 
-        Public Overrides ReadOnly Property UnderlyingMethod() As MethodSymbol
+        Public Overrides ReadOnly Property UnderlyingMethod As MethodSymbol
             Get
                 Return Me._underlyingMethod
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedSymbol() As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of Symbol)(Me._underlyingMethod.ConstructedFrom.AssociatedSymbol)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ContainingSymbol() As Symbol
+        Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._containingType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ExplicitInterfaceImplementations() As ImmutableArray(Of MethodSymbol)
+        Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
                 Return Me._underlyingMethod.ConstructedFrom.ExplicitInterfaceImplementations
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Parameters() As ImmutableArray(Of ParameterSymbol)
+        Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Dim isDefault As Boolean = Me._lazyParameters.IsDefault
-                If isDefault Then
+                If Me._lazyParameters.IsDefault Then
                     InterlockedOperations.Initialize(Of ParameterSymbol)(Me._lazyParameters, Me.CreateParameters())
                 End If
                 Return Me._lazyParameters
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsSub() As Boolean
+        Public Overrides ReadOnly Property IsSub As Boolean
             Get
                 Return Me._underlyingMethod.IsSub
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ReturnType() As TypeSymbol
+        Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
                 Return Me._underlyingMethod.ReturnType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ReturnTypeCustomModifiers() As ImmutableArray(Of CustomModifier)
+        Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return Me._underlyingMethod.ReturnTypeCustomModifiers
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeArguments() As ImmutableArray(Of TypeSymbol)
+        Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
                 Return StaticCast(Of TypeSymbol).From(Me._typeParameters)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeParameters() As ImmutableArray(Of TypeParameterSymbol)
+        Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
                 Return Me._typeParameters
             End Get
@@ -137,8 +136,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleMethodSymbol) As Boolean
-            Dim flag As Boolean = other Is Me
-            Return flag OrElse (other IsNot Nothing AndAlso Me._containingType Is other._containingType AndAlso Me._underlyingMethod.ConstructedFrom Is other._underlyingMethod.ConstructedFrom)
+            Return other Is Me OrElse
+                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingMethod.ConstructedFrom = other._underlyingMethod.ConstructedFrom)
         End Function
     End Class
 End Namespace

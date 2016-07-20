@@ -10,48 +10,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents an event of a tuple type (such as (int, byte).SomeEvent)
     ''' that is backed by an event within the tuple underlying type.
     ''' </summary>
-    Friend Class TupleEventSymbol
+    Friend NotInheritable Class TupleEventSymbol
         Inherits WrappedEventSymbol
 
-        Private _containingType As TupleTypeSymbol
+        Private ReadOnly _containingType As TupleTypeSymbol
 
-        Public Overrides ReadOnly Property IsTupleEvent() As Boolean
+        Public Overrides ReadOnly Property IsTupleEvent As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TupleUnderlyingEvent() As EventSymbol
+        Public Overrides ReadOnly Property TupleUnderlyingEvent As EventSymbol
             Get
                 Return Me._underlyingEvent
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ContainingSymbol() As Symbol
+        Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._containingType
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Type() As TypeSymbol
+        Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return Me._underlyingEvent.Type
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AddMethod() As MethodSymbol
+        Public Overrides ReadOnly Property AddMethod As MethodSymbol
             Get
                 Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingEvent.AddMethod)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property RemoveMethod() As MethodSymbol
+        Public Overrides ReadOnly Property RemoveMethod As MethodSymbol
             Get
                 Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingEvent.RemoveMethod)
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property AssociatedField() As FieldSymbol
+        Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
             Get
                 Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of FieldSymbol)(Me._underlyingEvent.AssociatedField)
             End Get
@@ -63,13 +63,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsExplicitInterfaceImplementation() As Boolean
+        Friend Overrides ReadOnly Property IsExplicitInterfaceImplementation As Boolean
             Get
                 Return Me._underlyingEvent.IsExplicitInterfaceImplementation
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ExplicitInterfaceImplementations() As ImmutableArray(Of EventSymbol)
+        Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
                 Return Me._underlyingEvent.ExplicitInterfaceImplementations
             End Get
@@ -95,8 +95,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleEventSymbol) As Boolean
-            Dim flag As Boolean = other Is Me
-            Return flag OrElse (other IsNot Nothing AndAlso Me._containingType Is other._containingType AndAlso Me._underlyingEvent Is other._underlyingEvent)
+            Return other Is Me OrElse
+                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingEvent = other._underlyingEvent)
         End Function
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)

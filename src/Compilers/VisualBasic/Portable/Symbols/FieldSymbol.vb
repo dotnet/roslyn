@@ -337,8 +337,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' If this is a field of a tuple type, return corresponding underlying field from the
-        ''' tuple underlying type. Otherwise, null. In case of a malformed underlying type
-        ''' the corresponding underlying field might be missing, return null in this case too.
+        ''' tuple underlying type. Otherwise, Nothing. In case of a malformed underlying type
+        ''' the corresponding underlying field might be missing, return Nothing in this case too.
         ''' </summary>
         Public Overridable ReadOnly Property TupleUnderlyingField() As FieldSymbol
             Get

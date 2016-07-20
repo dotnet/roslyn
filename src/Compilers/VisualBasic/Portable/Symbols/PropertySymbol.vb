@@ -417,7 +417,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' If this is a property of a tuple type, return corresponding underlying property from the
         ''' tuple underlying type. Otherwise, Nothing. 
