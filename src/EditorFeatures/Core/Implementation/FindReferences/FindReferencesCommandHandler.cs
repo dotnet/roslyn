@@ -18,18 +18,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<IReferencedSymbolsPresenter> _synchronousPresenters;
+        private readonly IEnumerable<IAsyncFindReferencesPresenter> _asynchronousPresenters;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> presenters)
+            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> synchronousPresenters,
+            [ImportMany] IEnumerable<IAsyncFindReferencesPresenter> asynchronousPresenters)
         {
             Contract.ThrowIfNull(waitIndicator);
-            Contract.ThrowIfNull(presenters);
+            Contract.ThrowIfNull(synchronousPresenters);
+            Contract.ThrowIfNull(asynchronousPresenters);
 
             _waitIndicator = waitIndicator;
-            _synchronousPresenters = presenters;
+            _synchronousPresenters = synchronousPresenters;
+            _asynchronousPresenters = asynchronousPresenters;
         }
 
         internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
