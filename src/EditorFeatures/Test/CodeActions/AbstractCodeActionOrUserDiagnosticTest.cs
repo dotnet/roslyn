@@ -260,9 +260,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
                 var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
-                var diffView = content as DifferenceViewerPreview;
-                Assert.NotNull(diffView.Viewer);
-                diffView.Dispose();
+                using (var diffView = content as DifferenceViewerPreview)
+                {
+                    Assert.NotNull(diffView.Viewer);
+                }
             }
             else
             {
