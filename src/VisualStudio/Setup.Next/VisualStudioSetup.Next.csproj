@@ -35,6 +35,10 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\Core\Def.Next\ServicesVisualStudio.Next.csproj">
+      <Project>{d8c86336-f959-47f9-9f26-2725b4bc79ff}</Project>
+      <Name>ServicesVisualStudio.Next</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
