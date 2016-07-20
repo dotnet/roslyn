@@ -27,18 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
             }
 
-            internal override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
-            {
-                var solution = SemanticDocument.Document.Project.Solution;
-                return await MoveTypeToNewFileAsync(State.TargetFileNameCandidate).ConfigureAwait(false);
-            }
-
             /// <summary>
             /// Given a document and a type contained in it, moves the type
             /// out to its own document. The new document's name typically
             /// is the type name, or is atleast based on the type name.
             /// </summary>
-            /// <param name="documentName">name for the new document being added</param>
             /// <remarks>
             /// The algorithm for this, is as follows:
             /// 1. Fork the original document that contains the type to be moved.
@@ -47,14 +40,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// 3. Add this forked document to the solution.
             /// 4. Finally, update the original document and remove the type from it.
             /// </remarks>
-            private async Task<IEnumerable<CodeActionOperation>> MoveTypeToNewFileAsync(string documentName)
+            internal override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
             {
+                var solution = SemanticDocument.Document.Project.Solution;
+
                 // Fork, update and add as new document.
                 var projectToBeUpdated = SemanticDocument.Document.Project;
-                var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, documentName);
+                var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, State.TargetFileNameCandidate);
 
-                var solutionWithNewDocument = await AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(
-                    SemanticDocument, documentName, newDocumentId, State.TypeNode, CancellationToken).ConfigureAwait(false);
+                var solutionWithNewDocument = await AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(newDocumentId).ConfigureAwait(false);
 
                 // Get the original source document again, from the latest forked solution.
                 var sourceDocument = solutionWithNewDocument.GetDocument(SemanticDocument.Document.Id);
@@ -62,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // update source document to add partial modifiers to type chain
                 // and/or remove type declaration from original source document.
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
-                      sourceDocument, State.TypeNode, CancellationToken).ConfigureAwait(false);
+                      sourceDocument).ConfigureAwait(false);
 
                 return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(solutionWithBothDocumentsUpdated));
             }
@@ -71,30 +65,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// Forks the source document, keeps required type, namespace containers
             /// and adds it the solution.
             /// </summary>
-            /// <param name="sourceDocument">original document</param>
-            /// <param name="newDocumentName">name of the new document to be added</param>
             /// <param name="newDocumentId">id for the new document to be added</param>
-            /// <param name="typeNode">type to move from original document to new document</param>
-            /// <param name="cancellationToken">a cancellation token</param>
             /// <returns>the new solution which contains a new document with the type being moved</returns>
             private async Task<Solution> AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(
-                SemanticDocument sourceDocument,
-                string newDocumentName,
-                DocumentId newDocumentId,
-                TTypeDeclarationSyntax typeNode,
-                CancellationToken cancellationToken)
+                DocumentId newDocumentId)
             {
-                Debug.Assert(sourceDocument.Document.Name != newDocumentName,
-                             $"New document name is same as old document name:{newDocumentName}");
+                Debug.Assert(SemanticDocument.Document.Name != State.TargetFileNameCandidate,
+                             $"New document name is same as old document name:{State.TargetFileNameCandidate}");
 
-                var root = sourceDocument.Root;
-                var projectToBeUpdated = sourceDocument.Document.Project;
-                var documentEditor = await DocumentEditor.CreateAsync(sourceDocument.Document, cancellationToken).ConfigureAwait(false);
+                var root = SemanticDocument.Root;
+                var projectToBeUpdated = SemanticDocument.Document.Project;
+                var documentEditor = await DocumentEditor.CreateAsync(SemanticDocument.Document, CancellationToken).ConfigureAwait(false);
 
-                AddPartialModifiersToTypeChain(documentEditor, typeNode);
+                AddPartialModifiersToTypeChain(documentEditor);
 
                 // remove things that are not being moved, from the forked document.
-                var membersToRemove = GetMembersToRemove(root, typeNode);
+                var membersToRemove = GetMembersToRemove(root);
                 foreach (var member in membersToRemove)
                 {
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
@@ -103,14 +89,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var modifiedRoot = documentEditor.GetChangedRoot();
 
                 // add an empty document to solution, so that we'll have options from the right context.
-                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId, newDocumentName, text: string.Empty);
+                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId, State.TargetFileNameCandidate, text: string.Empty);
 
                 // update the text for the new document
                 solutionWithNewDocument = solutionWithNewDocument.WithDocumentSyntaxRoot(newDocumentId, modifiedRoot, PreservationMode.PreserveIdentity);
 
                 // get the updated document, perform clean up like remove unused usings.
                 var newDocument = solutionWithNewDocument.GetDocument(newDocumentId);
-                newDocument = await CleanUpDocumentAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                newDocument = await CleanUpDocumentAsync(newDocument, CancellationToken).ConfigureAwait(false);
 
                 return newDocument.Project.Solution;
             }
@@ -120,20 +106,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// perform other fix ups as necessary.
             /// </summary>
             /// <param name="sourceDocument">original document</param>
-            /// <param name="typeNode">type that was moved to new document</param>
-            /// <param name="cancellationToken">a cancellation token</param>
             /// <returns>an updated solution with the original document fixed up as appropriate.</returns>
-            private async Task<Solution> RemoveTypeFromSourceDocumentAsync(
-                Document sourceDocument, TTypeDeclarationSyntax typeNode, CancellationToken cancellationToken)
+            private async Task<Solution> RemoveTypeFromSourceDocumentAsync(Document sourceDocument)
             {
-                var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, cancellationToken).ConfigureAwait(false);
+                var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, CancellationToken).ConfigureAwait(false);
 
-                AddPartialModifiersToTypeChain(documentEditor, typeNode);
-                documentEditor.RemoveNode(typeNode, SyntaxRemoveOptions.KeepNoTrivia);
+                AddPartialModifiersToTypeChain(documentEditor);
+                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepNoTrivia);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
 
-                updatedDocument = await CleanUpDocumentAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+                updatedDocument = await CleanUpDocumentAsync(updatedDocument, CancellationToken).ConfigureAwait(false);
 
                 return updatedDocument.Project.Solution;
             }
@@ -144,25 +127,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// This list of nodes are then removed from the forked copy.
             /// </summary>
             /// <param name="root">root, of the syntax tree of forked document</param>
-            /// <param name="typeNode">node being moved to new document</param>
             /// <returns>list of syntax nodes, to be removed from the forked copy.</returns>
-            private static IEnumerable<SyntaxNode> GetMembersToRemove(
-                SyntaxNode root, TTypeDeclarationSyntax typeNode)
+            private IEnumerable<SyntaxNode> GetMembersToRemove(SyntaxNode root)
             {
-                HashSet<SyntaxNode> spine = new HashSet<SyntaxNode>();
+                var spine = new HashSet<SyntaxNode>();
 
                 // collect the parent chain of declarations to keep.
-                SyntaxNode node = typeNode;
-                while (node.Parent != null && !(node.Parent is TCompilationUnitSyntax))
-                {
-                    spine.Add(node.Parent);
-                    node = node.Parent;
-                }
+                SyntaxNode node = State.TypeNode;
+                spine.AddRange(node.GetAncestors());
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
                     .DescendantNodes(n => DescendIntoChildren(n, spine.Contains(n)))
-                    .Where(n => FilterToTopLevelMembers(n, typeNode));
+                    .Where(n => FilterToTopLevelMembers(n, State.TypeNode));
 
                 // diff candidates with items we want to keep.
                 return removableCandidates.Except(spine);
@@ -192,11 +169,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// if a nested type is being moved, this ensures its containing type is partial.
             /// </summary>
             /// <param name="documentEditor">document editor for the new document being created</param>
-            /// <param name="typeNode">type being moved</param>
-            private void AddPartialModifiersToTypeChain(DocumentEditor documentEditor, TTypeDeclarationSyntax typeNode)
+            private void AddPartialModifiersToTypeChain(DocumentEditor documentEditor)
             {
                 var semanticFacts = State.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
-                var typeChain = typeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
+                var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
 
                 foreach (var node in typeChain)
                 {
@@ -213,13 +189,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             private async Task<Document> CleanUpDocumentAsync(Document document, CancellationToken cancellationToken)
             {
-                document = await document
+                return await document
                     .GetLanguageService<IRemoveUnnecessaryImportsService>()
-                    .RemoveUnnecessaryImportsAsync(document, cancellationToken)
+                    .RemoveUnnecessaryImportsAsync(document, CancellationToken)
                     .ConfigureAwait(false);
-
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                return document.WithSyntaxRoot(root);
             }
         }
     }

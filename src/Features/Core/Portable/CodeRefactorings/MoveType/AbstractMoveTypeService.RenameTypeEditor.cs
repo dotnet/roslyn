@@ -20,18 +20,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             internal override Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
             {
-                var solution = SemanticDocument.Document.Project.Solution;
-                return RenameTypeToMatchFileAsync(solution);
+                return RenameTypeToMatchFileAsync();
             }
 
             /// <summary>
             /// Renames a type to match its containing file name.
             /// </summary>
-            private async Task<IEnumerable<CodeActionOperation>> RenameTypeToMatchFileAsync(Solution solution)
+            private async Task<IEnumerable<CodeActionOperation>> RenameTypeToMatchFileAsync()
             {
                 // TODO: detect conflicts ahead of time and open an inline rename session if any exists.
                 // this will bring up dashboard with conflicts and will allow the user to resolve them.
                 // if no such conflicts exist, proceed with RenameSymbolAsync.
+                var solution = SemanticDocument.Document.Project.Solution;
                 var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
                 var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, State.DocumentName, SemanticDocument.Document.Options, CancellationToken).ConfigureAwait(false);
                 return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(newSolution));

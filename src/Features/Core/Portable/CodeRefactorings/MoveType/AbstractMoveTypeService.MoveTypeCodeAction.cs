@@ -48,20 +48,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var editor = GetEditor(_service, _state, _operationKind, cancellationToken);
+                var editor = GetEditor(cancellationToken);
                 return editor.GetOperationsAsync();
             }
 
-            private Editor GetEditor(TService service, State state, OperationKind operationKind, CancellationToken cancellationToken)
+            private Editor GetEditor(CancellationToken cancellationToken)
             {
-                switch (operationKind)
+                switch (_operationKind)
                 {
                     case OperationKind.MoveType:
-                        return new MoveTypeEditor(service, state, cancellationToken);
+                        return new MoveTypeEditor(_service, _state, cancellationToken);
                     case OperationKind.RenameType:
-                        return new RenameTypeEditor(service, state, cancellationToken);
+                        return new RenameTypeEditor(_service, _state, cancellationToken);
                     case OperationKind.RenameFile:
-                        return new RenameFileEditor(service, state, cancellationToken);
+                        return new RenameFileEditor(_service, _state, cancellationToken);
                 }
 
                 throw ExceptionUtilities.Unreachable;
