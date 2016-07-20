@@ -201,6 +201,178 @@ namespace System
 ";
 
         [Fact]
+        public void InterfaceAttributes()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+interface ITest<T> 
+{ 
+    T Get();
+}
+
+public class C : ITest<(int key, int val)>
+{
+    public (int key, int val) Get() => (0, 0);
+}
+
+public class Base<T> : ITest<T>
+{
+    public T Get() => default(T);
+}
+
+public class C2 : Base<(int x, int y)> { }
+
+public class C3 : IEnumerable<(int key, int val)>
+{
+    private readonly (int, int)[] _backing;
+
+    public C3((int, int)[] backing)
+    {
+        _backing = backing;
+    }
+
+    private class Inner : IEnumerator<(int key, int val)>, IEnumerator
+    {
+        private int index = -1;
+        private readonly (int, int)[] _backing;
+
+        public Inner((int, int)[] backing)
+        {
+            _backing = backing;
+        }
+
+        public (int key, int val) Current => _backing[index];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        public bool MoveNext() =>
+            ++index < _backing.Length ? true : false;
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    IEnumerator<(int key, int val)> IEnumerable<(int key, int val)>.GetEnumerator() => new Inner(_backing);
+
+    IEnumerator IEnumerable.GetEnumerator() => new Inner(_backing);
+} 
+
+public class C4 : C3
+{
+    public C4((int, int)[] backing)
+    : base(backing)
+    { }
+}
+",
+            references: s_valueTupleRefs);
+            CompileAndVerify(comp, symbolValidator: m =>
+            {
+                var c = m.GlobalNamespace.GetTypeMember("C");
+                Assert.Equal(1, c.Interfaces.Length);
+                NamedTypeSymbol iface = c.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                TypeSymbol typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+
+                var c2 = m.GlobalNamespace.GetTypeMember("C2");
+                var @base = c2.BaseType;
+                Assert.Equal("Base", @base.Name);
+                Assert.Equal(1, @base.Interfaces.Length);
+                iface = @base.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "x", "y" }, typeArg.TupleElementNames);
+
+                var c3 = m.GlobalNamespace.GetTypeMember("C3");
+                Assert.Equal(2, c3.Interfaces.Length);
+                iface = c3.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+
+                var d = m.GlobalNamespace.GetTypeMember("C3");
+                Assert.Equal(2, d.Interfaces.Length);
+                iface = d.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+            });
+
+            CompileAndVerify(@"
+using System;
+
+class D
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        var temp = c.Get();
+        Console.WriteLine(temp);
+        Console.WriteLine(""key: "" + temp.key);
+        Console.WriteLine(""val: "" + temp.val);
+
+        var c2 = new C2();
+        var temp2 = c2.Get();
+        Console.WriteLine(temp);
+        Console.WriteLine(""x: "" + temp2.x);
+        Console.WriteLine(""y: "" + temp2.y);
+
+        var backing = new[] { (1, 1), (2, 2), (3, 3) };
+        var c3 = new C3(backing);
+        foreach (var kvp in c3)
+        {
+            Console.WriteLine($""(key: {kvp.key}, val: {kvp.val})"");
+        }
+
+        var c4 = new C4(backing);
+        foreach (var kvp in c4)
+        {
+            Console.WriteLine($""(key: {kvp.key}, val: {kvp.val})"");
+        }
+    }
+}", additionalRefs: s_valueTupleRefs.Concat(new[] { comp.EmitToImageReference() }),
+    expectedOutput: @"(0, 0)
+key: 0
+val: 0
+(0, 0)
+x: 0
+y: 0
+(key: 1, val: 1)
+(key: 2, val: 2)
+(key: 3, val: 3)
+(key: 1, val: 1)
+(key: 2, val: 2)
+(key: 3, val: 3)");
+        }
+
+        [Fact]
         public void BadTupleNameMetadata()
         {
             var comp = CreateCompilationWithCustomILSource("",

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(sourceType.Equals(destinationType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
-            if (sourceType.IsTupleType)
+            if (sourceType.ContainsTuple())
             {
                 // TODO(https://github.com/dotnet/roslyn/issues/12389):
                 // Need to save/restore tupleness as well
