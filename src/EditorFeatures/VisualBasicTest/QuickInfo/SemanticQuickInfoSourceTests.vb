@@ -26,8 +26,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
             Dim provider = New SemanticQuickInfoProvider(
-             workspace.GetService(Of ITextBufferFactoryService),
-             workspace.GetService(Of IContentTypeRegistryService),
              workspace.GetService(Of IProjectionBufferFactoryService),
              workspace.GetService(Of IEditorOptionsFactoryService),
              workspace.GetService(Of ITextEditorFactoryService),
