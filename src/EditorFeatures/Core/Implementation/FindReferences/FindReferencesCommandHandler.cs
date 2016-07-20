@@ -14,12 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences,
-       ContentTypeNames.RoslynContentType)]
-    internal class FindReferencesCommandHandler :
-        ICommandHandler<FindReferencesCommandArgs>
+    [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
+    internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _presenters;
+        private readonly IEnumerable<IReferencedSymbolsPresenter> _synchronousPresenters;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             Contract.ThrowIfNull(presenters);
 
             _waitIndicator = waitIndicator;
-            _presenters = presenters;
+            _synchronousPresenters = presenters;
         }
 
         internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         {
                             if (!service.TryFindReferences(document, caretPosition, context))
                             {
-                                foreach (var presenter in _presenters)
+                                foreach (var presenter in _synchronousPresenters)
                                 {
                                     presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
                                     return;
