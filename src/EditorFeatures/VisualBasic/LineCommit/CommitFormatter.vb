@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Internal.Log
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
