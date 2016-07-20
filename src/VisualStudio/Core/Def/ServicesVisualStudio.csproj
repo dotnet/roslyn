@@ -725,10 +725,6 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Implementation\Options\Style\" />
-    <Folder Include="Implementation\Workspace\Esent\" />
-  </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
