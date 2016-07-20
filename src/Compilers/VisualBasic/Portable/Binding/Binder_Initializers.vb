@@ -631,11 +631,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Binds a parameter's default value syntax
         ''' </summary>
         Friend Function BindParameterDefaultValue(
-            targetType As TypeSymbol,
-            equalsValueSyntax As EqualsValueSyntax,
-            diagnostics As DiagnosticBag,
-            <Out> ByRef constValue As ConstantValue
-        ) As BoundExpression
+                                                   targetType As TypeSymbol,
+                                                   equalsValueSyntax As EqualsValueSyntax,
+                                                   diagnostics As DiagnosticBag,
+                                       <Out> ByRef constValue As ConstantValue
+                                                 ) As BoundExpression
+
             constValue = Nothing
 
             Dim boundInitValue As BoundExpression = BindValue(equalsValueSyntax.Value, diagnostics)

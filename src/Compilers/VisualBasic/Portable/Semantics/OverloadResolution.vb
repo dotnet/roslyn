@@ -2823,16 +2823,17 @@ Bailout:
         ''' !!! Everything we flag as an error here, Binder.ReportOverloadResolutionFailureForASingleCandidate should detect as well. !!!
         ''' </summary>
         Private Shared Sub MatchArguments(
-            methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-            ByRef candidate As CandidateAnalysisResult,
-            arguments As ImmutableArray(Of BoundExpression),
-            argumentNames As ImmutableArray(Of String),
-            binder As Binder,
-            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            callerInfoOpt As VisualBasicSyntaxNode,
-            forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        )
+                                           methodOrPropertyGroup As BoundMethodOrPropertyGroup,
+                                     ByRef candidate As CandidateAnalysisResult,
+                                           arguments As ImmutableArray(Of BoundExpression),
+                                           argumentNames As ImmutableArray(Of String),
+                                           binder As Binder,
+                         <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+                                           callerInfoOpt As VisualBasicSyntaxNode,
+                                           forceExpandedForm As Boolean,
+                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                                        )
+
             Debug.Assert(Not arguments.IsDefault)
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
             Debug.Assert(Not candidate.ArgumentMatchingDone)
