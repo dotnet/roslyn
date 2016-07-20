@@ -27,9 +27,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
-    <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
