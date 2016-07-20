@@ -355,9 +355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
-            Debug.Assert((object)type.DelegateInvokeMethod() != null && !type.DelegateInvokeMethod().HasUseSiteError,
-                         "This method should only be called on valid delegate types.");
-            return type.DelegateInvokeMethod().Parameters;
+            var invokeMethod = type.DelegateInvokeMethod();
+            if ((object)invokeMethod == null)
+            {
+                return default(ImmutableArray<ParameterSymbol>);
+            }
+            return invokeMethod.Parameters;
         }
 
         public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbol> elementTypes)
@@ -1333,28 +1336,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
         {
-            NormalizeTaskTypesCore(compilation, ref type);
+            NormalizeTaskTypesInType(compilation, ref type);
             return type;
         }
 
         /// <summary>
         /// Replace Task-like types with Task types. Returns true if there were changes.
         /// </summary>
-        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref TypeSymbol type)
+        private static bool NormalizeTaskTypesInType(CSharpCompilation compilation, ref TypeSymbol type)
         {
             switch (type.Kind)
             {
                 case SymbolKind.NamedType:
                     {
                         var namedType = (NamedTypeSymbol)type;
-                        var changed = NormalizeTaskTypesCore(compilation, ref namedType);
+                        var changed = type.IsTupleType ?
+                            NormalizeTaskTypesInTuple(compilation, ref namedType) :
+                            NormalizeTaskTypesInNamedType(compilation, ref namedType);
                         type = namedType;
                         return changed;
                     }
                 case SymbolKind.ArrayType:
                     {
                         var arrayType = (ArrayTypeSymbol)type;
-                        var changed = NormalizeTaskTypesCore(compilation, ref arrayType);
+                        var changed = NormalizeTaskTypesInArray(compilation, ref arrayType);
                         type = arrayType;
                         return changed;
                     }
@@ -1362,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        private static bool NormalizeTaskTypesInNamedType(CSharpCompilation compilation, ref NamedTypeSymbol type)
         {
             bool hasChanged = false;
 
@@ -1374,12 +1379,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
                 for (int i = 0; i < typeArgumentsBuilder.Count; i++)
                 {
-                    var typeArgNormalized = typeArgumentsBuilder[i].Type;
-                    if (NormalizeTaskTypesCore(compilation, ref typeArgNormalized))
+                    var typeWithModifier = typeArgumentsBuilder[i];
+                    var typeArgNormalized = typeWithModifier.Type;
+                    if (NormalizeTaskTypesInType(compilation, ref typeArgNormalized))
                     {
                         hasChanged = true;
-                        // Should preserve custom modifiers (see https://github.com/dotnet/roslyn/issues/12615).
-                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized);
+                        // Preserve custom modifiers but without normalizing those types.
+                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized, typeWithModifier.CustomModifiers);
                     }
                 }
                 if (hasChanged)
@@ -1409,17 +1415,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 type = arity == 0 ?
                     taskType :
-                    taskType.Construct(type.TypeArgumentsNoUseSiteDiagnostics);
+                    taskType.Construct(
+                        ImmutableArray.Create(
+                            new TypeWithModifiers(
+                                type.TypeArgumentsNoUseSiteDiagnostics[0],
+                                type.HasTypeArgumentsCustomModifiers ? type.TypeArgumentsCustomModifiers[0] : default(ImmutableArray<CustomModifier>))),
+                        unbound: false);
                 hasChanged = true;
             }
 
             return hasChanged;
         }
 
-        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
+        private static bool NormalizeTaskTypesInTuple(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            Debug.Assert(type.IsTupleType);
+            var underlyingType = type.TupleUnderlyingType;
+            if (!NormalizeTaskTypesInNamedType(compilation, ref underlyingType))
+            {
+                return false;
+            }
+            type = TupleTypeSymbol.Create(underlyingType, type.TupleElementNames);
+            return true;
+        }
+
+        private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
         {
             var elementType = arrayType.ElementType;
-            if (!NormalizeTaskTypesCore(compilation, ref elementType))
+            if (!NormalizeTaskTypesInType(compilation, ref elementType))
             {
                 return false;
             }
