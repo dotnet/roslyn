@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // For declarations, that means merging type information from the LHS and RHS
                     // For assignments, only the LHS side matters since it is necessarily typed
                     TypeSymbol lhsAsTuple = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, node, Compilation, diagnostics);
-                    if (lhsAsTuple != null)
+                    if ((object)lhsAsTuple != null)
                     {
                         boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
                     }
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int leftLength = lhsVariables.Count;
             int rightLength = rhsLiteral.Arguments.Length;
 
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(lhsVariables.Count);
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(leftLength);
             for (int i = 0; i < rightLength; i++)
             {
                 BoundExpression element = rhsLiteral.Arguments[i];
