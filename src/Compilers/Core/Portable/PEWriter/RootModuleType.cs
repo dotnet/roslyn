@@ -69,9 +69,9 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
-        public IEnumerable<ITypeReference> Interfaces(EmitContext context)
+        public IEnumerable<Cci.InterfaceImplementation> Interfaces(EmitContext context)
         {
-            return SpecializedCollections.EmptyEnumerable<ITypeReference>();
+            return SpecializedCollections.EmptyEnumerable<Cci.InterfaceImplementation>();
         }
 
         public bool IsAbstract
