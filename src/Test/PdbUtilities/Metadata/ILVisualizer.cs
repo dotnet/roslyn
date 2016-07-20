@@ -384,14 +384,14 @@ namespace Roslyn.Test.MetadataUtilities
                                 uint pseudoToken = ReadUInt32(ilBytes, ref curIndex);
                                 if (opCode.OperandType == OperandType.InlineTok)
                                 {
-                                    // Check of an encoding of the maximum method token index value.
+                                    // Check for an encoding of the maximum method token index value.
                                     if ((pseudoToken & 0xff000000) == 0x40000000)
                                     {
                                         sb.Append("Max Method Token Index");
                                         break;
                                     }
 
-                                    // Check of an encoding of a source document index.
+                                    // Check for an encoding of a source document index.
                                     if ((pseudoToken & 0xff000000) == 0x20000000)
                                     {
                                         sb.Append("Source Document " + (pseudoToken & 0x00ffffff).ToString());
@@ -416,7 +416,7 @@ namespace Roslyn.Test.MetadataUtilities
                             {
                                 sb.Append(' ');
                                 uint pseudoToken = ReadUInt32(ilBytes, ref curIndex);
-                                // Check for an encoding of that indices the current module's module version ID.
+                                // Check for an encoding of the spelling of the current module's module version ID.
                                 if (pseudoToken == 0x80000000)
                                 {
                                     sb.Append("##MVID##");
