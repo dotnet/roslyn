@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 foreach (var node in typeChain)
                 {
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
-                    if (!semanticFacts.IsPartial(symbol))
+                    if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
                         documentEditor.SetModifiers(node, DeclarationModifiers.Partial);
                     }

@@ -93,6 +93,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
 
-        bool IsPartial(ITypeSymbol typeSymbol);
+        bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
     }
 }
