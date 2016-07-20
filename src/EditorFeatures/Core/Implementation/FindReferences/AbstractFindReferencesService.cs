@@ -14,8 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
-    internal abstract class AbstractFindReferencesService : 
-        IFindReferencesService
+    internal abstract partial class AbstractFindReferencesService :
+        IFindReferencesService, IStreamingFindReferencesService
     {
         private readonly IEnumerable<IReferencedSymbolsPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         private async Task<Tuple<ISymbol, Solution>> GetRelevantSymbolAndSolutionAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol != null)
             {
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // First see if we have any external navigable item references.
             // If so, we display the results as navigable items.
-            var succeeded = TryFindAndDisplayNavigableItemsReferencesAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);            
+            var succeeded = TryFindAndDisplayNavigableItemsReferencesAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
             if (succeeded)
             {
                 return true;
@@ -183,6 +185,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
 
             return false;
+        }
+
+        public async Task FindReferencesAsync(
+            Document document, int position, FindReferencesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+
+            var symbol = symbolAndSolution.Item1;
+            var solution = symbolAndSolution.Item2;
+
+            var result = await SymbolFinder.FindReferencesAsync(
+                symbol,
+                solution,
+                progress: new ProgressAdapter(solution, context),
+                documents: null,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }
