@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
@@ -13,49 +15,56 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         {
             private readonly State _state;
             private readonly TService _service;
-
-            private readonly bool _renameFile;
+            private readonly OperationKind _operationKind;
             private readonly string _title;
-            private readonly bool _renameType;
 
             public MoveTypeCodeAction(
                 TService service,
                 State state,
-                bool renameFile,
-                bool renameType)
+                OperationKind operationKind)
             {
-                _renameFile = renameFile;
-                _renameType = renameType;
                 _state = state;
                 _service = service;
+                _operationKind = operationKind;
                 _title = CreateDisplayText();
             }
 
             private string CreateDisplayText()
             {
-                if (_renameFile)
+                switch (_operationKind)
                 {
-                    return string.Format(
-                        FeaturesResources.Renamefileto_0,
-                        _state.TargetFileNameCandidate);
-                }
-                else if (_renameType)
-                {
-                    return string.Format(
-                        FeaturesResources.Renametypeto_0, _state.DocumentName);
+                    case OperationKind.MoveType:
+                        return string.Format(FeaturesResources.Movetypeto_0, _state.TargetFileNameCandidate);
+                    case OperationKind.RenameType:
+                        return string.Format(FeaturesResources.Renametypeto_0, _state.DocumentName);
+                    case OperationKind.RenameFile:
+                        return string.Format(FeaturesResources.Renamefileto_0, _state.TargetFileNameCandidate);
                 }
 
-                return string.Format(
-                    FeaturesResources.Movetypeto_0,
-                    _state.TargetFileNameCandidate);
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override string Title => _title;
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var editor = new Editor(_service, _state, _renameFile, _renameType, cancellationToken: cancellationToken);
-                return await editor.GetOperationsAsync().ConfigureAwait(false);
+                var editor = GetEditor(_service, _state, _operationKind, cancellationToken);
+                return editor.GetOperationsAsync();
+            }
+
+            private Editor GetEditor(TService service, State state, OperationKind operationKind, CancellationToken cancellationToken)
+            {
+                switch (operationKind)
+                {
+                    case OperationKind.MoveType:
+                        return new MoveTypeEditor(service, state, cancellationToken);
+                    case OperationKind.RenameType:
+                        return new RenameTypeEditor(service, state, cancellationToken);
+                    case OperationKind.RenameFile:
+                        return new RenameFileEditor(service, state, cancellationToken);
+                }
+
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

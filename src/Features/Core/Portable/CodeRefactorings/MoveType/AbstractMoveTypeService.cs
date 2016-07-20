@@ -17,6 +17,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
+        internal enum OperationKind
+        {
+            MoveType,
+            RenameType,
+            RenameFile
+        }
+
         public bool ShouldAnalyze(SyntaxNode root, TextSpan span)
         {
             return GetNodetoAnalyze(root, span) is TTypeDeclarationSyntax;
@@ -54,35 +61,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private List<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
             var actions = new List<CodeAction>();
-            var isNestedType = IsNestedType(state.TypeNode);
             var singleType = IsSingleTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
-            var typeSymbol = (ITypeSymbol)state.SemanticDocument.SemanticModel.GetDeclaredSymbol(state.TypeNode, cancellationToken);
 
             if (singleType)
             {
                 // one type declaration in current document. No moving around required, just sync
                 // document name and type name by offering rename in both directions between type and document.
-                AddSimpleCodeAction(actions, state, renameFile: true);
-                AddSimpleCodeAction(actions, state, renameType: true);
+                actions.Add(GetCodeAction(state, operationKind: OperationKind.RenameFile));
+                actions.Add(GetCodeAction(state, operationKind: OperationKind.RenameType));
             }
             else
             {
                 // multiple type declarations in current document. so, move to new file.
-                AddSimpleCodeAction(actions, state);
+                actions.Add(GetCodeAction(state, operationKind: OperationKind.MoveType));
             }
 
             return actions;
         }
 
-        private void AddSimpleCodeAction(
-            List<CodeAction> actions,
+        private CodeAction GetCodeAction(
             State state,
-            bool renameFile = false,
-            bool renameType = false)
+            OperationKind operationKind)
         {
-            actions.Add(
-                new MoveTypeCodeAction(
-                    (TService)this, state, renameFile, renameType));
+            return new MoveTypeCodeAction((TService)this, state, operationKind);
         }
     }
 }

@@ -1,14 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private partial class Editor
+        private class RenameFileEditor : Editor
         {
+            public RenameFileEditor(TService service, State state, CancellationToken cancellationToken)
+                : base(service, state, cancellationToken)
+            {
+            }
+
+            internal override Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
+            {
+                var solution = SemanticDocument.Document.Project.Solution;
+                return Task.FromResult(RenameFileToMatchTypeName(solution));
+            }
+
             /// <summary>
             /// Renames the file to match the type contained in it.
             /// </summary>
@@ -16,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 var text = SemanticDocument.Text;
                 var oldDocumentId = SemanticDocument.Document.Id;
-                var newDocumentId = DocumentId.CreateNewId(SemanticDocument.Document.Project.Id, _state.TargetFileNameCandidate);
+                var newDocumentId = DocumentId.CreateNewId(SemanticDocument.Document.Project.Id, State.TargetFileNameCandidate);
 
                 // currently, document rename is accomplished by a remove followed by an add.
                 var newSolution = solution.RemoveDocument(oldDocumentId);
-                newSolution = newSolution.AddDocument(newDocumentId, _state.TargetFileNameCandidate, text);
+                newSolution = newSolution.AddDocument(newDocumentId, State.TargetFileNameCandidate, text);
 
                 return new CodeActionOperation[]
                 {
