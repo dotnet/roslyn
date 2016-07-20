@@ -146,9 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionItemRules.Default
         End Function
 
-        Protected Overrides Function GetInsertionText(
-                item As CompletionItem, symbol As ISymbol, context As SyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
     End Class
 End Namespace
