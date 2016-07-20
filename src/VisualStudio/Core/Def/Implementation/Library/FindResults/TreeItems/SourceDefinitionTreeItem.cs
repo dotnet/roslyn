@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         internal override void SetReferenceCount(int referenceCount)
         {
             var referenceCountDisplay = referenceCount == 1
-                ? ServicesVSResources.ReferenceCountSingular
-                : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
+                ? ServicesVSResources._1_reference
+                : string.Format(ServicesVSResources._0_references, referenceCount);
 
             this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay} ({referenceCountDisplay})";
         }

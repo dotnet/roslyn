@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var symbol in symbols)
                 {
                     builder.Clear();
-                    yield return CreateItem(workspace, semanticModel, symbol, token, itemSpan, builder);
+                    yield return CreateItem(workspace, semanticModel, symbol, token, builder);
                 }
             }
             finally
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, TextSpan span, StringBuilder builder)
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, StringBuilder builder)
         {
             int position = token.SpanStart;
 
@@ -296,9 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SymbolCompletionItem.Create(
                 displayText: insertionText,
                 insertionText: insertionText,
-                span: span,
                 symbol: symbol,
-                descriptionPosition: position,
+                contextPosition: position,
                 sortText: symbolText,
                 rules: GetRules(insertionText));
         }
@@ -338,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly string InsertionTextProperty = "insertionText";
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             string insertionText;
             if (!selectedItem.Properties.TryGetValue(InsertionTextProperty, out insertionText))

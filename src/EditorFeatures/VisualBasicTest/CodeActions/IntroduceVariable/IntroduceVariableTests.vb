@@ -1,11 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
-
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.IntroduceVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceVariable
     Public Class IntroduceVariableTests
@@ -69,8 +66,8 @@ index:=3)
             Await TestExactActionSetOfferedAsync(
                 source,
                 expectedActionSet:={
-                    String.Format(FeaturesResources.IntroduceLocalFor, "CType(2.ToString(), T)"),
-                    String.Format(FeaturesResources.IntroduceLocalForAllOccurrences, "CType(2.ToString(), T)")})
+                    String.Format(FeaturesResources.Introduce_local_for_0, "CType(2.ToString(), T)"),
+                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0, "CType(2.ToString(), T)")})
 
             ' Verifies "Introduce field ..." is missing
         End Function
@@ -81,8 +78,8 @@ index:=3)
             Await TestExactActionSetOfferedAsync(
                 source,
                 expectedActionSet:={
-                    String.Format(FeaturesResources.IntroduceLocalFor, "x.ToString()"),
-                    String.Format(FeaturesResources.IntroduceLocalForAllOccurrences, "x.ToString()")})
+                    String.Format(FeaturesResources.Introduce_local_for_0, "x.ToString()"),
+                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0, "x.ToString()")})
 
             ' Verifies "Introduce field ..." is missing
         End Function
@@ -202,7 +199,7 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNoLocalFromExpressionInField() As Task
             Dim source = NewLines("Class Program \n Dim x = Foo([|2 + 2|]) \n End Class")
-            Await TestExactActionSetOfferedAsync(source, {String.Format(FeaturesResources.IntroduceConstantFor, "2 + 2"), String.Format(FeaturesResources.IntroduceConstantForAllOccurrences, "2 + 2")})
+            Await TestExactActionSetOfferedAsync(source, {String.Format(FeaturesResources.Introduce_constant_for_0, "2 + 2"), String.Format(FeaturesResources.Introduce_constant_for_all_occurrences_of_0, "2 + 2")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -977,8 +974,8 @@ End Class
 </File>
 
             Await TestExactActionSetOfferedAsync(code.NormalizedValue,
-                                      {String.Format(FeaturesResources.IntroduceLocalConstantFor, "5"),
-                                       String.Format(FeaturesResources.IntroduceLocalConstantForAll, "5")})
+                                      {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
+                                       String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -1000,8 +997,8 @@ End Class
 </Text>
 
             Await TestExactActionSetOfferedAsync(code.NormalizedValue,
-                                      {String.Format(FeaturesResources.IntroduceLocalConstantFor, "5"),
-                                       String.Format(FeaturesResources.IntroduceLocalConstantForAll, "5")})
+                                      {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
+                                       String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
         End Function
 
         <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
@@ -1035,8 +1032,8 @@ End Class
 </File>
 
             Await TestExactActionSetOfferedAsync(code.NormalizedValue,
-                                      {String.Format(FeaturesResources.IntroduceLocalConstantFor, "5"),
-                                       String.Format(FeaturesResources.IntroduceLocalConstantForAll, "5")})
+                                      {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
+                                       String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -1571,7 +1568,7 @@ b
 c""|]
     End Sub
 End Class"
-            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.IntroduceLocalConstantFor, """a b c"""), index:=2)
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), index:=2)
         End Function
 
         <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>

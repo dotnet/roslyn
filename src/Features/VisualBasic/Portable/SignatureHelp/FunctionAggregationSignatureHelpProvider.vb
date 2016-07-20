@@ -144,14 +144,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    Not delegateInvokeMethod.ReturnsVoid Then
 
                     Dim parts = New List(Of SymbolDisplayPart)
-                    parts.Add(Text(Expression1))
+                    parts.Add(Text(VBWorkspaceResources.expression))
                     parts.Add(Space())
                     parts.Add(Keyword(SyntaxKind.AsKeyword))
                     parts.Add(Space())
                     parts.AddRange(delegateInvokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
 
                     Dim sigHelpParameter = New SignatureHelpParameter(
-                        Expression1,
+                        VBWorkspaceResources.expression,
                         parameter.IsOptional,
                         parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                         parts)

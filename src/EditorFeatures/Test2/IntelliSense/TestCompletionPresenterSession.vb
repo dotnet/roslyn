@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 suggestionMode As Boolean,
                                 isSoftSelected As Boolean,
                                 completionItemFilters As ImmutableArray(Of CompletionItemFilter),
-                                completionItemToFilterText As IReadOnlyDictionary(Of CompletionItem, String)) Implements ICompletionPresenterSession.PresentItems
+                                filterText As String) Implements ICompletionPresenterSession.PresentItems
             _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
             Me.PresentationItems = presentationItems

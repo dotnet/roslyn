@@ -60,13 +60,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             var project = ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
             var document = project.GetDocumentOrAdditionalDocument(documentId);
             if (document == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
             var provider = project as IProjectCodeModelProvider;

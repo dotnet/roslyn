@@ -150,26 +150,26 @@ End Class
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
             MyBase.New(optionSet, serviceProvider, LanguageNames.VisualBasic)
 
-            Dim qualifyGroupTitle = BasicVSResources.QualifyGroupTitle
+            Dim qualifyGroupTitle = BasicVSResources.Me_preferences
             Dim qualifyMemberAccessPreferences = New List(Of CodeStylePreference) From
             {
-                New CodeStylePreference(BasicVSResources.PreferMe, isChecked:=True),
-                New CodeStylePreference(BasicVSResources.DoNotPreferMe, isChecked:=False)
+                New CodeStylePreference(BasicVSResources.Prefer_Me, isChecked:=True),
+                New CodeStylePreference(BasicVSResources.Do_not_prefer_Me, isChecked:=False)
             }
 
-            Dim predefinedTypesGroupTitle = BasicVSResources.PredefinedTypesGroupTitle
+            Dim predefinedTypesGroupTitle = BasicVSResources.predefined_type_preferences_colon
             Dim predefinedTypesPreferences = New List(Of CodeStylePreference) From
             {
-                New CodeStylePreference(ServicesVSResources.PreferPredefinedType, isChecked:=True),
-                New CodeStylePreference(ServicesVSResources.PreferFrameworkType, isChecked:=False)
+                New CodeStylePreference(ServicesVSResources.Prefer_predefined_type, isChecked:=True),
+                New CodeStylePreference(ServicesVSResources.Prefer_framework_type, isChecked:=False)
             }
 
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.QualifyFieldAccessWithMe, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, BasicVSResources.QualifyPropertyAccessWithMe, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, BasicVSResources.QualifyMethodAccessWithMe, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyEventAccess, BasicVSResources.QualifyEventAccessWithMe, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle))
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, BasicVSResources.Qualify_property_access_with_Me, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, BasicVSResources.Qualify_method_access_with_Me, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyEventAccess, BasicVSResources.Qualify_event_access_with_Me, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, BasicVSResources.Prefer_intrinsic_predefined_type_keyword_when_declaring_locals_parameters_and_members, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, BasicVSResources.Prefer_intrinsic_predefined_type_keyword_in_member_access_expressions, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle))
         End Sub
     End Class
 End Namespace

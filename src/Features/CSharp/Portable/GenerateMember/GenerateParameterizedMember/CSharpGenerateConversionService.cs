@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
 
         protected override string GetImplicitConversionDisplayText(AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
         {
-            return string.Format(CSharpFeaturesResources.ImplicitConversionDisplayText, state.TypeToGenerateIn.Name);
+            return string.Format(CSharpFeaturesResources.Generate_implicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
         }
 
         protected override string GetExplicitConversionDisplayText(AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
         {
-            return string.Format(CSharpFeaturesResources.ExplicitConversionDisplayText, state.TypeToGenerateIn.Name);
+            return string.Format(CSharpFeaturesResources.Generate_explicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
         }
     }
 }

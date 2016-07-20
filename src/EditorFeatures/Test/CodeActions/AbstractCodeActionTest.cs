@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return (await GetCodeRefactoringAsync(workspace))?.Actions?.ToList();
         }
 
-        internal async Task<ICodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace)
+        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace)
         {
             return (await GetCodeRefactoringsAsync(workspace)).FirstOrDefault();
         }
 
-        private async Task<IEnumerable<ICodeRefactoring>> GetCodeRefactoringsAsync(TestWorkspace workspace)
+        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(TestWorkspace workspace)
         {
             var provider = CreateCodeRefactoringProvider(workspace);
             return SpecializedCollections.SingletonEnumerable(

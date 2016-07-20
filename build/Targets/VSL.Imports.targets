@@ -223,6 +223,10 @@
     </PropertyGroup>
   </Target>
 
+  <!-- For our projects that specify multiple targets in the project.json to work around https://github.com/dotnet/roslyn/issues/12458,
+       we need to also silence a NuGet generated warning -->
+  <Target Name="EmitMSBuildWarning"></Target>
+
   <!-- ====================================================================================
 
          Support for a IncludeInVSIXLocalOnly Content metadata
@@ -378,18 +382,22 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <OptimizationDataFolderPath>$(MSBuildThisFileDirectory)..\..\..\Closed\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\1.3.0-beta5-60518-02\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
-    <IbcMergePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\Closed\Tools\ibcmerge\ibcmerge.exe'))</IbcMergePath>
   </PropertyGroup>
 
+  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a build definition variable -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
+          Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
-    <Message Text="Adding optimization data to @(IntermediateAssembly)"/>
-    <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
+      <Message Text="Adding optimization data to @(IntermediateAssembly)" />
+      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
+            ConsoleToMSBuild="true">
+        <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
+      </Exec>
+      <Message Text="$(IbcMergeOutput)" />
 
   </Target>
 

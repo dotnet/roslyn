@@ -493,10 +493,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 
-        private static bool ImplicitReturnIsOkay(MethodSymbol method)
+        private bool ImplicitReturnIsOkay(MethodSymbol method)
         {
-            return method.ReturnsVoid || method.IsIterator ||
-                (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
+            return method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(this.Compilation);
         }
 
         public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)

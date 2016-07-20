@@ -2,15 +2,16 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
+        Private Const UnicodeEllipsis = ChrW(&H2026)
+        Private Const OfSuffix = "(Of"
+        Private Const GenericSuffix = OfSuffix + " " & UnicodeEllipsis & ")"
 
         Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
 
@@ -73,81 +74,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function GetDisplayAndInsertionText(
             symbol As ISymbol,
-            isAttributeNameContext As Boolean, isAfterDot As Boolean, isWithinAsyncMethod As Boolean,
-            syntaxFacts As ISyntaxFactsService
-        ) As ValueTuple(Of String, String)
+            context As SyntaxContext) As ValueTuple(Of String, String)
 
             Dim name As String = Nothing
-            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, isAttributeNameContext, syntaxFacts, name) Then
+            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, name) Then
                 name = symbol.Name
             End If
 
-            Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod)
+            Dim insertionText = GetInsertionText(name, symbol, context)
             Dim displayText = GetDisplayText(name, symbol)
-
-            If symbol.GetArity() > 0 Then
-                Const UnicodeEllipsis = ChrW(&H2026)
-                displayText += " " & UnicodeEllipsis & ")"
-            End If
 
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
         Public Function GetDisplayText(name As String, symbol As ISymbol) As String
             If symbol.IsConstructor() Then
-                name = "New"
+                Return "New"
             ElseIf symbol.GetArity() > 0 Then
-                name += "(Of"
+                Return name & GenericSuffix
+            Else
+                Return name
             End If
-
-            Return name
         End Function
 
-        Public Function GetInsertionText(
-            name As String, symbol As ISymbol,
-            isAfterDot As Boolean, isWithinAsyncMethod As Boolean,
-            Optional typedChar As Char? = Nothing
-        ) As String
-
-            name = name.EscapeIdentifier(afterDot:=isAfterDot, symbol:=symbol, withinAsyncMethod:=isWithinAsyncMethod)
+        Public Function GetInsertionText(name As String, symbol As ISymbol, context As SyntaxContext) As String
+            name = name.EscapeIdentifier(context.IsRightOfNameSeparator, symbol, context.IsWithinAsyncMethod)
 
             If symbol.IsConstructor() Then
                 name = "New"
             ElseIf symbol.GetArity() > 0 Then
-                name += GetOfText(symbol, typedChar.GetValueOrDefault())
-            End If
-
-            If typedChar.HasValue AndAlso typedChar = "]"c AndAlso name(0) <> "["c Then
-                name = String.Format("[{0}", name)
+                name += GenericSuffix
             End If
 
             Return name
         End Function
 
-        Private Function GetOfText(symbol As ISymbol, typedChar As Char) As String
-            If symbol.Kind = SymbolKind.NamedType Then
-                If typedChar = "("c Then
-                    Return "("
+        Public Function GetInsertionTextAtInsertionTime(item As CompletionItem, ch As Char) As String
+            Dim insertionText = SymbolCompletionItem.GetInsertionText(item)
+
+            ' If this item was generic, customize what we insert depending on if the user typed
+            ' open paren or not.
+            If insertionText.EndsWith(GenericSuffix) Then
+                Dim insertionTextWithoutSuffix = insertionText.Substring(0, insertionText.Length - GenericSuffix.Length)
+                If ch = "("c Then
+                    Return insertionTextWithoutSuffix
                 Else
-                    Return "(Of"
+                    Return insertionTextWithoutSuffix + OfSuffix
                 End If
             End If
 
-            If typedChar = " "c Then
-                Return "(Of"
+            ' If the user is attempting to escape something, escape the item if it isn't already
+            ' escaped
+            If ch = "]"c AndAlso insertionText(0) <> "["c Then
+                Return "[" + insertionText
             End If
 
-            Return ""
+            Return insertionText
         End Function
-
-        Public Function GetInsertionTextAtInsertionTime(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Dim name As String = Nothing
-            If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService(Of ISyntaxFactsService), name) Then
-                name = symbol.Name
-            End If
-
-            Return GetInsertionText(name, symbol, context.IsRightOfNameSeparator, DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, ch)
-        End Function
-
     End Module
 End Namespace

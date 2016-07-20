@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Protected Overrides Sub AddAwaitableExtensionPrefix()
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("<"),
-                    PlainText(VBFeaturesResources.AwaitableExtension),
+                    PlainText(VBFeaturesResources.Awaitable_Extension),
                     Punctuation(">"),
                     Space())
             End Sub

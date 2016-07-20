@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnType,
             MessageID messageID,
             CSharpSyntaxNode syntax,
-            bool isSynthesized,
-            bool isAsync)
+            bool isSynthesized)
         {
             _containingSymbol = containingSymbol;
             _messageID = messageID;
@@ -54,21 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _returnType = returnType;
             _isSynthesized = isSynthesized;
-            _isAsync = isAsync;
             _parameters = parameters.SelectAsArray(CopyParameter, this);
-        }
-
-        internal LambdaSymbol ToContainer(Symbol containingSymbol)
-        {
-            return new LambdaSymbol(
-                containingSymbol,
-                _parameters,
-                _refKind,
-                _returnType,
-                _messageID,
-                _syntax,
-                _isSynthesized,
-                _isAsync);
         }
 
         public MessageID MessageID { get { return _messageID; } }

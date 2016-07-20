@@ -286,22 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiver, propertySym.GetMethod);
         }
 
-        public BoundExpression Property(BoundExpression receiver, string name)
+        public BoundExpression Property(BoundExpression receiver, PropertySymbol property)
         {
-            // TODO: unroll loop and add diagnostics for failure
-            // TODO: should we use GetBaseProperty() to ensure we generate a call to the overridden method?
-            // TODO: replace this with a mechanism that uses WellKnownMember instead of string names.
-            var property = receiver.Type.GetMembers(name).OfType<PropertySymbol>().Single();
             Debug.Assert(!property.IsStatic);
             return Call(receiver, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
-        }
-
-        public BoundExpression Property(NamedTypeSymbol receiver, string name)
-        {
-            // TODO: unroll loop and add diagnostics for failure
-            var property = receiver.GetMembers(name).OfType<PropertySymbol>().Single();
-            Debug.Assert(property.IsStatic);
-            return Call(null, property.GetMethod);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -574,6 +562,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // TODO: add diagnostics for when things fall apart
             return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
+        {
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)

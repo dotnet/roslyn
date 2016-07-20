@@ -472,6 +472,259 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         }
 
         [Fact]
+        public void BetterTasklikeType()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        h(async () => { await (Task)null; return 1; });
+    }
+    static void h<T>(Func<Task<T>> lambda) { }
+    static void h<T>(Func<MyTask<T>> lambda) { }
+}
+public class MyTask<T> {  public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+public class MyTaskBuilder<T>
+{
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+";
+            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
+                //         h(async () => { await (Task)null; return 1; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                );
+
+            string source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        k(async () => { await (Task)null; return 1; });
+    }
+    static void k<T>(Func<YourTask<T>> lambda) { }
+    static void k<T>(Func<MyTask<T>> lambda) { }
+}
+public class MyTask<T> {  public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+public class MyTaskBuilder<T>
+{
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+public class YourTask<T> {  public static YourTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+public class YourTaskBuilder<T>
+{
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public YourTask<T> Task => default(YourTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+";
+            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
+                //         k(async () => { await (Task)null; return 1; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes()
+        {
+            string source =
+@"class A<T>
+{
+    internal struct B<U> { }
+}
+unsafe class C<T, U>
+{
+#pragma warning disable CS0169
+    static MyTask F0;
+    static MyTask<T> F1;
+    static C<MyTask, MyTask[]>[,] F2;
+    static A<MyTask<MyTask>>.B<C<int, MyTask>> F3;
+    static int* F4;
+#pragma warning restore CS0169
+}
+struct MyTask
+{
+    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
+}
+struct MyTask<T>
+{
+    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
+}
+struct MyTaskMethodBuilder
+{
+}
+struct MyTaskMethodBuilder<T>
+{
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal("MyTask", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal("MyTask<T>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<T>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            Assert.Equal("C<MyTask, MyTask[]>[,]", type.ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task, System.Threading.Tasks.Task[]>[,]", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F3").Type;
+            Assert.Equal("A<MyTask<MyTask>>.B<C<System.Int32, MyTask>>", type.ToTestDisplayString());
+            Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>>.B<C<System.Int32, System.Threading.Tasks.Task>>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F4").Type;
+            Assert.Equal("System.Int32*", type.ToTestDisplayString());
+            Assert.Equal("System.Int32*", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Inner()
+        {
+            string source =
+@"class C<T, U>
+{
+#pragma warning disable CS0169
+    static MyTask<U> F0;
+    static C<U, MyTask>.MyTask F1;
+    static C<T, MyTask<U>>.Inner F2;
+#pragma warning restore CS0169
+    class Inner
+    {
+    }
+    class MyTask
+    {
+        public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
+    }
+    class MyTask<V>
+    {
+        public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
+    }
+    class MyTaskMethodBuilder
+    {
+    }
+    class MyTaskMethodBuilder<V>
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal("C<T, U>.MyTask<U>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<U>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal("C<U, C<T, U>.MyTask>.MyTask", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            Assert.Equal("C<T, C<T, U>.MyTask<U>>.Inner", type.ToTestDisplayString());
+            Assert.Equal("C<T, System.Threading.Tasks.Task<U>>.Inner", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Outer()
+        {
+            string source =
+@"class C
+{
+#pragma warning disable CS0169
+    static MyTask<MyTask.A> F0;
+    static MyTask<MyTask<object>>.B F1;
+#pragma warning restore CS0169
+}
+class MyTask
+{
+    internal class A { }
+    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
+}
+class MyTask<V>
+{
+    internal class B { }
+    public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
+}
+class MyTaskMethodBuilder
+{
+}
+class MyTaskMethodBuilder<V>
+{
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal("MyTask<MyTask.A>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal("MyTask<MyTask<System.Object>>.B", type.ToTestDisplayString());
+            Assert.Equal("MyTask<System.Threading.Tasks.Task<System.Object>>.B", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+        }
+
+        /// <summary>
+        /// Normalize should have no effect if System.Threading.Tasks.Task
+        /// and System.Threading.Tasks.Task&lt;T&gt; are not available.
+        /// </summary>
+        [Fact]
+        public void NormalizeTaskTypes_MissingWellKnownTypes()
+        {
+            string source =
+@"class C
+{
+#pragma warning disable CS0169
+    static MyTask<MyTask> F;
+#pragma warning restore CS0169
+}
+struct MyTask
+{
+    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
+}
+struct MyTask<T>
+{
+    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
+}
+struct MyTaskMethodBuilder
+{
+}
+struct MyTaskMethodBuilder<T>
+{
+}";
+            var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20 });
+            compilation.VerifyDiagnostics();
+            var type = compilation.GetMember<FieldSymbol>("C.F").Type;
+            Assert.Equal("MyTask<MyTask>", type.ToTestDisplayString());
+            Assert.Equal("MyTask<MyTask>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+        }
+
+        [Fact]
         public void BetterDelegateType_01()
         {
             string source1 = @"
@@ -7530,15 +7783,7 @@ namespace ConsoleApplication2
 ";
 
             var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
-    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
-    //             var d1 = val.IfNotNull(v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(23, 26),
-    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
-    //             var d2 = Foo.IfNotNull(val, v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(24, 26)
-                );
+            compilation.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
@@ -7574,15 +7819,7 @@ namespace ConsoleApplication2
 ";
 
             var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
-    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
-    //             var d1 = val.IfNotNull(v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(23, 26),
-    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
-    //             var d2 = Foo.IfNotNull(val, v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(24, 26)
-                );
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -8362,7 +8599,7 @@ RemoveDetail");
         }
 
         [Fact, WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")]
-        public void GetSymbolOnfo_Inaccessible()
+        public void GetSymbolInfo_Inaccessible()
         {
             var source =
 @"

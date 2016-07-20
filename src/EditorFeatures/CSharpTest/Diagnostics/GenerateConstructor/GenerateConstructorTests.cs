@@ -808,7 +808,9 @@ withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithOneName()
         {
-            await TestMissingAsync(@"class C { void M() { new [|C|]((a: 1, ""hello"")); } }",
+            await TestAsync(
+@"class C { void M() { new [|C|]((a: 1, ""hello"")); } }",
+@"class C { private (int a, string) p; public C((int a, string) p) { this.p = p; } void M() { new C((a: 1, ""hello"")); } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }

@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "codepage":
+                            value = RemoveQuotesAndSlashes(value);
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -426,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "platform":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<string>", arg);
@@ -556,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             emitPdb = true;
 
                             // unused, parsed for backward compat only
+                            value = RemoveQuotesAndSlashes(value);
                             if (value != null)
                             {
                                 if (value.IsEmpty())
@@ -713,6 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "w":
                         case "warn":
+                            value = RemoveQuotesAndSlashes(value);
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
@@ -768,6 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "langversion":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
@@ -996,6 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "pdb":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);

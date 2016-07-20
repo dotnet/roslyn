@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.InsertMissingCast
+                    Return VBFeaturesResources.Insert_Missing_Cast
                 End Get
             End Property
 

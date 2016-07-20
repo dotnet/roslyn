@@ -12,14 +12,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         private readonly SymbolSpecificationViewModel _viewModel;
 
-        public string DialogTitle => ServicesVSResources.SymbolSpecificationDialogTitle;
-        public string SymbolSpecificationTitleLabelText => ServicesVSResources.SymbolSpecificationTitleLabel;
-        public string SymbolKindsLabelText => ServicesVSResources.SymbolKindsLabel;
-        public string AccessibilitiesLabelText => ServicesVSResources.AccessibilitiesLabel;
-        public string CustomTagsLabelText => ServicesVSResources.CustomTagsLabel;
-        public string ModifiersLabelText => ServicesVSResources.ModifiersLabel;
-        public string SelectAllButtonText => ServicesVSResources.SelectAll;
-        public string DeselectAllButtonText => ServicesVSResources.DeselectAll;
+        public string DialogTitle => ServicesVSResources.Symbol_Specification;
+        public string SymbolSpecificationTitleLabelText => ServicesVSResources.Symbol_Specification_Title_colon;
+        public string SymbolKindsLabelText => ServicesVSResources.Symbol_Kinds_can_match_any;
+        public string AccessibilitiesLabelText => ServicesVSResources.Accessibilities_can_match_any;
+        public string CustomTagsLabelText => ServicesVSResources.Custom_Tags_must_match_all;
+        public string ModifiersLabelText => ServicesVSResources.Modifiers_must_match_all;
+        public string SelectAllButtonText => ServicesVSResources.Select_All;
+        public string DeselectAllButtonText => ServicesVSResources.Deselect_All;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 

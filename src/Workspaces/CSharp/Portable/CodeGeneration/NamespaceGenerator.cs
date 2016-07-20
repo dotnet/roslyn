@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
             if (!(declaration is NamespaceDeclarationSyntax))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.NamespaceCanNotBeAddedIn);
+                throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
             }
 
             var members = Insert(destination.Members, (NamespaceDeclarationSyntax)declaration, options, availableIndices);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
             if (!(declaration is NamespaceDeclarationSyntax))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.NamespaceCanNotBeAddedIn);
+                throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
             }
 
             var members = Insert(destination.Members, (NamespaceDeclarationSyntax)declaration, options, availableIndices);

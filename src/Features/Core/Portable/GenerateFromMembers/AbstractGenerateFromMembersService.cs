@@ -83,18 +83,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return symbol.Kind == SymbolKind.Field;
         }
 
-        protected CodeRefactoring CreateCodeRefactoring(
-            IList<TMemberDeclarationSyntax> selectedDeclarations,
-            IEnumerable<CodeAction> actions)
-        {
-#if false
-            var lastDeclaration = selectedDeclarations.Last();
-            var endSpan = new TextSpan(lastDeclaration.Span.End - 1, 1);
-            return new CodeRefactoring(actions, endSpan);
-#endif
-            return new CodeRefactoring(null, actions);
-        }
-
         protected List<IParameterSymbol> DetermineParameters(
             IList<ISymbol> selectedMembers)
         {

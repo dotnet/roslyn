@@ -1,18 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateDefaultConstructors
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateDefaultConstructors
     Public Class GenerateDefaultConstructorsTests
@@ -175,6 +164,5 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
 compareTokens:=False)
         End Function
-
     End Class
 End Namespace

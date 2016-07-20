@@ -109,7 +109,7 @@ index: 2);
         {
             await TestExactActionSetOfferedAsync(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GeneratePropertyIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -134,7 +134,7 @@ index: 1);
         {
             await TestExactActionSetOfferedAsync(
 @"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -150,7 +150,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string
         {
             await TestExactActionSetOfferedAsync(
 @"class Class { void Method(out int i) { Method(out [|foo|]); } }",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -765,7 +765,7 @@ compareTokens: false);
         {
             await TestExactActionSetOfferedAsync(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string.Format(FeaturesResources.GeneratePropertyIn, "p", "Program"), string.Format(FeaturesResources.GenerateLocal, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
 
             await TestAsync(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
@@ -1862,7 +1862,7 @@ class C
 #line hidden
 }
 ";
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.GenerateLocal, "Bar") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar") });
 
             await TestAsync(code,
 @"
@@ -2957,7 +2957,7 @@ withScriptOption: true);
         {
             await TestAsync(
 @"class Class { void Method((int a, string) i) { Method([|tuple|]); } }",
-@"class Class { private (int a, string Item2) tuple; void Method((int a, string) i) { Method(tuple); } }",
+@"class Class { private (int a, string) tuple; void Method((int a, string) i) { Method(tuple); } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
@@ -2977,7 +2977,7 @@ withScriptOption: true);
         {
             await TestAsync(
 @"class Class { void Method() { [|tuple|] = (a: 1, ""hello""); } }",
-@"class Class { private (int a, string Item2) tuple; void Method() { tuple = (a: 1, ""hello""); } }",
+@"class Class { private (int a, string) tuple; void Method() { tuple = (a: 1, ""hello""); } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }

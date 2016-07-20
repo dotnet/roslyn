@@ -439,6 +439,7 @@
     <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
@@ -761,7 +762,7 @@
     <Compile Include="Shared\Collections\SimpleIntervalTree`1.cs" />
     <Compile Include="Shared\Collections\TextSpanIntervalIntrospector.cs" />
     <Compile Include="Shared\Extensions\ArrayExtensions.cs" />
-    <Compile Include="Shared\Extensions\ContextQuery\AbstractSyntaxContext.cs" />
+    <Compile Include="Shared\Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\IAssemblySymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ICodeDefinitionFactoryExtensions.cs" />

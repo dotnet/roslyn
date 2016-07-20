@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -16,7 +10,6 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
             string sortText = null,
@@ -55,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                span: span,
                 properties: properties,
                 tags: tags,
                 rules: rules);

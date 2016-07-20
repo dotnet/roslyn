@@ -2974,14 +2974,14 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (6,9): error CS8209: The type information on the left-hand-side 'x2' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         var (x1, x2) = (1, null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(1, null)").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x1, x2) = (1, null);").WithArguments("x2", "null").WithLocation(6, 9)
                 );
         }
 
         [Fact]
-        public void InferTypeOfTypelessDeclaration()
+        public void TypeMergingSuccess1()
         {
             string source = @"
 class C
@@ -2993,11 +2993,201 @@ class C
     }
 }
 ";
+            var comp = CompileAndVerify(source, expectedOutput: " 1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, byte x2, var x3) = (null, 2, 3);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+                Assert.Equal(@"(null, 2, 3)", literal.ToString());
+                Assert.Null(model.GetTypeInfo(literal).Type);
+                Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, (1, 2));
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(null, (1, 2))", literal.ToString());
+                Assert.Null(model.GetTypeInfo(literal).Type);
+                Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
+
+                var nestedLiteral = literal.Arguments[1];
+                Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
+                Assert.Null(model.GetTypeInfo(nestedLiteral).Type);
+                Assert.Null(model.GetTypeInfo(nestedLiteral).ConvertedType);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess4()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((string x1, byte x2, var x3), int x4) = (M(), 4);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4);
+    }
+    static (string, byte, int) M() { return (null, 2, 3); }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingWithMultipleAmbiguousVars()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+    }
+}
+";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,37): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         (var (x1, x2), string x3) = ((1, 2), null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "((1, 2), null)").WithLocation(6, 37)
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x3", "null").WithLocation(6, 9),
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x4", "null").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyLeftNestings()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((string x1, byte x2, var x3), int x4) = (null, 4);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,51): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         ((string x1, byte x2, var x3), int x4) = (null, 4);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyRightNestings()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, (null, 2));
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, var x2) = (null, (null, 2));
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("var x2", "(null, 2)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyLeftVariables()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2, int x3) = (null, ""hello"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (string x1, var x2, int x3) = (null, "hello");
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"");").WithArguments("2", "3").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyRightElements()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var y1) = (null, ""hello"", 3);
+        (string x2, var y2) = (null, ""hello"", null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         (string x1, var y1) = (null, "hello", 3);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9),
+                // (7,47): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (string x2, var y2) = (null, "hello", null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47)
                 );
         }
 
@@ -3439,6 +3629,101 @@ class C
                 );
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12468"), CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [WorkItem(12468, "https://github.com/dotnet/roslyn/issues/12468")]
+        public void RefReturningVarInvocation2()
+        {
+            string source = @"
+class C
+{
+    static int i = 0;
+
+    static void Main()
+    {
+        int x = 0, y = 0;
+        @var(x, y) = 42; // parsed as invocation
+        System.Console.Write(i + "" "");
+        (var(x, y)) = 43; // parsed as invocation
+        System.Console.Write(i + "" "");
+        (var(x, y) = 44); // parsed as invocation
+        System.Console.Write(i);
+    }
+    static ref int var(int a, int b) { return ref i; }
+}
+";
+            // The correct expectation is for the code to compile and execute
+            //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS8213: Deconstruction must contain at least two variables.
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var(x, y)) = 43").WithLocation(11, 9),
+                // (13,20): error CS1026: ) expected
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=").WithLocation(13, 20),
+                // (13,24): error CS1002: ; expected
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(13, 24),
+                // (13,24): error CS1513: } expected
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(13, 24),
+                // (9,14): error CS0128: A local variable named 'x' is already defined in this scope
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(9, 14),
+                // (9,9): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(9, 9),
+                // (9,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(9, 14),
+                // (9,17): error CS0128: A local variable named 'y' is already defined in this scope
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(9, 17),
+                // (9,9): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(9, 9),
+                // (9,17): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(9, 17),
+                // (9,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 22),
+                // (9,22): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
+                //         @var(x, y) = 42; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 22),
+                // (11,14): error CS0128: A local variable named 'x' is already defined in this scope
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(11, 14),
+                // (11,17): error CS0128: A local variable named 'y' is already defined in this scope
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(11, 17),
+                // (11,23): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "43").WithArguments("int", "Deconstruct").WithLocation(11, 23),
+                // (11,23): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
+                //         (var(x, y)) = 43; // parsed as invocation
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "43").WithArguments("int", "1").WithLocation(11, 23),
+                // (13,14): error CS0128: A local variable named 'x' is already defined in this scope
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(13, 14),
+                // (13,17): error CS0128: A local variable named 'y' is already defined in this scope
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(13, 17),
+                // (13,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "44").WithArguments("int", "Deconstruct").WithLocation(13, 22),
+                // (13,22): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
+                //         (var(x, y) = 44); // parsed as invocation
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "44").WithArguments("int", "1").WithLocation(13, 22),
+                // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 0, y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
+                // (8,20): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int x = 0, y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20)
+                );
+        }
+
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
         [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningInvocation()
@@ -3713,7 +3998,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs:  new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 

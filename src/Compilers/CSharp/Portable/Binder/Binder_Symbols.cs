@@ -397,21 +397,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
         {
-            // If the tuple type is bound in a declaration context then we must have the
-            // TupleElementNamesAttribute to emit
-            if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
-            {
-                // Report diagnostics if System.String doesn't exist
-                this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
-
-                if (!Compilation.HasTupleNamesAttributes)
-                {
-                    var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                        AttributeDescription.TupleElementNamesAttribute.FullName);
-                    Error(diagnostics, info, syntax);
-                }
-            }
-
             int numElements = syntax.Elements.Count;
             var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
             var locations = ArrayBuilder<Location>.GetInstance(numElements);
@@ -419,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // set of names already used
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-            int countOfExplicitNames = 0;
+            bool hasExplicitNames = false;
 
             for (int i = 0; i < numElements; i++)
             {
@@ -441,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = nameSyntax.Identifier.ValueText;
 
                     // validate name if we have one
-                    countOfExplicitNames++;
+                    hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
                     locations.Add(nameSyntax.Location);
                 }
@@ -455,9 +440,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             uniqueFieldNames.Free();
 
-            if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
+            if (hasExplicitNames)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
+                // If the tuple type with names is bound in a declaration
+                // context then we must have the TupleElementNamesAttribute to emit
+                if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
+                {
+                    // Report diagnostics if System.String doesn't exist
+                    this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+
+                    if (!Compilation.HasTupleNamesAttributes)
+                    {
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                            AttributeDescription.TupleElementNamesAttribute.FullName);
+                        Error(diagnostics, info, syntax);
+                    }
+                }
             }
 
             ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
@@ -486,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but in case we need to handle this in error cases
             if (elementNames != null)
             {
-                elementNames.Add(name ?? TupleTypeSymbol.TupleMemberName(position));
+                elementNames.Add(name);
             }
             else
             {
@@ -495,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
                     for (int j = 1; j < position; j++)
                     {
-                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j));
+                        elementNames.Add(null);
                     }
                     elementNames.Add(name);
                 }
