@@ -3067,7 +3067,7 @@ namespace Microsoft.Cci
                                             token = GreatestMethodDefIndex;
                                             break;
                                         case SourceDocumentIndex:
-                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(((CommonPEModuleBuilder)module).GetSourceDocumentFromFakeToken((uint)(pseudoToken & 0x00ffffff)));
+                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(((CommonPEModuleBuilder)module).GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
                                             break;
                                         default:
                                             throw ExceptionUtilities.UnexpectedValue(tokenMask);

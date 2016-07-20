@@ -51,8 +51,8 @@ Namespace Microsoft.CodeAnalysis.Runtime
             For i As Integer = 0 To _payloads.Length - 1
                 Dim payload As Boolean() = _payloads(i)
                 if payload IsNot Nothing
-                    System.Console.WriteLine(i)
-                    System.Console.WriteLine(_fileIndices(i))
+                    System.Console.WriteLine("Method " & i.ToString())
+                    System.Console.WriteLine("File " & _fileIndices(i).ToString())
                     For j As Integer = 0 To payload.Length - 1
                         System.Console.WriteLine(payload(j))
                         payload(j) = False
@@ -87,16 +87,16 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
-5
-1
+Method 5
+File 1
 True
 True
 False
@@ -190,25 +190,25 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
-3
-2
+Method 3
+File 2
 True
 True
 True
-4
-3
+Method 4
+File 3
 True
-7
-1
+Method 7
+File 1
 True
 True
 False
@@ -269,30 +269,30 @@ End Module
             Dim expectedOutput As XCData = <![CDATA[null
 Hello
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
-2
-1
-True
-True
-True
-True
-3
-1
-True
-True
-True
-4
-1
+Method 2
+File 1
 True
 True
 True
 True
+Method 3
+File 1
 True
-7
-1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+True
+Method 7
+File 1
 True
 True
 False
@@ -401,25 +401,25 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[OK
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
-True
-True
-True
-False
 True
 True
 True
 False
 True
-5
-1
+True
+True
+False
+True
+Method 5
+File 1
 True
 True
 False
@@ -489,38 +489,38 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[GooGooGlueGooGoo
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
-3
-1
-True
-True
-True
-True
-4
-1
+Method 3
+File 1
 True
 True
 True
-False
 True
-5
-1
+Method 4
+File 1
 True
 True
 True
 False
 True
+Method 5
+File 1
 True
-8
-1
+True
+True
+False
+True
+True
+Method 8
+File 1
 True
 True
 False
@@ -619,8 +619,8 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
@@ -636,8 +636,8 @@ True
 False
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
@@ -653,8 +653,8 @@ True
 True
 True
 True
-3
-1
+Method 3
+File 1
 True
 True
 True
@@ -665,16 +665,16 @@ True
 True
 True
 True
-4
-1
+Method 4
+File 1
 True
 True
 True
 True
 True
 True
-7
-1
+Method 7
+File 1
 True
 True
 False
@@ -734,8 +734,8 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
@@ -746,13 +746,13 @@ False
 False
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-5
-1
+Method 5
+File 1
 True
 True
 False
@@ -815,8 +815,8 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
@@ -832,13 +832,13 @@ False
 True
 True
 False
-2
-1
+Method 2
+File 1
 True
 True
 True
-5
-1
+Method 5
+File 1
 True
 True
 False
@@ -886,8 +886,8 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
@@ -896,13 +896,13 @@ True
 False
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-5
-1
+Method 5
+File 1
 True
 True
 False
@@ -967,18 +967,18 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-5
-1
+Method 5
+File 1
 True
 True
 False
@@ -991,23 +991,23 @@ True
 True
 True
 True
-9
-1
+Method 9
+File 1
 True
 True
-14
-1
+Method 14
+File 1
 True
-15
-1
-True
-True
-True
+Method 15
+File 1
 True
 True
 True
-16
-1
+True
+True
+True
+Method 16
+File 1
 True
 True
 ]]>
@@ -1048,8 +1048,8 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
@@ -1061,13 +1061,13 @@ False
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-5
-1
+Method 5
+File 1
 True
 True
 False
@@ -1130,28 +1130,28 @@ End Module
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-3
-1
+Method 3
+File 1
 True
-8
-1
+Method 8
+File 1
 True
 True
 True
 False
-11
-1
+Method 11
+File 1
 True
 True
 False

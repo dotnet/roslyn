@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 path = syntax.SyntaxTree.FilePath
             End If
 
-            Return _debugDocumentProvider.Invoke(path, "")
+            Return _debugDocumentProvider.Invoke(path, basePath:="")
         End Function
 
         Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement

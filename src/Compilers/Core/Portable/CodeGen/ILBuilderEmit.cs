@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
         {
-            this.GetCurrentWriter().WriteUInt32((module?.GetFakeSourceDocumentTokenForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
+            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)

@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 path = syntax.SyntaxTree.FilePath;
             }
 
-            return _debugDocumentProvider.Invoke(path, "");
+            return _debugDocumentProvider.Invoke(path, basePath: "");
         }
 
         private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)

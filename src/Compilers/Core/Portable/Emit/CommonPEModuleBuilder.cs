@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
-        internal abstract Cci.DebugSourceDocument GetSourceDocumentFromFakeToken(uint token);
+        internal abstract Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint index);
     }
 
     /// <summary>
@@ -601,12 +601,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return token;
         }
 
-        public uint GetFakeSourceDocumentTokenForIL(Cci.DebugSourceDocument document)
+        public uint GetSourceDocumentIndexForIL(Cci.DebugSourceDocument document)
         {
             return _sourceDocumentsInILMap.GetOrAddTokenFor(document);
         }
 
-        internal override Cci.DebugSourceDocument GetSourceDocumentFromFakeToken(uint token)
+        internal override Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint token)
         {
             return _sourceDocumentsInILMap.GetItem(token);
         }

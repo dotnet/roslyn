@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Runtime
                 bool[] payload = _payloads[i];
                 if (payload != null)
                 {
-                    Console.WriteLine(i);
-                    Console.WriteLine(_fileIndices[i]);
+                    Console.WriteLine(""Method "" + i.ToString());
+                    Console.WriteLine(""File "" + _fileIndices[i].ToString());
                     for (int j = 0; j < payload.Length; j++)
                     {
                         Console.WriteLine(payload[j]);
@@ -78,12 +78,12 @@ public class Program
 }
 ";
             string expectedOutput = @"Flushing
-1
-1
+Method 1
+File 1
 True
 True
-4
-1
+Method 4
+File 1
 True
 True
 False
@@ -139,7 +139,7 @@ True
 }";
 
             string expectedFlushPayloadIL = @"{
-  // Code size      206 (0xce)
+  // Code size      247 (0xf7)
   .maxstack  5
   .locals init (bool[] V_0,
                 int V_1, //i
@@ -187,85 +187,91 @@ True
   IL_005a:  stelem.i1
   IL_005b:  ldc.i4.0
   IL_005c:  stloc.1
-  IL_005d:  br.s       IL_00c3
-  IL_005f:  ldloc.0
-  IL_0060:  ldc.i4.6
-  IL_0061:  ldc.i4.1
-  IL_0062:  stelem.i1
-  IL_0063:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
-  IL_0068:  ldloc.1
-  IL_0069:  ldelem.ref
-  IL_006a:  stloc.2
-  IL_006b:  ldloc.0
-  IL_006c:  ldc.i4.s   13
-  IL_006e:  ldc.i4.1
-  IL_006f:  stelem.i1
-  IL_0070:  ldloc.2
-  IL_0071:  brfalse.s  IL_00bb
-  IL_0073:  ldloc.0
-  IL_0074:  ldc.i4.7
-  IL_0075:  ldc.i4.1
-  IL_0076:  stelem.i1
-  IL_0077:  ldloc.1
-  IL_0078:  call       ""void System.Console.WriteLine(int)""
-  IL_007d:  ldloc.0
-  IL_007e:  ldc.i4.8
-  IL_007f:  ldc.i4.1
-  IL_0080:  stelem.i1
-  IL_0081:  ldsfld     ""int[] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
-  IL_0086:  ldloc.1
-  IL_0087:  ldelem.i4
-  IL_0088:  call       ""void System.Console.WriteLine(int)""
-  IL_008d:  ldloc.0
-  IL_008e:  ldc.i4.s   9
-  IL_0090:  ldc.i4.1
-  IL_0091:  stelem.i1
-  IL_0092:  ldc.i4.0
-  IL_0093:  stloc.3
-  IL_0094:  br.s       IL_00b5
-  IL_0096:  ldloc.0
-  IL_0097:  ldc.i4.s   11
-  IL_0099:  ldc.i4.1
-  IL_009a:  stelem.i1
-  IL_009b:  ldloc.2
-  IL_009c:  ldloc.3
-  IL_009d:  ldelem.u1
-  IL_009e:  call       ""void System.Console.WriteLine(bool)""
-  IL_00a3:  ldloc.0
-  IL_00a4:  ldc.i4.s   12
-  IL_00a6:  ldc.i4.1
-  IL_00a7:  stelem.i1
-  IL_00a8:  ldloc.2
-  IL_00a9:  ldloc.3
-  IL_00aa:  ldc.i4.0
-  IL_00ab:  stelem.i1
-  IL_00ac:  ldloc.0
-  IL_00ad:  ldc.i4.s   10
-  IL_00af:  ldc.i4.1
-  IL_00b0:  stelem.i1
-  IL_00b1:  ldloc.3
-  IL_00b2:  ldc.i4.1
-  IL_00b3:  add
-  IL_00b4:  stloc.3
-  IL_00b5:  ldloc.3
-  IL_00b6:  ldloc.2
-  IL_00b7:  ldlen
-  IL_00b8:  conv.i4
-  IL_00b9:  blt.s      IL_0096
-  IL_00bb:  ldloc.0
-  IL_00bc:  ldc.i4.5
-  IL_00bd:  ldc.i4.1
-  IL_00be:  stelem.i1
-  IL_00bf:  ldloc.1
-  IL_00c0:  ldc.i4.1
-  IL_00c1:  add
-  IL_00c2:  stloc.1
-  IL_00c3:  ldloc.1
-  IL_00c4:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
-  IL_00c9:  ldlen
-  IL_00ca:  conv.i4
-  IL_00cb:  blt.s      IL_005f
-  IL_00cd:  ret
+  IL_005d:  br         IL_00e9
+  IL_0062:  ldloc.0
+  IL_0063:  ldc.i4.6
+  IL_0064:  ldc.i4.1
+  IL_0065:  stelem.i1
+  IL_0066:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
+  IL_006b:  ldloc.1
+  IL_006c:  ldelem.ref
+  IL_006d:  stloc.2
+  IL_006e:  ldloc.0
+  IL_006f:  ldc.i4.s   13
+  IL_0071:  ldc.i4.1
+  IL_0072:  stelem.i1
+  IL_0073:  ldloc.2
+  IL_0074:  brfalse.s  IL_00e1
+  IL_0076:  ldloc.0
+  IL_0077:  ldc.i4.7
+  IL_0078:  ldc.i4.1
+  IL_0079:  stelem.i1
+  IL_007a:  ldstr      ""Method ""
+  IL_007f:  ldloca.s   V_1
+  IL_0081:  call       ""string int.ToString()""
+  IL_0086:  call       ""string string.Concat(string, string)""
+  IL_008b:  call       ""void System.Console.WriteLine(string)""
+  IL_0090:  ldloc.0
+  IL_0091:  ldc.i4.8
+  IL_0092:  ldc.i4.1
+  IL_0093:  stelem.i1
+  IL_0094:  ldstr      ""File ""
+  IL_0099:  ldsfld     ""int[] Microsoft.CodeAnalysis.Runtime.Instrumentation._fileIndices""
+  IL_009e:  ldloc.1
+  IL_009f:  ldelema    ""int""
+  IL_00a4:  call       ""string int.ToString()""
+  IL_00a9:  call       ""string string.Concat(string, string)""
+  IL_00ae:  call       ""void System.Console.WriteLine(string)""
+  IL_00b3:  ldloc.0
+  IL_00b4:  ldc.i4.s   9
+  IL_00b6:  ldc.i4.1
+  IL_00b7:  stelem.i1
+  IL_00b8:  ldc.i4.0
+  IL_00b9:  stloc.3
+  IL_00ba:  br.s       IL_00db
+  IL_00bc:  ldloc.0
+  IL_00bd:  ldc.i4.s   11
+  IL_00bf:  ldc.i4.1
+  IL_00c0:  stelem.i1
+  IL_00c1:  ldloc.2
+  IL_00c2:  ldloc.3
+  IL_00c3:  ldelem.u1
+  IL_00c4:  call       ""void System.Console.WriteLine(bool)""
+  IL_00c9:  ldloc.0
+  IL_00ca:  ldc.i4.s   12
+  IL_00cc:  ldc.i4.1
+  IL_00cd:  stelem.i1
+  IL_00ce:  ldloc.2
+  IL_00cf:  ldloc.3
+  IL_00d0:  ldc.i4.0
+  IL_00d1:  stelem.i1
+  IL_00d2:  ldloc.0
+  IL_00d3:  ldc.i4.s   10
+  IL_00d5:  ldc.i4.1
+  IL_00d6:  stelem.i1
+  IL_00d7:  ldloc.3
+  IL_00d8:  ldc.i4.1
+  IL_00d9:  add
+  IL_00da:  stloc.3
+  IL_00db:  ldloc.3
+  IL_00dc:  ldloc.2
+  IL_00dd:  ldlen
+  IL_00de:  conv.i4
+  IL_00df:  blt.s      IL_00bc
+  IL_00e1:  ldloc.0
+  IL_00e2:  ldc.i4.5
+  IL_00e3:  ldc.i4.1
+  IL_00e4:  stelem.i1
+  IL_00e5:  ldloc.1
+  IL_00e6:  ldc.i4.1
+  IL_00e7:  add
+  IL_00e8:  stloc.1
+  IL_00e9:  ldloc.1
+  IL_00ea:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
+  IL_00ef:  ldlen
+  IL_00f0:  conv.i4
+  IL_00f1:  blt        IL_0062
+  IL_00f6:  ret
 }";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload", expectedCreatePayloadIL);
@@ -331,49 +337,49 @@ public class Program
             string expectedOutput = @"foo
 bar
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
-True
-True
-True
-False
-True
-True
-True
-3
-1
-True
-True
-True
-True
-True
-4
-1
+Method 2
+File 1
 True
 True
 True
 False
 True
 True
-5
-1
+True
+Method 3
+File 1
+True
+True
+True
+True
+True
+Method 4
+File 1
+True
+True
+True
+False
+True
+True
+Method 5
+File 1
 True
 True
 True
 False
 False
 False
-6
-1
+Method 6
+File 1
 True
 True
-9
-1
+Method 9
+File 1
 True
 True
 False
@@ -514,30 +520,30 @@ public class Program
             string expectedOutput = @"null
 Hello
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
-2
-1
-True
-True
-True
-True
-3
-1
-True
-True
-True
-4
-1
+Method 2
+File 1
 True
 True
 True
 True
+Method 3
+File 1
 True
-7
-1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+True
+Method 7
+File 1
 True
 True
 False
@@ -699,27 +705,27 @@ public class Program
 }
 ";
             string expectedOutput = @"Flushing
-3
-1
+Method 3
+File 1
 True
 True
-4
-1
+Method 4
+File 1
 True
 True
-5
-1
-True
-True
-True
-True
-6
-1
+Method 5
+File 1
 True
 True
 True
-8
-1
+True
+Method 6
+File 1
+True
+True
+True
+Method 8
+File 1
 True
 True
 False
@@ -779,45 +785,45 @@ public class Program
 ";
             // There is no entry for method '8' since it's a Prop2_set which is never called.
             string expectedOutput = @"Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
 True
 True
 True
-3
-1
+Method 3
+File 1
 True
 True
-4
-1
+Method 4
+File 1
 True
 True
-5
-1
+Method 5
+File 1
 True
 True
-6
-1
+Method 6
+File 1
 True
 True
-7
-1
+Method 7
+File 1
 True
 True
-9
-1
+Method 9
+File 1
 True
 True
-13
-1
+Method 13
+File 1
 True
 True
 False
@@ -872,23 +878,23 @@ public class Program
 ";
 
             string expectedOutput = @"Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-2
+Method 2
+File 2
 True
 True
 True
 True
-3
-3
+Method 3
+File 3
 True
 True
-6
-4
+Method 6
+File 4
 True
 True
 False
@@ -955,26 +961,26 @@ public class Program
 }
 ";
             string expectedOutput = @"Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-3
-1
+Method 3
+File 1
 True
 True
 True
 True
 True
 True
-4
-1
+Method 4
+File 1
 True
 True
 True
@@ -982,8 +988,8 @@ False
 False
 False
 True
-7
-1
+Method 7
+File 1
 True
 True
 False
@@ -1052,17 +1058,13 @@ public class Program
 }
 ";
             string expectedOutput = @"Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
-True
-True
-True
-True
+Method 2
+File 1
 True
 True
 True
@@ -1074,8 +1076,12 @@ True
 True
 True
 True
-5
-1
+True
+True
+True
+True
+Method 5
+File 1
 True
 True
 False
@@ -1211,43 +1217,37 @@ public class Program
 ";
             string expectedOutput = @"103
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
 True
-3
-1
-True
-True
-False
-True
-False
-False
+Method 3
+File 1
 True
 True
 False
 True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
+False
+False
 True
 True
 False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
 True
 True
 True
@@ -1257,11 +1257,17 @@ False
 True
 True
 True
-4
-1
 True
-7
-1
+True
+False
+True
+True
+True
+Method 4
+File 1
+True
+Method 7
+File 1
 True
 True
 False
@@ -1318,25 +1324,25 @@ public class Program
 ";
             string expectedOutput = @"OK
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
-True
-True
-True
-False
 True
 True
 True
 False
 True
-5
-1
+True
+True
+False
+True
+Method 5
+File 1
 True
 True
 False
@@ -1406,38 +1412,38 @@ public class Program
 ";
             string expectedOutput = @"GooGooGlueGooGoo
 Flushing
-1
-1
+Method 1
+File 1
 True
 True
 True
-2
-1
+Method 2
+File 1
 True
 True
-3
-1
-True
-True
-True
-True
-4
-1
+Method 3
+File 1
 True
 True
 True
-False
 True
-5
-1
+Method 4
+File 1
 True
 True
 True
 False
 True
+Method 5
+File 1
 True
-8
-1
+True
+True
+False
+True
+True
+Method 8
+File 1
 True
 True
 False

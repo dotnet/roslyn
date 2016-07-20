@@ -65,16 +65,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return _items.ToArray();
             }
         }
-
-        //TODO: why is this is called twice during emit?
-        //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
-        public IEnumerable<T> GetAllItemsAndCount(out int count)
-        {
-            lock (_items)
-            {
-                count = _items.Count;
-                return _items.ToArray();
-            }
-        }
     }
 }
