@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion
             new PerLanguageOption<SnippetsRule>(FeatureName, nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default);
 
         // Dev15 options
-        public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: false);
-        public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(FeatureName, nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: false);
+        public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: true);
+        public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(FeatureName, nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true);
 
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {

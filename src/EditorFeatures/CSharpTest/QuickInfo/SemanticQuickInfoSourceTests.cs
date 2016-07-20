@@ -12,10 +12,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -40,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             var document = workspace.CurrentSolution.GetDocument(documentId);
 
             var provider = new SemanticQuickInfoProvider(
-                workspace.GetService<ITextBufferFactoryService>(),
-                workspace.GetService<IContentTypeRegistryService>(),
                 workspace.GetService<IProjectionBufferFactoryService>(),
                 workspace.GetService<IEditorOptionsFactoryService>(),
                 workspace.GetService<ITextEditorFactoryService>(),
@@ -106,8 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
                 var provider = new SemanticQuickInfoProvider(
-                        workspace.GetService<ITextBufferFactoryService>(),
-                        workspace.GetService<IContentTypeRegistryService>(),
                         workspace.GetService<IProjectionBufferFactoryService>(),
                         workspace.GetService<IEditorOptionsFactoryService>(),
                         workspace.GetService<ITextEditorFactoryService>(),
@@ -263,8 +257,6 @@ using System.Linq;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
                 var provider = new SemanticQuickInfoProvider(
-                        workspace.GetService<ITextBufferFactoryService>(),
-                        workspace.GetService<IContentTypeRegistryService>(),
                         workspace.GetService<IProjectionBufferFactoryService>(),
                         workspace.GetService<IEditorOptionsFactoryService>(),
                         workspace.GetService<ITextEditorFactoryService>(),
