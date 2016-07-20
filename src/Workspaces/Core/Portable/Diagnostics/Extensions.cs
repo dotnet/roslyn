@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -165,12 +166,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return type.AssemblyQualifiedName;
         }
 
-        public static ImmutableDictionary<DiagnosticAnalyzer, CompilerResultBuilder> ToResultBuilderMap(
+        public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
             this AnalysisResult analysisResult,
             Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
             CancellationToken cancellationToken)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, CompilerResultBuilder>();
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
 
             ImmutableArray<Diagnostic> diagnostics;
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzerMap;
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var result = new CompilerResultBuilder(project, version);
+                var result = new DiagnosticAnalysisResultBuilder(project, version);
 
                 foreach (var tree in analysisResult.SyntaxDiagnostics.Keys)
                 {

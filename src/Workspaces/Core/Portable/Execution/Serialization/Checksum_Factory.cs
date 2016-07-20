@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Execution
             using (var algorithm = new SHA1CryptoServiceProvider())
             {
                 stream.Seek(0, SeekOrigin.Begin);
-                return new Checksum(ImmutableArray.Create(algorithm.ComputeHash(stream)));
+                return new Checksum(algorithm.ComputeHash(stream));
             }
         }
 

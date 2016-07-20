@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                             writer.WriteInt32(serviceId);
                             writer.WriteArray(checksum);
 
-                            var checksumObject = await service.GetChecksumObjectAsync(new Checksum(ImmutableArray.Create(checksum)), _source.Token).ConfigureAwait(false);
+                            var checksumObject = await service.GetChecksumObjectAsync(new Checksum(checksum), _source.Token).ConfigureAwait(false);
                             writer.WriteString(checksumObject.Kind);
 
                             Debug.WriteLine(checksumObject.Kind);

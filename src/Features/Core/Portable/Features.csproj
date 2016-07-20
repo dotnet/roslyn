@@ -227,10 +227,8 @@
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
-    <Compile Include="Diagnostics\EngineV2\CompilerAnalysisResult.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisData.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisKind.cs" />
-    <Compile Include="Diagnostics\EngineV2\AnalysisResult.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.CompilationManager.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.Executor.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.InMemoryStorage.cs" />

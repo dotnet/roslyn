@@ -5,13 +5,14 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     [ExportHostSpecificService(typeof(ICompilerDiagnosticExecutor), HostKinds.InProc), Shared]
     internal class DiagnosticInProcHostSpecificService : ICompilerDiagnosticExecutor
     {
-        public async Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        public async Task<DiagnosticAnalysisResultMap> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // get compiler result builder map
             var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
 
-            return new CompilerAnalysisResult(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new AnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
+            return new DiagnosticAnalysisResultMap(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
         }
     }
 }

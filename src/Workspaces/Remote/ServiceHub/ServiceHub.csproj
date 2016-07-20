@@ -55,7 +55,9 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Services\CodeAnalysisService.cs" />
+    <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />
     <Compile Include="Services\RemoteHostService.cs" />
     <Compile Include="Services\ServiceHubJsonRpcServiceBase.cs" />
     <Compile Include="Services\ServiceHubServiceBase.cs" />

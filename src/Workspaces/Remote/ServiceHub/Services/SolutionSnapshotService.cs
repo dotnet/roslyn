@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             var responseServiceId = reader.ReadInt32();
                             Contract.ThrowIfFalse(serviceId == responseServiceId);
 
-                            var responseChecksum = new Checksum(ImmutableArray.Create(reader.ReadArray<byte>()));
+                            var responseChecksum = new Checksum(reader.ReadArray<byte>());
                             Contract.ThrowIfFalse(checksum == responseChecksum);
 
                             var kind = reader.ReadString();

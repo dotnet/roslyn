@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -17,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly ImmutableArray<byte> _checkSum;
         private int? _lazyHash;
+
+        public Checksum(byte[] checksum) :
+            this(ImmutableArray.Create(checksum))
+        {
+        }
 
         public Checksum(ImmutableArray<byte> checksum)
         {

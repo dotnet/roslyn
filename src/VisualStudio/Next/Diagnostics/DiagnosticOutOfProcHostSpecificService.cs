@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Roslyn.Utilities;
 
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        public async Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        public async Task<DiagnosticAnalysisResultMap> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
 
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             if (remoteHost == null)
             {
                 // TODO: call inproc version when out of proc can't be used.
-                return new CompilerAnalysisResult(ImmutableDictionary<DiagnosticAnalyzer, CodeAnalysis.Diagnostics.EngineV2.AnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+                return new DiagnosticAnalysisResultMap(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
             }
 
             var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
@@ -56,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
             using (var session = await remoteHost.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                return await session.InvokeAsync<CompilerAnalysisResult>(
+                return await session.InvokeAsync(
                     WellKnownServiceHubServices.CodeAnalysisService_GetDiagnostics,
                     new object[] {
                         session.SolutionSnapshot.Id.Checksum.ToArray(),
@@ -64,113 +66,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
                         project.Id.DebugName,
                         hostChecksums.ToArray(),
                         analyzerMap.Keys.ToArray() },
-                    (s, c) => GetCompilerAnalysisResultAsync(analyzerMap, project, s, c), cancellationToken).ConfigureAwait(false);
+                    (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<CompilerAnalysisResult> GetCompilerAnalysisResultAsync(Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, Stream stream, CancellationToken cancellationToken)
+        private async Task<DiagnosticAnalysisResultMap> GetCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            var diagnosticDataSerializer = new DiagnosticDataSerializer(VersionStamp.Default, VersionStamp.Default);
-
             using (var reader = new ObjectReader(stream))
             {
-                var analysisCount = reader.ReadInt32();
-
-                var analysisMap = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, CodeAnalysis.Diagnostics.EngineV2.AnalysisResult>();
-                for (var i = 0; i < analysisCount; i++)
-                {
-                    var analyzer = analyzerMap[reader.ReadString()];
-
-                    var syntaxLocalCount = reader.ReadInt32();
-                    var syntaxLocalMap = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
-                    for (var j = 0; j < syntaxLocalCount; j++)
-                    {
-                        var documentId = Serializer.DeserializeDocumentId(reader, cancellationToken);
-                        var diagnostics = diagnosticDataSerializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
-
-                        syntaxLocalMap.Add(documentId, diagnostics);
-                    }
-
-                    var semanticLocalCount = reader.ReadInt32();
-                    var semanticLocalMap = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
-                    for (var j = 0; j < semanticLocalCount; j++)
-                    {
-                        var documentId = Serializer.DeserializeDocumentId(reader, cancellationToken);
-                        var diagnostics = diagnosticDataSerializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
-
-                        semanticLocalMap.Add(documentId, diagnostics);
-                    }
-
-                    var nonLocalCount = reader.ReadInt32();
-                    var nonLocalMap = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
-                    for (var j = 0; j < nonLocalCount; j++)
-                    {
-                        var documentId = Serializer.DeserializeDocumentId(reader, cancellationToken);
-                        var diagnostics = diagnosticDataSerializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
-
-                        nonLocalMap.Add(documentId, diagnostics);
-                    }
-
-                    var others = diagnosticDataSerializer.ReadFrom(reader, project, cancellationToken);
-
-                    var analysisResult = new CodeAnalysis.Diagnostics.EngineV2.AnalysisResult(
-                        project.Id, version,
-                        syntaxLocalMap.ToImmutable(),
-                        semanticLocalMap.ToImmutable(),
-                        nonLocalMap.ToImmutable(),
-                        others,
-                        documentIds: null,
-                        fromBuild: false);
-
-                    analysisMap.Add(analyzer, analysisResult);
-                }
-
-                var telemetryCount = reader.ReadInt32();
-
-                var telemetryMap = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
-                for (var i = 0; i < telemetryCount; i++)
-                {
-                    var analyzer = analyzerMap[reader.ReadString()];
-
-                    var compilationStartActionsCount = reader.ReadInt32();
-                    var compilationEndActionsCount = reader.ReadInt32();
-                    var compilationActionsCount = reader.ReadInt32();
-                    var syntaxTreeActionsCount = reader.ReadInt32();
-                    var semanticModelActionsCount = reader.ReadInt32();
-                    var symbolActionsCount = reader.ReadInt32();
-                    var syntaxNodeActionsCount = reader.ReadInt32();
-                    var codeBlockStartActionsCount = reader.ReadInt32();
-                    var codeBlockEndActionsCount = reader.ReadInt32();
-                    var codeBlockActionsCount = reader.ReadInt32();
-                    var operationActionsCount = reader.ReadInt32();
-                    var operationBlockActionsCount = reader.ReadInt32();
-                    var operationBlockStartActionsCount = reader.ReadInt32();
-                    var operationBlockEndActionsCount = reader.ReadInt32();
-                    var executionTime = new TimeSpan(reader.ReadInt64());
-
-                    var telemetryInfo = new AnalyzerTelemetryInfo(
-                        compilationStartActionsCount,
-                        compilationEndActionsCount,
-                        compilationActionsCount,
-                        syntaxTreeActionsCount,
-                        semanticModelActionsCount,
-                        symbolActionsCount,
-                        syntaxNodeActionsCount,
-                        codeBlockStartActionsCount,
-                        codeBlockEndActionsCount,
-                        codeBlockActionsCount,
-                        operationActionsCount,
-                        operationBlockStartActionsCount,
-                        operationBlockEndActionsCount,
-                        operationBlockActionsCount,
-                        executionTime);
-
-                    telemetryMap.Add(analyzer, telemetryInfo);
-                }
-
-                return new CompilerAnalysisResult(analysisMap.ToImmutable(), telemetryMap.ToImmutable());
+                return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
             }
         }
 

@@ -7,13 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal class DiagnosticComputer
     {
-        public async Task<CompilerAnalysisResult> GetDiagnosticsAsync(
+        public async Task<DiagnosticResult> GetDiagnosticsAsync(
             Solution solution, ProjectId projectId, IEnumerable<AnalyzerReference> hostAnalyzers, IEnumerable<string> analyzerIds, CancellationToken cancellationToken)
         {
             var project = solution.GetProject(projectId);
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             if (analyzers.Length == 0)
             {
-                return new CompilerAnalysisResult(ImmutableDictionary<string, CompilerResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
+                return new DiagnosticResult(ImmutableDictionary<string, DiagnosticAnalysisResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -44,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var builderMap = analysisResult.ToResultBuilderMap(project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
-            return new CompilerAnalysisResult(builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                                              analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
+            return new DiagnosticResult(builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                                        analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
         }
 
         private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
@@ -80,20 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 hostAnalyzers.Concat(project.AnalyzerReferences)
                        .SelectMany(r => r.GetAnalyzers(project.Language))
                        .Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)).Where(kv => kv.Key.IndexOf("Feature") < 0));
-        }
-
-        internal struct CompilerAnalysisResult
-        {
-            public readonly ImmutableDictionary<string, CompilerResultBuilder> AnalysisResult;
-            public readonly ImmutableDictionary<string, AnalyzerTelemetryInfo> TelemetryInfo;
-
-            public CompilerAnalysisResult(
-                ImmutableDictionary<string, CompilerResultBuilder> analysisResult,
-                ImmutableDictionary<string, AnalyzerTelemetryInfo> telemetryInfo)
-            {
-                AnalysisResult = analysisResult;
-                TelemetryInfo = telemetryInfo;
-            }
         }
     }
 }

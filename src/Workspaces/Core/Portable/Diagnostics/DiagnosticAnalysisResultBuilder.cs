@@ -3,15 +3,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 {
     /// <summary>
     /// We have this builder to avoid creating collections unnecessarily.
     /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
     /// </summary>
-    internal struct CompilerResultBuilder
+    internal struct DiagnosticAnalysisResultBuilder
     {
         public readonly Project Project;
         public readonly VersionStamp Version;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private List<DiagnosticData> _lazyOthers;
 
-        public CompilerResultBuilder(Project project, VersionStamp version)
+        public DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
         {
             Project = project;
             Version = version;
