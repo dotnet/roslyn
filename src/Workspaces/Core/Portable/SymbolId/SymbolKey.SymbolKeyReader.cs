@@ -114,6 +114,12 @@ namespace Microsoft.CodeAnalysis
 
             protected TStringResult ReadStringNoSpace()
             {
+                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                {
+                    Eat(SymbolKeyType.Null);
+                    return CreateNullForString();
+                }
+
                 EatDoubleQuote();
 
                 var start = Position;
@@ -148,6 +154,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected abstract TStringResult CreateResultForString(int start, int end, bool hasEmbeddedQuote);
+            protected abstract TStringResult CreateNullForString();
 
             private void EatDoubleQuote()
             {
@@ -271,7 +278,7 @@ namespace Microsoft.CodeAnalysis
 
         private class GetHashCodeReader : Reader<int, int>
         {
-            private static readonly ObjectPool<GetHashCodeReader> s_pool = 
+            private static readonly ObjectPool<GetHashCodeReader> s_pool =
                 new ObjectPool<GetHashCodeReader>(() => new GetHashCodeReader());
 
             private GetHashCodeReader()
@@ -308,6 +315,11 @@ namespace Microsoft.CodeAnalysis
                     result = Hash.Combine((int)char.ToLower(Data[i]), result);
                 }
                 return result;
+            }
+
+            protected override int CreateNullForString()
+            {
+                return 0;
             }
 
             public int ReadSymbolKeyArrayHashCode()
@@ -438,6 +450,11 @@ namespace Microsoft.CodeAnalysis
                 _builder.Append(DoubleQuoteChar);
                 return null;
             }
+
+            protected override object CreateNullForString()
+            {
+                return null;
+            }
         }
 
         private class SymbolKeyReader : Reader<SymbolKeyResolution, string>
@@ -496,6 +513,11 @@ namespace Microsoft.CodeAnalysis
                     ? substring.Replace("\"\"", "\"")
                     : substring;
                 return result;
+            }
+
+            protected override string CreateNullForString()
+            {
+                return null;
             }
 
             protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)

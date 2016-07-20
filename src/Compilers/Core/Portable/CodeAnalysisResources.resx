@@ -513,8 +513,8 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
-  <data name="TupleNamesAllOrNone" xml:space="preserve">
-    <value>If names are used in a tuple type, then there must be the same number of names and elements.</value>
+  <data name="TupleElementNameCountMismatch" xml:space="preserve">
+    <value>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</value>
   </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>

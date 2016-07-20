@@ -2817,7 +2817,7 @@ var expected =
             var expected =
 @"class C
 {
-    private static readonly (int a, string Item2) {|Rename:p|} = (a: 1, ""hello"");
+    private static readonly (int a, string) {|Rename:p|} = (a: 1, ""hello"");
     var i = p.ToString() + p.ToString();
 }";
 
