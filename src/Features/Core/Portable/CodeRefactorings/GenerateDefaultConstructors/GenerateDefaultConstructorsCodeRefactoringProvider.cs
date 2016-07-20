@@ -2,13 +2,13 @@
 
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
     internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

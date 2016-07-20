@@ -150,6 +150,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
     <Compile Include="CodeRefactorings\ConvertToInterpolatedString\AbstractConvertToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
