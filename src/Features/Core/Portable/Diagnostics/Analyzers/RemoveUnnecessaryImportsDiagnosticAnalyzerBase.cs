@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
 {
-    internal abstract class RemoveUnnecessaryImportsDiagnosticAnalyzerBase : 
+    internal abstract class RemoveUnnecessaryImportsDiagnosticAnalyzerBase :
         DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
@@ -48,19 +48,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             return _classificationIdDescriptor;
         }
 
-        private ImmutableArray<DiagnosticDescriptor> _descriptors;
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                if (_descriptors == null)
-                {
-                    _descriptors = ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
-                }
-
-                return _descriptors;
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
+        public bool MustRunInProc => true;
 
         public override void Initialize(AnalysisContext context)
         {
