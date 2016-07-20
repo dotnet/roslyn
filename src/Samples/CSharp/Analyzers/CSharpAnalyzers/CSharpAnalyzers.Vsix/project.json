@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.VisualStudio.Settings.14.0": "14.3.25407",
+    "Microsoft.VSSDK.BuildTools": "14.3.25407"
+  },
+  "frameworks": {
+    ".NETFramework,Version=v4.6": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}
