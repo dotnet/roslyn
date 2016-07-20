@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim displayText As String = Nothing
             Dim insertionText As String = Nothing
 
-            If symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any() Then
+            If IsGenericType(symbol) Then
                 displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
                 insertionText = displayText
             Else
@@ -263,6 +263,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
+        Private Shared Function IsGenericType(symbol As ISymbol) As Boolean
+            Return symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any()
+        End Function
+
+        Private Shared ReadOnly MinimalFormatWithoutGenerics As SymbolDisplayFormat =
+            SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.None)
+
+        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
+
+        Protected Overrides Function GetInitialProperties(symbol As ISymbol, context As AbstractSyntaxContext) As ImmutableDictionary(Of String, String)
+            If IsGenericType(symbol) Then
+                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+                Return ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text)
+            End If
+
+            Return MyBase.GetInitialProperties(symbol, context)
+        End Function
+
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
@@ -273,6 +291,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            If ch = "("c Then
+                Dim insertionText As String = Nothing
+                If item.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                    Return insertionText
+                End If
+            End If
+
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -126,7 +126,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
-                rules: GetCompletionItemRules(symbols, context));
+                rules: GetCompletionItemRules(symbols, context),
+                properties: GetInitialProperties(symbols[0], context));
+        }
+
+        protected virtual ImmutableDictionary<string, string> GetInitialProperties(
+            ISymbol symbol, AbstractSyntaxContext context)
+        {
+            return null;
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
