@@ -20,14 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateDefaultCon
             End If
 
             Dim service = document.GetLanguageService(Of IGenerateDefaultConstructorsService)()
-            Dim result = Await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(False)
+            Dim actions = Await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(False)
 
-            If Not result.ContainsChanges Then
-                Return
+            If Not actions.IsDefault Then
+                context.RegisterRefactorings(actions)
             End If
-
-            Dim actions = result.GetCodeRefactoring(cancellationToken).Actions
-            context.RegisterRefactorings(actions)
         End Function
     End Class
 End Namespace

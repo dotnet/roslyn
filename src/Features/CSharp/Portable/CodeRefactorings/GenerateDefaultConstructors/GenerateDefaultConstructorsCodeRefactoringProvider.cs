@@ -30,14 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstruc
             }
 
             var service = document.GetLanguageService<IGenerateDefaultConstructorsService>();
-            var result = await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (!result.ContainsChanges)
+            var actions = await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
             {
-                return;
+                context.RegisterRefactorings(actions);
             }
-
-            var actions = result.GetCodeRefactoring(cancellationToken).Actions;
-            context.RegisterRefactorings(actions);
         }
     }
 }

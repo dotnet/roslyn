@@ -23,15 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Gen
             }
 
             var service = document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
-            var result = await service.GenerateEqualsAndGetHashCodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-            if (!result.ContainsChanges)
+            var actions = await service.GenerateEqualsAndGetHashCodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
             {
-                return;
+                context.RegisterRefactorings(actions);
             }
-
-            var actions = result.GetCodeRefactoring(cancellationToken).Actions;
-            context.RegisterRefactorings(actions);
         }
     }
 }

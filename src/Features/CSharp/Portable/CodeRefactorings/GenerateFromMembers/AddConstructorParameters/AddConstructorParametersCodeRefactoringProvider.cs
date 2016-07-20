@@ -24,15 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Add
             }
 
             var service = document.GetLanguageService<IAddConstructorParametersService>();
-            var result = await service.AddConstructorParametersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-            if (!result.ContainsChanges)
+            var actions = await service.AddConstructorParametersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
             {
-                return;
+                context.RegisterRefactorings(actions);
             }
-
-            var actions = result.GetCodeRefactoring(cancellationToken).Actions;
-            context.RegisterRefactorings(actions);
         }
     }
 }
