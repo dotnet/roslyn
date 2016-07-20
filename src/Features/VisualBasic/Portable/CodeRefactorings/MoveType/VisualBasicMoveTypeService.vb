@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         ''' <summary>
         ''' Gets the TypeBlock node to analyze
         ''' </summary>
-        Protected Overrides Function GetNodetoAnalyze(root As SyntaxNode, span As TextSpan) As SyntaxNode
-            Dim node = MyBase.GetNodetoAnalyze(root, span)
+        Protected Overrides Function GetNodeToAnalyze(root As SyntaxNode, span As TextSpan) As SyntaxNode
+            Dim node = MyBase.GetNodeToAnalyze(root, span)
             If node.IsKind(SyntaxKind.ModuleStatement,
                            SyntaxKind.ClassStatement,
                            SyntaxKind.StructureStatement,

@@ -250,8 +250,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsPartial(typeSymbol As ITypeSymbol) As Boolean Implements ISemanticFactsService.IsPartial
             Dim syntaxRefs = typeSymbol.DeclaringSyntaxReferences
-            Return syntaxRefs.Length > 1 OrElse
-                   DirectCast(syntaxRefs.Single().GetSyntax(), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
+            Return syntaxRefs.Any(
+                Function(n As SyntaxReference)
+                    Return DirectCast(n.GetSyntax(), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
+                End Function)
         End Function
     End Class
 End Namespace

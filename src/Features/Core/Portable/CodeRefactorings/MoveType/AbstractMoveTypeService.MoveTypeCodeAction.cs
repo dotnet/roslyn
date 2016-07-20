@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 switch (_operationKind)
                 {
                     case OperationKind.MoveType:
-                        return string.Format(FeaturesResources.Movetypeto_0, _state.TargetFileNameCandidate);
+                        return string.Format(FeaturesResources.Move_type_to_0, _state.TargetFileNameCandidate);
                     case OperationKind.RenameType:
-                        return string.Format(FeaturesResources.Renametypeto_0, _state.DocumentName);
+                        return string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentName);
                     case OperationKind.RenameFile:
-                        return string.Format(FeaturesResources.Renamefileto_0, _state.TargetFileNameCandidate);
+                        return string.Format(FeaturesResources.Rename_file_to_0, _state.TargetFileNameCandidate);
                 }
 
                 throw ExceptionUtilities.Unreachable;

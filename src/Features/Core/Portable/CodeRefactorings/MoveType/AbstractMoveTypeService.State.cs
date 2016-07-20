@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        protected class State
+        private class State
         {
             private readonly TService _service;
             public SemanticDocument SemanticDocument { get; }
@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public string TypeName { get; set; }
             public string DocumentName { get; set; }
             public string TargetFileNameCandidate { get; set; }
+            public bool IsDocumentNameAValidIdentifier { get; set; }
 
-            private State(TService service,SemanticDocument document)
+            private State(TService service, SemanticDocument document)
             {
                 this._service = service;
                 this.SemanticDocument = document;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var root = this.SemanticDocument.Root;
                 var syntaxFacts = this.SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
-                var typeDeclaration = _service.GetNodetoAnalyze(root, textSpan) as TTypeDeclarationSyntax;
+                var typeDeclaration = _service.GetNodeToAnalyze(root, textSpan) as TTypeDeclarationSyntax;
                 if (typeDeclaration == null)
                 {
                     return false;
@@ -71,15 +72,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TypeNode = typeDeclaration;
                 TypeName = typeSymbol.Name;
                 DocumentName = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
+                IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentName);
 
-                if (string.Equals(DocumentName, TypeName, StringComparison.CurrentCultureIgnoreCase))
+                // TODO: Make this check better, it won't detect Outer.Inner.cs cases.
+                if (string.Equals(DocumentName, TypeName, StringComparison.CurrentCulture))
                 {
-                    // if type name matches document name, we have nothing more to do.
+                    // if type name matches document name in a case sensitive manner, we have nothing more to do.
                     return false;
                 }
 
-                TargetFileNameCandidate = 
-                    typeSymbol.Name + (SemanticDocument.Document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb");
+                TargetFileNameCandidate = Path.Combine(typeSymbol.Name + Path.GetExtension(this.SemanticDocument.Document.Name));
 
                 return true;
             }

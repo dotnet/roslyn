@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
         public bool ShouldAnalyze(SyntaxNode root, TextSpan span)
         {
-            return GetNodetoAnalyze(root, span) is TTypeDeclarationSyntax;
+            return GetNodeToAnalyze(root, span) is TTypeDeclarationSyntax;
         }
 
-        protected virtual SyntaxNode GetNodetoAnalyze(SyntaxNode root, TextSpan span)
+        protected virtual SyntaxNode GetNodeToAnalyze(SyntaxNode root, TextSpan span)
         {
             return root.FindNode(span);
         }
@@ -74,7 +74,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // one type declaration in current document. No moving around required, just sync
                 // document name and type name by offering rename in both directions between type and document.
                 actions.Add(GetCodeAction(state, operationKind: OperationKind.RenameFile));
-                actions.Add(GetCodeAction(state, operationKind: OperationKind.RenameType));
+
+                // only if the document name can be legal identifier in the language,
+                // offer to rename type with document name
+                if (state.IsDocumentNameAValidIdentifier)
+                {
+                    actions.Add(GetCodeAction(state, operationKind: OperationKind.RenameType));
+                }
             }
             else
             {

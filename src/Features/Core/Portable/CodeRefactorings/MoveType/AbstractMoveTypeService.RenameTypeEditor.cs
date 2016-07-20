@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Rename;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // if no such conflicts exist, proceed with RenameSymbolAsync.
                 var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
                 var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, State.DocumentName, SemanticDocument.Document.Options, CancellationToken).ConfigureAwait(false);
-                return new CodeActionOperation[] { new ApplyChangesOperation(newSolution) };
+                return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(newSolution));
             }
         }
     }

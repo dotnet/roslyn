@@ -266,8 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPartial(ITypeSymbol typeSymbol)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Length > 1
-                || ((BaseTypeDeclarationSyntax)syntaxRefs.Single().GetSyntax()).Modifiers.Any(SyntaxKind.PartialKeyword);
+            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax()).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
     }
 }
