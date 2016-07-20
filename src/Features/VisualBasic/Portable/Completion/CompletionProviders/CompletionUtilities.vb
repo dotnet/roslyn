@@ -2,11 +2,9 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -77,9 +75,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Function GetDisplayAndInsertionText(
             symbol As ISymbol,
             context As SyntaxContext) As ValueTuple(Of String, String)
-
-            Dim isAfterDot = context.IsRightOfNameSeparator
-            Dim isWithinAsyncMethod = context.IsWithinAsyncMethod
 
             Dim name As String = Nothing
             If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, name) Then
