@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,31 +48,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             .OfType<TTypeDeclarationSyntax>()
             .Count() > 1;
 
-        public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!ShouldAnalyze(root, textSpan))
             {
-                return null;
+                return default(ImmutableArray<CodeAction>);
             }
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
             if (state == null)
             {
-                return null;
+                return default(ImmutableArray<CodeAction>);
             }
 
             var actions = CreateActions(state, cancellationToken);
-            if (actions.Count == 0)
-            {
-                return null;
-            }
 
-            return new CodeRefactoring(null, actions);
+            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
+            return actions;
         }
 
-        private List<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
+        private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
             var actions = new List<CodeAction>();
             var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
             }
 
-            return actions;
+            return actions.ToImmutableArray();
         }
 
         private CodeAction GetCodeAction(

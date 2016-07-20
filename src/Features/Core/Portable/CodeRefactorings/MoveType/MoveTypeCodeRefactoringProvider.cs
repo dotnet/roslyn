@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var service = document.GetLanguageService<IMoveTypeService>();
-            var refactoring = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (refactoring != null)
+            var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
             {
-                context.RegisterRefactorings(refactoring.Actions);
+                context.RegisterRefactorings(actions);
             }
         }
     }
