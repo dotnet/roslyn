@@ -482,9 +482,7 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.State_Field.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.State_Parameter.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.State_Query.cs" />
-    <Compile Include="IntroduceVariable\IIntroduceVariableResult.cs" />
     <Compile Include="IntroduceVariable\IIntroduceVariableService.cs" />
-    <Compile Include="IntroduceVariable\IntroduceVariableResult.cs" />
     <Compile Include="LanguageServices\AnonymousTypeDisplayService\AbstractAnonymousTypeDisplayService.cs" />
     <Compile Include="LanguageServices\AnonymousTypeDisplayService\AbstractAnonymousTypeDisplayService.NormalAnonymousTypeCollectorVisitor.cs" />
     <Compile Include="LanguageServices\AnonymousTypeDisplayService\AnonymousTypeDisplayInfo.cs" />

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return block.OverlapsHiddenPosition(cancellationToken);
         }
 
-        public async Task<IIntroduceVariableResult> IntroduceVariableAsync(
+        public async Task<ImmutableArray<CodeAction>> IntroduceVariableAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -57,18 +58,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
-                if (state == null)
+                if (state != null)
                 {
-                    return IntroduceVariableResult.Failure;
+                    var actions = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
+                    if (actions.Count > 0)
+                    {
+                        return actions.AsImmutableOrNull();
+                    }
                 }
 
-                var actions = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
-                if (actions.Count == 0)
-                {
-                    return IntroduceVariableResult.Failure;
-                }
-
-                return new IntroduceVariableResult(new CodeRefactoring(null, actions));
+                return default(ImmutableArray<CodeAction>);
             }
         }
 

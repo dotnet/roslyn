@@ -23,15 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
             }
 
             var service = document.GetLanguageService<IIntroduceVariableService>();
-            var result = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (!result.ContainsChanges)
+            if (!actions.IsDefault)
             {
-                return;
+                context.RegisterRefactorings(actions);
             }
-
-            var actions = result.GetCodeRefactoring(cancellationToken).Actions;
-            context.RegisterRefactorings(actions);
         }
     }
 }
