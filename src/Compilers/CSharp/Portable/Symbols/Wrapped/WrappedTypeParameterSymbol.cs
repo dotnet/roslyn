@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
-using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -90,11 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
-        }
-
         public override ImmutableArray<Location> Locations
         {
             get
@@ -110,8 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingTypeParameter.DeclaringSyntaxReferences;
             }
         }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
 
         public override string Name
         {
@@ -130,13 +122,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
         }
-
-        internal override abstract ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress);
-
-        internal override abstract ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress);
-
-        internal override abstract NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress);
-
-        internal override abstract TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress);
     }
 }

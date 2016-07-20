@@ -450,6 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typesArray.Length < 2)
             {
+                elementNames?.Free();
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
@@ -487,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool CheckTupleMemberName(string name, int position, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        private static bool CheckTupleMemberName(string name, int index, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
         {
             int reserved = TupleTypeSymbol.IsElementNameReserved(name);
             if (reserved == 0)
@@ -495,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
                 return false;
             }
-            else if (reserved > 0 && reserved != position + 1)
+            else if (reserved > 0 && reserved != index + 1)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
                 return false;
