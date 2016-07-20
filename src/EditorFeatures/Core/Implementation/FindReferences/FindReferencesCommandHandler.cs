@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -19,13 +20,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     {
         private readonly IEnumerable<IReferencedSymbolsPresenter> _synchronousPresenters;
         private readonly IEnumerable<IAsyncFindReferencesPresenter> _asynchronousPresenters;
+
         private readonly IWaitIndicator _waitIndicator;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<IReferencedSymbolsPresenter> synchronousPresenters,
-            [ImportMany] IEnumerable<IAsyncFindReferencesPresenter> asynchronousPresenters)
+            [ImportMany] IEnumerable<IAsyncFindReferencesPresenter> asynchronousPresenters,
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(synchronousPresenters);
@@ -34,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             _waitIndicator = waitIndicator;
             _synchronousPresenters = synchronousPresenters;
             _asynchronousPresenters = asynchronousPresenters;
+            _asyncListener = new AggregateAsynchronousOperationListener(
+                asyncListeners, FeatureAttribute.FindReferences);
         }
 
         internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
@@ -81,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
 
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
+
+
 
             FindReferences(snapshot, caretPosition);
         }
