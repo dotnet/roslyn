@@ -1,11 +1,42 @@
 {
     "settings": {
+        "MsBuildLogging": {
+            "description": "MsBuild logging options.",
+            "valueType": "passThrough",
+            "values": [],
+            "defaultValue": "/flp:v=normal"
+        },
+        "MsBuildParameters": {
+            "description": "MsBuild building options.",
+            "valueType": "passThrough",
+            "values": [],
+            "defaultValue": "/nologo /maxcpucount /verbosity:minimal /clp:Summary"
+        },
         "Project": {
             "description": "Project where the commands are going to be applied.",
             "valueType": "passThrough",
             "values": [],
             "defaultValue": ""
+        },
+        "CleanAllProjects": {
+            "description": "MsBuild target that deletes the binary output directory.",
+            "valueType": "target",
+            "values": [],
+            "defaultValue": ""
+        },
+        "CleanPackages": {
+            "description": "MsBuild target that deletes the repo-local nuget package directory.",
+            "valueType": "target",
+            "values": [],
+            "defaultValue": ""
+        },
+        "CleanPackagesCache": {
+            "description": "MsBuild target that deletes the user-local nuget package cache.",
+            "valueType": "target",
+            "values": [],
+            "defaultValue": ""
         }
+
     },
 
     "commands": {
@@ -33,14 +64,36 @@
                 "settings": { }
             }
         },
-        "clean": {
-            "alias": { },
-            "defaultValues": {
-                "toolName": "terminal",
-                "Project": "./clean",
-                "settings": { }
+        "clean":{
+            "alias":{
+                "b":{
+                    "description": "Deletes the binary output directory.",
+                    "settings":{
+                        "CleanAllProjects": "default"
+                    }
+                },
+                "p":{
+                    "description": "Deletes the repo-local nuget package directory.",
+                    "settings":{
+                        "CleanPackages": "default"
+                    }
+                },
+                "c":{
+                    "description": "Deletes the user-local nuget package cache.",
+                    "settings":{
+                        "CleanPackagesCache": "default"
+                    }
+                }
+            },
+            "defaultValues":{
+                "toolName": "msbuild",
+                "settings": {
+                    "Project": "./Compilers.sln",
+                    "MsBuildParameters":"default",
+                    "MsBuildLogging":"default"
+                }
             }
-        }
+        }      
     },
 
     "tools": {

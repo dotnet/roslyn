@@ -32,6 +32,7 @@ if "%RestoreFast%" == "" (
     popd
 )
 
+echo NUGET EXE: %NugetExe%
 echo Restoring packages: Toolsets
 call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
