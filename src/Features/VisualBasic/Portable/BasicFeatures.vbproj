@@ -132,7 +132,6 @@
     <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeActionProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\RemoveStatementCodeAction.vb" />
     <Compile Include="Completion\CompletionProviders\CompletionListTagCompletionProvider.vb" />
