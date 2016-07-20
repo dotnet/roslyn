@@ -14,7 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
-    internal abstract class AbstractFindReferencesService : IFindReferencesService
+    internal abstract class AbstractFindReferencesService : 
+        IFindReferencesService
     {
         private readonly IEnumerable<IReferencedSymbolsPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
@@ -30,10 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             _externalReferencesProviders = externalReferencesProviders;
         }
 
-        private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(Document document, int position, IWaitContext waitContext)
+        private async Task<Tuple<ISymbol, Solution>> GetRelevantSymbolAndSolutionAtPositionAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
-            var cancellationToken = waitContext.CancellationToken;
-
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol != null)
             {
@@ -45,14 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
                 if (mapping != null)
                 {
-                    var displayName = mapping.Symbol.IsConstructor() ? mapping.Symbol.ContainingType.Name : mapping.Symbol.Name;
-
-                    waitContext.Message = string.Format(EditorFeaturesResources.Finding_references_of_0, displayName);
-
-                    var result = await SymbolFinder.FindReferencesAsync(mapping.Symbol, mapping.Solution, cancellationToken).ConfigureAwait(false);
-                    var searchSolution = mapping.Solution;
-
-                    return Tuple.Create(result, searchSolution);
+                    return Tuple.Create(mapping.Symbol, mapping.Solution);
                 }
             }
 
@@ -73,6 +66,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     builder.AddRange(references.WhereNotNull());
                 }
             }
+        }
+
+        private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(
+            Document document, int position, IWaitContext waitContext)
+        {
+            var cancellationToken = waitContext.CancellationToken;
+
+            var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndSolution != null)
+            {
+                var symbol = symbolAndSolution.Item1;
+                var solution = symbolAndSolution.Item2;
+
+                var displayName = symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
+
+                waitContext.Message = string.Format(
+                    EditorFeaturesResources.Finding_references_of_0, displayName);
+
+                var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+
+                return Tuple.Create(result, solution);
+            }
+
+            return null;
         }
 
         /// <summary>
