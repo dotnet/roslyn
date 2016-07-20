@@ -113,7 +113,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
