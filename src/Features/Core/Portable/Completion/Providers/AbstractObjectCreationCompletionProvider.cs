@@ -128,13 +128,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
             return ValueTuple.Create(displayString, displayString);
         }
-
-        protected override string GetInsertionText(
-            CompletionItem item, ISymbol symbol, SyntaxContext context, char ch)
-        {
-            // The insertion text we put in the completion item is already the right text
-            // to insert.
-            return SymbolCompletionItem.GetInsertionText(item);
-        }
     }
 }
