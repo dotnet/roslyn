@@ -2,13 +2,13 @@
 
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers)]
     internal class AddConstructorParametersCodeRefactoringProvider : CodeRefactoringProvider
     {
@@ -24,15 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Add
             }
 
             var service = document.GetLanguageService<IAddConstructorParametersService>();
-            var result = await service.AddConstructorParametersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-            if (!result.ContainsChanges)
+            var actions = await service.AddConstructorParametersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
             {
-                return;
+                context.RegisterRefactorings(actions);
             }
-
-            var actions = result.GetCodeRefactoring(cancellationToken).Actions;
-            context.RegisterRefactorings(actions);
         }
     }
 }
