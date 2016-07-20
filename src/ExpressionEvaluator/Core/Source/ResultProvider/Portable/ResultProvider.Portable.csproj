@@ -8,7 +8,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{FA0E905D-EC46-466D-B7B2-3B5557F9428C}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
@@ -19,6 +18,10 @@
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Engine\14.3.25420\lib\portable\Microsoft.VisualStudio.Debugger.Engine.dll" />
+    <Reference Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Metadata\14.3.25420\lib\portable\Microsoft.VisualStudio.Debugger.Metadata.dll" />
+  </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
@@ -70,17 +73,6 @@
     </Compile>
     <Compile Include="Helpers\Placeholders.cs" />
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
-  </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
@@ -99,6 +91,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

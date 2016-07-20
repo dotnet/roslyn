@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
-    class ValueTupleTests : CompilingTestBase
+    public class ValueTupleTests : CompilingTestBase
     {
         [Fact]
         public void TestWellKnownMembersForValueTuple()
@@ -154,7 +154,7 @@ namespace System
             Assert.Equal("T7 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item7",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Item7).ToTestDisplayString());
             Assert.Equal("TRest System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest",
-                comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Item7).ToTestDisplayString());
+                comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Rest).ToTestDisplayString());
         }
 
         [Fact]

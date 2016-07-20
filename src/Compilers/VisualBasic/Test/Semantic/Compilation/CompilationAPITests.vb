@@ -1221,6 +1221,52 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
+        Public Sub CreateAnonymousType_IncorrectLengths()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1", "m2"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_NothingArgument()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentNullException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType1()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer>", type.ToDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType2()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        ImmutableArray.Create("m1", "m2"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Boolean>", type.ToDisplayString())
+        End Sub
+
+        <Fact()>
         Public Sub GetEntryPoint_Exe()
             Dim source = <compilation name="Name1">
                              <file name="a.vb"><![CDATA[

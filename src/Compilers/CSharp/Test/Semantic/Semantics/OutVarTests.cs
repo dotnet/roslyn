@@ -521,7 +521,7 @@ namespace System
         }
     }
 }
-";
+" + TestResources.NetFX.ValueTuple.tupleattributes_cs;
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"{123, 124}").VerifyDiagnostics();

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Reflection;
@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
             // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
-                title: FeaturesResources.UserDiagnosticAnalyzerFailure,
-                messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
-                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.CreateDiagnosticDescription()),
+                title: FeaturesResources.User_Diagnostic_Analyzer_Failure,
+                messageFormat: FeaturesResources.Analyzer_0_threw_an_exception_of_type_1_with_message_2,
+                description: string.Format(FeaturesResources.Analyzer_0_threw_the_following_exception_colon_1, analyzerName, e.CreateDiagnosticDescription()),
                 category: AnalyzerExceptionDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new DiagnosticData(
                 id,
-                FeaturesResources.ErrorCategory,
+                FeaturesResources.Roslyn_HostError,
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
@@ -182,20 +182,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                     id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
-                    messageFormat = FeaturesResources.WRN_UnableToLoadAnalyzer;
-                    message = string.Format(FeaturesResources.WRN_UnableToLoadAnalyzer, fullPath, e.Message);
+                    messageFormat = FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1;
+                    message = string.Format(FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1, fullPath, e.Message);
                     description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
-                    messageFormat = FeaturesResources.WRN_AnalyzerCannotBeCreated;
-                    message = string.Format(FeaturesResources.WRN_AnalyzerCannotBeCreated, e.TypeName, fullPath, e.Message);
+                    messageFormat = FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2;
+                    message = string.Format(FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2, e.TypeName, fullPath, e.Message);
                     description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
-                    messageFormat = FeaturesResources.WRN_NoAnalyzerInAssembly;
-                    message = string.Format(FeaturesResources.WRN_NoAnalyzerInAssembly, fullPath);
+                    messageFormat = FeaturesResources.The_assembly_0_does_not_contain_any_analyzers;
+                    message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
                     description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:

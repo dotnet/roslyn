@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
-        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
@@ -39,29 +38,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
 
+                TypeDeclarationSyntax typeDeclaration;
+
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
                 else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {
-                    return CreateEmptySuggestionModeItem(itemSpan);
+                    return CreateEmptySuggestionModeItem();
                 }
                 else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.ImplicitArrayCreation, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.implicit_array_creation, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_implicit_array_creation);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.range_variable, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_range_variable_declaration);
                 }
                 else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
+                }
+                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out typeDeclaration))
+                {
+                    switch (typeDeclaration.Keyword.Kind())
+                    {
+                        case SyntaxKind.ClassKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+
+                        case SyntaxKind.StructKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.struct_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+
+                        case SyntaxKind.InterfaceKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+                    }
                 }
             }
 

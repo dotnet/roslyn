@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get
-                Return BasicVSResources.MicrosoftVisualBasic
+                Return BasicVSResources.Microsoft_Visual_Basic
             End Get
         End Property
 

@@ -2832,8 +2832,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckTupleElementNames(cardinality, elementNames);
 
-            return TupleTypeSymbol.Create(null, // no location
-                                          csharpUnderlyingTuple, default(ImmutableArray<Location>), elementNames);
+            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
+        }
+
+        protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+        {
+            for (int i = 0, n = memberTypes.Length; i < n; i++)
+            {
+                memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
+            }
+
+            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
+            var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
+
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);
         }
 
         protected override ITypeSymbol CommonDynamicType
@@ -2915,14 +2928,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
         }
 
+        internal bool HasTupleNamesAttributes =>
+            (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) != null;
+
         /// <summary>
         /// Returns whether the compilation has the Boolean type and if it's good.
         /// </summary>
         /// <returns>Returns true if Boolean is present and healthy.</returns>
-        internal bool CanEmitBoolean()
+        internal bool CanEmitBoolean() => CanEmitSpecialType(SpecialType.System_Boolean);
+
+        internal bool CanEmitSpecialType(SpecialType type)
         {
-            var boolType = GetSpecialType(SpecialType.System_Boolean);
-            var diagnostic = boolType.GetUseSiteDiagnostic();
+            var typeSymbol = GetSpecialType(type);
+            var diagnostic = typeSymbol.GetUseSiteDiagnostic();
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 

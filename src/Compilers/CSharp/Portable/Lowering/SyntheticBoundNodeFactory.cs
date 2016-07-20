@@ -566,6 +566,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
+        {
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
+        }
+
         public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);

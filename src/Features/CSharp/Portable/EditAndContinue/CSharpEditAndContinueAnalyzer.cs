@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1394,113 +1394,113 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.GlobalStatement:
-                    return CSharpFeaturesResources.GlobalStatement;
+                    return CSharpFeaturesResources.global_statement;
 
                 case SyntaxKind.ExternAliasDirective:
-                    return CSharpFeaturesResources.UsingNamespace;
+                    return CSharpFeaturesResources.using_namespace;
 
                 case SyntaxKind.UsingDirective:
                     // Dev12 distinguishes using alias from using namespace and reports different errors for removing alias.
                     // None of these changes are allowed anyways, so let's keep it simple.
-                    return CSharpFeaturesResources.UsingDirective;
+                    return CSharpFeaturesResources.using_directive;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return FeaturesResources.Namespace;
+                    return FeaturesResources.namespace_;
 
                 case SyntaxKind.ClassDeclaration:
-                    return FeaturesResources.Class;
+                    return FeaturesResources.class_;
 
                 case SyntaxKind.StructDeclaration:
-                    return CSharpFeaturesResources.Struct;
+                    return CSharpFeaturesResources.struct_;
 
                 case SyntaxKind.InterfaceDeclaration:
-                    return FeaturesResources.Interface;
+                    return FeaturesResources.interface_;
 
                 case SyntaxKind.EnumDeclaration:
-                    return FeaturesResources.Enum;
+                    return FeaturesResources.enum_;
 
                 case SyntaxKind.DelegateDeclaration:
-                    return FeaturesResources.Delegate;
+                    return FeaturesResources.delegate_;
 
                 case SyntaxKind.FieldDeclaration:
                     var declaration = (FieldDeclarationSyntax)node;
-                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? FeaturesResources.ConstField : FeaturesResources.Field;
+                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? FeaturesResources.const_field : FeaturesResources.field;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    return CSharpFeaturesResources.EventField;
+                    return CSharpFeaturesResources.event_field;
 
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
                     return GetTopLevelDisplayNameImpl(node.Parent, editKind);
 
                 case SyntaxKind.MethodDeclaration:
-                    return FeaturesResources.Method;
+                    return FeaturesResources.method;
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return CSharpFeaturesResources.ConversionOperator;
+                    return CSharpFeaturesResources.conversion_operator;
 
                 case SyntaxKind.OperatorDeclaration:
-                    return FeaturesResources.Operator;
+                    return FeaturesResources.operator_;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    return FeaturesResources.Constructor;
+                    return FeaturesResources.constructor;
 
                 case SyntaxKind.DestructorDeclaration:
-                    return CSharpFeaturesResources.Destructor;
+                    return CSharpFeaturesResources.destructor;
 
                 case SyntaxKind.PropertyDeclaration:
-                    return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)node) ? FeaturesResources.AutoProperty : FeaturesResources.Property;
+                    return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)node) ? FeaturesResources.auto_property : FeaturesResources.property_;
 
                 case SyntaxKind.IndexerDeclaration:
-                    return CSharpFeaturesResources.Indexer;
+                    return CSharpFeaturesResources.indexer;
 
                 case SyntaxKind.EventDeclaration:
-                    return FeaturesResources.Event;
+                    return FeaturesResources.event_;
 
                 case SyntaxKind.EnumMemberDeclaration:
-                    return FeaturesResources.EnumValue;
+                    return FeaturesResources.enum_value;
 
                 case SyntaxKind.GetAccessorDeclaration:
                     if (node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
                     {
-                        return CSharpFeaturesResources.PropertyGetter;
+                        return CSharpFeaturesResources.property_getter;
                     }
                     else
                     {
                         Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-                        return CSharpFeaturesResources.IndexerGetter;
+                        return CSharpFeaturesResources.indexer_getter;
                     }
 
                 case SyntaxKind.SetAccessorDeclaration:
                     if (node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
                     {
-                        return CSharpFeaturesResources.PropertySetter;
+                        return CSharpFeaturesResources.property_setter;
                     }
                     else
                     {
                         Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-                        return CSharpFeaturesResources.IndexerSetter;
+                        return CSharpFeaturesResources.indexer_setter;
                     }
 
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return FeaturesResources.EventAccessor;
+                    return FeaturesResources.event_accessor;
 
                 case SyntaxKind.TypeParameterConstraintClause:
-                    return FeaturesResources.TypeConstraint;
+                    return FeaturesResources.type_constraint;
 
                 case SyntaxKind.TypeParameterList:
                 case SyntaxKind.TypeParameter:
-                    return FeaturesResources.TypeParameter;
+                    return FeaturesResources.type_parameter;
 
                 case SyntaxKind.Parameter:
-                    return FeaturesResources.Parameter;
+                    return FeaturesResources.parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.AttributeTarget : FeaturesResources.Attribute;
+                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
 
                 case SyntaxKind.Attribute:
-                    return FeaturesResources.Attribute;
+                    return FeaturesResources.attribute;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -1513,79 +1513,79 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.TryStatement:
-                    return CSharpFeaturesResources.TryBlock;
+                    return CSharpFeaturesResources.try_block;
 
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.CatchDeclaration:
-                    return CSharpFeaturesResources.CatchClause;
+                    return CSharpFeaturesResources.catch_clause;
 
                 case SyntaxKind.CatchFilterClause:
-                    return CSharpFeaturesResources.FilterClause;
+                    return CSharpFeaturesResources.filter_clause;
 
                 case SyntaxKind.FinallyClause:
-                    return CSharpFeaturesResources.FinallyClause;
+                    return CSharpFeaturesResources.finally_clause;
 
                 case SyntaxKind.FixedStatement:
-                    return CSharpFeaturesResources.FixedStatement;
+                    return CSharpFeaturesResources.fixed_statement;
 
                 case SyntaxKind.UsingStatement:
-                    return CSharpFeaturesResources.UsingStatement;
+                    return CSharpFeaturesResources.using_statement;
 
                 case SyntaxKind.LockStatement:
-                    return CSharpFeaturesResources.LockStatement;
+                    return CSharpFeaturesResources.lock_statement;
 
                 case SyntaxKind.ForEachStatement:
-                    return CSharpFeaturesResources.ForEachStatement;
+                    return CSharpFeaturesResources.foreach_statement;
 
                 case SyntaxKind.CheckedStatement:
-                    return CSharpFeaturesResources.CheckedStatement;
+                    return CSharpFeaturesResources.checked_statement;
 
                 case SyntaxKind.UncheckedStatement:
-                    return CSharpFeaturesResources.UncheckedStatement;
+                    return CSharpFeaturesResources.unchecked_statement;
 
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
-                    return CSharpFeaturesResources.YieldStatement;
+                    return CSharpFeaturesResources.yield_statement;
 
                 case SyntaxKind.AwaitExpression:
-                    return CSharpFeaturesResources.AwaitExpression;
+                    return CSharpFeaturesResources.await_expression;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
-                    return CSharpFeaturesResources.Lambda;
+                    return CSharpFeaturesResources.lambda;
 
                 case SyntaxKind.AnonymousMethodExpression:
-                    return CSharpFeaturesResources.AnonymousMethod;
+                    return CSharpFeaturesResources.anonymous_method;
 
                 case SyntaxKind.FromClause:
-                    return CSharpFeaturesResources.FromClause;
+                    return CSharpFeaturesResources.from_clause;
 
                 case SyntaxKind.JoinClause:
                 case SyntaxKind.JoinIntoClause:
-                    return CSharpFeaturesResources.JoinClause;
+                    return CSharpFeaturesResources.join_clause;
 
                 case SyntaxKind.LetClause:
-                    return CSharpFeaturesResources.LetClause;
+                    return CSharpFeaturesResources.let_clause;
 
                 case SyntaxKind.WhereClause:
-                    return CSharpFeaturesResources.WhereClause;
+                    return CSharpFeaturesResources.where_clause;
 
                 case SyntaxKind.OrderByClause:
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                    return CSharpFeaturesResources.OrderByClause;
+                    return CSharpFeaturesResources.orderby_clause;
 
                 case SyntaxKind.SelectClause:
-                    return CSharpFeaturesResources.SelectClause;
+                    return CSharpFeaturesResources.select_clause;
 
                 case SyntaxKind.GroupClause:
-                    return CSharpFeaturesResources.GroupByClause;
+                    return CSharpFeaturesResources.groupby_clause;
 
                 case SyntaxKind.QueryBody:
-                    return CSharpFeaturesResources.QueryBody;
+                    return CSharpFeaturesResources.query_body;
 
                 case SyntaxKind.QueryContinuation:
-                    return CSharpFeaturesResources.IntoClause;
+                    return CSharpFeaturesResources.into_clause;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

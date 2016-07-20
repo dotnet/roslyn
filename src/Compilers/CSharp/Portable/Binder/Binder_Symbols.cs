@@ -440,9 +440,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             uniqueFieldNames.Free();
 
-            if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
+            if (countOfExplicitNames != 0)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
+                if (countOfExplicitNames != numElements)
+                {
+                    Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
+                }
+
+                // If the tuple type with names is bound in a declaration
+                // context then we must have the TupleElementNamesAttribute to emit
+                if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
+                {
+                    // Report diagnostics if System.String doesn't exist
+                    this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+
+                    if (!Compilation.HasTupleNamesAttributes)
+                    {
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                            AttributeDescription.TupleElementNamesAttribute.FullName);
+                        Error(diagnostics, info, syntax);
+                    }
+                }
             }
 
             ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();

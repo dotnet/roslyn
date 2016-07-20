@@ -177,6 +177,9 @@ namespace TestResources.NetFX
 
         private static string s_tuplelib_cs;
         public static string tuplelib_cs => ResourceLoader.GetOrCreateResource(ref s_tuplelib_cs, "NetFX.ValueTuple.ValueTuple.cs");
+
+        private static string s_tupleAttributes_cs;
+        public static string tupleattributes_cs => ResourceLoader.GetOrCreateResource(ref s_tupleAttributes_cs, "NetFX.ValueTuple.TupleElementNamesAttribute.cs");
     }
 }
 

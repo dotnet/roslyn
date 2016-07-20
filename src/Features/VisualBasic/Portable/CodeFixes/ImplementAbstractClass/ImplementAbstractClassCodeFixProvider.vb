@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
                         node,
                         context.CancellationToken) Then
 
-                        Dim title = VBFeaturesResources.ImplementAbstractClass
+                        Dim title = VBFeaturesResources.Implement_Abstract_Class
                         Dim abstractType = model.GetTypeInfo(node, context.CancellationToken).Type
                         Dim typeName = abstractType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                         Dim id = GetCodeActionId(abstractType.ContainingAssembly.Name, typeName)
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
         End Function
 
         Friend Shared Function GetCodeActionId(assemblyName As String, abstractTypeFullyQualifiedName As String) As String
-            Return VBFeaturesResources.ImplementAbstractClass + ";" +
+            Return VBFeaturesResources.Implement_Abstract_Class + ";" +
                 assemblyName + ";" +
                 abstractTypeFullyQualifiedName
         End Function

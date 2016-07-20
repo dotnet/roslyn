@@ -75,6 +75,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
+        Public Function IsPartialTypeDeclarationNameContext(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken, ByRef statementSyntax As TypeStatementSyntax) As Boolean
+            If tree.IsInNonUserCode(position, cancellationToken) OrElse tree.IsInSkippedText(position, cancellationToken) Then
+                Return False
+            End If
+
+            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken) _
+                            .GetPreviousTokenIfTouchingWord(position)
+
+            Select Case token.Kind()
+                Case SyntaxKind.ClassKeyword,
+                     SyntaxKind.StructureKeyword,
+                     SyntaxKind.InterfaceKeyword,
+                     SyntaxKind.ModuleKeyword
+
+                    statementSyntax = token.GetAncestor(Of TypeStatementSyntax)()
+                    Return statementSyntax IsNot Nothing AndAlso
+                           statementSyntax.DeclarationKeyword = token AndAlso
+                           statementSyntax.Modifiers.Any(SyntaxKind.PartialKeyword)
+            End Select
+
+            Return False
+        End Function
+
+        <Extension()>
         Public Function GetContainingTypeBlock(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TypeBlockSyntax
             Dim token = syntaxTree.GetRoot(cancellationToken).FindToken(position)
             Return TryCast(token.GetInnermostDeclarationContext(), TypeBlockSyntax)

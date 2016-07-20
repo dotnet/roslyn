@@ -853,11 +853,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitMemberAccessExpression(node As MemberAccessExpressionSyntax)
-                If _span.Start <= node.OperatorToken.Span.Start Then
-                    Visit(node.Expression)
-                Else
-                    Visit(node.Name)
-                End If
+                node.Name.Accept(Me)
             End Sub
 
             Public Overrides Sub VisitCTypeExpression(node As CTypeExpressionSyntax)

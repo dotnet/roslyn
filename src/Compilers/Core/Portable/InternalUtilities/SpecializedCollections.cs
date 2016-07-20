@@ -49,6 +49,11 @@ namespace Roslyn.Utilities
             return Empty.Dictionary<TKey, TValue>.Instance;
         }
 
+        public static IReadOnlyDictionary<TKey, TValue> EmptyReadOnlyDictionary<TKey, TValue>()
+        {
+            return Empty.Dictionary<TKey, TValue>.Instance;
+        }
+
         public static IEnumerable<T> SingletonEnumerable<T>(T value)
         {
             return new Singleton.Collection<T>(value);

@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 throw new InvalidOperationException(
                     string.Format(
-                        WorkspacesResources.FixableDiagnosticIdsIncorrectlyInitialized,
+                        WorkspacesResources._0_returned_an_uninitialized_ImmutableArray,
                         codeFixProvider.GetType().Name + "." + nameof(CodeFixProvider.FixableDiagnosticIds)));
             }
 

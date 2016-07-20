@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             _propertyType = _propertyType.AsDynamicIfNoPia(_containingType);
 
-            _propertyType = TupleTypeSymbol.TransformToTupleIfCompatible(_propertyType); // temporary shallow unification
+            _propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_propertyType, handle, moduleSymbol);
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,

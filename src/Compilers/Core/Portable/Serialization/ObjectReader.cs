@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -487,7 +487,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_no_binder_supplied, typeName));
 #endif
         }
 
@@ -496,7 +496,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_it_has_no_deserialization_reader, typeName));
 #endif
         }
     }

@@ -361,6 +361,9 @@
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
+    <Compile Include="Options\OptionService.cs" />
+    <Compile Include="Options\IGlobalOptionService.cs" />
+    <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
@@ -432,6 +435,7 @@
     <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
@@ -709,9 +713,8 @@
     <Compile Include="Options\Option`1.cs" />
     <Compile Include="Options\OptionChangedEventArgs.cs" />
     <Compile Include="Options\OptionKey.cs" />
-    <Compile Include="Options\OptionService.cs" />
+    <Compile Include="Options\OptionServiceFactory.cs" />
     <Compile Include="Options\WorkspaceOptionSet.cs" />
-    <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />
@@ -755,7 +758,7 @@
     <Compile Include="Shared\Collections\SimpleIntervalTree`1.cs" />
     <Compile Include="Shared\Collections\TextSpanIntervalIntrospector.cs" />
     <Compile Include="Shared\Extensions\ArrayExtensions.cs" />
-    <Compile Include="Shared\Extensions\ContextQuery\AbstractSyntaxContext.cs" />
+    <Compile Include="Shared\Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\IAssemblySymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ICodeDefinitionFactoryExtensions.cs" />

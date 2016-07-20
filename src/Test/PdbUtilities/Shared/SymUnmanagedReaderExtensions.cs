@@ -106,55 +106,5 @@ namespace Microsoft.DiaSymReader
                 Marshal.ThrowExceptionForHR(hr, s_ignoreIErrorInfo);
             }
         }
-
-        /// <summary>
-        /// Get the (unprocessed) import strings for a given method.
-        /// </summary>
-        /// <remarks>
-        /// Doesn't consider forwarding.
-        /// 
-        /// CONSIDER: Dev12 doesn't just check the root scope - it digs around to find the best
-        /// match based on the IL offset and then walks up to the root scope (see PdbUtil::GetScopeFromOffset).
-        /// However, it's not clear that this matters, since imports can't be scoped in VB.  This is probably
-        /// just based on the way they were extracting locals and constants based on a specific scope.
-        /// </remarks>
-        internal static ImmutableArray<string> GetImportStrings(this ISymUnmanagedMethod method)
-        {
-            if (method == null)
-            {
-                // In rare circumstances (only bad PDBs?) GetMethodByVersion can return null.
-                // If there's no debug info for the method, then no import strings are available.
-                return ImmutableArray<string>.Empty;
-            }
-
-            ISymUnmanagedScope rootScope = method.GetRootScope();
-            if (rootScope == null)
-            {
-                Debug.Assert(false, "Expected a root scope.");
-                return ImmutableArray<string>.Empty;
-            }
-
-            var childScopes = rootScope.GetChildren();
-            if (childScopes.Length == 0)
-            {
-                // It seems like there should always be at least one child scope, but we've
-                // seen PDBs where that is not the case.
-                return ImmutableArray<string>.Empty;
-            }
-
-            // As in NamespaceListWrapper::Init, we only consider namespaces in the first
-            // child of the root scope.
-            ISymUnmanagedScope firstChildScope = childScopes[0];
-
-            var namespaces = firstChildScope.GetNamespaces();
-            if (namespaces.Length == 0)
-            {
-                // It seems like there should always be at least one namespace (i.e. the global
-                // namespace), but we've seen PDBs where that is not the case.
-                return ImmutableArray<string>.Empty;
-            }
-
-            return ImmutableArray.CreateRange(namespaces.Select(n => n.GetName()));
-        }
     }
 }

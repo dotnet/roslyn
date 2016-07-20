@@ -365,6 +365,7 @@ namespace Microsoft.CodeAnalysis
                     case SymbolKeyType.Event: return EventSymbolKey.GetHashCode(this);
                     case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.GetHashCode(this);
                     case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.GetHashCode(this);
+                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.GetHashCode(this);
                     case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.GetHashCode(this);
                 }
 
@@ -520,6 +521,7 @@ namespace Microsoft.CodeAnalysis
                     case SymbolKeyType.Event: return EventSymbolKey.Resolve(this);
                     case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
                     case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
+                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
                     case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
                 }
 

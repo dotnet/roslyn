@@ -568,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine)
+                    string.Format(ServicesVSResources.The_following_references_were_not_found_0_Please_locate_and_add_them_manually, Environment.NewLine)
                     + Environment.NewLine + Environment.NewLine
                     + string.Join(Environment.NewLine, failedReferenceAdditions),
                     severity: NotificationSeverity.Warning);

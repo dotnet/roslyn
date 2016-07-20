@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.SimplifyLambdaExpression,
+                    CSharpFeaturesResources.Simplify_lambda_expression,
                     (c) => SimplifyLambdaAsync(document, lambda, c)));
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.SimplifyAllOccurrences,
+                    CSharpFeaturesResources.Simplify_all_occurrences,
                     (c) => SimplifyAllLambdasAsync(document, c)));
         }
 
