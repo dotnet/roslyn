@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get the updated document, perform clean up like remove unused usings.
                 var newDocument = solutionWithNewDocument.GetDocument(newDocumentId);
-                newDocument = await CleanUpDocumentAsync(newDocument, CancellationToken).ConfigureAwait(false);
+                newDocument = await CleanUpDocumentAsync(newDocument).ConfigureAwait(false);
 
                 return newDocument.Project.Solution;
             }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 var updatedDocument = documentEditor.GetChangedDocument();
 
-                updatedDocument = await CleanUpDocumentAsync(updatedDocument, CancellationToken).ConfigureAwait(false);
+                updatedDocument = await CleanUpDocumentAsync(updatedDocument).ConfigureAwait(false);
 
                 return updatedDocument.Project.Solution;
             }
@@ -133,8 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var spine = new HashSet<SyntaxNode>();
 
                 // collect the parent chain of declarations to keep.
-                SyntaxNode node = State.TypeNode;
-                spine.AddRange(node.GetAncestors());
+                spine.AddRange(State.TypeNode.GetAncestors());
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
@@ -187,12 +186,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// Perform clean ups on a given document.
             /// </summary>
-            private async Task<Document> CleanUpDocumentAsync(Document document, CancellationToken cancellationToken)
+            private Task<Document> CleanUpDocumentAsync(Document document)
             {
-                return await document
+                return document
                     .GetLanguageService<IRemoveUnnecessaryImportsService>()
-                    .RemoveUnnecessaryImportsAsync(document, CancellationToken)
-                    .ConfigureAwait(false);
+                    .RemoveUnnecessaryImportsAsync(document, CancellationToken);
             }
         }
     }
