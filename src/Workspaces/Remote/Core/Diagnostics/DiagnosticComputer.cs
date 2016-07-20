@@ -78,9 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             // TODO: probably need something like analyzer service so that we don't do this repeatedly?
             return new BidirectionalMap<string, DiagnosticAnalyzer>(
-                hostAnalyzers.Concat(project.AnalyzerReferences)
-                       .SelectMany(r => r.GetAnalyzers(project.Language))
-                       .Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)).Where(kv => kv.Key.IndexOf("Feature") < 0));
+                hostAnalyzers.Concat(project.AnalyzerReferences).SelectMany(r => r.GetAnalyzers(project.Language)).Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)));
         }
     }
 }

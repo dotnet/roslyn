@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project))
-                                        .ToImmutableArrayOrEmpty();
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project));
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;

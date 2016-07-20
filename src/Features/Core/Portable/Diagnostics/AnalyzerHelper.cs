@@ -34,9 +34,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
+        public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
+        {
+            return analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
+        }
+
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
-            return analyzer is IBuiltInAnalyzer || analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer.IsCompilerAnalyzer();
+            return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
+        }
+
+        public static bool MustRunInProc(this DiagnosticAnalyzer analyzer)
+        {
+            if (analyzer.IsWorkspaceDiagnosticAnalyzer())
+            {
+                return true;
+            }
+
+            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
+            if (builtInAnalyzer == null)
+            {
+                return false;
+            }
+
+            return builtInAnalyzer.MustRunInProc;
         }
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)

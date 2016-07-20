@@ -37,24 +37,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
         public async Task<DiagnosticAnalysisResultMap> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
+            // TODO: later, make sure we can run all analyzer on remote host. 
+            //       for now, we will check whether built in analyzer can run on remote host and only those run on remote host.
+            var inProcResult = await AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProc()), project, cancellationToken).ConfigureAwait(false);
+            var outOfProcResult = await AnalyzeOutOfProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+
+            // merge 2 results
+            return new DiagnosticAnalysisResultMap(
+                inProcResult.AnalysisResult.AddRange(outOfProcResult.AnalysisResult),
+                inProcResult.TelemetryInfo.AddRange(outOfProcResult.TelemetryInfo));
+        }
+
+        private async Task<DiagnosticAnalysisResultMap> AnalyzeOutOfProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        {
             var solution = project.Solution;
 
-            // TODO: this is just for testing. actual incremental build of solution snapshot should be its own service
             var snapshotService = solution.Workspace.Services.GetService<ISolutionSnapshotService>();
 
-            var lastSnapshot = _lastSnapshot;
-            _lastSnapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            lastSnapshot?.Dispose();
+            // TODO: this is just for testing. actual incremental build of solution snapshot should be its own service
+            await UpdateLastSolutionSnapshotAsync(snapshotService, solution).ConfigureAwait(false);
 
             var remoteHost = await solution.Workspace.Services.GetService<IRemoteHostService>().GetRemoteHostAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHost == null)
             {
-                // TODO: call inproc version when out of proc can't be used.
-                return new DiagnosticAnalysisResultMap(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+                return await AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => !a.MustRunInProc()), project, cancellationToken).ConfigureAwait(false);
             }
 
+            // TODO: this should be moved out
             var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
-            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
+            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.MustRunInProc()));
+            if (analyzerMap.Count == 0)
+            {
+                return new DiagnosticAnalysisResultMap(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+            }
 
             using (var session = await remoteHost.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
@@ -68,6 +83,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
                         analyzerMap.Keys.ToArray() },
                     (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async Task UpdateLastSolutionSnapshotAsync(ISolutionSnapshotService snapshotService, Solution solution)
+        {
+            // TODO: this is just for testing. actual incremental build of solution snapshot should be its own service
+            var lastSnapshot = _lastSnapshot;
+            _lastSnapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false);
+            lastSnapshot?.Dispose();
+        }
+
+        private static async Task<DiagnosticAnalysisResultMap> AnalyzeInProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        {
+            var inProcExecutor = project.Solution.Workspace.Services.GetHostSpecificServiceAvailable<ICompilerDiagnosticExecutor>(HostKinds.InProc);
+            return await inProcExecutor.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+        }
+
+        private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
+        {
+            var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
+            return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
         }
 
         private async Task<DiagnosticAnalysisResultMap> GetCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
@@ -93,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             return builder.ToImmutable();
         }
 
-        private Dictionary<string, DiagnosticAnalyzer> CreateAnalyzerMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private Dictionary<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             // TODO: this needs to be cached. we can have 300+ analyzers
             return analyzers.ToDictionary(a => a.GetAnalyzerIdAndVersion().Item1, a => a);
