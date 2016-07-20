@@ -224,9 +224,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Completion\" />
-  </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

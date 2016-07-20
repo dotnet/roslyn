@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCode;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode
+namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode
 {
-    // [ExportCodeRefactoringProvider(LanguageNames.CSharp, PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCode)]
+    // [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCode)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers, Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal class GenerateEqualsAndGetHashCodeCodeRefactoringProvider : CodeRefactoringProvider
     {
@@ -23,15 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Gen
             }
 
             var service = document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
-            var result = await service.GenerateEqualsAndGetHashCodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-            if (!result.ContainsChanges)
+            var actions = await service.GenerateEqualsAndGetHashCodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
             {
-                return;
+                context.RegisterRefactorings(actions);
             }
-
-            var actions = result.GetCodeRefactoring(cancellationToken).Actions;
-            context.RegisterRefactorings(actions);
         }
     }
 }
