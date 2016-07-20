@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TTypeDeclarationSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
+        where TCompilationUnitSyntax : SyntaxNode
     {
         internal enum OperationKind
         {
@@ -37,8 +38,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
             typeNode.Parent is TTypeDeclarationSyntax;
 
+        /// <summary>
+        /// checks if there is a single top level type declaration in a document
+        /// </summary>
         private bool IsSingleTypeDeclarationInSourceDocument(SyntaxNode root) =>
-            root.DescendantNodes().OfType<TTypeDeclarationSyntax>().Count() == 1;
+            root.DescendantNodes()
+            .OfType<TTypeDeclarationSyntax>()
+            .Count() == 1;
 
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {

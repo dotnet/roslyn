@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -139,43 +140,43 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private static IEnumerable<SyntaxNode> GetMembersToRemove(
                 SyntaxNode root, TTypeDeclarationSyntax typeNode)
             {
-                // the type node being moved and its container declarations should
-                // be kept.
-                var ancestorsAndSelfToKeep = typeNode
-                    .AncestorsAndSelf()
-                    .Where(n => n is TNamespaceDeclarationSyntax || n is TTypeDeclarationSyntax);
+                HashSet<SyntaxNode> spine = new HashSet<SyntaxNode>();
 
-                // while we need the ancestor container declarations,
-                // we do not need other declarations inside of these containers,
-                // that are not the type being moved.
-                var ancestorsKept = ancestorsAndSelfToKeep
-                    .OfType<TTypeDeclarationSyntax>()
-                    .Except(new[] { typeNode });
+                // collect the parent chain of declarations to keep.
+                SyntaxNode node = typeNode;
+                while (node.Parent != null && !(node.Parent is TCompilationUnitSyntax))
+                {
+                    spine.Add(node.Parent);
+                    node = node.Parent;
+                }
 
-                var membersOfAncestorsKept = ancestorsKept
-                    .SelectMany(a => a.DescendantNodes()
-                    .OfType<TMemberDeclarationSyntax>()
-                    .Where(t => !t.Equals(typeNode) && t.Parent.Equals(a)));
+                // get potential namespace, types and members to remove.
+                var removableCandidates = root
+                    .DescendantNodes(n => DescendIntoChildren(n, spine.Contains(n)))
+                    .Where(n => FilterToTopLevelMembers(n, typeNode));
 
-                // top level nodes other that are not in the ancestor chain 
-                // of the type being moved should be removed.
-                var topLevelMembersToRemove = root
-                    .DescendantNodesAndSelf(descendIntoChildren: _ => true, descendIntoTrivia: false)
-                    .Where(n => IsTopLevelNamespaceOrTypeNode(n) && !ancestorsAndSelfToKeep.Contains(n));
-
-                return topLevelMembersToRemove.Concat(membersOfAncestorsKept);
+                // diff candidates with items we want to keep.
+                return removableCandidates.Except(spine);
             }
 
-            private static bool IsTopLevelNamespaceOrTypeNode(SyntaxNode node)
+            private static bool DescendIntoChildren(SyntaxNode node, bool shouldDescendIntoType)
             {
-                // check only for top level namespaces and types in the file.
-                // top level types are parented by either a namespace or compilation unit
-                // top level namespaces are parented by compilation unit.
-                return node is TNamespaceDeclarationSyntax
-                    ? node.Parent is TCompilationUnitSyntax
-                    : node is TTypeDeclarationSyntax
-                        ? node.Parent is TNamespaceDeclarationSyntax || node.Parent is TCompilationUnitSyntax
-                        : false;
+                // 1. get top level types and namespaces to remove.
+                // 2. descend into types and get members to remove, only if type is part of spine, which means
+                //    we'll be keeping the type declaration but not other members, in the new file.
+                return node is TCompilationUnitSyntax
+                    || node is TNamespaceDeclarationSyntax
+                    || (node is TTypeDeclarationSyntax && shouldDescendIntoType);
+            }
+
+            private static bool FilterToTopLevelMembers(SyntaxNode node, SyntaxNode typeNode)
+            {
+                // It is a type declaration that is not the node we've moving
+                // or its a container namespace, or a member declaration that is not a type,
+                // thereby ignoring other stuff like statements and identifiers.
+                return node is TTypeDeclarationSyntax
+                    ? !node.Equals(typeNode)
+                    : (node is TNamespaceDeclarationSyntax || node is TMemberDeclarationSyntax);
             }
 
             /// <summary>
