@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <summary>
         /// checks if there is a single top level type declaration in a document
         /// </summary>
-        private bool IsSingleTypeDeclarationInSourceDocument(SyntaxNode root) =>
-            root.DescendantNodes()
+        private bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
+            root.DescendantNodes(n => (n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax))
             .OfType<TTypeDeclarationSyntax>()
-            .Count() == 1;
+            .Count() > 1;
 
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -73,9 +73,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private List<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
             var actions = new List<CodeAction>();
-            var singleType = IsSingleTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
+            var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
 
-            if (singleType)
+            if (manyTypes || IsNestedType(state.TypeNode))
+            {
+                // If there are multiple type declarations in current document. offer, move to new file.
+                // Or if this is a nested type, offer to move to new file.
+                actions.Add(GetCodeAction(state, operationKind: OperationKind.MoveType));
+            }
+            else
             {
                 // one type declaration in current document. No moving around required, just sync
                 // document name and type name by offering rename in both directions between type and document.
@@ -87,11 +93,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 {
                     actions.Add(GetCodeAction(state, operationKind: OperationKind.RenameType));
                 }
-            }
-            else
-            {
-                // multiple type declarations in current document. so, move to new file.
-                actions.Add(GetCodeAction(state, operationKind: OperationKind.MoveType));
             }
 
             return actions;

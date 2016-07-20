@@ -20,6 +20,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoreThanOneTypeInFile_RenameFile()
+        {
+            var code =
+@"[||]class Class1
+{ 
+    class Inner { }
+}";
+
+            var expectedDocumentName = "Class1.cs";
+
+            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TypeNameMatchesFileName_RenameFile()
         {
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
@@ -31,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MoreThanOneTypeInFile_RenameFile()
+        public async Task MoreThanOneTopLevelTypeInFile_RenameFile()
         {
             var code =
 @"[||]class Class1 { }
