@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,13 +17,14 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSLangProj;
+
+using VsHierarchyPropID = Microsoft.VisualStudio.Shell.VsHierarchyPropID;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -107,6 +110,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             category: FeaturesResources.ErrorCategory,
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        private readonly Dictionary<VisualStudioMetadataReference, CancellationTokenSource> _changedReferencesPendingUpdate
+            = new Dictionary<VisualStudioMetadataReference, CancellationTokenSource>();
 
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
@@ -586,6 +592,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             VisualStudioMetadataReference reference = (VisualStudioMetadataReference)sender;
 
+            CancellationTokenSource delayTaskCancellationTokenSource;
+            if (_changedReferencesPendingUpdate.TryGetValue(reference, out delayTaskCancellationTokenSource))
+            {
+                delayTaskCancellationTokenSource.Cancel();
+            }
+
+            delayTaskCancellationTokenSource = new CancellationTokenSource();
+            _changedReferencesPendingUpdate[reference] = delayTaskCancellationTokenSource;
+
+            var task = Task.Delay(TimeSpan.FromSeconds(5), delayTaskCancellationTokenSource.Token)
+                .ContinueWith(
+                    OnImportChangedAfterDelay,
+                    reference,
+                    delayTaskCancellationTokenSource.Token,
+                    TaskContinuationOptions.None,
+                    TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        private void OnImportChangedAfterDelay(Task previous, object state)
+        {
+            var reference = (VisualStudioMetadataReference)state;
+            _changedReferencesPendingUpdate.Remove(reference);
             // Ensure that we are still referencing this binary
             if (_metadataReferences.Contains(reference))
             {
