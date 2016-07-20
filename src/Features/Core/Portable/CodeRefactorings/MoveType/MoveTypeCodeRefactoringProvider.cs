@@ -30,13 +30,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var service = document.GetLanguageService<IMoveTypeService>();
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!service.ShouldAnalyze(root, textSpan))
-            {
-                return;
-            }
-
             var refactoring = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (refactoring != null)
             {

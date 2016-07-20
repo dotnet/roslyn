@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TMemberDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
     {
-        internal enum OperationKind
+        private enum OperationKind
         {
             MoveType,
             RenameType,
             RenameFile
         }
 
-        public bool ShouldAnalyze(SyntaxNode root, TextSpan span)
+        protected bool ShouldAnalyze(SyntaxNode root, TextSpan span)
         {
             return GetNodeToAnalyze(root, span) is TTypeDeclarationSyntax;
         }
@@ -48,6 +48,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
         public async Task<CodeRefactoring> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!ShouldAnalyze(root, textSpan))
+            {
+                return null;
+            }
+
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
             if (state == null)
