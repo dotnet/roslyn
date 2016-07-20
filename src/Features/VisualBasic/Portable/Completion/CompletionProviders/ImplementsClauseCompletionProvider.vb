@@ -252,9 +252,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 insertionText = displayText
             Else
                 Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                    symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator,
-                    isWithinAsyncMethod:=False,
-                    syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                    symbol,
+                    syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)(),
+                    context:=DirectCast(context, VisualBasicSyntaxContext))
 
                 displayText = displayAndInsertionText.Item1
                 insertionText = displayAndInsertionText.Item2
@@ -272,31 +272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionItemRules.Default
         End Function
 
-        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            If SymbolCompletionItem.HasSymbols(selectedItem) Then
-                Dim insertionText As String
-
-                If ch Is Nothing Then
-                    insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
-                Else
-                    Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
-                    Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
-                    Dim context = Await CreateContext(document, position, cancellationToken).ConfigureAwait(False)
-                    If symbols.Length > 0 Then
-                        insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value)
-                    Else
-                        insertionText = selectedItem.DisplayText
-                    End If
-                End If
-
-                Return New TextChange(selectedItem.Span, insertionText)
-            End If
-
-            Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
     End Class

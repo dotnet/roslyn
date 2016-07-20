@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
-        {
-            return GetInsertionText(symbol, context);
-        }
-
         public static string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
         {
             string name;

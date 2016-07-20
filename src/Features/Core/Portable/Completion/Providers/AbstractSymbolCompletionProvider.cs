@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a Symbol, creates the completion item for it.
         /// </summary>
         private CompletionItem CreateItem(
-            string displayText, 
+            string displayText,
             string insertionText,
             int position,
             List<ISymbol> symbols,
@@ -329,32 +329,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return missingSymbols;
         }
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            string insertionText;
-
-            if (ch == null)
-            {
-                insertionText = SymbolCompletionItem.GetInsertionText(selectedItem);
-            }
-            else
-            {
-                var position = SymbolCompletionItem.GetContextPosition(selectedItem);
-                var context = await this.CreateContext(document, position, cancellationToken).ConfigureAwait(false);
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length > 0)
-                {
-                    insertionText = GetInsertionText(symbols[0], context, ch.Value);
-                }
-                else
-                {
-                    insertionText = selectedItem.DisplayText;
-                }
-            }
-
-            return new TextChange(selectedItem.Span, insertionText);
+            return Task.FromResult<TextChange?>(new TextChange(
+                selectedItem.Span, GetInsertionText(selectedItem, ch)));
         }
 
-        protected abstract string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch);
+        /// <summary>
+        /// Override this if you want to provide customized insertion based on the character typed.
+        /// </summary>
+        private string GetInsertionText(CompletionItem item, char? ch)
+        {
+            return ch == null
+                ? SymbolCompletionItem.GetInsertionText(item)
+                : GetInsertionText(item, ch.Value);
+        }
+
+        protected virtual string GetInsertionText(CompletionItem item, char ch)
+        {
+            return SymbolCompletionItem.GetInsertionText(item);
+        }
     }
 }
