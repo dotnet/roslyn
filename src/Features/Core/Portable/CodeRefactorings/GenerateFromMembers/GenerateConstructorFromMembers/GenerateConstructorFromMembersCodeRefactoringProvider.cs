@@ -2,15 +2,15 @@
 
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters;
+using Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers)]
-    internal class AddConstructorParametersCodeRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
+    internal class GenerateConstructorFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Add
                 return;
             }
 
-            var service = document.GetLanguageService<IAddConstructorParametersService>();
-            var actions = await service.AddConstructorParametersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var service = document.GetLanguageService<IGenerateConstructorFromMembersService>();
+            var actions = await service.GenerateConstructorFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (!actions.IsDefault)
             {
                 context.RegisterRefactorings(actions);
