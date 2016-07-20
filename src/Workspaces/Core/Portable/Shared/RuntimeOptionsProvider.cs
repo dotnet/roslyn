@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
 {

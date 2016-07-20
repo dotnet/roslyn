@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         internal static ImmutableArray<SymbolDisplayPart> CreateDisplayParts(string keyword, string toolTip)
         {
             var textContentBuilder = new System.Collections.Generic.List<SymbolDisplayPart>();
-            textContentBuilder.AddText(string.Format(FeaturesResources.Keyword, keyword));
+            textContentBuilder.AddText(string.Format(FeaturesResources._0_Keyword, keyword));
 
             if (!string.IsNullOrEmpty(toolTip))
             {

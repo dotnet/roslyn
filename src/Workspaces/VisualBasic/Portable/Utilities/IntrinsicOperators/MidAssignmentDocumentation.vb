@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -13,18 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property DocumentationText As String
             Get
-                Return VBWorkspaceResources.ReplacesChars
+                Return VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string
             End Get
         End Property
 
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.NameOfStringVariable
+                    Return VBWorkspaceResources.The_name_of_the_string_variable_to_modify
                 Case 1
-                    Return VBWorkspaceResources.OneBasedStartPos
+                    Return VBWorkspaceResources.The_one_based_character_position_in_the_string_where_the_replacement_of_text_begins
                 Case 2
-                    Return VBWorkspaceResources.NumberOfCharsToReplace
+                    Return VBWorkspaceResources.The_number_of_characters_to_replace_If_omitted_the_length_of_stringExpression_is_used
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -33,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.StringName
+                    Return VBWorkspaceResources.stringName
                 Case 1
-                    Return VBWorkspaceResources.StartIndex
+                    Return VBWorkspaceResources.startIndex
                 Case 2
-                    Return VBWorkspaceResources.Length
+                    Return VBWorkspaceResources.length
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
                 New SymbolDisplayPart(SymbolDisplayPartKind.Operator, Nothing, "="),
                 New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
-                New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.StringExpression)
+                New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.stringExpression)
             }
         End Function
 

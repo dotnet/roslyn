@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             if (_renameService.ActiveSession != null)
             {
                 workspace.Services.GetService<INotificationService>()?.SendNotification(
-                    EditorFeaturesResources.CannotApplyOperationWhileRenameSessionIsActive,
+                    EditorFeaturesResources.Cannot_apply_operation_while_a_rename_session_is_active,
                     severity: NotificationSeverity.Error);
                 return;
             }

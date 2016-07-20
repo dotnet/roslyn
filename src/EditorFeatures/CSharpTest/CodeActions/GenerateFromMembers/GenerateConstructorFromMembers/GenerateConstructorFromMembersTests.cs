@@ -146,7 +146,7 @@ index: 0);
         {
             await TestSmartTagTextAsync(
 @"using System.Collections.Generic; class Program { [|bool b; HashSet<string> s;|] }",
-string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<string>"));
+string.Format(FeaturesResources.Generate_constructor_0_1, "Program", "bool, HashSet<string>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -154,7 +154,7 @@ string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<s
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "bool, HashSet<string>"));
+string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1, "Program", "bool, HashSet<string>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -162,7 +162,7 @@ string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "b
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-string.Format(FeaturesResources.GenerateDelegatingConstructor, "Program", "bool, HashSet<string>"),
+string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", "bool, HashSet<string>"),
 index: 1);
         }
 

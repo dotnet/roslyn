@@ -8,11 +8,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 {
-    internal abstract class AbstractSyntaxContext
+    internal abstract class SyntaxContext
     {
         private ISet<INamedTypeSymbol> _outerTypes;
 
-        protected AbstractSyntaxContext(
+        protected SyntaxContext(
             Workspace workspace,
             SemanticModel semanticModel,
             int position,
@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isNameOfContext,
             bool isInQuery,
             bool isInImportsDirective,
+            bool isWithinAsyncMethod,
             CancellationToken cancellationToken)
         {
             this.Workspace = workspace;
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsNameOfContext = isNameOfContext;
             this.IsInQuery = isInQuery;
             this.IsInImportsDirective = isInImportsDirective;
+            this.IsWithinAsyncMethod = isWithinAsyncMethod;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
         }
 
@@ -77,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsInQuery { get; }
         public bool IsInImportsDirective { get; }
+        public bool IsWithinAsyncMethod { get; }
+
         public IEnumerable<ITypeSymbol> InferredTypes { get; }
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)

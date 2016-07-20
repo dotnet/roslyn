@@ -8,11 +8,10 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialCompletionProvider : AbstractMemberInsertingCompletionProvider
+    internal abstract partial class AbstractPartialMethodCompletionProvider : AbstractMemberInsertingCompletionProvider
     {
         protected static readonly SymbolDisplayFormat SignatureDisplayFormat =
                 new SymbolDisplayFormat(
@@ -27,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public AbstractPartialCompletionProvider()
+        protected AbstractPartialMethodCompletionProvider()
         {
         }
 
-        protected abstract bool IsPartialCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token);
+        protected abstract bool IsPartialMethodCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token);
         protected abstract string GetDisplayText(IMethodSymbol method, SemanticModel semanticModel, int position);
-        protected abstract bool IsPartial(IMethodSymbol m);
+        protected abstract bool IsPartial(IMethodSymbol method);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             DeclarationModifiers modifiers;
             SyntaxToken token;
-            if (!IsPartialCompletionContext(tree, position, cancellationToken, out modifiers, out token))
+            if (!IsPartialMethodCompletionContext(tree, position, cancellationToken, out modifiers, out token))
             {
                 return;
             }

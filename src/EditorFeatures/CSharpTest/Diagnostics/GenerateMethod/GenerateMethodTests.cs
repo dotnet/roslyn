@@ -2821,7 +2821,7 @@ class C {
         {
             await TestEquivalenceKeyAsync(
 @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
-string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
+string.Format(FeaturesResources.Generate_method_1_0, "M1", "C"));
         }
 
         [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]

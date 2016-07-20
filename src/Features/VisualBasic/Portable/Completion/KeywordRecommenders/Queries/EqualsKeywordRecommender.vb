@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.SyntaxTree.IsFollowingCompleteExpression(Of JoinConditionSyntax)(
                context.Position, context.TargetToken, Function(joinCondition) joinCondition.Left, cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Equals", VBFeaturesResources.EqualsQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Equals", VBFeaturesResources.Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

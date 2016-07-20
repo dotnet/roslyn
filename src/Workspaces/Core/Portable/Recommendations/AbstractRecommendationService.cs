@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal abstract class AbstractRecommendationService : IRecommendationService
     {
-        protected abstract Task<Tuple<IEnumerable<ISymbol>, AbstractSyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
+        protected abstract Task<Tuple<IEnumerable<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
 
         public async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
         private sealed class ShouldIncludeSymbolContext
         {
-            private readonly AbstractSyntaxContext _context;
+            private readonly SyntaxContext _context;
             private readonly CancellationToken _cancellationToken;
             private IEnumerable<INamedTypeSymbol> _lazyOuterTypesAndBases;
             private IEnumerable<INamedTypeSymbol> _lazyEnclosingTypeBases;
 
-            internal ShouldIncludeSymbolContext(AbstractSyntaxContext context, CancellationToken cancellationToken)
+            internal ShouldIncludeSymbolContext(SyntaxContext context, CancellationToken cancellationToken)
             {
                 _context = context;
                 _cancellationToken = cancellationToken;

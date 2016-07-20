@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             Dim matchPriority = If(ShouldPreselect(context, cancellationToken), CodeAnalysis.Completion.MatchPriority.Preselect, CodeAnalysis.Completion.MatchPriority.Default)
 
             If context.IsAnyExpressionContext Then
-                Return {New RecommendedKeyword("True", VBFeaturesResources.TrueKeywordToolTip, matchPriority:=matchPriority),
-                        New RecommendedKeyword("False", VBFeaturesResources.FalseKeywordToolTip, matchPriority:=matchPriority)}
+                Return {New RecommendedKeyword("True", VBFeaturesResources.Represents_a_Boolean_value_that_passes_a_conditional_test, matchPriority:=matchPriority),
+                        New RecommendedKeyword("False", VBFeaturesResources.Represents_a_Boolean_value_that_fails_a_conditional_test, matchPriority:=matchPriority)}
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

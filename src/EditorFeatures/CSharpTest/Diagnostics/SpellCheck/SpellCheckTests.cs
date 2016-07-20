@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
     }
 }";
 
-            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.ChangeTo, "Fooa", "Foo") });
+            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "Fooa", "Foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 
             await TestExactActionSetOfferedAsync(text, new[]
             {
-                String.Format(FeaturesResources.ChangeTo, "Foa", "Foo"),
-                String.Format(FeaturesResources.ChangeTo, "Foa", "for")
+                String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo"),
+                String.Format(FeaturesResources.Change_0_to_1, "Foa", "for")
             });
         }
 
@@ -78,7 +78,7 @@ class Foo
     }
 }";
             await TestExactActionSetOfferedAsync(text,
-                new[] { String.Format(FeaturesResources.ChangeTo, "Foa", "Foo") });
+                new[] { String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -92,7 +92,7 @@ class Foo
         var  y = 2 + [|zza|];
     }
 }";
-            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.ChangeTo, "zza", "zzz") });
+            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -108,8 +108,8 @@ public class Class1
 }";
             await TestExactActionSetOfferedAsync(text, new[]
             {
-                String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean"),
-                String.Format(FeaturesResources.ChangeTo, "Boolea", "bool")
+                String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean"),
+                String.Format(FeaturesResources.Change_0_to_1, "Boolea", "bool")
             });
         }
 

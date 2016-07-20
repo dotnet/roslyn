@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                         string messageToShow = null;
                         bool succeeded = false;
                         _waitIndicator.Wait(
-                            EditorFeaturesResources.GoToImplementationTitle,
-                            EditorFeaturesResources.GoToImplementationMessage,
+                            EditorFeaturesResources.Go_To_Implementation,
+                            EditorFeaturesResources.Locating_implementations,
                             allowCancel: true,
                             action: context => succeeded = service.TryGoToImplementation(document, caret.Value, context.CancellationToken, out messageToShow));
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                         {
                             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                             notificationService.SendNotification(messageToShow,
-                                title: EditorFeaturesResources.GoToImplementationTitle,
+                                title: EditorFeaturesResources.Go_To_Implementation,
                                 severity: NotificationSeverity.Information);
                         }
                     }

@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 displayText: insertionText,
                 insertionText: insertionText,
                 symbol: symbol,
-                descriptionPosition: position,
+                contextPosition: position,
                 sortText: symbolText,
                 rules: GetRules(insertionText));
         }

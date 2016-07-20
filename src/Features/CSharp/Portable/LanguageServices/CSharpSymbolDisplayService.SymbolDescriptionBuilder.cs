@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("["),
-                    PlainText(CSharpFeaturesResources.Deprecated),
+                    PlainText(CSharpFeaturesResources.deprecated),
                     Punctuation("]"),
                     Space());
             }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("("),
-                    PlainText(CSharpFeaturesResources.Extension),
+                    PlainText(CSharpFeaturesResources.extension),
                     Punctuation(")"),
                     Space());
             }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("("),
-                    PlainText(CSharpFeaturesResources.Awaitable),
+                    PlainText(CSharpFeaturesResources.awaitable),
                     Punctuation(")"),
                     Space());
             }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("("),
-                    PlainText(CSharpFeaturesResources.AwaitableExtension),
+                    PlainText(CSharpFeaturesResources.awaitable_extension),
                     Punctuation(")"),
                     Space());
             }
