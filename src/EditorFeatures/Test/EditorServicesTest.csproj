@@ -218,6 +218,7 @@
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
+    <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
     <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />

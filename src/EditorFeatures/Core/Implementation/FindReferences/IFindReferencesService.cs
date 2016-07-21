@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface IFindReferencesService : ILanguageService
     {
         /// <summary>
-        /// Finds the references for the symbol at the specific position in the document.
-        /// </summary>
-        Task<IEnumerable<INavigableItem>> FindReferencesAsync(Document document, int position, IWaitContext waitContext);
-
-        /// <summary>
         /// Finds the references for the symbol at the specific position in the document and then 
         /// presents them.
         /// </summary>

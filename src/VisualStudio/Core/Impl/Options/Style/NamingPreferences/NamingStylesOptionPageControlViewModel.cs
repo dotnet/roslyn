@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         internal readonly NamingRuleTreeItemViewModel rootNamingRule;
         internal readonly ImmutableArray<string> categories;
 
-        public string NamingStylesExplanationPart1 => ServicesVSResources.NamingStylesExplanationPart1;
-        public string NamingStylesExplanationPart2 => ServicesVSResources.NamingStylesExplanationPart2;
+        public string NamingStylesExplanationPart1 => ServicesVSResources.Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled;
+        public string NamingStylesExplanationPart2 => ServicesVSResources.The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule;
 
         private readonly string _languageName;
         internal string LanguageName

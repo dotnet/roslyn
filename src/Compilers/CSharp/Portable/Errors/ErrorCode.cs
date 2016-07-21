@@ -1361,10 +1361,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleReservedMemberNameAnyPosition = 8202,
         ERR_TupleDuplicateMemberName = 8203,
-        ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
+        // 8204 available
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
         ERR_MissingDeconstruct = 8206,
+        ERR_DeconstructCouldNotInferMergedType = 8209,
         ERR_DeconstructRequiresExpression = 8210,
         ERR_DeconstructWrongCardinality = 8211,
         ERR_CannotDeconstructDynamic = 8212,

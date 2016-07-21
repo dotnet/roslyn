@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 bstrKinds: null,
                 iCountKinds: 0,
                 fIncludeNULLKind: 0,
-                bstrPrefixText: surroundWith ? CSharpVSResources.SurroundWith : CSharpVSResources.InsertSnippet,
+                bstrPrefixText: surroundWith ? CSharpVSResources.Surround_With : CSharpVSResources.Insert_Snippet,
                 bstrCompletionChar: null);
         }
 

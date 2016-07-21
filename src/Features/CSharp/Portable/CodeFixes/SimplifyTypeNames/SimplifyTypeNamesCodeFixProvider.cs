@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
-                    return string.Format(CSharpFeaturesResources.SimplifyName, nodeText);
+                    return string.Format(CSharpFeaturesResources.Simplify_name_0, nodeText);
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
-                    return string.Format(CSharpFeaturesResources.SimplifyMemberAccess, nodeText);
+                    return string.Format(CSharpFeaturesResources.Simplify_member_access_0, nodeText);
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
-                    return CSharpFeaturesResources.RemoveThisQualification;
+                    return CSharpFeaturesResources.Remove_this_qualification;
 
                 default:
                     throw ExceptionUtilities.Unreachable;

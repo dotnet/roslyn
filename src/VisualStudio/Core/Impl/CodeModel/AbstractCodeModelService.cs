@@ -831,7 +831,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                throw new ArgumentException(ServicesVSResources.InvalidAccess, nameof(access));
+                throw new ArgumentException(ServicesVSResources.Invalid_access, nameof(access));
             }
         }
 

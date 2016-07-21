@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (!CanUndo(workspace))
                 {
-                    throw new ArgumentException(ServicesVSResources.WorkspaceUndoNotSupported);
+                    throw new ArgumentException(ServicesVSResources.given_workspace_doesn_t_support_undo);
                 }
 
                 var transaction = new WorkspaceUndoTransaction(_undoHistoryRegistry, _undoManager, workspace, description, this);

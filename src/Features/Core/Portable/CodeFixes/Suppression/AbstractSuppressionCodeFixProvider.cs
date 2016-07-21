@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var nodeWithTokens = GetNodeWithTokens(startToken, endToken, root);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             ISymbol targetSymbol = null;

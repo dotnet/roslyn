@@ -83,8 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             if (helpLink != null)
             {
                 helpLinkToolTipText =
-                    string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, diagnostic.Id,
-                        isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpLink);
+                    string.Format(ServicesVSResources.Get_help_for_0_1_2_3, diagnostic.Id,
+                        isBing ? ServicesVSResources.from_Bing : null, Environment.NewLine, helpLink);
             }
 
             return helpLink;

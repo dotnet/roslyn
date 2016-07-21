@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle
             var node = root.FindNode(span, getInnermostNodeForTie: true);
 
             var codeAction = new MyCodeAction(
-                CSharpFeaturesResources.UseExplicitType,
+                CSharpFeaturesResources.Use_explicit_type_instead_of_var,
                 c => HandleDeclarationAsync(document, root, node, context.CancellationToken));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());

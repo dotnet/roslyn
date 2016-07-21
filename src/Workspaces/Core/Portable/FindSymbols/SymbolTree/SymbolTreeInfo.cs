@@ -60,13 +60,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public Task<IEnumerable<ISymbol>> FindAsync(
-            SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
+            SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
+            return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
         }
 
-        public Task<IEnumerable<ISymbol>> FindAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ISymbol>> FindAsync(
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return SymbolFinder.FilterByCriteria(
+                await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false),
+                filter);
+        }
+
+        private Task<IEnumerable<ISymbol>> FindAsyncWorker(SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
@@ -230,7 +237,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return -1;
         }
 
-#region Construction
+        #region Construction
 
         // Cache the symbol tree infos for assembly symbols that share the same underlying metadata.
         // Generating symbol trees for metadata can be expensive (in large metadata cases).  And it's
@@ -321,9 +328,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return comp;
         }
 
-#endregion
+        #endregion
 
-#region Binding 
+        #region Binding 
 
         // returns all the symbols in the container corresponding to the node
         private IEnumerable<ISymbol> Bind(int index, INamespaceOrTypeSymbol rootContainer, CancellationToken cancellationToken)
@@ -372,7 +379,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
-#endregion
+        #endregion
 
         internal bool IsEquivalent(SymbolTreeInfo other)
         {

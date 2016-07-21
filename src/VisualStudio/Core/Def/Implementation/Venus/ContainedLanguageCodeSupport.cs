@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var eventType = ((IEventSymbol)eventMember).Type;
             if (eventType.Kind != SymbolKind.NamedType)
             {
-                throw new InvalidOperationException(ServicesVSResources.EventTypeIsInvalid);
+                throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
             var methods = type.GetMembers().OfType<IMethodSymbol>().Where(m => m.CompatibleSignatureToDelegate((INamedTypeSymbol)eventType));
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var eventType = ((IEventSymbol)eventMember).Type;
             if (eventType.Kind != SymbolKind.NamedType || ((INamedTypeSymbol)eventType).DelegateInvokeMethod == null)
             {
-                throw new InvalidOperationException(ServicesVSResources.EventTypeIsInvalid);
+                throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
             var handlesExpressions = useHandlesClause ?
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (insertionPoint == null)
             {
-                throw new InvalidOperationException(ServicesVSResources.MemberInsertionFailed);
+                throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, new CodeGenerationOptions(autoInsertionLocation: false), cancellationToken);
@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, optionSet, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
-                var undoTitle = string.Format(EditorFeaturesResources.RenameTo, symbol.Name, newName);
+                var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);
                 using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
                 {
                     // Notify third parties about the coming rename operation on the workspace, and let
@@ -427,10 +427,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return ns;
 
                 case ContainedLanguageRenameType.CLRT_OTHER:
-                    throw new NotSupportedException(ServicesVSResources.ElementRenameFailed);
+                    throw new NotSupportedException(ServicesVSResources.Can_t_rename_other_elements);
 
                 default:
-                    throw new InvalidOperationException(ServicesVSResources.UnknownRenameType);
+                    throw new InvalidOperationException(ServicesVSResources.Unknown_rename_type);
             }
         }
 
@@ -446,7 +446,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
             else
             {
-                throw new NotSupportedException(ServicesVSResources.SymbolTypeIdInvalid);
+                throw new NotSupportedException(ServicesVSResources.IDs_are_not_supported_for_this_symbol_type);
             }
         }
 

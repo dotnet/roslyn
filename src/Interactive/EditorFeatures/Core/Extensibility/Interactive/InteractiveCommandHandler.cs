@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             var window = OpenInteractiveWindow(focus: false);
             _waitIndicator.Wait(
-                InteractiveEditorFeaturesResources.ExecuteInInteractiveDescription,
+                InteractiveEditorFeaturesResources.Executing_selection_in_Interactive_Window,
                 allowCancel: true,
                 action: context =>
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             using (var edit = buffer.CreateEdit())
             {
                 _waitIndicator.Wait(
-                    InteractiveEditorFeaturesResources.CopyToInteractiveDescription,
+                    InteractiveEditorFeaturesResources.Copying_selection_to_Interactive_Window,
                     allowCancel: true,
                     action: context =>
                     {

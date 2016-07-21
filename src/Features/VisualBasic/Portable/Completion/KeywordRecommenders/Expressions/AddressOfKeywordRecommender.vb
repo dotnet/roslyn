@@ -17,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             End If
 
             If context.IsDelegateCreationContext() Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("AddressOf", VBFeaturesResources.AddressOfKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("AddressOf", VBFeaturesResources.Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName))
             End If
 
             If context.IsAnyExpressionContext AndAlso Not context.TargetToken.Parent.IsKind(SyntaxKind.AddressOfExpression) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("AddressOf", VBFeaturesResources.AddressOfKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("AddressOf", VBFeaturesResources.Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

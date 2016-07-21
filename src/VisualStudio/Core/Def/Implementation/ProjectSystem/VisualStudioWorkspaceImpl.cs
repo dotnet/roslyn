@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (!TryGetProjectData(projectId, out hostProject, out hierarchy, out project))
             {
-                throw new ArgumentException(string.Format(ServicesVSResources.CouldNotFindProject, projectId));
+                throw new ArgumentException(string.Format(ServicesVSResources.Could_not_find_project_0, projectId));
             }
         }
 
@@ -541,7 +541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!project.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -564,7 +564,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!folder.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -688,7 +688,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (!_foregroundObject.IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
+                throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
 
             var document = this.GetHostDocument(documentId);

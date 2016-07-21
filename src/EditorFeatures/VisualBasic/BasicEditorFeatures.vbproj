@@ -244,7 +244,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBEditorResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBEditorResources.Designer.vb</LastGenOutput>
       <SubType>Designer</SubType>

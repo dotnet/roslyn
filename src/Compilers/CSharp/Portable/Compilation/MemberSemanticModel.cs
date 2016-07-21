@@ -286,8 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                    ErrorTypeSymbol.UnknownResultType,
                                                                    unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
                                                                    unexpectedAnonymousFunction,
-                                                                   isSynthesized: false,
-                                                                   isAsync: false),
+                                                                   isSynthesized: false),
                                                   binder);
             }
 
