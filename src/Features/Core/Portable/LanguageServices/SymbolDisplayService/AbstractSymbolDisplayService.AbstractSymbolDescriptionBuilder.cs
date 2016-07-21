@@ -5,10 +5,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -697,70 +695,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private IEnumerable<SymbolDisplayPart> TypeParameterName(string text)
             {
                 return Part(SymbolDisplayPartKind.TypeParameterName, text);
-            }
-
-            protected IEnumerable<SymbolDisplayPart> ConvertClassifications(SourceText text, IEnumerable<ClassifiedSpan> classifications)
-            {
-                var parts = new List<SymbolDisplayPart>();
-
-                ClassifiedSpan? lastSpan = null;
-                foreach (var span in classifications)
-                {
-                    // If there is space between this span and the last one, then add a space.
-                    if (lastSpan != null && lastSpan.Value.TextSpan.End != span.TextSpan.Start)
-                    {
-                        parts.AddRange(Space());
-                    }
-
-                    var kind = GetClassificationKind(span.ClassificationType);
-                    if (kind != null)
-                    {
-                        parts.Add(new SymbolDisplayPart(kind.Value, null, text.ToString(span.TextSpan)));
-
-                        lastSpan = span;
-                    }
-                }
-
-                return parts;
-            }
-
-            private SymbolDisplayPartKind? GetClassificationKind(string type)
-            {
-                switch (type)
-                {
-                    default:
-                        return null;
-                    case ClassificationTypeNames.Identifier:
-                        return SymbolDisplayPartKind.Text;
-                    case ClassificationTypeNames.Keyword:
-                        return SymbolDisplayPartKind.Keyword;
-                    case ClassificationTypeNames.NumericLiteral:
-                        return SymbolDisplayPartKind.NumericLiteral;
-                    case ClassificationTypeNames.StringLiteral:
-                        return SymbolDisplayPartKind.StringLiteral;
-                    case ClassificationTypeNames.WhiteSpace:
-                        return SymbolDisplayPartKind.Space;
-                    case ClassificationTypeNames.Operator:
-                        return SymbolDisplayPartKind.Operator;
-                    case ClassificationTypeNames.Punctuation:
-                        return SymbolDisplayPartKind.Punctuation;
-                    case ClassificationTypeNames.ClassName:
-                        return SymbolDisplayPartKind.ClassName;
-                    case ClassificationTypeNames.StructName:
-                        return SymbolDisplayPartKind.StructName;
-                    case ClassificationTypeNames.InterfaceName:
-                        return SymbolDisplayPartKind.InterfaceName;
-                    case ClassificationTypeNames.DelegateName:
-                        return SymbolDisplayPartKind.DelegateName;
-                    case ClassificationTypeNames.EnumName:
-                        return SymbolDisplayPartKind.EnumName;
-                    case ClassificationTypeNames.TypeParameterName:
-                        return SymbolDisplayPartKind.TypeParameterName;
-                    case ClassificationTypeNames.ModuleName:
-                        return SymbolDisplayPartKind.ModuleName;
-                    case ClassificationTypeNames.VerbatimStringLiteral:
-                        return SymbolDisplayPartKind.StringLiteral;
-                }
             }
         }
     }

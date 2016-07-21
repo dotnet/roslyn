@@ -2,9 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {

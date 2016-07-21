@@ -2,7 +2,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Composition
