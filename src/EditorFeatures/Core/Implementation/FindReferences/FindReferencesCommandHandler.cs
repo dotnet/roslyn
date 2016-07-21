@@ -90,8 +90,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
             {
+                // Let the presented know we're starging a search.  It will give us back
+                // the context object that the FAR service will push results into.
                 var context = presenter.StartSearch();
-                await service.FindReferencesAsync(document, caretPosition, presenter.StartSearch()).ConfigureAwait(false);
+                await service.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
             }
         }
 
