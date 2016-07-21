@@ -82,6 +82,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
+        internal override void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
+            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
+        }
+
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
@@ -89,9 +95,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
+        internal override void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockStartAction(_analyzer, action);
+        }
+
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockAction(_analyzer, action);
+        }
+
+        internal override void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
+        {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockAction(_analyzer, action);
         }
@@ -174,6 +192,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
+        internal override void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
+        {
+            _scope.RegisterOperationBlockStartAction(_analyzer, action);
+        }
+
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
@@ -181,9 +204,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationBlockAction(_analyzer, action);
         }
 
+        internal override void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockAction(_analyzer, action);
+        }
+
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
+            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
+        }
+
+        internal override void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 

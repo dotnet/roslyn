@@ -87,6 +87,19 @@ namespace Microsoft.CodeAnalysis
             throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
         }
 
+        internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                return GetOperationCore(node, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
+            }
+            return null;
+        }
+
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
