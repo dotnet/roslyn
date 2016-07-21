@@ -16,8 +16,16 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
-                visitor.WriteSymbolKey(symbol.ReducedFrom);
-                visitor.WriteSymbolKey(symbol.ReceiverType);
+                var reducedFrom = symbol.ReducedFrom;
+                visitor.WriteSymbolKey(reducedFrom);
+                if (reducedFrom.Equals(reducedFrom.ConstructedFrom))
+                {
+                    visitor.WriteSymbolKey(null);
+                }
+                else
+                {
+                    visitor.WriteSymbolKey(symbol.ReceiverType);
+                }
             }
 
             public static int GetHashCode(GetHashCodeReader reader)
@@ -31,10 +39,20 @@ namespace Microsoft.CodeAnalysis
                 var reducedFromResolution = reader.ReadSymbolKey();
                 var receiverTypeResolution = reader.ReadSymbolKey();
 
-                var q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
-                        from t in receiverTypeResolution.GetAllSymbols().OfType<ITypeSymbol>()
-                        let r = m.ReduceExtensionMethod(t)
-                        select r;
+                IEnumerable<IMethodSymbol> q;
+                if ((object)receiverTypeResolution.Symbol == null && receiverTypeResolution.CandidateSymbols.IsDefaultOrEmpty)
+                {
+                    q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
+                            let r = m.ReduceExtensionMethod(m.Parameters[0].Type)
+                            select r;
+                }
+                else
+                {
+                    q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
+                            from t in receiverTypeResolution.GetAllSymbols().OfType<ITypeSymbol>()
+                            let r = m.ReduceExtensionMethod(t)
+                            select r;
+                }
 
                 return CreateSymbolInfo(q);
             }

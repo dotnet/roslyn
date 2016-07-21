@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension ||
+            Debug.Assert(!(method.IsExtensionMethod || method.IsInExtensionClass) || method.IsStatic ||
                 (Conversions.ConvertExtensionMethodThisArg(method.ReceiverType, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
 
             useSiteDiagnostics = null;

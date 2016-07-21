@@ -16329,9 +16329,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (13,17): error CS1942: The type of the expression in the from clause is incorrect.  Type inference failed in the call to 'SelectMany'.
+                // (13,27): error CS1943: An expression of type 'Test.TestClass' is not allowed in a subsequent from clause in a query expression with source type 'int[]'.  Type inference failed in the call to 'SelectMany'.
                 //                 from s in tc // CS1943
-                Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailed, "from").WithArguments("from", "SelectMany").WithLocation(13, 17));
+                Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "tc").WithArguments("Test.TestClass", "int[]", "SelectMany").WithLocation(13, 27));
         }
 
         [Fact]
