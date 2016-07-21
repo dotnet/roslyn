@@ -10,9 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if !MSBUILD12
 using Microsoft.Build.Construction;
-#endif
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -138,7 +136,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             VersionStamp version = default(VersionStamp);
 
-#if !MSBUILD12
             Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
@@ -165,41 +162,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
             }
-#else
-            SolutionFile solutionFile = null;
-
-            using (var reader = new StreamReader(absoluteSolutionPath))
-            {
-                version = VersionStamp.Create(File.GetLastWriteTimeUtc(absoluteSolutionPath));
-                var text = await reader.ReadToEndAsync().ConfigureAwait(false);
-                solutionFile = SolutionFile.Parse(new StringReader(text));
-            }
-
-            var solutionFolder = Path.GetDirectoryName(absoluteSolutionPath);
-
-            // a list to accumulate all the loaded projects
-            var loadedProjects = new LoadState(null);
-
-            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
-
-            // load all the projects
-            foreach (var projectBlock in solutionFile.ProjectBlocks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string absoluteProjectPath;
-                if (TryGetAbsoluteProjectPath(projectBlock.ProjectPath, solutionFolder, reportMode, out absoluteProjectPath))
-                {
-                    IProjectFileLoader loader;
-                    if (TryGetLoaderFromProjectPath(absoluteProjectPath, reportMode, out loader))
-                    { 
-                        // projects get added to 'loadedProjects' as side-effect
-                        // never prefer metadata when loading solution, all projects get loaded if they can.
-                        var tmp = await GetOrLoadProjectAsync(absoluteProjectPath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-#endif
 
             // construct workspace from loaded project infos
             return SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Projects);

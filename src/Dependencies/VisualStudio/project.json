@@ -18,7 +18,10 @@
     "Microsoft.VisualStudio.ManagedInterfaces": "8.0.50727",
     "Microsoft.VisualStudio.WCFReference.Interop": "9.0.30729",
     "Microsoft.VisualStudio.Data.Core": "9.0.21022",
-    "Microsoft.VisualStudio.Data.Services": "9.0.21022"
+    "Microsoft.VisualStudio.Data.Services": "9.0.21022",
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.3.25407",
+    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420",
+    "Roslyn.Microsoft.VisualStudio.ExtensionManager": "0.0.4"
   },
   "frameworks": {
     ".NETFramework,Version=v4.6": { }

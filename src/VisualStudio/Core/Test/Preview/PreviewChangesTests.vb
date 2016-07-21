@@ -43,7 +43,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -103,7 +103,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -138,7 +138,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -204,7 +204,7 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -284,7 +284,7 @@ End Class
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     updatedSolution,
                     workspace.CurrentSolution,
                     componentModel)

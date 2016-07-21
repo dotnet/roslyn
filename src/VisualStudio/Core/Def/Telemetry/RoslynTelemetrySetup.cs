@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
 
             // initialize host context on UI thread.
-            var hostContext = workspace.Services.GetService<IHostContextService>();
+            var projectTypeLookup = workspace.Services.GetService<IProjectTypeLookupService>();
 
             // set initial logger
             var optionService = workspace.Services.GetService<IOptionService>();
