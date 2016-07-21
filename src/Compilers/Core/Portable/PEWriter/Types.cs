@@ -397,6 +397,27 @@ namespace Microsoft.Cci
         ITypeReference GetTargetType(EmitContext context);
     }
 
+    internal struct InterfaceImplementation
+    {
+        /// <summary>
+        /// The interface being implemented.
+        /// </summary>
+        public ITypeReference Interface { get; }
+
+        /// <summary>
+        /// The attributes on the interface implementation itself.
+        /// </summary>
+        public ImmutableArray<ICustomAttribute> Attributes { get; }
+
+        public InterfaceImplementation(
+            ITypeReference iface,
+            ImmutableArray<ICustomAttribute> attributes)
+        {
+            Interface = iface;
+            Attributes = attributes;
+        }
+    }
+
     /// <summary>
     /// This interface models the metadata representation of a type.
     /// </summary>
@@ -455,7 +476,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more interfaces implemented by this type.
         /// </summary>
-        IEnumerable<ITypeReference> Interfaces(EmitContext context);
+        IEnumerable<InterfaceImplementation> Interfaces(EmitContext context);
 
         /// <summary>
         /// True if the type may not be instantiated.

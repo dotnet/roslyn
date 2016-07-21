@@ -4,7 +4,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
@@ -136,13 +135,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Private Overloads Async Function GetInitializerSourcePartsAsync(equalsValue As EqualsValueSyntax) As Task(Of IEnumerable(Of SymbolDisplayPart))
                 If equalsValue IsNot Nothing AndAlso equalsValue.Value IsNot Nothing Then
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
-                    If semanticModel Is Nothing Then
-                        Return Nothing
+                    If semanticModel IsNot Nothing Then
+                        Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                            semanticModel, equalsValue.Value.Span,
+                            Me.Workspace, Me.CancellationToken).ConfigureAwait(False)
                     End If
-
-                    Dim classifications = Classifier.GetClassifiedSpans(semanticModel, equalsValue.Value.Span, Me.Workspace, Me.CancellationToken)
-                    Dim text = Await semanticModel.SyntaxTree.GetTextAsync(Me.CancellationToken).ConfigureAwait(False)
-                    Return ConvertClassifications(text, classifications)
                 End If
 
                 Return Nothing

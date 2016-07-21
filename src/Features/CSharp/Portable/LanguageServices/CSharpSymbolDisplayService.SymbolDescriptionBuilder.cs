@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -135,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return SpecializedTasks.Default<IEnumerable<SymbolDisplayPart>>();
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(IFieldSymbol symbol)
+            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                IFieldSymbol symbol)
             {
                 EqualsValueClauseSyntax initializer = null;
 
@@ -162,7 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return null;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ILocalSymbol symbol)
+            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                ILocalSymbol symbol)
             {
                 var syntax = await this.GetFirstDeclaration<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
@@ -173,7 +174,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return null;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(IParameterSymbol symbol)
+            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                IParameterSymbol symbol)
             {
                 var syntax = await this.GetFirstDeclaration<ParameterSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
@@ -198,20 +200,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return null;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(EqualsValueClauseSyntax equalsValue)
+            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                EqualsValueClauseSyntax equalsValue)
             {
                 if (equalsValue != null && equalsValue.Value != null)
                 {
                     var semanticModel = GetSemanticModel(equalsValue.SyntaxTree);
-                    if (semanticModel == null)
+                    if (semanticModel != null)
                     {
-                        return null;
+                        return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                            semanticModel, equalsValue.Value.Span,
+                            this.Workspace, this.CancellationToken).ConfigureAwait(false);
                     }
-
-                    var classifications = Classifier.GetClassifiedSpans(semanticModel, equalsValue.Value.Span, this.Workspace, this.CancellationToken);
-
-                    var text = await semanticModel.SyntaxTree.GetTextAsync(this.CancellationToken).ConfigureAwait(false);
-                    return ConvertClassifications(text, classifications);
                 }
 
                 return null;

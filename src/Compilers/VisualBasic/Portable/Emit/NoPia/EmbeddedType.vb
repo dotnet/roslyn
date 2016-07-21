@@ -76,13 +76,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return UnderlyingNamedType.GetPropertiesToEmit()
         End Function
 
-        Protected Overrides Iterator Function GetInterfaces(context As EmitContext) As IEnumerable(Of Cci.ITypeReference)
+        Protected Overrides Iterator Function GetInterfaces(context As EmitContext) As IEnumerable(Of Cci.InterfaceImplementation)
             Debug.Assert(TypeManager.ModuleBeingBuilt Is context.Module)
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
 
             For Each [interface] In UnderlyingNamedType.GetInterfacesToEmit()
-                Yield moduleBeingBuilt.Translate([interface], DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+                Dim translated = moduleBeingBuilt.Translate([interface],
+                                                            DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            context.Diagnostics)
+
+                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
+                ' Add support for tuple attributes on interface implementations
+                Yield New Cci.InterfaceImplementation(translated, ImmutableArray(Of Cci.ICustomAttribute).Empty)
             Next
         End Function
 

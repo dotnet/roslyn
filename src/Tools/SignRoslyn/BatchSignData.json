@@ -40,7 +40,6 @@
                 "Microsoft.VisualStudio.LanguageServices.dll",
                 "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
                 "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
-                "Microsoft.VisualStudio.LanguageServices.Telemetry.dll",
                 "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
                 "Microsoft.VisualStudio.VisualBasic.Repl.dll",
                 "Microsoft.VisualStudio.VsInteractiveWindow.dll",
@@ -87,7 +86,6 @@
             "strongName": null,
             "values": [
                 "ExpressionEvaluatorPackage.vsix",
-                "Microsoft.VisualStudio.LanguageServices.Telemetry.vsix",
                 "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
                 "Roslyn.Compilers.Extension.vsix",
                 "Roslyn.Deployment.Full.vsix",

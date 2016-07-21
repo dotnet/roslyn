@@ -136,6 +136,10 @@
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
+    <Compile Include="CodeActions\MoveType\BasicMoveTypeTestsBase.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />
     <Compile Include="CodeActions\Preview\PreviewTests.vb" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
     <Compile Include="Completion\CompletionServiceTests.vb" />

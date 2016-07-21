@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsPublic { get; }
             protected abstract bool IsAbstract { get; }
             protected abstract Cci.ITypeReference GetBaseClass(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
-            protected abstract IEnumerable<Cci.ITypeReference> GetInterfaces(EmitContext context);
+            protected abstract IEnumerable<Cci.InterfaceImplementation> GetInterfaces(EmitContext context);
             protected abstract bool IsBeforeFieldInit { get; }
             protected abstract bool IsComImport { get; }
             protected abstract bool IsInterface { get; }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(EmitContext context)
+            IEnumerable<Cci.InterfaceImplementation> Cci.ITypeDefinition.Interfaces(EmitContext context)
             {
                 return GetInterfaces(context);
             }

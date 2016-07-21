@@ -4,10 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // mapping contents are read-only hereafter
         }
 
-        internal TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
+        private TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
             : base(new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
@@ -47,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
                 new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
         }
+
         internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithModifiers> typeArguments)
             : base(ForType(containingType))
         {

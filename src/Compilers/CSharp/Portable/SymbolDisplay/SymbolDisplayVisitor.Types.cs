@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 first = false;
 
                 elementTypes[i].Accept(this.NotFirstVisitor);
-                if (hasNames)
+                if (hasNames && elementNames[i] != null)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));

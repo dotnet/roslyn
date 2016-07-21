@@ -42,8 +42,8 @@ if not "%BuildTimeLimit%" == "" (
 ) else (
     set RunProcessWatchdog=false
 )
-    
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
+
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
