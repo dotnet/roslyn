@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;
 
-            var displayName = symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
+            var displayName = GetDisplayName(symbol);
 
             waitContext.Message = string.Format(
                 EditorFeaturesResources.Finding_references_of_0, displayName);
@@ -102,6 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             return Tuple.Create(result, solution);
+        }
+
+        private static string GetDisplayName(ISymbol symbol)
+        {
+            return symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
         }
 
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
@@ -190,6 +195,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;
+
+            var displayName = GetDisplayName(symbol);
+            // context.Set
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
