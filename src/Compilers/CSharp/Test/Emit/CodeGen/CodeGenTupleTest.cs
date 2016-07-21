@@ -4549,12 +4549,6 @@ class C
     {
         (dynamic, dynamic) d = (1, 1);
         (int, int) t = d;
-
-        dynamic longTuple = (a: 2, b: 2, c: 2, d: 2, e: 2, f: 2, g: 2, h: 2, i: 2);
-        System.Console.Write(longTuple.a);
-        System.Console.Write(longTuple.i);
-        System.Console.Write(longTuple.Item1);
-        System.Console.Write(longTuple.Item9);
     }
 }
 ";
@@ -4647,6 +4641,41 @@ class C
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: "done", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleWithDynamic6()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        (int, int) t1 = (1, 1);
+        M(t1, ""int"");
+
+        (byte, byte) t2 = (2, 2);
+        M(t2, ""byte"");
+
+        (dynamic, dynamic) t3 = (3, 3);
+        M(t3, ""dynamic"");
+
+        (string, string) t4 = (""4"", ""4"");
+        M(t4, ""string"");
+    }
+
+    public static void M((int, int) t, string type) { System.Console.WriteLine($""int overload with value {t} and type {type}""); }
+    public static void M((dynamic, dynamic) t, string type) { System.Console.WriteLine($""dynamic overload with value {t} and type {type}""); }
+}
+";
+            string expectedOutput =
+@"int overload with value (1, 1) and type int
+int overload with value (2, 2) and type byte
+dynamic overload with value (3, 3) and type dynamic
+dynamic overload with value (4, 4) and type string";
+
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
