@@ -730,7 +730,7 @@
   <ItemGroup>
     <Folder Include="Implementation\Options\Style\" />
   </ItemGroup>
-  <Import Project="..\..\..\Compilers\Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
