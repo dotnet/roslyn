@@ -40,16 +40,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function GetEnumUnderlyingType(type As TypeSymbol) As TypeSymbol
             Debug.Assert(type IsNot Nothing)
 
-            If type.IsEnumType() Then
-                Return DirectCast(type, NamedTypeSymbol).EnumUnderlyingType
-            End If
-
-            Return Nothing
+            Return TryCast(type, NamedTypeSymbol)?.EnumUnderlyingType
         End Function
 
         <Extension()>
         Public Function GetEnumUnderlyingTypeOrSelf(type As TypeSymbol) As TypeSymbol
             Return If(GetEnumUnderlyingType(type), type)
+        End Function
+
+        <Extension()>
+        Public Function GetTupleUnderlyingType(type As TypeSymbol) As TypeSymbol
+            Debug.Assert(type IsNot Nothing)
+
+            Return TryCast(type, NamedTypeSymbol)?.TupleUnderlyingType
+        End Function
+
+        <Extension()>
+        Public Function GetTupleUnderlyingTypeOrSelf(type As TypeSymbol) As TypeSymbol
+            Return If(GetTupleUnderlyingType(type), type)
         End Function
 
         <Extension()>

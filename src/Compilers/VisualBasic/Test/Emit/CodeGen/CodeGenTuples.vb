@@ -442,6 +442,57 @@ Sum: 10, Count: 4")
 
         End Sub
 
+        <Fact()>
+        Public Sub Overloading001()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Module m1
+    Sub Test(x as (a as integer, b as Integer))
+    End Sub
+
+    Sub Test(x as (c as integer, d as Integer))
+    End Sub
+End module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+    BC30269: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures.
+    Sub Test(x as (a as integer, b as Integer))
+        ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub Overloading002()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Module m1
+    Sub Test(x as (integer,Integer))
+    End Sub
+
+    Sub Test(x as (a as integer, b as Integer))
+    End Sub
+End module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30269: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures.
+    Sub Test(x as (integer,Integer))
+        ~~~~
+</errors>)
+
+        End Sub
 
     End Class
 
