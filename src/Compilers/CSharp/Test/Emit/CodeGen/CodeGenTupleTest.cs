@@ -4549,6 +4549,12 @@ class C
     {
         (dynamic, dynamic) d = (1, 1);
         (int, int) t = d;
+
+        dynamic longTuple = (a: 2, b: 2, c: 2, d: 2, e: 2, f: 2, g: 2, h: 2, i: 2);
+        System.Console.Write(longTuple.a);
+        System.Console.Write(longTuple.i);
+        System.Console.Write(longTuple.Item1);
+        System.Console.Write(longTuple.Item9);
     }
 }
 ";
@@ -4558,6 +4564,90 @@ class C
                 //         (int, int) t = d;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d").WithArguments("(dynamic, dynamic)", "(int, int)").WithLocation(7, 24)
                 );
+        }
+
+        [Fact]
+        public void TupleWithDynamic3()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        dynamic longTuple = (a: 2, b: 2, c: 2, d: 2, e: 2, f: 2, g: 2, h: 2, i: 2);
+        System.Console.Write($""Item1: {longTuple.Item1}  Rest: {longTuple.Rest}"");
+
+        try
+        {
+            System.Console.Write(longTuple.a);
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        try
+        {
+            System.Console.Write(longTuple.i);
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        try
+        {
+            System.Console.Write(longTuple.Item9);
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "Item1: 2  Rest: (2, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics( );
+        }
+
+        [Fact]
+        public void TupleWithDynamic4()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        dynamic x = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        M(x);
+    }
+
+    public static void M((int a, int, int, int, int, int, int, int h, int i) t)
+    {
+        System.Console.Write($""a:{t.a}, h:{t.h}, i:{t.i}, Item9:{t.Item9}, Rest:{t.Rest}"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "a:1, h:8, i:9, Item9:9, Rest:(8, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleWithDynamic5()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        dynamic d = (1, 2);
+        try
+        {
+            (string, string) t = d;
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        System.Console.Write(""done"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "done", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
