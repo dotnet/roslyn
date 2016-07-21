@@ -23,6 +23,7 @@ x64/
 
 # Prevent accidental re-checkin of NuGet.exe
 NuGet.exe
+nuget.exe
 
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore

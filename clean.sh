@@ -46,18 +46,20 @@ do
     esac
 done
 
-if [ $DeleteOutput -eq "true" ]
+if [[ $DeleteOutput = true ]]
 then
-    rm -rf "$RoslynDir/Binaries/"
+    echo "removing binaries directory"
+    rm -rf "$RoslynDir/Binaries/" || true
 fi
 
-if [ $DeleteLocalPackage -eq "true" ]
+if [[ $DeleteLocalPackage = true ]]
 then
-    rm -rf "$RoslynDir/packages/"
+    echo "removing local packages"
+    rm -rf "$RoslynDir/packages/" || true
 fi
 
-if [ $DeleteUserCache -eq "true" ]
+if [[ $DeleteUserCache = true ]]
 then
-    make --makefile "$RoslynDir/Makefile" nuget
-    eval "$RoslynDir/nuget.exe" locals all -clear
+    rm -rf ~/.local/share/NuGet/Cache/ || true
+    rm -rf ~/.nuget/packages || true
 fi

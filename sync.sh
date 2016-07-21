@@ -4,5 +4,5 @@ set -euo pipefail
 RoslynDir="$(dirname $0)"
 ToolsetPath="$RoslynDir/Binaries/toolset"
 
-rm $ToolsetPath/restore.semaphore
+rm $ToolsetPath/restore.semaphore || true
 make --makefile "$RoslynDir/Makefile" restore
