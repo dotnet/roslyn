@@ -29,51 +29,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend MustOverride Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate
 
-            ''' <summary>
-            ''' Whether the method is used as extension method vs. called as a static method.
-            ''' </summary>
-            Public Overridable ReadOnly Property IsExtensionMethod As Boolean
-                Get
-                    Return False
-                End Get
-            End Property
+            ''' <summary>Whether the method is used as extension method vs. called as a static method.</summary>
+            Public Overridable ReadOnly Property IsExtensionMethod As Boolean = False
 
-            ''' <summary>
-            ''' Whether the method is used as an operator.
-            ''' </summary>
-            Public Overridable ReadOnly Property IsOperator As Boolean
-                Get
-                    Return False
-                End Get
-            End Property
+            ''' <summary>Whether the method is used as an operator.</summary>
+            Public Overridable ReadOnly Property IsOperator As Boolean = False
 
-            ''' <summary>
-            ''' Whether the method is used in a lifted to nullable form.
-            ''' </summary>
-            Public Overridable ReadOnly Property IsLifted As Boolean
-                Get
-                    Return False
-                End Get
-            End Property
+            '''<summary>Whether the method is used in a lifted to nullable form.</summary>
+            Public Overridable ReadOnly Property IsLifted As Boolean = False
 
-            ''' <summary>
-            ''' Precedence level for an extension method.
-            ''' </summary>
-            Public Overridable ReadOnly Property PrecedenceLevel As Integer
-                Get
-                    Return 0
-                End Get
-            End Property
+
+            ''' <summary>Precedence level for an extension method.</summary>
+            Public Overridable ReadOnly Property PrecedenceLevel As Integer = 0
 
             ''' <summary>
             ''' Extension method type parameters that were fixed during currying, if any.
             ''' If none were fixed, BitArray.Null should be returned. 
             ''' </summary>
-            Public Overridable ReadOnly Property FixedTypeParameters As BitVector
-                Get
-                    Return BitVector.Null
-                End Get
-            End Property
+            Public Overridable ReadOnly Property FixedTypeParameters As BitVector = BitVector.Null
 
             Public MustOverride ReadOnly Property IsGeneric As Boolean
             Public MustOverride ReadOnly Property ParameterCount As Integer
@@ -84,17 +57,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
             Friend Sub GetAllParameterCounts(
-                ByRef requiredCount As Integer,
-                ByRef maxCount As Integer,
-                ByRef hasParamArray As Boolean
-            )
+                                        ByRef requiredCount As Integer,
+                                        ByRef maxCount As Integer,
+                                        ByRef hasParamArray As Boolean
+                                            )
+
                 maxCount = Me.ParameterCount
                 hasParamArray = False
                 requiredCount = -1
 
                 Dim last = maxCount - 1
 
-                For i As Integer = 0 To last Step 1
+                For i = 0 To last
                     Dim param As ParameterSymbol = Me.Parameters(i)
 
                     If i = last AndAlso param.IsParamArray Then
@@ -716,10 +690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Represents a simple overload resolution result
         Friend Structure OverloadResolutionResult
-            Private ReadOnly _bestResult As CandidateAnalysisResult?
             Private ReadOnly _allResults As ImmutableArray(Of CandidateAnalysisResult)
-            Private ReadOnly _resolutionIsLateBound As Boolean
-            Private ReadOnly _remainingCandidatesRequireNarrowingConversion As Boolean
             Public ReadOnly AsyncLambdaSubToFunctionMismatch As ImmutableArray(Of BoundExpression)
 
             ' Create an overload resolution result from a full set of results.
@@ -746,25 +717,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Returns the best method. Note that if overload resolution succeeded, the set of conversion kinds will NOT be returned.
             Public ReadOnly Property BestResult As CandidateAnalysisResult?
-                Get
-                    Return _bestResult
-                End Get
-            End Property
 
             Public ReadOnly Property ResolutionIsLateBound As Boolean
-                Get
-                    Return _resolutionIsLateBound
-                End Get
-            End Property
 
             ''' <summary>
             ''' This might simplify error reporting. If not, consider getting rid of this property. 
             ''' </summary>
             Public ReadOnly Property RemainingCandidatesRequireNarrowingConversion As Boolean
-                Get
-                    Return _remainingCandidatesRequireNarrowingConversion
-                End Get
-            End Property
+
 
             Private Shared Function GetBestResult(allResults As ImmutableArray(Of CandidateAnalysisResult)) As CandidateAnalysisResult?
                 Dim best As CandidateAnalysisResult? = Nothing
@@ -794,15 +754,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The names can be null if no names were supplied to any arguments.
         ''' </summary>
         Public Shared Function MethodOrPropertyInvocationOverloadResolution(
-            group As BoundMethodOrPropertyGroup,
-            arguments As ImmutableArray(Of BoundExpression),
-            argumentNames As ImmutableArray(Of String),
-            binder As Binder,
-            callerInfoOpt As VisualBasicSyntaxNode,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-            Optional includeEliminatedCandidates As Boolean = False,
-            Optional forceExpandedForm As Boolean = False
-        ) As OverloadResolutionResult
+                                                                             group As BoundMethodOrPropertyGroup,
+                                                                             arguments As ImmutableArray(Of BoundExpression),
+                                                                             argumentNames As ImmutableArray(Of String),
+                                                                             binder As Binder,
+                                                                             callerInfoOpt As VisualBasicSyntaxNode,
+                                                           <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                                    Optional includeEliminatedCandidates As Boolean = False,
+                                                                    Optional forceExpandedForm As Boolean = False
+                                                                           ) As OverloadResolutionResult
 
             If group.Kind = BoundKind.MethodGroup Then
                 Dim methodGroup = DirectCast(group, BoundMethodGroup)
@@ -833,12 +793,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Perform overload resolution on the given method group, with the given arguments.
         ''' </summary>
         Public Shared Function QueryOperatorInvocationOverloadResolution(
-            methodGroup As BoundMethodGroup,
-            arguments As ImmutableArray(Of BoundExpression),
-            binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-            Optional includeEliminatedCandidates As Boolean = False
-        ) As OverloadResolutionResult
+                                                                          methodGroup As BoundMethodGroup,
+                                                                          arguments As ImmutableArray(Of BoundExpression),
+                                                                          binder As Binder,
+                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                                 Optional includeEliminatedCandidates As Boolean = False
+                                                                        ) As OverloadResolutionResult
             Return MethodInvocationOverloadResolution(
                         methodGroup,
                         arguments,
@@ -1948,31 +1908,23 @@ ResolutionComplete:
                 End If
 
                 Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
+                Select Case cmp
+                    Case ApplicabilityComparisonResult.LeftIsMoreApplicable
+                        leftHasMoreApplicableParameterType = True
+                        If rightHasMoreApplicableParameterType Then Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
+                        equallyApplicable = False
 
-                If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
-                    leftHasMoreApplicableParameterType = True
+                    Case ApplicabilityComparisonResult.RightIsMoreApplicable
+                        rightHasMoreApplicableParameterType = True
+                        If leftHasMoreApplicableParameterType Then Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
+                        equallyApplicable = False
 
-                    If rightHasMoreApplicableParameterType Then
-                        Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
-                    End If
+                    Case ApplicabilityComparisonResult.Undefined
+                        equallyApplicable = False
 
-                    equallyApplicable = False
-
-                ElseIf cmp = ApplicabilityComparisonResult.RightIsMoreApplicable Then
-                    rightHasMoreApplicableParameterType = True
-
-                    If leftHasMoreApplicableParameterType Then
-                        Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
-                    End If
-
-                    equallyApplicable = False
-
-                ElseIf cmp = ApplicabilityComparisonResult.Undefined Then
-                    equallyApplicable = False
-
-                Else
-                    Debug.Assert(cmp = ApplicabilityComparisonResult.EquallyApplicable)
-                End If
+                    Case Else
+                        Debug.Assert(cmp = ApplicabilityComparisonResult.EquallyApplicable)
+                End Select
             Next
 
             Debug.Assert(Not (leftHasMoreApplicableParameterType AndAlso rightHasMoreApplicableParameterType))
@@ -3050,7 +3002,7 @@ Bailout:
                     defaultArgument = binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
-                        Debug.Assert(Not diagnostics.AsEnumerable().Any())
+                        'Debug.Assert(Not diagnostics.AsEnumerable().Any())
 
                         ' Mark these as compiler generated so they are ignored by later phases. For example,
                         ' these bound nodes will mess up the incremental binder cache, because they use the 
@@ -3117,9 +3069,7 @@ Bailout:
                 ' Note these arguments are stored by parameter index. Default arguments are missing so they
                 ' may not have an argument index.
                 If defaultArgument IsNot Nothing Then
-                    If optionalArguments Is Nothing Then
-                        optionalArguments = New OptionalArgument(candidate.Candidate.ParameterCount - 1) {}
-                    End If
+                    optionalArguments = If(optionalArguments, New OptionalArgument(candidate.Candidate.ParameterCount - 1) {})
                     optionalArguments(paramIndex) = New OptionalArgument(defaultArgument, conversion)
                 End If
 
@@ -3138,29 +3088,17 @@ Bailout:
             Next
 
 Bailout:
-            If diagnostics IsNot Nothing Then
-                diagnostics.Free()
-            End If
+            If diagnostics IsNot Nothing Then diagnostics.Free()
 
-            If paramArrayItems IsNot Nothing Then
-                paramArrayItems.Free()
-            End If
+            If paramArrayItems IsNot Nothing Then paramArrayItems.Free()
 
-            If conversionKinds IsNot Nothing Then
-                candidate.ConversionsOpt = conversionKinds.AsImmutableOrNull()
-            End If
+            If conversionKinds IsNot Nothing Then candidate.ConversionsOpt = conversionKinds.AsImmutableOrNull()
 
-            If conversionBackKinds IsNot Nothing Then
-                candidate.ConversionsBackOpt = conversionBackKinds.AsImmutableOrNull()
-            End If
+            If conversionBackKinds IsNot Nothing Then candidate.ConversionsBackOpt = conversionBackKinds.AsImmutableOrNull()
 
-            If optionalArguments IsNot Nothing Then
-                candidate.OptionalArguments = optionalArguments.AsImmutableOrNull()
-            End If
+            If optionalArguments IsNot Nothing Then candidate.OptionalArguments = optionalArguments.AsImmutableOrNull()
 
-            If parameterToArgumentMap IsNot Nothing Then
-                parameterToArgumentMap.Free()
-            End If
+            If parameterToArgumentMap IsNot Nothing Then parameterToArgumentMap.Free()
 
         End Sub
 
