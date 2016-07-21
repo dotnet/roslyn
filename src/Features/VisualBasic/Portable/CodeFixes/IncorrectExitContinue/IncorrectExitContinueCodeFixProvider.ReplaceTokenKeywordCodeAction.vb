@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue

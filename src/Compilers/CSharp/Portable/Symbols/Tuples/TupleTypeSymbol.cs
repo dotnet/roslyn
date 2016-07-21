@@ -828,8 +828,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     members.Add(new TupleFieldSymbol(this, fieldSymbol, -members.Count - 1));
 
                                     // Add a field with the given name
-                                    members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex], tupleFieldIndex,
-                                                                                            _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
+                                    if (namesOfVirtualFields[tupleFieldIndex] != null)
+                                    {
+                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex], tupleFieldIndex,
+                                                                                                _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
+                                    }
                                 }
 
                                 namesOfVirtualFields[tupleFieldIndex] = null; // mark as handled

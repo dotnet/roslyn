@@ -2974,14 +2974,14 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (6,9): error CS8209: The type information on the left-hand-side 'x2' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         var (x1, x2) = (1, null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(1, null)").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x1, x2) = (1, null);").WithArguments("x2", "null").WithLocation(6, 9)
                 );
         }
 
         [Fact]
-        public void InferTypeOfTypelessDeclaration()
+        public void TypeMergingSuccess1()
         {
             string source = @"
 class C
@@ -2993,11 +2993,201 @@ class C
     }
 }
 ";
+            var comp = CompileAndVerify(source, expectedOutput: " 1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, byte x2, var x3) = (null, 2, 3);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+                Assert.Equal(@"(null, 2, 3)", literal.ToString());
+                Assert.Null(model.GetTypeInfo(literal).Type);
+                Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, (1, 2));
+        System.Console.WriteLine(x1 + "" "" + x2);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(null, (1, 2))", literal.ToString());
+                Assert.Null(model.GetTypeInfo(literal).Type);
+                Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
+
+                var nestedLiteral = literal.Arguments[1];
+                Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
+                Assert.Null(model.GetTypeInfo(nestedLiteral).Type);
+                Assert.Null(model.GetTypeInfo(nestedLiteral).ConvertedType);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingSuccess4()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((string x1, byte x2, var x3), int x4) = (M(), 4);
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3 + "" "" + x4);
+    }
+    static (string, byte, int) M() { return (null, 2, 3); }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeMergingWithMultipleAmbiguousVars()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+    }
+}
+";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,37): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         (var (x1, x2), string x3) = ((1, 2), null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "((1, 2), null)").WithLocation(6, 37)
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x3", "null").WithLocation(6, 9),
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x4", "null").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyLeftNestings()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((string x1, byte x2, var x3), int x4) = (null, 4);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,51): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         ((string x1, byte x2, var x3), int x4) = (null, 4);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyRightNestings()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2) = (null, (null, 2));
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8209: The type information on the left-hand-side 'var x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
+                //         (string x1, var x2) = (null, (null, 2));
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("var x2", "(null, 2)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyLeftVariables()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var x2, int x3) = (null, ""hello"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (string x1, var x2, int x3) = (null, "hello");
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"");").WithArguments("2", "3").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeMergingWithTooManyRightElements()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (string x1, var y1) = (null, ""hello"", 3);
+        (string x2, var y2) = (null, ""hello"", null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         (string x1, var y1) = (null, "hello", 3);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9),
+                // (7,47): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (string x2, var y2) = (null, "hello", null);
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47)
                 );
         }
 
@@ -3808,7 +3998,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs:  new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 

@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -114,6 +111,12 @@ namespace Microsoft.CodeAnalysis
 
             protected TStringResult ReadStringNoSpace()
             {
+                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                {
+                    Eat(SymbolKeyType.Null);
+                    return CreateNullForString();
+                }
+
                 EatDoubleQuote();
 
                 var start = Position;
@@ -148,6 +151,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected abstract TStringResult CreateResultForString(int start, int end, bool hasEmbeddedQuote);
+            protected abstract TStringResult CreateNullForString();
 
             private void EatDoubleQuote()
             {
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis
 
         private class GetHashCodeReader : Reader<int, int>
         {
-            private static readonly ObjectPool<GetHashCodeReader> s_pool = 
+            private static readonly ObjectPool<GetHashCodeReader> s_pool =
                 new ObjectPool<GetHashCodeReader>(() => new GetHashCodeReader());
 
             private GetHashCodeReader()
@@ -308,6 +312,11 @@ namespace Microsoft.CodeAnalysis
                     result = Hash.Combine((int)char.ToLower(Data[i]), result);
                 }
                 return result;
+            }
+
+            protected override int CreateNullForString()
+            {
+                return 0;
             }
 
             public int ReadSymbolKeyArrayHashCode()
@@ -365,6 +374,7 @@ namespace Microsoft.CodeAnalysis
                     case SymbolKeyType.Event: return EventSymbolKey.GetHashCode(this);
                     case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.GetHashCode(this);
                     case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.GetHashCode(this);
+                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.GetHashCode(this);
                     case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.GetHashCode(this);
                 }
 
@@ -437,6 +447,11 @@ namespace Microsoft.CodeAnalysis
                 _builder.Append(DoubleQuoteChar);
                 return null;
             }
+
+            protected override object CreateNullForString()
+            {
+                return null;
+            }
         }
 
         private class SymbolKeyReader : Reader<SymbolKeyResolution, string>
@@ -497,6 +512,11 @@ namespace Microsoft.CodeAnalysis
                 return result;
             }
 
+            protected override string CreateNullForString()
+            {
+                return null;
+            }
+
             protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)
             {
                 switch (type)
@@ -520,6 +540,7 @@ namespace Microsoft.CodeAnalysis
                     case SymbolKeyType.Event: return EventSymbolKey.Resolve(this);
                     case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
                     case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
+                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
                     case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
                 }
 

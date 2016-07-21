@@ -189,10 +189,8 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             private class VisualBasicCompilerInputs :
                 MSB.Tasks.Hosting.IVbcHostObject5,
-                MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
-#if !MSBUILD12
-                , IAnalyzerHostObject
-#endif
+                MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded,
+                MSB.Tasks.Hosting.IAnalyzerHostObject
             {
                 private readonly VisualBasicProjectFile _projectFile;
                 private bool _initialized;

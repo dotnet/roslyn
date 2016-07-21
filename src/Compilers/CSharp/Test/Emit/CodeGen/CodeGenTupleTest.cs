@@ -201,6 +201,178 @@ namespace System
 ";
 
         [Fact]
+        public void InterfaceAttributes()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+interface ITest<T> 
+{ 
+    T Get();
+}
+
+public class C : ITest<(int key, int val)>
+{
+    public (int key, int val) Get() => (0, 0);
+}
+
+public class Base<T> : ITest<T>
+{
+    public T Get() => default(T);
+}
+
+public class C2 : Base<(int x, int y)> { }
+
+public class C3 : IEnumerable<(int key, int val)>
+{
+    private readonly (int, int)[] _backing;
+
+    public C3((int, int)[] backing)
+    {
+        _backing = backing;
+    }
+
+    private class Inner : IEnumerator<(int key, int val)>, IEnumerator
+    {
+        private int index = -1;
+        private readonly (int, int)[] _backing;
+
+        public Inner((int, int)[] backing)
+        {
+            _backing = backing;
+        }
+
+        public (int key, int val) Current => _backing[index];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        public bool MoveNext() =>
+            ++index < _backing.Length ? true : false;
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    IEnumerator<(int key, int val)> IEnumerable<(int key, int val)>.GetEnumerator() => new Inner(_backing);
+
+    IEnumerator IEnumerable.GetEnumerator() => new Inner(_backing);
+} 
+
+public class C4 : C3
+{
+    public C4((int, int)[] backing)
+    : base(backing)
+    { }
+}
+",
+            references: s_valueTupleRefs);
+            CompileAndVerify(comp, symbolValidator: m =>
+            {
+                var c = m.GlobalNamespace.GetTypeMember("C");
+                Assert.Equal(1, c.Interfaces.Length);
+                NamedTypeSymbol iface = c.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                TypeSymbol typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+
+                var c2 = m.GlobalNamespace.GetTypeMember("C2");
+                var @base = c2.BaseType;
+                Assert.Equal("Base", @base.Name);
+                Assert.Equal(1, @base.Interfaces.Length);
+                iface = @base.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "x", "y" }, typeArg.TupleElementNames);
+
+                var c3 = m.GlobalNamespace.GetTypeMember("C3");
+                Assert.Equal(2, c3.Interfaces.Length);
+                iface = c3.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+
+                var d = m.GlobalNamespace.GetTypeMember("C3");
+                Assert.Equal(2, d.Interfaces.Length);
+                iface = d.Interfaces[0];
+                Assert.True(iface.IsGenericType);
+                Assert.Equal(1, iface.TypeArguments.Length);
+                typeArg = iface.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+            });
+
+            CompileAndVerify(@"
+using System;
+
+class D
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        var temp = c.Get();
+        Console.WriteLine(temp);
+        Console.WriteLine(""key: "" + temp.key);
+        Console.WriteLine(""val: "" + temp.val);
+
+        var c2 = new C2();
+        var temp2 = c2.Get();
+        Console.WriteLine(temp);
+        Console.WriteLine(""x: "" + temp2.x);
+        Console.WriteLine(""y: "" + temp2.y);
+
+        var backing = new[] { (1, 1), (2, 2), (3, 3) };
+        var c3 = new C3(backing);
+        foreach (var kvp in c3)
+        {
+            Console.WriteLine($""(key: {kvp.key}, val: {kvp.val})"");
+        }
+
+        var c4 = new C4(backing);
+        foreach (var kvp in c4)
+        {
+            Console.WriteLine($""(key: {kvp.key}, val: {kvp.val})"");
+        }
+    }
+}", additionalRefs: s_valueTupleRefs.Concat(new[] { comp.EmitToImageReference() }),
+    expectedOutput: @"(0, 0)
+key: 0
+val: 0
+(0, 0)
+x: 0
+y: 0
+(key: 1, val: 1)
+(key: 2, val: 2)
+(key: 3, val: 3)
+(key: 1, val: 1)
+(key: 2, val: 2)
+(key: 3, val: 3)");
+        }
+
+        [Fact]
         public void BadTupleNameMetadata()
         {
             var comp = CreateCompilationWithCustomILSource("",
@@ -232,12 +404,6 @@ namespace System
         // = {string[3](""e1"", ""e2"", ""e3"")}
         = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
 
-    // In source, all or no names must be specified for a tuple
-    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> MismatchedNames
-    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
-        // = {string[2](""e1"", null)}
-        = ( 01 00 02 00 00 00 02 65 31 FF )
-
     .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32> 
             TooFewNamesMethod() cil managed
     {
@@ -259,7 +425,7 @@ namespace System
     {
       .param [0]
       .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
-        // = {string[3](""e1"", ""e2"", ""e3"")}
+           // = {string[3](""e1"", ""e2"", ""e3"")}
            = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
       // Code size       8 (0x8)
       .maxstack  8
@@ -269,20 +435,6 @@ namespace System
                                                                                                           !1)
       IL_0007:  ret
     } // end of method C::TooManyNamesMethod
-
-    .method public hidebysig instance void MismatchedNamesMethod(
-        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
-    {
-      .param [1]
-      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
-        // First null is fine (unnamed tuple) but the second is half-named
-        // = {string[3](null, ""e1"", null)}
-        = ( 01 00 03 00 00 00 FF 02 65 31 FF )
-      // Code size       2 (0x2)
-      .maxstack  8
-      IL_0000:  nop
-      IL_0001:  ret
-    } // end of method C::MismatchedNamesMethod
 } // end of class C
 ",
 references: s_valueTupleRefs);
@@ -307,10 +459,6 @@ references: s_valueTupleRefs);
             Assert.True(tooManyNames.Type.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooManyNames.Type);
 
-            var mismatchedNames = c.GetMember<FieldSymbol>("MismatchedNames");
-            Assert.True(mismatchedNames.Type.IsErrorType());
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(mismatchedNames.Type);
-
             var tooFewNamesMethod = c.GetMember<MethodSymbol>("TooFewNamesMethod");
             Assert.True(tooFewNamesMethod.ReturnType.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooFewNamesMethod.ReturnType);
@@ -318,11 +466,105 @@ references: s_valueTupleRefs);
             var tooManyNamesMethod = c.GetMember<MethodSymbol>("TooManyNamesMethod");
             Assert.True(tooManyNamesMethod.ReturnType.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooManyNamesMethod.ReturnType);
+        }
 
-            var mismatchedNamesMethod = c.GetMember<MethodSymbol>("MismatchedNamesMethod");
-            var mismatchedParamType = mismatchedNamesMethod.Parameters.Single().Type;
-            Assert.True(mismatchedParamType.IsErrorType());
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(mismatchedParamType);
+        [Fact]
+        public void MetadataForPartiallyNamedTuples()
+        {
+            var comp = CreateCompilationWithCustomILSource("",
+@"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> ValidField
+
+    .field public int32 ValidFieldWithAttribute
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[1](""name1"")}
+        = ( 01 00 01 00 00 00 05 6E 61 6D 65 31 )
+
+    // In source, all or no names must be specified for a tuple
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> PartialNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[2](""e1"", null)}
+        = ( 01 00 02 00 00 00 02 65 31 FF )
+
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> AllNullNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[2](null, null)}
+        = ( 01 00 02 00 00 00 ff ff 00 00 )
+
+    .method public hidebysig instance void PartialNamesMethod(
+        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
+    {
+      .param [1]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // First null is fine (unnamed tuple) but the second is half-named
+        // = {string[3](null, ""e1"", null)}
+        = ( 01 00 03 00 00 00 FF 02 65 31 FF )
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method C::PartialNamesMethod
+
+    .method public hidebysig instance void AllNullNamesMethod(
+        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
+    {
+      .param [1]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // First null is fine (unnamed tuple) but the second is half-named
+        // = {string[3](null, null, null)}
+        = ( 01 00 03 00 00 00 ff ff ff 00 00 )
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method C::AllNullNamesMethod
+} // end of class C
+",
+references: s_valueTupleRefs);
+
+            var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+            var validField = c.GetMember<FieldSymbol>("ValidField");
+            Assert.False(validField.Type.IsErrorType());
+            Assert.True(validField.Type.IsTupleType);
+            Assert.True(validField.Type.TupleElementNames.IsDefault);
+
+            var validFieldWithAttribute = c.GetMember<FieldSymbol>("ValidFieldWithAttribute");
+            Assert.True(validFieldWithAttribute.Type.IsErrorType());
+            Assert.False(validFieldWithAttribute.Type.IsTupleType);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(validFieldWithAttribute.Type);
+
+            var partialNames = c.GetMember<FieldSymbol>("PartialNames");
+            Assert.False(partialNames.Type.IsErrorType());
+            Assert.True(partialNames.Type.IsTupleType);
+            Assert.Equal("(System.Int32 e1, System.Int32)", partialNames.Type.ToTestDisplayString());
+
+            var allNullNames = c.GetMember<FieldSymbol>("AllNullNames");
+            Assert.False(allNullNames.Type.IsErrorType());
+            Assert.True(allNullNames.Type.IsTupleType);
+            Assert.Equal("(System.Int32, System.Int32)", allNullNames.Type.ToTestDisplayString());
+
+            var partialNamesMethod = c.GetMember<MethodSymbol>("PartialNamesMethod");
+            var partialParamType = partialNamesMethod.Parameters.Single().Type;
+            Assert.False(partialParamType.IsErrorType());
+            Assert.True(partialParamType.IsTupleType);
+            Assert.Equal("((System.Int32 e1, System.Int32))", partialParamType.ToTestDisplayString());
+
+            var allNullNamesMethod = c.GetMember<MethodSymbol>("AllNullNamesMethod");
+            var allNullParamType = allNullNamesMethod.Parameters.Single().Type;
+            Assert.False(allNullParamType.IsErrorType());
+            Assert.True(allNullParamType.IsTupleType);
+            Assert.Equal("((System.Int32, System.Int32))", allNullParamType.ToTestDisplayString());
         }
 
         [Fact]
@@ -1090,12 +1332,9 @@ class C
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
+                // (6,29): error CS0029: Cannot implicitly convert type '(int, string, int c)' to '(int, string a)'
                 //         (int, string a) x = (1, "hello", c: 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
-                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (1, "hello", c: 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(1, ""hello"", c: 2)").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", c: 2)").WithArguments("(int, string, int c)", "(int, string a)").WithLocation(6, 29)
                 );
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1103,15 +1342,15 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(1, ""hello"", c: 2)", node.ToString());
-            Assert.Equal("(System.Int32 Item1, System.String Item2, System.Int32 c)", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String, System.Int32 c)", model.GetTypeInfo(node).Type.ToTestDisplayString());
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
-            Assert.Equal("(System.Int32 Item1, System.String a)", xSymbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String a)", xSymbol.ToTestDisplayString());
             Assert.True(xSymbol.IsTupleType);
 
             Assert.Equal(new[] { "System.Int32", "System.String" }, xSymbol.TupleElementTypes.SelectAsArray(t => t.ToTestDisplayString()));
-            Assert.Equal(new[] { "Item1", "a" }, xSymbol.TupleElementNames);
+            Assert.Equal(new[] { null, "a" }, xSymbol.TupleElementNames);
         }
 
         [Fact]
@@ -1133,26 +1372,80 @@ hello");
         }
 
         [Fact]
-        public void TupleWithOnlySomeNames()
+        public void TupleTypeWithOnlySomeNames()
         {
             var source = @"
 class C
 {
     static void Main()
     {
-        (int, string a) x = (b: 1, ""hello"", 2);
+        (int, string a, int Item3) x = (1, ""hello"", 3);
+        System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.a + "" "" + x.Item3);
     }
 }
 " + trivial2uple + trivial3uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
-                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29)
-                );
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
+        }
+
+        [Fact]
+        public void TupleTypeWithOnlySomeNamesInMetadata()
+        {
+            var source1 = @"
+public class C
+{
+    public static (int, string b, int Item3) M()
+    {
+        return (1, ""hello"", 3);
+    }
+}
+";
+            var source2 = @"
+class D
+{
+    public static void Main()
+    {
+        var t = C.M();
+        System.Console.WriteLine(t.Item1 + "" "" + t.Item2 + "" "" + t.b + "" "" + t.Item3);
+    }
+}
+";
+
+            var comp1 = CreateCompilationWithMscorlib(source2 + source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                     options: TestOptions.ReleaseExe);
+            comp1.VerifyDiagnostics();
+            CompileAndVerify(comp1, expectedOutput: "1 hello hello 3");
+
+            var compLib = CreateCompilationWithMscorlib(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                     options: TestOptions.ReleaseDll);
+            compLib.VerifyDiagnostics();
+            var compLibCompilationRef = compLib.ToMetadataReference();
+            var comp2 = CreateCompilationWithMscorlib45(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, compLibCompilationRef },
+                                                     options: TestOptions.ReleaseExe);
+            comp2.VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "1 hello hello 3");
+
+            var comp3 = CreateCompilationWithMscorlib(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, compLib.EmitToImageReference() },
+                                                     options: TestOptions.ReleaseExe);
+            comp3.VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "1 hello hello 3");
+        }
+
+        [Fact]
+        public void TupleLiteralWithOnlySomeNames()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string, int) x = (1, b: ""hello"", Item3: 3);
+        System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.Item3);
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello 3");
         }
 
         [Fact]
@@ -4296,11 +4589,8 @@ class C
             }
             catch (ArgumentException e)
             {
-                Assert.Contains(CodeAnalysisResources.TupleNamesAllOrNone, e.Message);
+                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
             }
-
-            // if names are provided, they can't be null
-            Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(vt2, new[] { "Item1", null }.AsImmutable()));
         }
 
         [Fact]
@@ -4312,7 +4602,7 @@ class C
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType);
-            var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, default(ImmutableArray<string>));
+            var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create<string>(null, null));
 
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
@@ -4353,6 +4643,23 @@ class C
             Assert.Equal(new[] { "Alice", "Bob" }, tupleWithNames.TupleElementNames);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
+        }
+
+        [Fact]
+        public void CreateTupleTypeSymbol_WithSomeNames()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, stringType, intType);
+            var tupleWithSomeNames = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create(null, "Item2", "Charlie"));
+
+            Assert.True(tupleWithSomeNames.IsTupleType);
+            Assert.Equal("(System.Int32, System.String Item2, System.Int32 Charlie)", tupleWithSomeNames.ToTestDisplayString());
+            Assert.Equal(new[] { null, "Item2", "Charlie" }, tupleWithSomeNames.TupleElementNames);
+            Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, tupleWithSomeNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
         }
 
         [Fact]
@@ -4463,6 +4770,32 @@ class C
         }
 
         [Fact]
+        public void CreateTupleTypeSymbol_Tuple9WithDefaultNames()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
+            comp.CreateTupleTypeSymbol(vt2, new[] { "Item1", "Item2" }.AsImmutable());
+
+            var vt9 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)
+                      .Construct(intType, stringType, intType, stringType, intType, stringType, intType,
+                                 vt2);
+
+            var tuple9WithNames = comp.CreateTupleTypeSymbol(vt9, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"));
+
+            Assert.True(tuple9WithNames.IsTupleType);
+            Assert.Equal("(System.Int32 Item1, System.String Item2, System.Int32 Item3, System.String Item4, System.Int32 Item5, System.String Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)",
+                        tuple9WithNames.ToTestDisplayString());
+
+            Assert.Equal(new[] { "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9" }, tuple9WithNames.TupleElementNames);
+
+            Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.Int32", "System.Int32" },
+                        tuple9WithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+        }
+
+        [Fact]
         public void CreateTupleTypeSymbol_ElementTypeIsError()
         {
             var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
@@ -4535,6 +4868,30 @@ End Class";
         }
 
         [Fact]
+        public void CreateAnonymousTypeSymbol_VisualBasicElements()
+        {
+            var vbSource = @"Public Class C
+End Class";
+
+            var vbComp = CreateVisualBasicCompilation("VB", vbSource,
+                                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            vbComp.VerifyDiagnostics();
+            var vbType = (ITypeSymbol)vbComp.GlobalNamespace.GetMembers("C").Single();
+
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+            try
+            {
+                comp.CreateAnonymousTypeSymbol(ImmutableArray.Create(vbType), ImmutableArray.Create("m1"));
+                Assert.True(false);
+            }
+            catch (ArgumentException e)
+            {
+                Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
+            }
+        }
+
+        [Fact]
         public void CreateTupleTypeSymbol2_BadArguments()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
@@ -4549,9 +4906,6 @@ End Class";
             // if names are provided, you need one for each element
             Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), new[] { "Item1" }.AsImmutable()));
 
-            // if names are provided, they can't be null
-            Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), new[] { "Item1", null }.AsImmutable()));
-
             // null types aren't allowed
             Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(new[] { intType, null }.AsImmutable(), default(ImmutableArray<string>)));
         }
@@ -4565,7 +4919,7 @@ End Class";
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
 
-            var tupleWithoutNames = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType), default(ImmutableArray<string>));
+            var tupleWithoutNames = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType), ImmutableArray.Create<string>(null, null));
 
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());

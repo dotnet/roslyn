@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,12 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var ts = s as ITypeSymbol;
             return ts != null && ts.IsIntrinsicType();
-        }
-
-        protected override string GetInsertionText(
-            CompletionItem item, ISymbol symbol, SyntaxContext context, char ch)
-        {
-            return GetInsertionText(symbol, context);
         }
 
         public static string GetInsertionText(ISymbol symbol, SyntaxContext context)

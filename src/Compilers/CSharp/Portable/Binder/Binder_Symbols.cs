@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // set of names already used
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-            int countOfExplicitNames = 0;
+            bool hasExplicitNames = false;
 
             for (int i = 0; i < numElements; i++)
             {
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = nameSyntax.Identifier.ValueText;
 
                     // validate name if we have one
-                    countOfExplicitNames++;
+                    hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
                     locations.Add(nameSyntax.Location);
                 }
@@ -440,13 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             uniqueFieldNames.Free();
 
-            if (countOfExplicitNames != 0)
+            if (hasExplicitNames)
             {
-                if (countOfExplicitNames != numElements)
-                {
-                    Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
-                }
-
                 // If the tuple type with names is bound in a declaration
                 // context then we must have the TupleElementNamesAttribute to emit
                 if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
@@ -489,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but in case we need to handle this in error cases
             if (elementNames != null)
             {
-                elementNames.Add(name ?? TupleTypeSymbol.TupleMemberName(position));
+                elementNames.Add(name);
             }
             else
             {
@@ -498,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
                     for (int j = 1; j < position; j++)
                     {
-                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j));
+                        elementNames.Add(null);
                     }
                     elementNames.Add(name);
                 }
