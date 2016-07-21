@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
             : base(underlyingType)
         {
-            Debug.Assert(elementLocations.IsDefault || elementNames.IsDefault || elementLocations.Length == elementNames.Length);
             Debug.Assert(elementLocations.IsDefault || elementLocations.Length == elementTypes.Length);
             Debug.Assert(elementNames.IsDefault || elementNames.Length == elementTypes.Length);
             Debug.Assert(!underlyingType.IsTupleType);
@@ -186,27 +185,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < RestPosition - 1; i++)
             {
-                if (!modifiers.IsDefault && !modifiers[i].IsDefaultOrEmpty)
-                {
-                    typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i], modifiers[i]));
-                }
-                else
-                {
-                    typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i]));
-                }
+                typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i], GetModifiers(modifiers, i)));
             }
 
-            if (!modifiers.IsDefault && !modifiers[RestPosition - 1].IsDefaultOrEmpty)
-            {
-                typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple, modifiers[RestPosition - 1]));
-            }
-            else
-            {
-                typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple));
-            }
+            typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple, GetModifiers(modifiers, RestPosition - 1)));
 
             tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutable(), unbound: false);
             return tupleCompatibleType;
+        }
+
+        private static ImmutableArray<CustomModifier> GetModifiers(ImmutableArray<ImmutableArray<CustomModifier>> modifiers, int i)
+        {
+            return modifiers.IsDefaultOrEmpty? ImmutableArray<CustomModifier>.Empty: modifiers[i];
         }
 
         /// <summary>
@@ -569,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="relativeMember">A reference to a well-known member type descriptor. Note however that the type in that descriptor is ignored here.</param>
         internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember)
         {
-            Debug.Assert(relativeMember >= 0 && relativeMember < WellKnownMember.Count);
+            Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 && relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor);
             Debug.Assert(type.IsDefinition);
 
             MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
@@ -946,60 +936,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyUnderlyingDefinitionToMemberMap == null)
-                {
-                    var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
-
-                    var underlyingDefinition = _underlyingType.OriginalDefinition;
-                    var members = GetMembers();
-
-                    // Go in reverse because we want members with default name, which precede the ones with
-                    // friendly names, to be in the map.  
-                    for (int i = members.Length - 1; i >= 0; i--)
-                    {
-                        var member = members[i];
-                        switch (member.Kind)
-                        {
-                            case SymbolKind.Method:
-                                map.Add(((MethodSymbol)member).TupleUnderlyingMethod.OriginalDefinition, member);
-                                break;
-
-                            case SymbolKind.Field:
-                                var tupleUnderlyingField = ((FieldSymbol)member).TupleUnderlyingField;
-                                if ((object)tupleUnderlyingField != null)
-                                {
-                                    map[tupleUnderlyingField.OriginalDefinition] = member;
-                                }
-                                break;
-
-                            case SymbolKind.Property:
-                                map.Add(((PropertySymbol)member).TupleUnderlyingProperty.OriginalDefinition, member);
-                                break;
-
-                            case SymbolKind.Event:
-                                var underlyingEvent = ((EventSymbol)member).TupleUnderlyingEvent;
-                                var underlyingAssociatedField = underlyingEvent.AssociatedField;
-                                // The field is not part of the members list
-                                if ((object)underlyingAssociatedField != null)
-                                {
-                                    Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == _underlyingType);
-                                    Debug.Assert(_underlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
-                                    map.Add(underlyingAssociatedField.OriginalDefinition, new TupleFieldSymbol(this, underlyingAssociatedField, -i - 1));
-                                }
-
-                                map.Add(underlyingEvent.OriginalDefinition, member);
-                                break;
-
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(member.Kind);
-                        }
-                    }
-
-                    _lazyUnderlyingDefinitionToMemberMap = map;
-                }
-
-                return _lazyUnderlyingDefinitionToMemberMap;
+                return _lazyUnderlyingDefinitionToMemberMap ??
+                    (_lazyUnderlyingDefinitionToMemberMap = ComputeDefinitionToMemberMap()); 
             }
+        }
+
+        private SmallDictionary<Symbol, Symbol> ComputeDefinitionToMemberMap()
+        {
+            var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
+
+            var underlyingDefinition = _underlyingType.OriginalDefinition;
+            var members = GetMembers();
+
+            // Go in reverse because we want members with default name, which precede the ones with
+            // friendly names, to be in the map.  
+            for (int i = members.Length - 1; i >= 0; i--)
+            {
+                var member = members[i];
+                switch (member.Kind)
+                {
+                    case SymbolKind.Method:
+                        map.Add(((MethodSymbol)member).TupleUnderlyingMethod.OriginalDefinition, member);
+                        break;
+
+                    case SymbolKind.Field:
+                        var tupleUnderlyingField = ((FieldSymbol)member).TupleUnderlyingField;
+                        if ((object)tupleUnderlyingField != null)
+                        {
+                            map[tupleUnderlyingField.OriginalDefinition] = member;
+                        }
+                        break;
+
+                    case SymbolKind.Property:
+                        map.Add(((PropertySymbol)member).TupleUnderlyingProperty.OriginalDefinition, member);
+                        break;
+
+                    case SymbolKind.Event:
+                        var underlyingEvent = ((EventSymbol)member).TupleUnderlyingEvent;
+                        var underlyingAssociatedField = underlyingEvent.AssociatedField;
+                        // The field is not part of the members list
+                        if ((object)underlyingAssociatedField != null)
+                        {
+                            Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == _underlyingType);
+                            Debug.Assert(_underlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
+                            map.Add(underlyingAssociatedField.OriginalDefinition, new TupleFieldSymbol(this, underlyingAssociatedField, -i - 1));
+                        }
+
+                        map.Add(underlyingEvent.OriginalDefinition, member);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                }
+            }
+
+            return map;
         }
 
         public TMember GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol

@@ -251,7 +251,6 @@
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />
-    <Compile Include="Collections\PooledStringBuilder.cs" />
     <Compile Include="Collections\SmallConcurrentSetOfInts.cs" />
     <Compile Include="Collections\SmallDictionary.cs" />
     <Compile Include="Collections\UnionCollection.cs" />
@@ -790,8 +789,8 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
-  <Import Project="..\..\Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

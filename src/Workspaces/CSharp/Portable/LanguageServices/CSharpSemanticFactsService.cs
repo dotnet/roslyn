@@ -262,5 +262,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
         }
+
+        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        {
+            var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
+            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
+        }
     }
 }

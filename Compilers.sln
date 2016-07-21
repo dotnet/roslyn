@@ -125,13 +125,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Metadata", "src\Dependencie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xUnit.net", "src\Dependencies\xUnit.net\xUnit.net.csproj", "{8635CB8F-D210-41ED-B4FF-71502CDB475C}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.PooledObjects", "src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.shproj", "{CD77A8CC-2885-47A7-B99C-FBF13353400B}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Metadata", "src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.shproj", "{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
 		src\Compilers\Server\ServerShared\ServerShared.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
-		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
-		src\Compilers\Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		src\Compilers\Server\ServerShared\ServerShared.projitems*{32691768-af9c-4cae-9d0f-10721091b9aa}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 4
@@ -143,12 +147,14 @@ Global
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 4
 		src\Compilers\Server\ServerShared\ServerShared.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{ad6f474e-e6d4-4217-91f3-b7af1be31ccc}*SharedItemsImports = 13
-		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
-		src\Compilers\Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
+		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Test\Utilities\Shared\TestUtilities.projitems*{ccbd3438-3e84-40a9-83ad-533f23bcfca5}*SharedItemsImports = 4
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{cd77a8cc-2885-47a7-b99c-fbf13353400b}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
+		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{d874349c-8bb3-4bdc-8535-2d52ccca1198}*SharedItemsImports = 4
 		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{d874349c-8bb3-4bdc-8535-2d52ccca1198}*SharedItemsImports = 4
 		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{d87f0e46-dd1b-46ea-8425-9e185d9b602e}*SharedItemsImports = 13
@@ -1159,5 +1165,7 @@ Global
 		{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
 		{E6796B97-D5C6-45B2-AE46-351D15DCFC71} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
 		{8635CB8F-D210-41ED-B4FF-71502CDB475C} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
+		{CD77A8CC-2885-47A7-B99C-FBF13353400B} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
+		{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
 	EndGlobalSection
 EndGlobal
