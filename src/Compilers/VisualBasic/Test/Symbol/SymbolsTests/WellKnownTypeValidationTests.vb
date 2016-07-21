@@ -507,6 +507,9 @@ End Namespace
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -538,6 +541,9 @@ End Namespace
                         Continue For
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
+                        Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -573,6 +579,9 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -650,6 +659,9 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                        ' Not always available.
                         Continue For
                 End Select
 

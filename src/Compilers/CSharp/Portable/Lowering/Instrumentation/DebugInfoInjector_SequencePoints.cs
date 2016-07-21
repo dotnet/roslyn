@@ -9,8 +9,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class LocalRewriter
+    internal partial class DebugInfoInjector
     {
+        private BoundStatement AddSequencePoint(BoundStatement node)
+        {
+            return new BoundSequencePoint(node.Syntax, node);
+        }
+
         internal static BoundStatement AddSequencePoint(VariableDeclaratorSyntax declaratorSyntax, BoundStatement rewrittenStatement)
         {
             SyntaxNode node;
@@ -41,27 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(usingSyntax, rewrittenStatement, span);
         }
 
-        internal static BoundStatement AddSequencePoint(BlockSyntax blockSyntax, BoundStatement rewrittenStatement)
-        {
-            TextSpan span;
-
-            var parent = blockSyntax.Parent as ConstructorDeclarationSyntax;
-            if (parent != null)
-            {
-                span = CreateSpanForConstructorDeclaration(parent);
-            }
-            else
-            {
-                // This inserts a sequence points to any prologue code for method declarations.
-                var start = blockSyntax.Parent.SpanStart;
-                var end = blockSyntax.OpenBraceToken.GetPreviousToken().Span.End;
-                span = TextSpan.FromBounds(start, end);
-            }
-
-            return new BoundSequencePointWithSpan(blockSyntax, rewrittenStatement, span);
-        }
-
-        private static TextSpan CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax)
+        private static TextSpan CreateSpanForConstructorInitializer(ConstructorDeclarationSyntax constructorSyntax)
         {
             if (constructorSyntax.Initializer != null)
             {
@@ -193,38 +178,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             node = declarationSyntax.Parent;
         }
 
-        internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement)
+        private static BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, SyntheticBoundNodeFactory factory)
         {
-            return AddConditionSequencePoint(condition, containingStatement.Syntax, containingStatement.WasCompilerGenerated);
-        }
-
-        internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundCatchBlock containingCatchWithFilter)
-        {
-            Debug.Assert(containingCatchWithFilter.ExceptionFilterOpt.Syntax.IsKind(SyntaxKind.CatchFilterClause));
-            return AddConditionSequencePoint(condition, containingCatchWithFilter.ExceptionFilterOpt.Syntax, containingCatchWithFilter.WasCompilerGenerated);
-        }
-
-        private BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, bool wasGenerated)
-        {
-            if (condition == null || !_compilation.Options.EnableEditAndContinue || wasGenerated)
+            if (!factory.Compilation.Options.EnableEditAndContinue)
             {
                 return condition;
             }
 
             // The local has to be associated with a syntax that is tracked by EnC source mapping.
             // At most one ConditionalBranchDiscriminator variable shall be associated with any given EnC tracked syntax node.
-            var local = _factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+            var local = factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
 
             // Add hidden sequence point unless the condition is a constant expression.
             // Constant expression must stay a const to not invalidate results of control flow analysis.
             var valueExpression = (condition.ConstantValue == null) ?
-                new BoundSequencePointExpression(syntax: null, expression: _factory.Local(local), type: condition.Type) :
+                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type) :
                 condition;
 
             return new BoundSequence(
                 condition.Syntax,
                 ImmutableArray.Create(local),
-                ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
+                ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
                 valueExpression,
                 condition.Type);
         }

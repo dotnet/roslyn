@@ -333,6 +333,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
+                // System_Guid__Parse
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Guid,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
                 // System_Type__GetTypeFromCLSID
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
@@ -2866,6 +2874,18 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
+                // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    5,                                                                                                                              // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -2910,6 +2930,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_CLSCompliantAttribute__ctor
                 ".ctor",                                    // System_FlagsAttribute__ctor
                 ".ctor",                                    // System_Guid__ctor
+                "Parse",                                    // System_Guid__Parse
                 "GetTypeFromCLSID",                         // System_Type__GetTypeFromCLSID
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
                 "Missing",                                  // System_Type__Missing
@@ -3223,6 +3244,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
 
                 "Format",                                   // System_String__Format_IFormatProvider
+                "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

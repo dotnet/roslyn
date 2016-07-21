@@ -559,6 +559,8 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                         // Not yet in the platform.
+                    case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                        // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
                         // Not a real type
@@ -837,6 +839,9 @@ namespace System
                         continue;
                     case WellKnownMember.System_Array__Empty:
                         // Not yet in the platform.
+                        continue;
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                        // Not always available.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.

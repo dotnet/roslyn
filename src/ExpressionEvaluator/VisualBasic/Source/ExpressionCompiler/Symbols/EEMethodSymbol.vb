@@ -429,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' In VB, the caller (of this method) does that.
         ''' </remarks>
 #Enable Warning RS0010
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim body = _generateMethodBody(Me, diagnostics)
             Debug.Assert(body IsNot Nothing)
 
