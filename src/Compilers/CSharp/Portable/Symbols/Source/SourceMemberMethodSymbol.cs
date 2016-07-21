@@ -722,12 +722,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
+            bool isInExtensionClass = this.IsInExtensionClass;
             var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
 
-            if (methodKind != MethodKind.ExplicitInterfaceImplementation)
+            if (isInExtensionClass)
+            {
+                allowedModifiers |=
+                    DeclarationModifiers.AccessibilityMask |
+                    DeclarationModifiers.Static;
+            }
+            else if (methodKind != MethodKind.ExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New;
 

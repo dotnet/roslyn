@@ -917,7 +917,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParameterSymbol parameter = parm == -1 ? null : method.GetParameters()[parm];
             RefKind refArg = arguments.RefKind(arg);
-            RefKind refParm = parameter?.RefKind ?? RefKind.None; // PROTOTYPE: Ref structs?
+            // PROTOTYPE: Resolve the issue of mixed extension overloads (old and new styles) and RefKinds.
+            var isByRef = receiver?.Type?.IsReferenceType == false && System.Linq.Enumerable.All(symbols, m => m.IsInExtensionClass);
+            RefKind refParm = parameter?.RefKind ?? (isByRef ? RefKind.Ref : RefKind.None);
             TypeSymbol parameterType = parm == -1 ? (method is MethodSymbol ? ((MethodSymbol)(Symbol)method).ReceiverType : ((PropertySymbol)(Symbol)method).ReceiverType) : parameter.Type;
 
             // If the expression is untyped because it is a lambda, anonymous method, method group or null

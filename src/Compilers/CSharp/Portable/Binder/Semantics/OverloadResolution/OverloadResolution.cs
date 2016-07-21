@@ -301,9 +301,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 arguments.Names.Insert(0, null);
             }
-            if (!arguments.RefKinds.IsEmpty())
+            // PROTOTYPE: Resolve the issue of mixed extension overloads (old and new styles) and RefKinds.
+            var isByRef = receiver.Type?.IsReferenceType == false && members.All(m => m.IsInExtensionClass);
+            if (!arguments.RefKinds.IsEmpty() || isByRef)
             {
-                arguments.RefKinds.Insert(0, RefKind.None); // PROTOTYPE: Structs/etc byref?
+                // Type parameters and structures are by ref, reference types are not.
+                arguments.RefKinds.Insert(0, isByRef ? RefKind.Ref : RefKind.None);
             }
             return result;
         }

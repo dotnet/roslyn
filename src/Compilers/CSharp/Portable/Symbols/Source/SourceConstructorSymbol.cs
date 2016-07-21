@@ -159,11 +159,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers =
+            var allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
-                DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
+
+            if (!this.IsInExtensionClass)
+            {
+                // Static constructors are not allowed in extension classes.
+                allowedModifiers |= DeclarationModifiers.Static;
+            }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 

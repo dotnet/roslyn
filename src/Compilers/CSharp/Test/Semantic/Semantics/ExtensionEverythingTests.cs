@@ -228,7 +228,7 @@ class Program
                 expectedOutput: "123456789abcde",
                 parseOptions: parseOptions)
                 .VerifyIL("Program.Main", @"{
-  // Code size       81 (0x51)
+  // Code size       82 (0x52)
   .maxstack  2
   .locals init (BaseStruct V_0, //obj2
                 IBaseInterface V_1, //obj3
@@ -245,19 +245,19 @@ class Program
   IL_000d:  call       ""void ExtStruct.MemberStruct(BaseStruct)""
   IL_0012:  ldloc.1
   IL_0013:  call       ""void ExtInterface.MemberInterface(IBaseInterface)""
-  IL_0018:  ldloc.2
-  IL_0019:  call       ""void ExtEnum.MemberEnum(BaseEnum)""
-  IL_001e:  call       ""void ExtClass.StaticMemberClass()""
-  IL_0023:  call       ""void ExtStaticClass.StaticMemberStaticClass()""
-  IL_0028:  call       ""void ExtStruct.StaticMemberStruct()""
-  IL_002d:  call       ""void ExtInterface.StaticMemberInterface()""
-  IL_0032:  call       ""void ExtEnum.StaticMemberEnum()""
-  IL_0037:  call       ""void ExtClass.DirectCallClass()""
-  IL_003c:  call       ""void ExtStaticClass.DirectCallStaticClass()""
-  IL_0041:  call       ""void ExtStruct.DirectCallStruct()""
-  IL_0046:  call       ""void ExtInterface.DirectCallInterface()""
-  IL_004b:  call       ""void ExtEnum.DirectCallEnum()""
-  IL_0050:  ret
+  IL_0018:  ldloca.s   V_2
+  IL_001a:  call       ""void ExtEnum.MemberEnum(ref BaseEnum)""
+  IL_001f:  call       ""void ExtClass.StaticMemberClass()""
+  IL_0024:  call       ""void ExtStaticClass.StaticMemberStaticClass()""
+  IL_0029:  call       ""void ExtStruct.StaticMemberStruct()""
+  IL_002e:  call       ""void ExtInterface.StaticMemberInterface()""
+  IL_0033:  call       ""void ExtEnum.StaticMemberEnum()""
+  IL_0038:  call       ""void ExtClass.DirectCallClass()""
+  IL_003d:  call       ""void ExtStaticClass.DirectCallStaticClass()""
+  IL_0042:  call       ""void ExtStruct.DirectCallStruct()""
+  IL_0047:  call       ""void ExtInterface.DirectCallInterface()""
+  IL_004c:  call       ""void ExtEnum.DirectCallEnum()""
+  IL_0051:  ret
 }");
         }
 
@@ -571,8 +571,7 @@ extension class ExtEnumerable : BaseEnumerable
 extension class ExtClass : BaseClass
 {
     public void Add(int x) => Console.Write(x);
-    // need new to hide *ExtClass*'s ToString method. Probably wrong to require it?
-    public new string ToString() => ""wrong""; // should never get called, as object.ToString always wins (it's a real member)
+    public string ToString() => ""wrong""; // should never get called, as object.ToString always wins (it's a real member)
     public BaseEnumerator GetEnumerator() => new BaseEnumerator();
     public BaseAwaiter GetAwaiter() => new BaseAwaiter();
 }
@@ -831,6 +830,39 @@ namespace Four
                 sources: new[] { text, text2 },
                 additionalRefs: additionalRefs,
                 expectedOutput: "1234",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void BaseDerivedStatic()
+        {
+            var text = @"
+using System;
+
+class Base { }
+class Derived : Base { }
+extension class Ext1 : Base
+{
+    public static int M() => 1;
+}
+extension class Ext2 : Derived
+{
+    public static int M() => 2;
+}
+static class Program
+{
+    static void Main()
+    {
+        Console.Write(Base.M());
+        Console.Write(Derived.M());
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "12",
                 parseOptions: parseOptions);
         }
 
@@ -1463,6 +1495,155 @@ class Program
                 //         Console.Write(obj[2]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "obj[2]").WithArguments("ExtOne.this[int]", "ExtTwo.this[int]").WithLocation(49, 23)
             );
+        }
+
+        // Not included: 'const'
+        [Theory]
+        [InlineData("public")]
+        [InlineData("protected")]
+        [InlineData("internal")]
+        [InlineData("private")]
+        [InlineData("virtual public")]
+        [InlineData("abstract public")]
+        [InlineData("new")]
+        [InlineData("override public")]
+        [InlineData("sealed override public")]
+        [InlineData("static")]
+        [InlineData("extern")]
+        [InlineData("volatile")]
+        [InlineData("readonly")]
+        [InlineData("unsafe")]
+        [InlineData("async")]
+        [InlineData("partial")]
+        public void InvalidModifiers(string modifier)
+        {
+            var text = @"
+class BaseClass
+{
+}
+
+extension class ExtClass : BaseClass
+{
+    MODIFIER void Ext() { }
+}
+";
+            text = text.Replace("MODIFIER", modifier);
+            if (modifier == "extern")
+            {
+                text = text.Replace(" { }", ";");
+            }
+            else if (modifier == "partial")
+            {
+                text = text.Replace("extension class", "extension partial class");
+                text += "extension partial class ExtClass { partial void Ext(); }";
+            }
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions);
+            switch (modifier)
+            {
+                case "public":
+                    comp.VerifyDiagnostics(
+                        );
+                    break;
+                case "internal":
+                    comp.VerifyDiagnostics(
+                        );
+                    break;
+                case "private":
+                    comp.VerifyDiagnostics(
+                        );
+                    break;
+                case "static":
+                    comp.VerifyDiagnostics(
+                        );
+                    break;
+                case "async":
+                    // only a warning, still valid to use
+                    comp.VerifyDiagnostics(
+                // (8,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async void Ext() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Ext").WithLocation(8, 16)
+                        );
+                    break;
+                case "partial":
+                    comp.VerifyDiagnostics(
+                        );
+                    break;
+                case "protected":
+                    comp.VerifyDiagnostics(
+                // (8,20): error CS1057: 'ExtClass.Ext()': static classes cannot contain protected members
+                //     protected void Ext() { }
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "Ext").WithArguments("ExtClass.Ext()").WithLocation(8, 20)
+                        );
+                    break;
+                case "unsafe":
+                    comp.VerifyDiagnostics(
+                // (8,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void Ext() { }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Ext").WithLocation(8, 17)
+                        );
+                    break;
+                case "virtual public":
+                    comp.VerifyDiagnostics(
+                // (8,25): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual public void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("virtual").WithLocation(8, 25)
+                        );
+                    break;
+                case "abstract public":
+                    comp.VerifyDiagnostics(
+                // (8,26): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract public void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("abstract").WithLocation(8, 26)
+                        );
+                    break;
+                case "new":
+                    comp.VerifyDiagnostics(
+                // (8,14): error CS0106: The modifier 'new' is not valid for this item
+                //     new void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("new").WithLocation(8, 14)
+                        );
+                    break;
+                case "override public":
+                    comp.VerifyDiagnostics(
+                // (8,26): error CS0106: The modifier 'override' is not valid for this item
+                //     override public void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("override").WithLocation(8, 26)
+                        );
+                    break;
+                case "sealed override public":
+                    comp.VerifyDiagnostics(
+                // (8,33): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed override public void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("sealed").WithLocation(8, 33),
+                // (8,33): error CS0106: The modifier 'override' is not valid for this item
+                //     sealed override public void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("override").WithLocation(8, 33)
+                        );
+                    break;
+                case "extern":
+                    comp.VerifyDiagnostics(
+                // (8,17): warning CS0626: Method, operator, or accessor 'ExtClass.Ext()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void Ext();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Ext").WithArguments("ExtClass.Ext()").WithLocation(8, 17)
+                        );
+                    break;
+                case "volatile":
+                    comp.VerifyDiagnostics(
+                // (8,19): error CS0106: The modifier 'volatile' is not valid for this item
+                //     volatile void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("volatile").WithLocation(8, 19)
+                        );
+                    break;
+                case "readonly":
+                    comp.VerifyDiagnostics(
+                // (8,19): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly void Ext() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Ext").WithArguments("readonly").WithLocation(8, 19)
+                        );
+                    break;
+                default:
+                    throw TestExceptionUtilities.UnexpectedValue(modifier);
+            };
         }
 
         // This test is essentially just testing all the places in the compiler where the TypeKind enum is switched over, or otherwise checked.
