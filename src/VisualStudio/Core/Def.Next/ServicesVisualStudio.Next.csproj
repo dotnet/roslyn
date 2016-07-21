@@ -29,6 +29,7 @@
     <Compile Include="Implementation\AsyncFindReferencesPresenter.DataSource.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.Subscription.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntry.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -70,6 +71,10 @@
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
       <Name>BasicWorkspace</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Def\ServicesVisualStudio.csproj">
+      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
+      <Name>ServicesVisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
