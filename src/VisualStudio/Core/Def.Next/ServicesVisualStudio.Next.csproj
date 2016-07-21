@@ -26,7 +26,7 @@
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="Implementation\AsyncFindReferencesPresenter.cs" />
-    <Compile Include="Implementation\AsyncFindReferencesPresenter.DataSource.cs" />
+    <Compile Include="Implementation\AsyncFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.Subscription.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntry.cs" />

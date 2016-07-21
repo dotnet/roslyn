@@ -12,18 +12,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private class Subscription : IDisposable
         {
-            private readonly CancellationTokenSource _tokenSource;
+            private readonly TableDataSourceFindReferencesContext _dataSource;
             public readonly ITableDataSink TableDataSink;
 
-            public Subscription(CancellationTokenSource tokenSource, ITableDataSink sink)
+            public Subscription(TableDataSourceFindReferencesContext dataSource, ITableDataSink sink)
             {
-                _tokenSource = tokenSource;
+                _dataSource = dataSource;
                 TableDataSink = sink;
             }
 
             public void Dispose()
             {
-                _tokenSource.Cancel();
+                _dataSource.OnSubscriptionDisposed();
             }
         }
     }

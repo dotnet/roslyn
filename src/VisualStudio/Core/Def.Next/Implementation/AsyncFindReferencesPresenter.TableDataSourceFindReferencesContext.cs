@@ -20,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal partial class AsyncFindReferencesPresenter
     {
-        private class DataSource : FindReferencesContext, ITableDataSource, ITableEntriesSnapshotFactory
+        private class TableDataSourceFindReferencesContext :
+            FindReferencesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
@@ -33,19 +34,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private TableEntriesSnapshot _lastSnapshot;
 
-            public DataSource(
+            public TableDataSourceFindReferencesContext(
                  AsyncFindReferencesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow)
             {
+                presenter.AssertIsForeground();
+
                 _presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
 
+                // If the window is closed, cancel any work we're doing.
+                _findReferencesWindow.Closed += (s, e) => CancelSearch();
+
+                // Remove any existing sources in the window.  
                 foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
                 {
                     findReferencesWindow.Manager.RemoveSource(source);
                 }
 
+                // And add ourselves as the source of results for the window.
                 findReferencesWindow.Manager.AddSource(this);
+            }
+
+            private void CancelSearch()
+            {
+                _cancellationTokenSource.Cancel();
+            }
+
+            internal void OnSubscriptionDisposed()
+            {
+                CancelSearch();
             }
 
             public override CancellationToken CancellationToken => _cancellationTokenSource.Token;
@@ -66,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public IDisposable Subscribe(ITableDataSink sink)
             {
-                var subscription = new Subscription(_cancellationTokenSource, sink);
+                var subscription = new Subscription(this, sink);
                 _subscriptions.Add(subscription);
 
                 sink.AddFactory(this, removeAllFactories: true);
@@ -130,6 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 INavigableItem definition, INavigableItem reference, Guid projectGuid)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var document = reference.Document;
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -217,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public void Dispose()
             {
-                _cancellationTokenSource.Cancel();
+                CancelSearch();
             }
 
             #endregion

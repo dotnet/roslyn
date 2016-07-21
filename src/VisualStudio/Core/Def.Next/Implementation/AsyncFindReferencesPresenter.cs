@@ -57,8 +57,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             this.AssertIsForeground();
 
+            // Get the appropriate window for FAR results to go into.
             var window = _vsFindAllReferencesService.StartSearch("");
-            var dataSource = new DataSource(this, window);
+
+            // Make the data source that will feed data into this window.
+            var dataSource = new TableDataSourceFindReferencesContext(this, window);
+
+            // And return the data source so that the FindRefs engine can report results
+            // which the data source can then create the appropriate presentation items for
+            // for the window.
             return dataSource;
         }
     }
