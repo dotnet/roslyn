@@ -156,6 +156,15 @@
     <Compile Include="CodeRefactorings\ICodeRefactoringHelpersService.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringService.cs" />
     <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.MoveTypeEditor.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.RenameTypeEditor.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.RenameFileEditor.cs" />
+    <Compile Include="CodeRefactorings\MoveType\MoveTypeCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.Editor.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.MoveTypeCodeAction.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.State.cs" />
+    <Compile Include="CodeRefactorings\MoveType\AbstractMoveTypeService.cs" />
+    <Compile Include="CodeRefactorings\MoveType\IMoveTypeService.cs" />
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
