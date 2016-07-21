@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes

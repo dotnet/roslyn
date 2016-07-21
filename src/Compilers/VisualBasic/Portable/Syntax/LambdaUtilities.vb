@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 

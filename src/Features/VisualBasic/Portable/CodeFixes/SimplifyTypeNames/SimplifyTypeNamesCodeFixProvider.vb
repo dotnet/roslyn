@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Diagnostics
 

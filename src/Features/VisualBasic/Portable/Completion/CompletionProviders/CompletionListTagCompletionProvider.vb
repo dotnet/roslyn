@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
