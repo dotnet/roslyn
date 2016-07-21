@@ -24,15 +24,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             FindReferencesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
             private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
 
             private readonly AsyncFindReferencesPresenter _presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
 
+            // Lock which protects the _entries, _lastSnapshot and _currentVersionNumber
             private readonly object _gate = new object();
-            private ImmutableList<TableEntry> _entries = ImmutableList<TableEntry>.Empty;
 
+            private readonly Dictionary<INavigableItem, Task<RoslynDefinitionBucket>> _definitionToBucketTask =
+                new Dictionary<INavigableItem, Task<RoslynDefinitionBucket>>();
+
+            private ImmutableList<ReferenceEntry> _referenceEntries = ImmutableList<ReferenceEntry>.Empty;
             private TableEntriesSnapshot _lastSnapshot;
+            public int CurrentVersionNumber { get; private set; }
 
             public TableDataSourceFindReferencesContext(
                  AsyncFindReferencesPresenter presenter,
@@ -80,8 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// </summary>
             public string SourceTypeIdentifier => "FindAllReferencesProvider";
 
-            public int CurrentVersionNumber { get; private set; }
-
             public IDisposable Subscribe(ITableDataSink sink)
             {
                 var subscription = new Subscription(this, sink);
@@ -114,18 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public async override void OnReferenceFound(INavigableItem definition, INavigableItem reference)
             {
-                var workspace = reference.Document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace == null)
-                {
-                    return;
-                }
-
-                var projectGuid = workspace.GetHostProject(reference.Document.Project.Id)?.Guid;
-                if (projectGuid == null)
-                {
-                    return;
-                }
-
                 try
                 {
                     // We're told about this reference synchronously, but we need to get the 
@@ -136,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // know so that it doesn't verify results until this completes.
                     using (var token = _presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
-                        await OnReferenceFoundAsync(definition, reference, projectGuid.Value).ConfigureAwait(false);
+                        await OnReferenceFoundAsync(definition, reference).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -145,16 +137,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             private async Task OnReferenceFoundAsync(
-                INavigableItem definition, INavigableItem reference, Guid projectGuid)
+                INavigableItem definition, INavigableItem referenceItem)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var document = reference.Document;
+                // First find the bucket corresponding to our definition. If we can't find/create 
+                // one, then don't do anything for this reference.
+                var definitionBucket = await GetOrCreateDefinitionBucketAsync(
+                    definition, cancellationToken).ConfigureAwait(false);
+                if (definitionBucket == null)
+                {
+                    return;
+                }
+
+                // Now make the underlying data object for the reference.
+                var entryData = await this.TryCreateNavigableItemEntryData(
+                    referenceItem, displayGlyph: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var referenceEntry = new ReferenceEntry(definitionBucket, referenceItem, entryData);
+
+                lock (_gate)
+                {
+                    // Once we can make the new entry, add it to our list.
+                    _referenceEntries = _referenceEntries.Add(referenceEntry);
+                    CurrentVersionNumber++;
+                }
+
+                // Let all our subscriptions know that we've updated.
+                NotifySinksOfChangedVersion();
+            }
+
+            private async Task<NavigableItemEntryData> TryCreateNavigableItemEntryData(
+                INavigableItem item, bool displayGlyph, CancellationToken cancellationToken)
+            {
+                var document = item.Document;
+
+                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+                if (workspace == null)
+                {
+                    return null;
+                }
+
+                var projectGuid = workspace.GetHostProject(document.Project.Id)?.Guid;
+                if (projectGuid == null)
+                {
+                    return null;
+                }
+
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var referenceSpan = reference.SourceSpan;
+                var referenceSpan = item.SourceSpan;
                 var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
 
                 var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
@@ -164,19 +197,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                     semanticModel, span, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
 
+                return new NavigableItemEntryData(
+                    _presenter, item, projectGuid.Value, sourceText, classifiedLineParts, displayGlyph);
+            }
+
+            private Task<RoslynDefinitionBucket> GetOrCreateDefinitionBucketAsync(
+                INavigableItem definition, CancellationToken cancellationToken)
+            {
                 lock (_gate)
                 {
-                    // Once we can make the new entry, add it to our list.
-                    var entry = new TableEntry(
-                        _presenter,
-                        definition, reference, projectGuid,
-                        sourceText, classifiedLineParts);
-                    _entries = _entries.Add(entry);
-                    CurrentVersionNumber++;
+                    Task<RoslynDefinitionBucket> bucketTask;
+                    if (!_definitionToBucketTask.TryGetValue(definition, out bucketTask))
+                    {
+                        bucketTask = CreateDefinitionBucketAsync(definition, cancellationToken);
+                        _definitionToBucketTask.Add(definition, bucketTask);
+                    }
+
+                    return bucketTask;
+                }
+            }
+
+            private async Task<RoslynDefinitionBucket> CreateDefinitionBucketAsync(
+                INavigableItem definitionItem, CancellationToken cancellationToken)
+            {
+                var entryData = await TryCreateNavigableItemEntryData(
+                    definitionItem, displayGlyph: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (entryData == null)
+                {
+                    return null;
                 }
 
-                // Let all our subscriptions know that we've updated.
-                NotifySinksOfChangedVersion();
+                return new RoslynDefinitionBucket(this, definitionItem, entryData);
             }
 
             private void NotifySinksOfChangedVersion()
@@ -206,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        _lastSnapshot = new TableEntriesSnapshot(_entries, CurrentVersionNumber);
+                        _lastSnapshot = new TableEntriesSnapshot(_referenceEntries, CurrentVersionNumber);
                     }
 
                     return _lastSnapshot;
@@ -234,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
             }
 
-            public void Dispose()
+            void IDisposable.Dispose()
             {
                 CancelSearch();
             }

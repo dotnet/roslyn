@@ -13,38 +13,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private class TableEntriesSnapshot : ITableEntriesSnapshot
         {
             public int VersionNumber { get; }
-            private readonly ImmutableList<TableEntry> _entries;
+            private readonly ImmutableList<ReferenceEntry> _referenceEntries;
 
-            public TableEntriesSnapshot(ImmutableList<TableEntry> entries, int versionNumber)
+            public TableEntriesSnapshot(ImmutableList<ReferenceEntry> referenceEntries, int versionNumber)
             {
-                _entries = entries;
+                _referenceEntries = referenceEntries;
                 VersionNumber = versionNumber;
             }
 
-            public int Count => _entries.Count;
+            int ITableEntriesSnapshot.Count => _referenceEntries.Count;
 
-            public void Dispose()
+            void IDisposable.Dispose()
             {
             }
 
-            public int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
+            int ITableEntriesSnapshot.IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
             {
                 // We only add items to the end of our list, and we never reorder.
                 // As such, any index in us will map to the same index in any newer snapshot.
                 return currentIndex;
             }
 
-            public void StartCaching()
+            void ITableEntriesSnapshot.StartCaching()
             {
             }
 
-            public void StopCaching()
+            void ITableEntriesSnapshot.StopCaching()
             {
             }
 
-            public bool TryGetValue(int index, string keyName, out object content)
+            bool ITableEntriesSnapshot.TryGetValue(int index, string keyName, out object content)
             {
-                return _entries[index].TryGetValue(keyName, out content);
+                return _referenceEntries[index].TryGetValue(keyName, out content);
             }
         }
     }

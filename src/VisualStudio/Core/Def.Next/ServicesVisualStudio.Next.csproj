@@ -26,10 +26,12 @@
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="Implementation\AsyncFindReferencesPresenter.cs" />
+    <Compile Include="Implementation\AsyncFindReferencesPresenter.DefinitionEntry.cs" />
+    <Compile Include="Implementation\AsyncFindReferencesPresenter.NavigableItemEntry.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.Subscription.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntriesSnapshot.cs" />
-    <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntry.cs" />
+    <Compile Include="Implementation\AsyncFindReferencesPresenter.ReferenceEntry.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
