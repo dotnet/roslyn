@@ -76,22 +76,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var cancellationToken = waitContext.CancellationToken;
 
             var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndSolution != null)
+            if (symbolAndSolution == null)
             {
-                var symbol = symbolAndSolution.Item1;
-                var solution = symbolAndSolution.Item2;
-
-                var displayName = symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
-
-                waitContext.Message = string.Format(
-                    EditorFeaturesResources.Finding_references_of_0, displayName);
-
-                var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-
-                return Tuple.Create(result, solution);
+                return null;
             }
 
-            return null;
+            var symbol = symbolAndSolution.Item1;
+            var solution = symbolAndSolution.Item2;
+
+            var displayName = symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
+
+            waitContext.Message = string.Format(
+                EditorFeaturesResources.Finding_references_of_0, displayName);
+
+            var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+
+            return Tuple.Create(result, solution);
         }
 
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
