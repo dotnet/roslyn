@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal partial class AsyncFindReferencesPresenter
+    internal partial class StreamingFindReferencesPresenter
     {
         private class ReferenceEntry
         {

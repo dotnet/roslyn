@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
                     SpecializedCollections.SingletonEnumerable(findReferencesPresenter),
-                    SpecializedCollections.EmptyEnumerable<IAsyncFindReferencesPresenter>(),
+                    SpecializedCollections.EmptyEnumerable<IStreamingFindReferencesPresenter>(),
                     workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var textView = workspace.Documents[0].GetTextView();

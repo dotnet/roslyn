@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal partial class AsyncFindReferencesPresenter
+    internal partial class StreamingFindReferencesPresenter
     {
         /// <summary>
         /// Stores and provides access to data that is common to navigable items (whether they are
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class NavigableItemEntryData
         {
-            private readonly AsyncFindReferencesPresenter _presenter;
+            private readonly StreamingFindReferencesPresenter _presenter;
 
             private readonly INavigableItem _item;
             private readonly object _boxedProjectGuid;
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly bool _displayGlyph;
 
             public NavigableItemEntryData(
-                AsyncFindReferencesPresenter presenter,
+                StreamingFindReferencesPresenter presenter,
                 INavigableItem item,
                 Guid projectGuid,
                 SourceText sourceText,

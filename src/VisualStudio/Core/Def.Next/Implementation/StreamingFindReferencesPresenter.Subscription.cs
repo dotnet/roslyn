@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal partial class AsyncFindReferencesPresenter
+    internal partial class StreamingFindReferencesPresenter
     {
         private class Subscription : IDisposable
         {

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<IReferencedSymbolsPresenter> _synchronousPresenters;
-        private readonly IEnumerable<IAsyncFindReferencesPresenter> _asynchronousPresenters;
+        private readonly IEnumerable<IStreamingFindReferencesPresenter> _streamingPresenters;
 
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<IReferencedSymbolsPresenter> synchronousPresenters,
-            [ImportMany] IEnumerable<IAsyncFindReferencesPresenter> asynchronousPresenters,
+            [ImportMany] IEnumerable<IStreamingFindReferencesPresenter> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(synchronousPresenters);
-            Contract.ThrowIfNull(asynchronousPresenters);
+            Contract.ThrowIfNull(streamingPresenters);
 
             _waitIndicator = waitIndicator;
             _synchronousPresenters = synchronousPresenters;
-            _asynchronousPresenters = asynchronousPresenters;
+            _streamingPresenters = streamingPresenters;
             _asyncListener = new AggregateAsynchronousOperationListener(
                 asyncListeners, FeatureAttribute.FindReferences);
         }
@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 var streamingService = document?.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
                 var synchronousService = document?.Project.LanguageServices.GetService<IFindReferencesService>();
 
-                var asyncPresenter = _asynchronousPresenters.FirstOrDefault();
+                var asyncPresenter = _streamingPresenters.FirstOrDefault();
 
                 if (streamingService != null && asyncPresenter != null)
                 {
-                    AsyncFindReferences(document, streamingService, asyncPresenter, caretPosition);
+                    StreamingFindReferences(document, streamingService, asyncPresenter, caretPosition);
                     return;
                 }
                 else if (synchronousService != null)
@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             nextHandler();
         }
 
-        private async void AsyncFindReferences(
+        private async void StreamingFindReferences(
             Document document, IStreamingFindReferencesService service,
-            IAsyncFindReferencesPresenter presenter, int caretPosition)
+            IStreamingFindReferencesPresenter presenter, int caretPosition)
         {
-            using (var token = _asyncListener.BeginAsyncOperation(nameof(AsyncFindReferences)))
+            using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
             {
                 var context = presenter.StartSearch();
                 await service.FindReferencesAsync(document, caretPosition, presenter.StartSearch()).ConfigureAwait(false);

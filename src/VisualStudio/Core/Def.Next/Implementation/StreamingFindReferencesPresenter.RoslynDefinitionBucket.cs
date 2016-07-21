@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal partial class AsyncFindReferencesPresenter
+    internal partial class StreamingFindReferencesPresenter
     {
         private class RoslynDefinitionBucket : DefinitionBucket
         {

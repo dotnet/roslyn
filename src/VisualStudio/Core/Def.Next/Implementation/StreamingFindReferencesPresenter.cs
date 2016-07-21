@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [Export(typeof(IAsyncFindReferencesPresenter)), Shared]
-    internal partial class AsyncFindReferencesPresenter :
-        ForegroundThreadAffinitizedObject, IAsyncFindReferencesPresenter
+    [Export(typeof(IStreamingFindReferencesPresenter)), Shared]
+    internal partial class StreamingFindReferencesPresenter :
+        ForegroundThreadAffinitizedObject, IStreamingFindReferencesPresenter
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
 
         [ImportingConstructor]
-        public AsyncFindReferencesPresenter(
+        public StreamingFindReferencesPresenter(
             Shell.SVsServiceProvider serviceProvider,
             ITextBufferFactoryService textBufferFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,

@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal partial class AsyncFindReferencesPresenter
+    internal partial class StreamingFindReferencesPresenter
     {
         private class TableDataSourceFindReferencesContext :
             FindReferencesContext, ITableDataSource, ITableEntriesSnapshotFactory
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
 
-            private readonly AsyncFindReferencesPresenter _presenter;
+            private readonly StreamingFindReferencesPresenter _presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
 
             // Lock which protects _definitionToBucketTask, _entries, _lastSnapshot and _currentVersionNumber
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public int CurrentVersionNumber { get; private set; }
 
             public TableDataSourceFindReferencesContext(
-                 AsyncFindReferencesPresenter presenter,
+                 StreamingFindReferencesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow)
             {
                 presenter.AssertIsForeground();
