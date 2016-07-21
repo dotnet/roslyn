@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         public SourceDefinitionTreeItem(Document document, TextSpan sourceSpan, ISymbol symbol, ushort glyphIndex)
             : base(document, sourceSpan, glyphIndex)
         {
-            _symbolDisplay = symbol.ToDisplayString(definitionDisplayFormat);
+            _symbolDisplay = symbol.ToDisplayString(DefinitionDisplayFormat);
             this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay}";
 
             _canGoToDefinition = symbol.Kind != SymbolKind.Namespace;

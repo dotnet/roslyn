@@ -30,9 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly AsyncFindReferencesPresenter _presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
 
-            // Lock which protects the _entries, _lastSnapshot and _currentVersionNumber
+            // Lock which protects _definitionToBucketTask, _entries, _lastSnapshot and _currentVersionNumber
             private readonly object _gate = new object();
 
+            /// <summary>
+            /// We will hear about the same definition over and over again.  i.e. for each reference 
+            /// to a definition, we will be told about the same definition.  However, we only want to
+            /// create a single actual <see cref="DefinitionBucket"/> for the definition. To accomplish
+            /// this we keep a map from the definition to the task that we're using to create the 
+            /// bucket for it.  The first time we hear about a definition we'll make a single task
+            /// and then always return that for all future references found.
+            /// </summary>
             private readonly Dictionary<INavigableItem, Task<RoslynDefinitionBucket>> _definitionToBucketTask =
                 new Dictionary<INavigableItem, Task<RoslynDefinitionBucket>>();
 
@@ -121,8 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 try
                 {
                     // We're told about this reference synchronously, but we need to get the 
-                    // SourceText for the reference's Document so that we can determine things
-                    // like it's line/column/text.  We don't want to block this method getting
+                    // SourceText for the definition/reference's Document so that we can determine 
+                    // things like it's line/column/text.  We don't want to block this method getting
                     // that data, so instead we just fire off the async work to get the text
                     // and use it.  Because we're starting some async work, let the test harness
                     // know so that it doesn't verify results until this completes.
@@ -172,6 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 var document = item.Document;
 
+                // The FAR system needs to know the guid for the project that a def/reference is 
+                // from.  So we only support this for documents from a VSWorkspace.
                 var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
                 if (workspace == null)
                 {

@@ -16,6 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal partial class AsyncFindReferencesPresenter
     {
+        /// <summary>
+        /// Stores and provides access to data that is common to navigable items (whether they are
+        /// references or definitions).
+        /// </summary>
         private class NavigableItemEntryData
         {
             private readonly AsyncFindReferencesPresenter _presenter;
