@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         int IVsReportExternalErrors.AddNewErrors(IVsEnumExternalErrors pErrors)
         {
-            if (_externalErrorReporter != null)
+            if (ExternalErrorReporter != null)
             {
-                return _externalErrorReporter.AddNewErrors(pErrors);
+                return ExternalErrorReporter.AddNewErrors(pErrors);
             }
 
             return VSConstants.E_NOTIMPL;
@@ -21,9 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsReportExternalErrors.ClearAllErrors()
         {
-            if (_externalErrorReporter != null)
+            if (ExternalErrorReporter != null)
             {
-                return _externalErrorReporter.ClearAllErrors();
+                return ExternalErrorReporter.ClearAllErrors();
             }
 
             return VSConstants.E_NOTIMPL;
@@ -36,9 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsLanguageServiceBuildErrorReporter2.ClearErrors()
         {
-            if (_externalErrorReporter != null)
+            if (ExternalErrorReporter != null)
             {
-                return ((IVsLanguageServiceBuildErrorReporter2)_externalErrorReporter).ClearErrors();
+                return ((IVsLanguageServiceBuildErrorReporter2)ExternalErrorReporter).ClearErrors();
             }
 
             return VSConstants.E_NOTIMPL;
@@ -47,9 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors pErrors)
         {
             pErrors = null;
-            if (_externalErrorReporter != null)
+            if (ExternalErrorReporter != null)
             {
-                return _externalErrorReporter.GetErrors(out pErrors);
+                return ExternalErrorReporter.GetErrors(out pErrors);
             }
 
             return VSConstants.E_NOTIMPL;
@@ -68,9 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             int iColumn,
             string bstrFileName)
         {
-            if (_externalErrorReporter != null)
+            if (ExternalErrorReporter != null)
             {
-                return ((IVsLanguageServiceBuildErrorReporter2)_externalErrorReporter).ReportError(
+                return ((IVsLanguageServiceBuildErrorReporter2)ExternalErrorReporter).ReportError(
                     bstrErrorMessage,
                     bstrErrorId,
                     nPriority,
@@ -92,9 +92,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             int iEndColumn,
             string bstrFileName)
         {
-            if (_externalErrorReporter != null)
+            if (ExternalErrorReporter != null)
             {
-                ((IVsLanguageServiceBuildErrorReporter2)_externalErrorReporter).ReportError2(
+                ((IVsLanguageServiceBuildErrorReporter2)ExternalErrorReporter).ReportError2(
                     bstrErrorMessage,
                     bstrErrorId,
                     nPriority,

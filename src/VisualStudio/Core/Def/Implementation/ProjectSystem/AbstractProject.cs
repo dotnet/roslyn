@@ -28,12 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         internal static object RuleSetErrorId = new object();
 
-        private readonly ProjectId _id;
-        private readonly string _language;
-        private readonly IVsHierarchy _hierarchyDoNotAccessDirectly;
-        private readonly VersionStamp _version;
-        private readonly string _projectSystemName;
-
         /// <summary>
         /// The path to the project file itself. This is intentionally kept private, to avoid having to deal with people who
         /// want the file path without realizing they need to deal with renames. If you need the folder of the project, just
@@ -41,30 +35,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private string _filePathOpt;
 
-        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceOpt;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IVsReportExternalErrors _externalErrorReporter;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
-
-        internal readonly IServiceProvider ServiceProvider;
-        protected readonly VisualStudioProjectTracker ProjectTracker;
-        protected readonly IVsRunningDocumentTable4 RunningDocumentTable;
-
         private string _objOutputPathOpt;
         private string _binOutputPathOpt;
 
-        private string _assemblyName;
-
-        private CompilationOptions _compilationOptions;
-        private ParseOptions _parseOptions;
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
         private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _documents = new Dictionary<DocumentId, IVisualStudioHostDocument>();
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        protected IRuleSetFile ruleSet = null;
-
+        
         /// <summary>
         /// The list of files which have been added to the project but we aren't tracking since they
         /// aren't real source files. Sometimes we're asked to add silly things like HTML files or XAML
@@ -86,8 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly EventHandler<bool> s_additionalDocumentOpenedEventHandler = OnAdditionalDocumentOpened;
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
-
-        internal VsENCRebuildableProjectImpl EditAndContinueImplOpt;
 
         private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.ErrorReadingRulesetId,
@@ -112,43 +90,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfNull(projectSystemName);
 
-            this.ServiceProvider = serviceProvider;
-
-            _language = language;
-            _hierarchyDoNotAccessDirectly = hierarchy;
-
-            // Proejct Guid
+            ServiceProvider = serviceProvider;
+            Language = language;
+            Hierarchy = hierarchy;
             Guid = projectGuid;
-
-            // Project type guid string
             ProjectType = projectTypeGuid;
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            _contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
+            ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
 
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this.DisplayName = projectSystemName;
             this.ProjectTracker = projectTracker;
 
-            _projectSystemName = projectSystemName;
-            _visualStudioWorkspaceOpt = visualStudioWorkspaceOpt;
-            _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSourceOpt;
+            ProjectSystemName = projectSystemName;
+            Workspace = visualStudioWorkspaceOpt;
+            HostDiagnosticUpdateSource = hostDiagnosticUpdateSourceOpt;
 
             UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
 
             if (_filePathOpt != null)
             {
-                _version = VersionStamp.Create(File.GetLastWriteTimeUtc(_filePathOpt));
+                Version = VersionStamp.Create(File.GetLastWriteTimeUtc(_filePathOpt));
             }
             else
             {
-                _version = VersionStamp.Create();
+                Version = VersionStamp.Create();
             }
 
-            _id = this.ProjectTracker.GetOrCreateProjectIdForPath(_filePathOpt ?? _projectSystemName, _projectSystemName);
+            Id = this.ProjectTracker.GetOrCreateProjectIdForPath(_filePathOpt ?? ProjectSystemName, ProjectSystemName);
             if (reportExternalErrorCreatorOpt != null)
             {
-                _externalErrorReporter = reportExternalErrorCreatorOpt(_id);
+                ExternalErrorReporter = reportExternalErrorCreatorOpt(Id);
             }
 
             if (visualStudioWorkspaceOpt != null)
@@ -157,6 +130,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal IServiceProvider ServiceProvider { get; }
+        
         /// <summary>
         /// Indicates whether this project is a website type.
         /// </summary>
@@ -172,15 +147,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string TryGetBinOutputPath() => _binOutputPathOpt;
 
-        internal IRuleSetFile RuleSetFile => this.ruleSet;
+        public IRuleSetFile RuleSetFile { get; private set; }
 
-        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource => _hostDiagnosticUpdateSourceOpt;
+        protected VisualStudioProjectTracker ProjectTracker { get; }
 
-        public ProjectId Id => _id;
+        protected IVsRunningDocumentTable4 RunningDocumentTable { get; }
 
-        public string Language => _language;
+        protected IVsReportExternalErrors ExternalErrorReporter { get; }
 
-        public IVsHierarchy Hierarchy => _hierarchyDoNotAccessDirectly;
+        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+
+        public ProjectId Id { get; }
+
+        public string Language { get; }
+
+        public IVsHierarchy Hierarchy { get; }
 
         /// <summary>
         /// Guid of the project
@@ -192,11 +173,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// string (Guid) of the Hierarchy project type
         /// </summary>
-        public string ProjectType { get; protected set;}
+        public string ProjectType { get; protected set; }
 
-        public Workspace Workspace => _visualStudioWorkspaceOpt;
+        public Workspace Workspace { get; }
 
-        public VersionStamp Version => _version;
+        public VersionStamp Version { get; }
 
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
@@ -226,7 +207,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// between multiple projects, especially in cases like Venus where the intellisense
         /// projects will match the name of their logical parent project.
         /// </summary>
-        public string DisplayName { get; private set; }
+        public string DisplayName { get; protected set; }
+
+        internal string AssemblyName { get; private set; }
 
         /// <summary>
         /// The name of the project according to the project system. In "regular" projects this is
@@ -235,30 +218,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// matches the display name of the project the user actually sees in the solution explorer.
         /// These can be assumed to be unique within the Visual Studio workspace.
         /// </summary>
-        public string ProjectSystemName
-        {
-            get { return _projectSystemName; }
-        }
+        public string ProjectSystemName { get; }
 
-        protected DocumentProvider DocumentProvider
-        {
-            get { return this.ProjectTracker.DocumentProvider; }
-        }
+        protected DocumentProvider DocumentProvider => this.ProjectTracker.DocumentProvider;
 
-        protected VisualStudioMetadataReferenceManager MetadataReferenceProvider
-        {
-            get { return this.ProjectTracker.MetadataReferenceProvider; }
-        }
+        protected VisualStudioMetadataReferenceManager MetadataReferenceProvider => this.ProjectTracker.MetadataReferenceProvider;
 
-        protected IContentTypeRegistryService ContentTypeRegistryService
-        {
-            get { return _contentTypeRegistryService; }
-        }
+        protected IContentTypeRegistryService ContentTypeRegistryService { get; }
 
         /// <summary>
         /// Flag indicating if the design time build has succeeded for current project state.
         /// </summary>
         protected abstract bool DesignTimeBuildStatus { get; }
+
+        internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
         /// <summary>
         /// Override this method to validate references when creating <see cref="ProjectInfo"/> for current state.
@@ -276,12 +249,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Id,
                 this.Version,
                 this.DisplayName,
-                _assemblyName ?? this.ProjectSystemName,
+                AssemblyName ?? this.ProjectSystemName,
                 this.Language,
                 filePath: _filePathOpt,
                 outputFilePath: this.TryGetObjOutputPath(),
-                compilationOptions: _compilationOptions,
-                parseOptions: _parseOptions,
+                compilationOptions: CurrentCompilationOptions,
+                parseOptions: CurrentParseOptions,
                 documents: _documents.Values.Select(d => d.GetInitialState()),
                 metadataReferences: _metadataReferences.Select(r => r.CurrentSnapshot),
                 projectReferences: _projectReferences,
@@ -382,8 +355,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _analyzers.ContainsKey(fullPath);
         }
 
-        protected CompilationOptions CurrentCompilationOptions => _compilationOptions;
-        protected ParseOptions CurrentParseOptions => _parseOptions;
+        protected CompilationOptions CurrentCompilationOptions { get; private set; }
+        protected ParseOptions CurrentParseOptions { get; private set; }
 
         /// <summary>
         /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.
@@ -410,12 +383,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetOptions(CompilationOptions compilationOptions, ParseOptions parseOptions)
         {
-            _compilationOptions = compilationOptions;
-            _parseOptions = parseOptions;
+            CurrentCompilationOptions = compilationOptions;
+            CurrentParseOptions = parseOptions;
 
             if (_pushingChangesToWorkspaceHosts)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(_id, compilationOptions, parseOptions));
+                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(Id, compilationOptions, parseOptions));
             }
         }
 
@@ -920,7 +893,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public virtual void Disconnect()
         {
-            using (_visualStudioWorkspaceOpt?.Services.GetService<IGlobalOperationNotificationService>()?.Start("Disconnect Project"))
+            using (Workspace?.Services.GetService<IGlobalOperationNotificationService>()?.Start("Disconnect Project"))
             {
                 var wasPushing = _pushingChangesToWorkspaceHosts;
 
@@ -951,16 +924,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Make sure we clear out any external errors left when closing the project.
-                if (_externalErrorReporter != null)
-                {
-                    _externalErrorReporter.ClearAllErrors();
-                }
+                ExternalErrorReporter?.ClearAllErrors();
 
                 // Make sure we clear out any host errors left when closing the project.
-                if (_hostDiagnosticUpdateSourceOpt != null)
-                {
-                    _hostDiagnosticUpdateSourceOpt.ClearAllDiagnosticsForProject(this.Id);
-                }
+                HostDiagnosticUpdateSource?.ClearAllDiagnosticsForProject(this.Id);
 
                 ClearAnalyzerRuleSet();
 
@@ -1162,7 +1129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Workspace can be null for tests.
                 if (this.Workspace != null)
                 {
-                    _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
+                    CurrentCompilationOptions = CurrentCompilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
                         metadataService: this.Workspace.Services.GetService<IMetadataService>(),
                         projectDirectory: this.ContainingDirectoryPathOpt,
                         outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
@@ -1170,7 +1137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_pushingChangesToWorkspaceHosts)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, _compilationOptions, _parseOptions));
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, CurrentCompilationOptions, CurrentParseOptions));
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOutputFilePathChanged(this.Id, _objOutputPathOpt));
                 }
             }
@@ -1179,13 +1146,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // we use designTimeOutputPath to get assembly name since it is more reliable way to get the assembly name.
             // otherwise, friend assembly all get messed up.
             var newAssemblyName = GetAssemblyName(_objOutputPathOpt ?? this.ProjectSystemName);
-            if (!string.Equals(_assemblyName, newAssemblyName, StringComparison.Ordinal))
+            if (!string.Equals(AssemblyName, newAssemblyName, StringComparison.Ordinal))
             {
-                _assemblyName = newAssemblyName;
+                AssemblyName = newAssemblyName;
 
                 if (_pushingChangesToWorkspaceHosts)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAssemblyNameChanged(this.Id, _assemblyName));
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAssemblyNameChanged(this.Id, AssemblyName));
                 }
             }
 
@@ -1244,7 +1211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (updateMade && _pushingChangesToWorkspaceHosts)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectNameChanged(_id, this.DisplayName, _filePathOpt));
+                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectNameChanged(Id, this.DisplayName, _filePathOpt));
             }
         }
 

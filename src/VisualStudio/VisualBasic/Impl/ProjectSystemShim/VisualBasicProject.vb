@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -383,7 +384,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Protected Overrides Function GetCompilationOptions(newParseOptions As ParseOptions) As CompilationOptions
             Dim baseCompilationOptions = DirectCast(MyBase.GetCompilationOptions(newParseOptions), VisualBasicCompilationOptions)
             Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, Me.ruleSet)
+            Return VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
         End Function
 
         Protected Overrides Function GetParseOptions() As ParseOptions

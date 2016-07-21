@@ -7,14 +7,16 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
     [Export(typeof(IProjectContextFactory))]
-    internal partial class ProjectContextFactory : IProjectContextFactory
+    internal partial class CPSProjectFactory : IProjectContextFactory
     {
         private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IServiceProvider _serviceProvider;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             });
 
         [ImportingConstructor]
-        public ProjectContextFactory(
+        public CPSProjectFactory(
             VisualStudioProjectTracker projectTracker,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspace,
@@ -43,24 +45,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         // internal for testing purposes only.
-        internal static IProjectContext CreateProjectShim(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, string language, Guid projectGuid, string projectTypeGuid, CommandLineArguments commandLineArguments)
+        internal static CPSProject CreateCPSProject(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, string language, Guid projectGuid, string projectTypeGuid, CommandLineArguments commandLineArguments)
         {
-            return new ProjectContext(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
+            return new CPSProject(commandLineArguments, projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
                 serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null, projectDisplayName: projectDisplayName,
                 projectFilePath: projectFilePath, projectGuid: projectGuid, projectTypeGuid: projectTypeGuid);
         }
 
-        IProjectContext IProjectContextFactory.CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, string projectTypeGuid, object hostObject, CommandLineArguments commandLineArguments)
+        IProjectContext IProjectContextFactory.CreateProjectContext(
+            string languageName,
+            string projectDisplayName,
+            string projectFilePath,
+            Guid projectGuid,
+            string projectTypeGuid,
+            IVsHierarchy hierarchy,
+            CommandLineArguments commandLineArguments)
         {
-            var vsHierarchy = hostObject as IVsHierarchy;
-            if (vsHierarchy != null)
-            {
-                Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
-                return new ProjectContext(commandLineArguments, _projectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
-                    projectGuid, projectTypeGuid, vsHierarchy, languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource);
-            }
+            Contract.ThrowIfNull(hierarchy);
 
-            return null;
+            Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
+            return new CPSProject(commandLineArguments, _projectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
+                projectGuid, projectTypeGuid, hierarchy, languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource);
         }
 
         private IVsReportExternalErrors GetExternalErrorReporter(ProjectId projectId, string languageName)

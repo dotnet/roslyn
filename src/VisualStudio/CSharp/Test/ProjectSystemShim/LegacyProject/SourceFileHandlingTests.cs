@@ -5,9 +5,9 @@ using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framew
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
+namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
-    public partial class SourceFileHandlingTests
+    public class SourceFileHandlingTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]

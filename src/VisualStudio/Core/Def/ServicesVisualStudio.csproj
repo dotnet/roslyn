@@ -89,11 +89,11 @@
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
-    <Compile Include="Implementation\ProjectSystem\LegacyProjectSystem\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
-    <Compile Include="Implementation\ProjectSystem\LegacyProjectSystem\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\ProjectContextFactory.ProjectContext.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\ProjectContextFactory.ProjectContext_IProjectContext.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\ProjectContextFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProject_IProjectContext.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProjectFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IProjectContextFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IProjectContext.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_Options.cs" />
@@ -101,7 +101,7 @@
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkspaceHost2.cs" />
-    <Compile Include="Implementation\ProjectSystem\LegacyProjectSystem\AbstractLegacyProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
@@ -407,7 +407,7 @@
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractListItemFactory.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_ListItems.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\SymbolListItem`1.cs" />
-    <Compile Include="Implementation\ProjectSystem\LegacyProjectSystem\AbstractLegacyProject_IVsHierarchyEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IVsHierarchyEvents.cs" />
     <Compile Include="Implementation\ProjectSystem\LinkedFileUtilities.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\IRuleSetFile.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManager.cs" />

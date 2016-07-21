@@ -7,19 +7,23 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 using VSLangProj;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
+    /// <summary>
+    /// Base type for legacy C# and VB project system shim implementations.
+    /// These legachy shims are based on legacy project system interfaces defined in csproj/msvbprj.
+    /// </summary>
     internal abstract partial class AbstractLegacyProject : AbstractProject
     {
+        private string _lastParsedCompilerOptions;
+
         public AbstractLegacyProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -44,6 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ConnectHierarchyEvents();
 
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
+
+            SetCompilerOptions(string.Empty);
         }
 
         public override void Disconnect()
@@ -62,10 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
         {
-            return TryGetOutputPathFromBuildManager(Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath);
+            return TryGetOutputPathFromHierarchy(Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath);
         }
 
-        private static bool TryGetOutputPathFromBuildManager(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)
+        private static bool TryGetOutputPathFromHierarchy(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)
         {
             binOutputPath = null;
 
@@ -101,29 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static string GetProjectDisplayName(IVsHierarchy hierarchy)
         {
-            string newDisplayName;
-            return TryGetProjectDisplayName(hierarchy, out newDisplayName) ? newDisplayName : null;
+            string name;
+            return hierarchy.TryGetName(out name) ? name : null;
         }
 
         private static string GetProjectFilePath(IVsHierarchy hierarchy)
         {
             string filePath;
             return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out filePath)) ? filePath : null;
-        }
-
-        /// <summary>
-        /// Returns a display name for the given project.
-        /// </summary>
-        private static bool TryGetProjectDisplayName(IVsHierarchy hierarchy, out string name)
-        {
-            name = null;
-
-            if (!hierarchy.TryGetName(out name))
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private static string GetProjectType(IVsHierarchy hierarchy)

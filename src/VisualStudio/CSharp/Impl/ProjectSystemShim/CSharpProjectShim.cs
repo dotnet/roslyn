@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -98,17 +99,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // Get options from the ruleset file, if any, first. That way project-specific
             // options can override them.
             ReportDiagnostic? ruleSetGeneralDiagnosticOption = null;
-            if (this.ruleSet != null)
+            if (this.RuleSetFile != null)
             {
-                ruleSetGeneralDiagnosticOption = this.ruleSet.GetGeneralDiagnosticOption();
-                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.ruleSet.GetSpecificDiagnosticOptions());
+                ruleSetGeneralDiagnosticOption = this.RuleSetFile.GetGeneralDiagnosticOption();
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.RuleSetFile.GetSpecificDiagnosticOptions());
             }
             else
             {
                 ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             }
 
-            UpdateRuleSetError(ruleSet);
+            UpdateRuleSetError(this.RuleSetFile);
 
             ReportDiagnostic generalDiagnosticOption;
             var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);

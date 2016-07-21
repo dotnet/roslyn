@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
     internal partial class AbstractLegacyProject : IIntellisenseBuildTarget
     {

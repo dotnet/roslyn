@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -33,19 +33,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 hostDiagnosticUpdateSourceOpt: null);
         }
 
-        public static IProjectContext CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)
+        public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)
         {
             return CreateCSharpCPSProject(environment, projectName, projectGuid: Guid.Empty, projectTypeGuid: Guid.Empty.ToString(), commandLineArguments: commandLineArguments);
         }
 
-        public static IProjectContext CreateCSharpCPSProject(TestEnvironment environment, string projectName, Guid projectGuid, string projectTypeGuid, params string[] commandLineArguments)
+        public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, Guid projectGuid, string projectTypeGuid, params string[] commandLineArguments)
         {
             var tempPath = Path.GetTempPath();
             var projectFilePath = Path.Combine(tempPath, projectName);
             var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
             var parsedArguments = GetParsedCommandLineArguments(hierarchy, commandLineArguments);
 
-            return ProjectContextFactory.CreateProjectShim(
+            return CPSProjectFactory.CreateCPSProject(
                 environment.ProjectTracker,
                 environment.ServiceProvider,
                 hierarchy,
@@ -57,10 +57,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 parsedArguments);
         }
 
-        public static void SetCommandLineArguments(IProjectContext cpsProject, params string[] commandLineArguments)
+        public static void SetCommandLineArguments(CPSProject project, params string[] commandLineArguments)
         {
-            var parsedArguments = GetParsedCommandLineArguments(((AbstractProject)cpsProject).Hierarchy, commandLineArguments);
-            cpsProject.SetCommandLineArguments(parsedArguments);
+            var parsedArguments = GetParsedCommandLineArguments(project.Hierarchy, commandLineArguments);
+            project.SetCommandLineArguments(parsedArguments);
         }
 
         private static CommandLineArguments GetParsedCommandLineArguments(IVsHierarchy hierarchy, string[] commandLineArguments)
@@ -69,7 +69,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             string outputPath = Path.GetTempPath();
             foreach (var arg in commandLineArguments)
             {
-                var outPrefix = "out:";
+                const string outPrefix = "out:";
                 var index = arg.IndexOf(outPrefix);
                 if (index > 0)
                 {

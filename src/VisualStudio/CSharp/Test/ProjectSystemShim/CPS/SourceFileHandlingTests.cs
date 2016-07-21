@@ -1,17 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
+namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
-    using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
     using static CSharpHelpers;
 
-    public partial class SourceFileHandlingTests
+    public class SourceFileHandlingTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
@@ -19,17 +17,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             using (var environment = new TestEnvironment())
             {
-                var cpsProject = CreateCSharpCPSProject(environment, "project1");
-                var project = (AbstractProject)cpsProject;
+                var project = CreateCSharpCPSProject(environment, "project1");
                 Assert.Empty(project.GetCurrentDocuments());
 
                 // Add source file
                 var sourceFileFullPath = @"c:\source.cs";
-                cpsProject.AddSourceFile(sourceFileFullPath);
+                project.AddSourceFile(sourceFileFullPath);
                 Assert.True(project.GetCurrentDocuments().Any(s => s.FilePath == sourceFileFullPath));
 
                 // Remove source file
-                cpsProject.RemoveSourceFile(sourceFileFullPath);
+                project.RemoveSourceFile(sourceFileFullPath);
                 Assert.Empty(project.GetCurrentDocuments());
 
                 project.Disconnect();
@@ -42,17 +39,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             using (var environment = new TestEnvironment())
             {
-                var project = (AbstractProject)CreateCSharpCPSProject(environment, "project1");
-                var analyzerHost = (IAnalyzerHost)project;
+                var project = CreateCSharpCPSProject(environment, "project1");
                 Assert.Empty(project.GetCurrentAdditionalDocuments());
 
                 // Add additional file
                 var additionalFileFullPath = @"c:\source.cs";
-                analyzerHost.AddAdditionalFile(additionalFileFullPath);
+                project.AddAdditionalFile(additionalFileFullPath);
                 Assert.True(project.GetCurrentAdditionalDocuments().Any(s => s.FilePath == additionalFileFullPath));
 
                 // Remove additional file
-                analyzerHost.RemoveAdditionalFile(additionalFileFullPath);
+                project.RemoveAdditionalFile(additionalFileFullPath);
                 Assert.Empty(project.GetCurrentAdditionalDocuments());
 
                 project.Disconnect();

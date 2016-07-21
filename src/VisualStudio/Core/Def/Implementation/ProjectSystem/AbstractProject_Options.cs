@@ -12,44 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal abstract partial class AbstractProject
     {
-        private string _lastParsedCompilerOptions;
-        private CommandLineArguments _lastParsedCommandLineArguments;
-
-        /// <summary>
-        /// Returns the parsed command line arguments (parsed by <see cref="ParseCommandLineArguments"/>) that were set by the project
-        /// system's call to <see cref="ICompilerOptionsHostObject.SetCompilerOptions(string, out bool)"/>.
-        /// </summary>
-        protected CommandLineArguments GetParsedCommandLineArguments()
-        {
-            if (_lastParsedCommandLineArguments == null)
-            {
-                // We don't have any yet, so let's parse nothing
-                _lastParsedCompilerOptions = string.Empty;
-                _lastParsedCommandLineArguments = ParseCommandLineArguments(SpecializedCollections.EmptyEnumerable<string>());
-            }
-
-            return _lastParsedCommandLineArguments;
-        }
-
-        protected abstract CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments);
-
-        protected void SetCommandLineArguments(string commandLine)
-        {
-            if (string.Equals(_lastParsedCompilerOptions, commandLine, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
-            var commandLineArguments = ParseCommandLineArguments(splitArguments);
-            _lastParsedCompilerOptions = commandLine;
-
-            SetCommandLineArguments(commandLineArguments);
-        }
+        protected CommandLineArguments ParsedCommandLineArguments { get; private set; }
 
         protected void SetCommandLineArguments(CommandLineArguments commandLineArguments)
         {
-            _lastParsedCommandLineArguments = commandLineArguments;
+            ParsedCommandLineArguments = commandLineArguments;
             UpdateOptions();
         }
 
@@ -62,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            this.UpdateRuleSetError(this.ruleSet);
+            this.UpdateRuleSetError(this.RuleSetFile);
             this.SetOptions(compilationOptions, parseOptions);
             this.PostSetOptions();
         }
@@ -80,8 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected virtual CompilationOptions GetCompilationOptions(ParseOptions newParseOptions)
         {
+            Contract.ThrowIfNull(ParsedCommandLineArguments);
+
             // Get options from command line arguments.
-            var options = GetParsedCommandLineArguments().CompilationOptions;
+            var options = ParsedCommandLineArguments.CompilationOptions;
 
             // Now set the default workspace options (these are not set by the command line parser).
             string projectDirectory = this.ContainingDirectoryPathOpt;
@@ -124,11 +93,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected virtual ParseOptions GetParseOptions()
         {
-            var parsedArguments = GetParsedCommandLineArguments();
-            
+            Contract.ThrowIfNull(ParsedCommandLineArguments);
+
             // Override the default documentation mode.
-            var documentationMode = parsedArguments.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;
-            return parsedArguments.ParseOptions.WithDocumentationMode(documentationMode);
+            var documentationMode = ParsedCommandLineArguments.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;
+            return ParsedCommandLineArguments.ParseOptions.WithDocumentationMode(documentationMode);
         }
     }
 }

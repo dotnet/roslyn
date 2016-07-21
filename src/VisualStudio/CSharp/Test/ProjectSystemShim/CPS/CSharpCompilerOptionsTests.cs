@@ -1,19 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
+namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
-    public partial class CSharpCompilerOptionsTests : TestBase
+    public class CSharpCompilerOptionsTests : TestBase
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
@@ -69,27 +68,26 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             using (var environment = new TestEnvironment())
             {
                 var initialBinPath = @"C:\test.dll";
-                var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", $"/out:{initialBinPath}");
-                var project = (AbstractProject)cpsProject;
-
+                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", $"/out:{initialBinPath}");
+                
                 Assert.Equal(initialBinPath, project.TryGetBinOutputPath());
                 Assert.Equal(initialBinPath, project.TryGetObjOutputPath());
 
                 // Change output folder.
                 var newBinPath = @"C:\NewFolder\test.dll";
-                CSharpHelpers.SetCommandLineArguments(cpsProject, $"/out:{newBinPath}");
+                CSharpHelpers.SetCommandLineArguments(project, $"/out:{newBinPath}");
                 Assert.Equal(newBinPath, project.TryGetBinOutputPath());
                 Assert.Equal(newBinPath, project.TryGetObjOutputPath());
 
                 // Change output file name.
                 newBinPath = @"C:\NewFolder\test2.dll";
-                CSharpHelpers.SetCommandLineArguments(cpsProject, $"/out:{newBinPath}");
+                CSharpHelpers.SetCommandLineArguments(project, $"/out:{newBinPath}");
                 Assert.Equal(newBinPath, project.TryGetBinOutputPath());
                 Assert.Equal(newBinPath, project.TryGetObjOutputPath());
 
                 // Change output file name and folder.
                 newBinPath = @"C:\NewFolder3\test3.dll";
-                CSharpHelpers.SetCommandLineArguments(cpsProject, $"/out:{newBinPath}");
+                CSharpHelpers.SetCommandLineArguments(project, $"/out:{newBinPath}");
                 Assert.Equal(newBinPath, project.TryGetBinOutputPath());
                 Assert.Equal(newBinPath, project.TryGetObjOutputPath());
             }
@@ -103,19 +101,18 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             {
                 var initialGuid = new Guid();
                 var intialProjectType = new Guid().ToString();
-                var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", initialGuid, intialProjectType);
-                var project = (AbstractProject)cpsProject;
-
-                Assert.Equal(initialGuid, project.Guid);
-                Assert.Equal(intialProjectType, project.ProjectType);
+                var projectContext = (IProjectContext)CSharpHelpers.CreateCSharpCPSProject(environment, "Test", initialGuid, intialProjectType);
+                
+                Assert.Equal(initialGuid, projectContext.Guid);
+                Assert.Equal(intialProjectType, projectContext.ProjectType);
 
                 var newGuid = new Guid();
-                cpsProject.SetProjectGuid(newGuid);
-                Assert.Equal(newGuid, project.Guid);
+                projectContext.Guid = newGuid;
+                Assert.Equal(newGuid, projectContext.Guid);
 
                 var newProjectTypeGuid = new Guid().ToString();
-                cpsProject.SetProjectTypeGuid(newProjectTypeGuid);
-                Assert.Equal(newProjectTypeGuid, project.ProjectType);
+                projectContext.ProjectType = newProjectTypeGuid;
+                Assert.Equal(newProjectTypeGuid, projectContext.ProjectType);
             }
         }
 
@@ -125,15 +122,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             using (var environment = new TestEnvironment())
             {
-                var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
-                Assert.Equal("Test", cpsProject.DisplayName);
-                var initialProjectFilePath = cpsProject.ProjectFilePath;
+                var project = (IProjectContext)CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+                Assert.Equal("Test", project.DisplayName);
+                var initialProjectFilePath = project.ProjectFilePath;
 
                 var newProjectDisplayName = "Test2";
-                cpsProject.SetProjectDisplayName(newProjectDisplayName);
+                project.DisplayName = newProjectDisplayName;
 
-                Assert.Equal(newProjectDisplayName, cpsProject.DisplayName);
-                Assert.Equal(initialProjectFilePath, cpsProject.ProjectFilePath);
+                Assert.Equal(newProjectDisplayName, project.DisplayName);
+                Assert.Equal(initialProjectFilePath, project.ProjectFilePath);
             }
         }
 
@@ -143,10 +140,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             using (var environment = new TestEnvironment())
             {
-                var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+                var project = (IProjectContext)CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
                 
-                var initialProjectDisplayName = cpsProject.DisplayName;
-                var initialProjectFilePath = cpsProject.ProjectFilePath;
+                var initialProjectDisplayName = project.DisplayName;
+                var initialProjectFilePath = project.ProjectFilePath;
                 var newFilePath = Temp.CreateFile().Path;
                 var extension = PathUtilities.GetExtension(initialProjectFilePath);
                 if (!string.IsNullOrEmpty(extension))
@@ -154,10 +151,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                     newFilePath = PathUtilities.ChangeExtension(newFilePath, extension);
                 }
 
-                cpsProject.SetProjectFilePath(newFilePath);
+                project.ProjectFilePath = newFilePath;
 
-                Assert.Equal(newFilePath, cpsProject.ProjectFilePath);
-                Assert.Equal(initialProjectDisplayName, cpsProject.DisplayName);
+                Assert.Equal(newFilePath, project.ProjectFilePath);
+                Assert.Equal(initialProjectDisplayName, project.DisplayName);
 
                 SharedResourceHelpers.CleanupAllGeneratedFiles(newFilePath);
             }

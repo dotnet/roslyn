@@ -1,18 +1,38 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
+namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
-    public partial class AnalyzersTests
+    public class AnalyzersTests
     {
+        private sealed class DisposableFile : IDisposable
+        {
+            private readonly string _filePath;
+
+            public DisposableFile()
+            {
+                _filePath = System.IO.Path.GetTempFileName();
+            }
+
+            public void Dispose()
+            {
+                File.Delete(_filePath);
+            }
+
+            public string Path
+            {
+                get { return _filePath; }
+            }
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_GeneralOption_CPS()
@@ -27,8 +47,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             {
                 File.WriteAllText(ruleSetFile.Path, ruleSetSource);
 
-                var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
-                var project = (AbstractProject)cpsProject;
+                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
                 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
@@ -36,7 +55,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
                 project.SetRuleSetFile(ruleSetFile.Path);
-                CSharpHelpers.SetCommandLineArguments(cpsProject, commandLineArguments: $"/ruleset:{ruleSetFile.Path}");
+                CSharpHelpers.SetCommandLineArguments(project, commandLineArguments: $"/ruleset:{ruleSetFile.Path}");
 
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
@@ -63,11 +82,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             {
                 File.WriteAllText(ruleSetFile.Path, ruleSetSource);
 
-                var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
-                var project = (AbstractProject)cpsProject;
+                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
 
                 project.SetRuleSetFile(ruleSetFile.Path);
-                CSharpHelpers.SetCommandLineArguments(cpsProject, commandLineArguments: $"/ruleset:{ruleSetFile.Path}");
+                CSharpHelpers.SetCommandLineArguments(project, commandLineArguments: $"/ruleset:{ruleSetFile.Path}");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;

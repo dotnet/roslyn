@@ -4,13 +4,19 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
+    /// <summary>
+    /// Project context to initialize properties and items of a Workspace project created with <see cref="IProjectContextFactory.CreateProjectContext(string, string, string, Guid, string, Shell.Interop.IVsHierarchy, CommandLineArguments)"/>. 
+    /// </summary>
     internal interface IProjectContext
     {
+        // Project properties.
         ProjectId Id { get; }
-        string DisplayName { get; }
-        string ProjectFilePath { get; }
+        string DisplayName { get; set; }
+        string ProjectFilePath { get; set; }
+        Guid Guid { get; set; }
+        string ProjectType { get; set; }
 
         // Options.
         void SetCommandLineArguments(CommandLineArguments commandLineArguments);
@@ -18,17 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
         void RemoveMetadataReference(string referencePath);
-        void AddProjectReference(ProjectId projectId, MetadataReferenceProperties properties);
-        void RemoveProjectReference(ProjectId projectId);
+        void AddProjectReference(IProjectContext project, MetadataReferenceProperties properties);
+        void RemoveProjectReference(IProjectContext project);
 
         // Source files.
         void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
-
-        // Project property changes.
-        void SetProjectGuid(Guid guid);
-        void SetProjectTypeGuid(string projectTypeGuid);
-        void SetProjectDisplayName(string projectDisplayName);
-        void SetProjectFilePath(string projectFilePath);
     }
 }

@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
     internal partial class AbstractLegacyProject : IVsHierarchyEvents
     {
