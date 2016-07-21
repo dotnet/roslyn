@@ -31,6 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             _externalReferencesProviders = externalReferencesProviders;
         }
 
+        /// <summary>
+        /// Common helper for both the synchronous and streaming versions of FAR. 
+        /// It returns the symbol we want to search for and the solution we should
+        /// be searching.
+        /// 
+        /// Note that the <see cref="Solution"/> returned may absolutely *not* be
+        /// the same as <code>document.Project.Solution</code>.  This is because 
+        /// there may be symbol mapping involved (for example in Metadata-As-Source
+        /// scenarios).
+        /// </summary>
         private async Task<Tuple<ISymbol, Solution>> GetRelevantSymbolAndSolutionAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
@@ -174,13 +184,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Find the symbol we want to search and the solution we want to search in.
             var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;
 
-            var result = await SymbolFinder.FindReferencesAsync(
+            // Now call into the underlying FAR engine to find reference.  The FAR
+            // engine will push results into the 'progress' instance passed into it.
+            // We'll take those results, massage them, and forward them along to the 
+            // FindReferencesContext instance we were given.
+            await SymbolFinder.FindReferencesAsync(
                 symbol,
                 solution,
                 progress: new ProgressAdapter(solution, context),
