@@ -59,14 +59,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 var streamingService = document?.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
                 var synchronousService = document?.Project.LanguageServices.GetService<IFindReferencesService>();
 
-                var asyncPresenter = _streamingPresenters.FirstOrDefault();
+                var streamingPresenter = _streamingPresenters.FirstOrDefault();
 
-                if (streamingService != null && asyncPresenter != null)
+                // See if we're running on a host that can provide streaming results.
+                // We'll both need a FAR service that can stream results to us, and 
+                // a presenter that can accept streamed results.
+                if (streamingService != null && streamingPresenter != null)
                 {
-                    StreamingFindReferences(document, streamingService, asyncPresenter, caretPosition);
+                    StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
                     return;
                 }
-                else if (synchronousService != null)
+
+                // Otherwise, either the language doesn't support streaming results,
+                // or the host has no way to present results in a sreaming manner.
+                // Fall back to the old non-streaming approach to finding and presenting 
+                // results.
+                if (synchronousService != null)
                 {
                     FindReferences(document, synchronousService, caretPosition);
                     return;
