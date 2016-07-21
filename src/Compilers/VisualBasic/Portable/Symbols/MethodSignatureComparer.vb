@@ -613,13 +613,7 @@ Done:
 
 
                         Else
-                            ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
-                            ' However, the only way to know the current compilation at this point is to pass it into every method
-                            ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
-                            ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
-                            ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
-                            ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
-                            ' between referencing a source assembly and referencing the corresponding metadata assembly).
+
                             Dim AreValuesMismatched As Boolean
                             If param1.HasExplicitDefaultValue Then
                                 AreValuesMismatched = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, ConstantValue.Nothing)
@@ -630,14 +624,21 @@ Done:
                                 AreValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, ConstantValue.Nothing)
 
                             End If
-                            If AreValuesMismatched Then
-                                Dim comp1 = param1.DeclaringCompilation
+                            'If AreValuesMismatched Then
+                            ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
+                            ' However, the only way to know the current compilation at this point is to pass it into every method
+                            ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
+                            ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
+                            ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
+                            ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
+                            ' between referencing a source assembly and referencing the corresponding metadata assembly).
+                            Dim comp1 = param1.DeclaringCompilation
                                 Dim comp2 = param2.DeclaringCompilation
-                                Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing AndAlso comp1 Is comp2)
-                                optionalParameterMismatch = AreValuesMismatched OrElse Not areDeclaringCompilationsMatched
-                            Else
-                                optionalParameterMismatch = AreValuesMismatched
-                            End If
+                                Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing AndAlso comp2 IsNot Nothing AndAlso comp1 Is comp2)
+                                optionalParameterMismatch = areDeclaringCompilationsMatched
+                            'Else
+                            optionalParameterMismatch = AreValuesMismatched
+                            'End If
 
                         End If
 

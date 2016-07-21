@@ -7985,7 +7985,10 @@ DERIVED: f(x As Integer, Optional y As String = "")
 
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters2_B()
-
+            Dim useOpts = _ImplicitDefaultOptionalParameter_
+            If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
+            End If
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -8038,7 +8041,7 @@ BASE1: f(x As Integer, Optional y As String = "")
 DERIVED: f(x As Integer, Optional y As Integer)
 DERIVED: f(x As Integer, Optional y As Integer)
 DERIVED: f(x As Integer, Optional y As String = "")
-]]>)
+]]>, parseOptions:=useOpts)
         End Sub
 
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
