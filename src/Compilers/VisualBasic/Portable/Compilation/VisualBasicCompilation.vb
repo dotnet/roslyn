@@ -2670,12 +2670,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
-            Dim options = DirectCast(Me.SyntaxTrees.First().Options, VisualBasicParseOptions)
-            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
-            If IOperationFeatureFlag IsNot Nothing Then
-                Return options.Features.ContainsKey(IOperationFeatureFlag)
+            Dim tree = Me.SyntaxTrees.FirstOrDefault()
+            If tree Is Nothing Then
+                Return False
             End If
-            Return False
+
+            Dim options = DirectCast(tree.Options, VisualBasicParseOptions)
+            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
+
+            Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
 #End Region
 

@@ -72,19 +72,21 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.Compilation.IsIOperationFeatureEnabled())
+            if (!this.Compilation.IsIOperationFeatureEnabled())
             {
-                try
-                {
-                    return GetOperationCore(node, cancellationToken);
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                    // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                }
-                return null;
+                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
             }
-            throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+
+            try
+            {
+                return GetOperationCore(node, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
+            }
+
+            return null;
         }
 
         internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
@@ -97,6 +99,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
             }
+
             return null;
         }
 

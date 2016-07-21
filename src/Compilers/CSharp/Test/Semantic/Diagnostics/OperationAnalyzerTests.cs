@@ -1906,7 +1906,7 @@ public class A
 }
 
 ";
-            // with IOperation disabled (by default)
+            // with IOperation disabled (by default), public methods
             CreateCompilationWithMscorlib45(source)
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer1() }, null, null, true,
                 Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer1", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
@@ -1919,8 +1919,7 @@ public class A
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer3() }, null, null, true,
                 Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer3", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
 
-            // internal methods
-            /*
+            // with IOperation disabled (by default), internal methods
             CreateCompilationWithMscorlib45(source)
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer1Internal() }, null, null, true,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer1Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
@@ -1928,12 +1927,12 @@ public class A
             CreateCompilationWithMscorlib45(source)
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer2Internal() }, null, null, true,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer2Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
-                */
+
             CreateCompilationWithMscorlib45(source)
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer3Internal() }, null, null, true,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer3Internal.GetOperationInternalDescriptor.Id, "1").WithLocation(6, 17));
 
-            // with IOperation enabled
+            // with IOperation enabled, public methods
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer1() }, null, null, true,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer1.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
@@ -1946,7 +1945,7 @@ public class A
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer3() }, null, null, true,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer3.GetOperationDescriptor.Id, "1").WithLocation(6, 17));
 
-            // internal methods
+            // with IOperation enabled, internal methods
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer1Internal() }, null, null, true,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer1Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));

@@ -2124,6 +2124,7 @@ End Class
                              </file>
                          </compilation>
 
+            ' with IOperation disabled (by default), public methods
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer1}, Nothing, Nothing, True,
                 Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer1", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
@@ -2136,6 +2137,20 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer3}, Nothing, Nothing, True,
                 Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer3", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
 
+            ' with IOperation disabled (by default), internal methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer1Internal}, Nothing, Nothing, False,
+                Diagnostic(IOperationFeatureFlagTestAnalyzer1Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer2Internal}, Nothing, Nothing, False,
+                Diagnostic(IOperationFeatureFlagTestAnalyzer2Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer3Internal}, Nothing, Nothing, False,
+                Diagnostic(IOperationFeatureFlagTestAnalyzer3Internal.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
+
+            ' with IOperation enabled, public methods
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer1}, Nothing, Nothing, False,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer1.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
@@ -2147,6 +2162,19 @@ End Class
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer3}, Nothing, Nothing, False,
                 Diagnostic(IOperationFeatureFlagTestAnalyzer3.GetOperationDescriptor.Id, "1").WithLocation(3, 17))
+
+            ' with IOperation enabled, internal methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer1Internal}, Nothing, Nothing, False,
+                Diagnostic(IOperationFeatureFlagTestAnalyzer1Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer2Internal}, Nothing, Nothing, False,
+                Diagnostic(IOperationFeatureFlagTestAnalyzer2Internal.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New IOperationFeatureFlagTestAnalyzer3Internal}, Nothing, Nothing, False,
+                Diagnostic(IOperationFeatureFlagTestAnalyzer3Internal.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
         End Sub
     End Class
 End Namespace
