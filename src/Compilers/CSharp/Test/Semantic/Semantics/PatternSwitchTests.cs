@@ -686,7 +686,7 @@ null";
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12316")]
+        [Fact]
         public void CascadedUnreachableDiagnostic()
         {
             var source =
@@ -711,9 +711,12 @@ null";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
+                // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
@@ -1082,7 +1085,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01: // duplicate
@@ -1150,7 +1153,7 @@ class Program
         return BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(double.NaN) ^ x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: s_patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"zero
