@@ -94,25 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             return null;
         }
 
-        /// <summary>
-        /// Finds references using <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/>
-        /// </summary>
-        private async Task AddSymbolReferencesAsync(Document document, int position, ArrayBuilder<INavigableItem> builder, IWaitContext waitContext)
-        {
-            var result = await this.FindReferencedSymbolsAsync(document, position, waitContext).ConfigureAwait(false);
-            if (result != null)
-            {
-                var referencedSymbols = result.Item1;
-                var searchSolution = result.Item2;
-
-                var q = from r in referencedSymbols
-                        from loc in r.Locations
-                        select NavigableItemFactory.GetItemFromSymbolLocation(searchSolution, r.Definition, loc.Location);
-
-                builder.AddRange(q);
-            }
-        }
-
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;

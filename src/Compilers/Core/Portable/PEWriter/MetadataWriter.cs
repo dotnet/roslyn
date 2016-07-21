@@ -1899,10 +1899,17 @@ namespace Microsoft.Cci
             this.AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
 
             // this.AddCustomAttributesToTable(this.typeRefList, 2);
-            this.AddCustomAttributesToTable(GetTypeDefs(), def => GetTypeDefinitionHandle(def));
+            var typeDefs = GetTypeDefs();
+            this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
             this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // TODO: attributes on interface implementation entries 5
+            // Attributes on interface implementation entries 5
+            foreach (ITypeDefinition typeDef in typeDefs)
+            {
+                var interfaceImpls = typeDef.Interfaces(Context);
+                this.AddCustomAttributesToTable(interfaceImpls);
+            }
+
             // TODO: attributes on member reference entries 6
             if (this.IsFullMetadata)
             {
@@ -2020,6 +2027,19 @@ namespace Microsoft.Cci
                 foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
                 {
                     AddCustomAttributeToTable(parentHandle, customAttribute);
+                }
+            }
+        }
+
+        private void AddCustomAttributesToTable(
+            IEnumerable<InterfaceImplementation> interfaces)
+        {
+            foreach (var iface in interfaces)
+            {
+                var ifaceHandle = GetTypeHandle(iface.Interface);
+                foreach (var customAttribute in iface.Attributes)
+                {
+                    AddCustomAttributeToTable(ifaceHandle, customAttribute);
                 }
             }
         }
@@ -2360,11 +2380,11 @@ namespace Microsoft.Cci
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
             {
                 var typeDefHandle = GetTypeDefinitionHandle(typeDef);
-                foreach (ITypeReference interfaceRef in typeDef.Interfaces(Context))
+                foreach (var interfaceImpl in typeDef.Interfaces(Context))
                 {
                     metadata.AddInterfaceImplementation(
                         type: typeDefHandle,
-                        implementedInterface: GetTypeHandle(interfaceRef));
+                        implementedInterface: GetTypeHandle(interfaceImpl.Interface));
                 }
             }
         }

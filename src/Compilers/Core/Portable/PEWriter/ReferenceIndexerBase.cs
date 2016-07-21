@@ -269,7 +269,12 @@ namespace Microsoft.Cci
                 this.Visit(typeDefinition.SecurityAttributes);
             }
 
-            this.VisitTypeReferencesThatNeedTokens(typeDefinition.Interfaces(Context));
+            foreach (var ifaceImpl in typeDefinition.Interfaces(Context))
+            {
+                this.Visit(ifaceImpl.Attributes);
+                this.VisitTypeReferencesThatNeedTokens(ifaceImpl.Interface);
+            }
+
             if (typeDefinition.IsGeneric)
             {
                 this.Visit(typeDefinition.GenericParameters);

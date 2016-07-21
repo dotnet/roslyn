@@ -1,5 +1,7 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "RoslynDependencies.Microsoft.VisualStudio.CodeAnalysis.Sdk.UI": "14.3.25420"
+  },
   "frameworks": {
     "net46": {}
   }

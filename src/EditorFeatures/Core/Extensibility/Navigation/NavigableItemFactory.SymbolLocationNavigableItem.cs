@@ -31,13 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
 
             public string DisplayString => _displayString;
 
-            public Glyph Glyph
-            {
-                get
-                {
-                    return _symbol.GetGlyph();
-                }
-            }
+            public Glyph Glyph => _symbol.GetGlyph();
+
+            public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
 
             public Document Document
             {
@@ -47,13 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 }
             }
 
-            public TextSpan SourceSpan
-            {
-                get
-                {
-                    return _location.SourceSpan;
-                }
-            }
+            public TextSpan SourceSpan => _location.SourceSpan;
 
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
         }
