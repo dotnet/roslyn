@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             service.DiagnosticsUpdated += (s, a) => Assert.Empty(a.Diagnostics);
 
             // now call each analyze method. none of them should run.
-            await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
             // wait for all events to raised
             await listener.CreateWaitTask().ConfigureAwait(false);
@@ -74,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
 
             // now call each analyze method. none of them should run.
-            await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
             // wait for all events to raised
             await listener.CreateWaitTask().ConfigureAwait(false);

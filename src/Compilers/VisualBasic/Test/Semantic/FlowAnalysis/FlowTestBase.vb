@@ -25,8 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 If sourceSymbol Is Nothing OrElse method.IsPartialWithoutImplementation Then
                     Continue For
                 End If
-                Dim boundBody = sourceSymbol.GetBoundMethodBody(New DiagnosticBag())
+                Dim compilationState As New TypeCompilationState(compilation, Nothing, initializeComponentOpt:=Nothing)
+                Dim boundBody = sourceSymbol.GetBoundMethodBody(compilationState, New DiagnosticBag())
                 FlowAnalysisPass.Analyze(sourceSymbol, boundBody, diagnostics)
+
+                Debug.Assert(Not compilationState.HasSynthesizedMethods)
             Next
             Return diagnostics.ToReadOnlyAndFree()
         End Function

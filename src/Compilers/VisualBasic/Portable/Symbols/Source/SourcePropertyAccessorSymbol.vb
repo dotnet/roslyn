@@ -464,13 +464,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SourceParameterFlags.ByVal
         End Function
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Debug.Assert(Not m_property.IsMustOverride)
 
             If m_property.IsAutoProperty Then
                 Return SynthesizedPropertyAccessorBase(Of PropertySymbol).GetBoundMethodBody(Me, m_property.AssociatedField, methodBodyBinder)
             Else
-                Return MyBase.GetBoundMethodBody(diagnostics, methodBodyBinder)
+                Return MyBase.GetBoundMethodBody(compilationState, diagnostics, methodBodyBinder)
             End If
         End Function
 

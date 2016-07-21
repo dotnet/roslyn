@@ -75,6 +75,10 @@ namespace Microsoft.CodeAnalysis
             {
                 return _builder.Count;
             }
+            set
+            {
+                _builder.Count = value;
+            }
         }
 
         public T this[int index]

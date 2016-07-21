@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             private readonly Cache _cache = new Cache();
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
             /// Only sends data to the telemetry service when one of the collected data points changes, 
             /// not necessarily every time this code is called.
             /// </remarks>
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!semanticsChanged)
                 {
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
