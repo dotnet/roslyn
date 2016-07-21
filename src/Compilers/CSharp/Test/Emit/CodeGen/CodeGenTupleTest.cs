@@ -4492,33 +4492,190 @@ class C
 {
     static void Main()
     {
-        (dynamic, dynamic) t = (1, 2);
-        System.Console.WriteLine(t);
+        (dynamic, dynamic) d1 = (1, 1); // implicit to dynamic
+        System.Console.WriteLine(d1);
 
-        t = M();
-        System.Console.WriteLine(t);
+        (dynamic, dynamic) d2 = M();
+        System.Console.WriteLine(d2);
 
-        (int, int) t2 = (3, 4);
-        t = t2;
-        System.Console.WriteLine(t);
+        (int, int) t3 = (3, 3);
+        (dynamic, dynamic) d3 = t3;
+        System.Console.WriteLine(d3);
 
-        (int, int) t3 = (5, 6);
-        t = ((dynamic, dynamic))t3;
-        System.Console.WriteLine(t);
+        (int, int) t4 = (4, 4);
+        (dynamic, dynamic) d4 = ((dynamic, dynamic))t4; // explicit to dynamic
+        System.Console.WriteLine(d4);
+
+        dynamic d5 = 5;
+        (int, int) t5 = (d5, d5); // implicit from dynamic
+        System.Console.WriteLine(t5);
+
+        (dynamic, dynamic) d6 = (6, 6);
+        (int, int) t6 = ((int, int))d6; // explicit from dynamic
+        System.Console.WriteLine(t6);
+
+        (dynamic, dynamic) d7;
+        (int, int) t7 = (7, 7);
+        d7 = t7;
+        System.Console.WriteLine(d7);
     }
     static (dynamic, dynamic) M()
     {
-        return (""hello"", ""world"");
+        return (2, 2);
     }
 }
 ";
             string expectedOutput =
-@"(1, 2)
-(hello, world)
-(3, 4)
-(5, 6)
+@"(1, 1)
+(2, 2)
+(3, 3)
+(4, 4)
+(5, 5)
+(6, 6)
+(7, 7)
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(12082, "https://github.com/dotnet/roslyn/issues/12082")]
+        public void TupleWithDynamic2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (dynamic, dynamic) d = (1, 1);
+        (int, int) t = d;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0266: Cannot implicitly convert type '(dynamic, dynamic)' to '(int, int)'. An explicit conversion exists (are you missing a cast?)
+                //         (int, int) t = d;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d").WithArguments("(dynamic, dynamic)", "(int, int)").WithLocation(7, 24)
+                );
+        }
+
+        [Fact]
+        public void TupleWithDynamic3()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        dynamic longTuple = (a: 2, b: 2, c: 2, d: 2, e: 2, f: 2, g: 2, h: 2, i: 2);
+        System.Console.Write($""Item1: {longTuple.Item1}  Rest: {longTuple.Rest}"");
+
+        try
+        {
+            System.Console.Write(longTuple.a);
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        try
+        {
+            System.Console.Write(longTuple.i);
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        try
+        {
+            System.Console.Write(longTuple.Item9);
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "Item1: 2  Rest: (2, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics( );
+        }
+
+        [Fact]
+        public void TupleWithDynamic4()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        dynamic x = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        M(x);
+    }
+
+    public static void M((int a, int, int, int, int, int, int, int h, int i) t)
+    {
+        System.Console.Write($""a:{t.a}, h:{t.h}, i:{t.i}, Item9:{t.Item9}, Rest:{t.Rest}"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "a:1, h:8, i:9, Item9:9, Rest:(8, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleWithDynamic5()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        dynamic d = (1, 2);
+        try
+        {
+            (string, string) t = d;
+            System.Console.Write(""unreachable"");
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) {}
+
+        System.Console.Write(""done"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "done", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleWithDynamic6()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        (int, int) t1 = (1, 1);
+        M(t1, ""int"");
+
+        (byte, byte) t2 = (2, 2);
+        M(t2, ""byte"");
+
+        (dynamic, dynamic) t3 = (3, 3);
+        M(t3, ""dynamic"");
+
+        (string, string) t4 = (""4"", ""4"");
+        M(t4, ""string"");
+    }
+
+    public static void M((int, int) t, string type) { System.Console.WriteLine($""int overload with value {t} and type {type}""); }
+    public static void M((dynamic, dynamic) t, string type) { System.Console.WriteLine($""dynamic overload with value {t} and type {type}""); }
+}
+";
+            string expectedOutput =
+@"int overload with value (1, 1) and type int
+int overload with value (2, 2) and type byte
+dynamic overload with value (3, 3) and type dynamic
+dynamic overload with value (4, 4) and type string";
+
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -12583,6 +12740,41 @@ class C
         }
 
         [Fact]
+        public void TupleWithDynamicInSeparateCompilations()
+        {
+            var lib_cs = @"
+public class C
+{
+    public static (dynamic, dynamic) M((dynamic, dynamic) x)
+    {
+        return x;
+    }
+}
+";
+
+            var source = @"
+class D
+{
+    static void Main()
+    {
+        var x = C.M((1, ""hello""));
+        x.Item1.DynamicMethod1();
+        x.Item2.DynamicMethod2();
+    }
+}
+";
+
+            var libComp = CreateCompilationWithMscorlib(lib_cs, assemblyName: "lib", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            libComp.VerifyDiagnostics();
+
+            var comp1 = CreateCompilationWithMscorlib(source, references: new[] { libComp.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            comp1.VerifyDiagnostics();
+
+            var comp2 = CreateCompilationWithMscorlib(source, references: new[] { libComp.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            comp2.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LiteralsAndAmbiguousVT_01()
         {
@@ -14925,7 +15117,6 @@ class Derived : Base
 
             // Metadata
             var comp4 = CreateCompilationWithMscorlib45(source2, references: new[] { comp2.EmitToImageReference() });
-
             comp4.VerifyDiagnostics();
         }
     }
