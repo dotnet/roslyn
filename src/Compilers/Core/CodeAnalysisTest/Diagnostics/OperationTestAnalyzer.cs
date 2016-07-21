@@ -2126,6 +2126,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    // This analyzer is to test internal operation action registration method in AnalysisContext
+    public class IOperationFeatureFlagTestAnalyzer1Internal : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
+            "OperationAction1Internal",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionInternalDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationActionInternal(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(
+                        Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "Analysis"));
+                },
+                OperationKind.LiteralExpression);
+        }
+    }
+
     // This analyzer is to test operation action registration method in CompilationStartAnalysisContext
     public class IOperationFeatureFlagTestAnalyzer2 : DiagnosticAnalyzer
     {
@@ -2152,6 +2180,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                             operationContext.ReportDiagnostic(
                                 Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
+                        },
+                        OperationKind.LiteralExpression);
+                });
+        }
+    }
+
+    // This analyzer is to test internal operation action registration method in CompilationStartAnalysisContext
+    public class IOperationFeatureFlagTestAnalyzer2Internal : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
+            "OperationAction2Internal",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionInternalDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(
+                (compilationStartContext) =>
+                {
+                    compilationStartContext.RegisterOperationActionInternal(
+                        (operationContext) =>
+                        {
+                            operationContext.ReportDiagnostic(
+                                Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
                         },
                         OperationKind.LiteralExpression);
                 });
@@ -2198,6 +2258,52 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     if (model.GetOperation(node) != null)
                     {
                         syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
+        }
+    }
+
+    // This analyzer is to test GetOperationInternal method in SemanticModel
+    public class IOperationFeatureFlagTestAnalyzer3Internal : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+
+        public static readonly DiagnosticDescriptor GetOperationInternalDescriptor = new DiagnosticDescriptor(
+            "GetOperationInternal",
+            "An IOperation is returned by SemanticModel",
+            "An IOperation is returned by SemanticModel.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(GetOperationInternalDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperationInternal(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression);
+
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperationInternal(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
                     }
                 },
                 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
