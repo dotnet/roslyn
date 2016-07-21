@@ -28,6 +28,7 @@
     <Compile Include="Implementation\AsyncFindReferencesPresenter.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.DataSource.cs" />
     <Compile Include="Implementation\AsyncFindReferencesPresenter.Subscription.cs" />
+    <Compile Include="Implementation\AsyncFindReferencesPresenter.TableEntriesSnapshot.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

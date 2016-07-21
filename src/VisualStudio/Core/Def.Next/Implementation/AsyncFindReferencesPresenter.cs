@@ -58,15 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             this.AssertIsForeground();
 
             var window = _vsFindAllReferencesService.StartSearch("");
-
-            foreach (var source in window.Manager.Sources.ToArray())
-            {
-                window.Manager.RemoveSource(source);
-            }
-
-            var dataSource = new DataSource(this);
-            window.Manager.AddSource(dataSource);
-
+            var dataSource = new DataSource(this, window);
             return dataSource;
         }
     }
