@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
-        internal void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        internal void RegisterOperationActionParamsArrayInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
-            this.RegisterOperationActionInternal(action, operationKinds.AsImmutableOrEmpty());
+            this.RegisterOperationActionImmutableArrayInternal(action, operationKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
-        internal virtual void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        internal virtual void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -445,9 +445,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
-        internal void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        internal void RegisterOperationActionParamsArrayInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
-            this.RegisterOperationActionInternal(action, operationKinds.AsImmutableOrEmpty());
+            this.RegisterOperationActionImmutableArrayInternal(action, operationKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
-        internal virtual void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        internal virtual void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }

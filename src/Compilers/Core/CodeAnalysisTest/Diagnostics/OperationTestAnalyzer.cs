@@ -2144,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterOperationActionInternal(
+            context.RegisterOperationActionParamsArrayInternal(
                 (operationContext) =>
                 {
                     operationContext.ReportDiagnostic(
@@ -2207,7 +2207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterCompilationStartAction(
                 (compilationStartContext) =>
                 {
-                    compilationStartContext.RegisterOperationActionInternal(
+                    compilationStartContext.RegisterOperationActionParamsArrayInternal(
                         (operationContext) =>
                         {
                             operationContext.ReportDiagnostic(

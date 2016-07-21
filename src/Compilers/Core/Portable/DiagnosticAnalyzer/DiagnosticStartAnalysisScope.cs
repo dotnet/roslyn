@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
-        internal override void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        internal override void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
-        internal override void RegisterOperationActionInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        internal override void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
