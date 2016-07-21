@@ -857,8 +857,8 @@ End Module
                 End Sub
             End Module
                 </file>
-        </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "New Integer(1, 1) {{1, 2}, {2, 3}}"),
-            Diagnostic(ERRID.ERR_OverloadWithDefault2, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])", "Public Sub foo([i As Integer(*,*) = Nothing])"))
+        </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "New Integer(1, 1) {{1, 2}, {2, 3}}").WithLocation(5, 58),
+            Diagnostic(ERRID.ERR_DuplicateProcDef1, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])").WithLocation(5, 21))
     End Sub
 
     <WorkItem(540174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540174")>
