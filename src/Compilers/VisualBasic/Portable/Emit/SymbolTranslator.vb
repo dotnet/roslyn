@@ -120,6 +120,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Anonymous type being translated
             If namedTypeSymbol.IsAnonymousType Then
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol)
+            ElseIf (namedTypeSymbol.IsTupleType) Then
+                Debug.Assert(Not needDeclaration)
+                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType
             End If
 
             ' Substitute error types with a special singleton object.
@@ -234,6 +237,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ) As Microsoft.Cci.IFieldReference
             Debug.Assert(fieldSymbol Is fieldSymbol.OriginalDefinition OrElse
                                             Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
+            If fieldSymbol.IsTupleField Then
+                fieldSymbol = fieldSymbol.TupleUnderlyingField
+            End If
 
             Me.ProcessReferencedSymbol(fieldSymbol)
 
@@ -473,6 +479,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
             Return symbol
         End Function
-
     End Class
 End Namespace

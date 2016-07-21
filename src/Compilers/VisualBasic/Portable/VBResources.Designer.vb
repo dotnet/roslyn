@@ -10326,6 +10326,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Tuple member names must be unique..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleDuplicateMemberName() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleDuplicateMemberName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleExplicitNamesOnAllMembersOrNone() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is only allowed at position {1}..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleReservedMemberName() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleReservedMemberName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleReservedMemberNameAnyPosition() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleReservedMemberNameAnyPosition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple must contain at least two elements..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleTooFewElements() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleTooFewElements", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Operator &apos;{0}&apos; must have two parameters..
         '''</summary>
         Friend ReadOnly Property ERR_TwoParametersRequired1() As String
@@ -11830,6 +11875,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to tuples.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_Tuples() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_Tuples", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to TypeOf IsNot expression.
         '''</summary>
         Friend ReadOnly Property FEATURE_TypeOfIsNot() As String
@@ -12267,15 +12321,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property TreesMustHaveRootNode() As String
             Get
                 Return ResourceManager.GetString("TreesMustHaveRootNode", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Tuples are not supported in VB..
-        '''</summary>
-        Friend ReadOnly Property TuplesNotSupported() As String
-            Get
-                Return ResourceManager.GetString("TuplesNotSupported", resourceCulture)
             End Get
         End Property
         

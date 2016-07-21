@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        Tuples
     End Enum
 
     Friend Module FeatureExtensions
@@ -81,6 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.Tuples
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -141,6 +145,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
                     Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.Tuples
+                    Return ERRID.FEATURE_Tuples
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

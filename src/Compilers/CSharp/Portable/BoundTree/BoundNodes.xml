@@ -1159,7 +1159,7 @@
     <!-- 
     It is possible for a tuple to not have a type in a literal form
     Ex: 
-     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+     (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>

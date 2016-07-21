@@ -1206,18 +1206,36 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
         End Sub
 
-        <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported2()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_NoNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, Nothing)
+
+            Assert.True(tupleWithoutNames.IsTupleType)
+            Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
+            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
         End Sub
 
-        <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_WithNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Alice", "Bob"))
+
+            Assert.True(tupleWithNames.IsTupleType)
+            Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElementNames)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
         End Sub
 
         <Fact()>

@@ -1289,7 +1289,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim arguments = argumentBuilder.ToList
             _pool.Free(argumentBuilder)
 
-            Return SyntaxFactory.TupleExpression(openParen, arguments, closeParen)
+            Dim tupleExpression = SyntaxFactory.TupleExpression(openParen, arguments, closeParen)
+
+            tupleExpression = CheckFeatureAvailability(Feature.Tuples, tupleExpression)
+            Return tupleExpression
         End Function
 
         ' Parse an argument list enclosed in parentheses.
