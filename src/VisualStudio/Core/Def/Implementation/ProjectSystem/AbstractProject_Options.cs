@@ -1,18 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal abstract partial class AbstractProject
     {
-        protected CommandLineArguments ParsedCommandLineArguments { get; private set; }
+        protected CommandLineArguments ParsedCommandLineArguments { get; set; }
 
         protected void SetCommandLineArguments(CommandLineArguments commandLineArguments)
         {

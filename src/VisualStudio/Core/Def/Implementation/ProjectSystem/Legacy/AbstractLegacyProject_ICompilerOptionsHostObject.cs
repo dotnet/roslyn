@@ -11,23 +11,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
         {
-            SetCompilerOptions(compilerOptions);
+            CommandLineArguments commandLineArguments;
+            if (TryGetNewCommandLineArguments(compilerOptions, out commandLineArguments))
+            {
+                base.SetCommandLineArguments(commandLineArguments);
+            }
+
             supported = true;
             return VSConstants.S_OK;
         }
 
         protected abstract CommandLineArguments ParseCommandLineArguments(IEnumerable<string> splitArguments);
 
-        private void SetCompilerOptions(string compilerOptions)
+        private bool TryGetNewCommandLineArguments(string compilerOptions, out CommandLineArguments commandLineArguments)
         {
             if (!string.Equals(_lastParsedCompilerOptions, compilerOptions, StringComparison.OrdinalIgnoreCase))
             {
                 var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(compilerOptions, removeHashComments: false);
-                var commandLineArguments = ParseCommandLineArguments(splitArguments);
+                commandLineArguments = ParseCommandLineArguments(splitArguments);
                 _lastParsedCompilerOptions = compilerOptions;
-
-                base.SetCommandLineArguments(commandLineArguments);
+                return true;
             }
+
+            commandLineArguments = null;
+            return false;
         }
     }
 }

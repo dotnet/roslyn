@@ -49,7 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
 
-            SetCompilerOptions(string.Empty);
+            CommandLineArguments commandLineArguments;
+            if (TryGetNewCommandLineArguments(string.Empty, out commandLineArguments))
+            {
+                ParsedCommandLineArguments = commandLineArguments;
+            }
         }
 
         public override void Disconnect()
