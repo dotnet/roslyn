@@ -15,6 +15,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [CompilerTrait(CompilerFeature.SourceGenerators)]
     public class SourceGeneratorTests : TestBase
     {
+        private sealed class TypeBasedSourceGenerator : ITypeBasedSourceGenerator
+        {
+            private readonly Action<SourceGeneratorTypeContext> _execute;
+            public TypeBasedSourceGenerator(Action<SourceGeneratorTypeContext> execute)
+            {
+                _execute = execute;
+            }
+
+            public void Execute(SourceGeneratorTypeContext context) => _execute(context);
+        }
+
+        [Fact]
+        public void TrivialTypeBasedGenerator()
+        {
+            var comp = CSharpCompilation.Create(GetUniqueName(),
+                new[] { CSharpSyntaxTree.ParseText(@"[DoNothingGenerator]class C {}") },
+                new[] { MscorlibRef });
+            const string generatedSrc = @"
+partial class C
+{
+    public void DoNothing() {}
+}";
+            var generator = new TypeBasedSourceGenerator(ctx =>
+            {
+                ctx.AddCompilationUnit("C.DoNothing", generatedSrc);
+            });
+
+            var dir = Temp.CreateDirectory();
+            var generators = ImmutableArray.Create<ITypeBasedSourceGenerator>(generator);
+            comp.GenerateSource(generators, "DoNothingGenerator", dir.Path, writeToDisk: true);
+
+            var generatedPath = Path.Combine(dir.Path, "C.DoNothing.cs");
+            Assert.True(File.Exists(generatedPath));
+            Assert.Equal(generatedSrc, File.ReadAllText(generatedPath));
+        }
+
         [Fact]
         public void NoGenerators()
         {

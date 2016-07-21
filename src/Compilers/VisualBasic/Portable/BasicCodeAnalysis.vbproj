@@ -943,6 +943,7 @@
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <Compile Include="Compilation\VisualBasicCompilation.SourceGenerator.vb" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
