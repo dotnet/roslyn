@@ -2633,6 +2633,9 @@ EnteredRegion:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitSourceDocumentIndex(node As BoundSourceDocumentIndex) As BoundNode
+            Return Nothing
+        End Function
 #End Region
 
     End Class

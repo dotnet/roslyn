@@ -86,14 +86,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '
                 ' Dim payload = PID.PayloadRootField(methodIndex)
                 ' If payload Is Nothing Then
-                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, PID.PayloadRootField(methodIndex), payloadLength)
+                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, fileIndex, PID.PayloadRootField(methodIndex), payloadLength)
                 ' End If
 
                 Dim payloadInitialization As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))))
                 Dim mvid As BoundExpression = _methodBodyFactory.ModuleVersionId(isLValue:=False)
                 Dim methodToken As BoundExpression = _methodBodyFactory.MethodDefIndex(_method)
+                Dim fileIndex As BoundExpression = _methodBodyFactory.SourceDocumentIndex(GetSourceDocument(_methodBody.Syntax))
                 Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
-                Dim createPayloadCall As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.Call(Nothing, _createPayload, mvid, methodToken, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)))
+                Dim createPayloadCall As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.Call(Nothing, _createPayload, mvid, methodToken, fileIndex, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)))
 
                 Dim payloadNullTest As BoundExpression = _methodBodyFactory.Binary(BinaryOperatorKind.Equals, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload, False), _methodBodyFactory.Null(_payloadType))
                 Dim payloadIf As BoundStatement = _methodBodyFactory.If(payloadNullTest, createPayloadCall)
@@ -234,19 +235,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(rewritten IsNot Nothing, statementFactory.StatementList(analysisPoint, rewritten), analysisPoint)
         End Function
 
+        Private Function GetSourceDocument(syntax As VisualBasicSyntaxNode) As Cci.DebugSourceDocument
+            Return GetSourceDocument(syntax, syntax.GetLocation().GetMappedLineSpan())
+        End Function
+
+        Private Function GetSourceDocument(syntax As VisualBasicSyntaxNode, span As FileLinePositionSpan) As Cci.DebugSourceDocument
+            Dim path As String = span.Path
+            ' If the path for the syntax node is empty, try the path for the entire syntax tree.
+            If path.Length = 0 Then
+                path = syntax.SyntaxTree.FilePath
+            End If
+
+            Return _debugDocumentProvider.Invoke(path, basePath:="")
+        End Function
+
         Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
             ' Add an entry in the spans array.
 
             Dim location As Location = syntaxForSpan.GetLocation()
             Dim spanPosition As FileLinePositionSpan = location.GetMappedLineSpan()
-            Dim path As String = spanPosition.Path
-            ' If the path for the syntax node is empty, try the path for the entire syntax tree.
-            If path.Length = 0 Then
-                path = syntaxForSpan.SyntaxTree.FilePath
-            End If
 
             Dim spansIndex As Integer = _spansBuilder.Count
-            _spansBuilder.Add(New SourceSpan(_debugDocumentProvider.Invoke(path, basePath:=""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character))
+            _spansBuilder.Add(New SourceSpan(GetSourceDocument(syntaxForSpan, spanPosition), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character))
 
             ' Generate "_payload(pointIndex) = True".
 

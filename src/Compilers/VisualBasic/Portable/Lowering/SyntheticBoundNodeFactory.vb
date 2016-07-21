@@ -969,6 +969,15 @@ nextm:
             Return boundNode
         End Function
 
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the index of a source document in the table of debug source documents.
+        ''' </summary>
+        Public Function SourceDocumentIndex(document As Cci.DebugSourceDocument) As BoundExpression
+            Dim boundNode As New BoundSourceDocumentIndex(Syntax, document, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function Convert(type As TypeSymbol, arg As BoundExpression, Optional isChecked As Boolean = False) As BoundConversion
             If arg.IsNothingLiteral() Then
                 Return Convert(type, arg, ConversionKind.WideningNothingLiteral, isChecked)

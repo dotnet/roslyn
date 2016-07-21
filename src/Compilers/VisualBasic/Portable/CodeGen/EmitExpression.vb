@@ -194,6 +194,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(used)
                     EmitMaximumMethodDefIndexExpression(DirectCast(expression, BoundMaximumMethodDefIndex))
 
+                Case BoundKind.SourceDocumentIndex
+                    Debug.Assert(used)
+                    EmitSourceDocumentIndex(DirectCast(expression, BoundSourceDocumentIndex))
+
                 Case Else
                     ' Code gen should not be invoked if there are errors.
                     ' Debug.Assert(expression.Kind <> BoundKind.BadExpression AndAlso expression.Kind <> BoundKind.Parenthesized)
@@ -2232,6 +2236,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitInstrumentationPayloadRootToken(node As BoundInstrumentationPayloadRoot)
             _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
         End Sub
+
+        Private Sub EmitSourceDocumentIndex(node As BoundSourceDocumentIndex)
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
+            _builder.EmitOpCode(ILOpCode.Ldtoken)
+            _builder.EmitSourceDocumentIndexToken(node.Document)
+        End Sub
+
     End Class
 
 End Namespace

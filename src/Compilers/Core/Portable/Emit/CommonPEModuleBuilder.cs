@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
+        internal abstract Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint index);
     }
 
     /// <summary>
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
 
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
-        private readonly StringTokenMap _stringsInILMap = new StringTokenMap();
+        private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
+        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
         private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
             new ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
 
@@ -597,6 +599,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics));
             }
             return token;
+        }
+
+        public uint GetSourceDocumentIndexForIL(Cci.DebugSourceDocument document)
+        {
+            return _sourceDocumentsInILMap.GetOrAddTokenFor(document);
+        }
+
+        internal override Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint token)
+        {
+            return _sourceDocumentsInILMap.GetItem(token);
         }
 
         public Cci.IReference GetReferenceFromToken(uint token)

@@ -1014,6 +1014,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        /// <summary>
+        /// Synthesizes an expression that evaluates to the index of a source document in the table of debug source documents.
+        /// </summary>
+        public BoundExpression SourceDocumentIndex(Cci.DebugSourceDocument document)
+        {
+            return new BoundSourceDocumentIndex(
+                Syntax,
+                document,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
         public BoundExpression MethodInfo(MethodSymbol method)
         {
             // The least overridden virtual method is only called for value type receivers

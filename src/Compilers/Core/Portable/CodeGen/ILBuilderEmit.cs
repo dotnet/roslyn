@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.ModuleVersionIdStringToken);
         }
 
+        internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
+        {
+            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
+        }
+
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers

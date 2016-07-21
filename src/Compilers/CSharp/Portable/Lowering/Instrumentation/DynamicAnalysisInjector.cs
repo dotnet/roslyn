@@ -81,13 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // var payload = PID.PayloadRootField[methodIndex];
                 // if (payload == null)
-                //     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadRootField[methodIndex], payloadLength);
+                //     payload = Instrumentation.CreatePayload(mvid, methodIndex, fileIndex, ref PID.PayloadRootField[methodIndex], payloadLength);
 
                 BoundStatement payloadInitialization = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload), _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))));
                 BoundExpression mvid = _methodBodyFactory.ModuleVersionId();
                 BoundExpression methodToken = _methodBodyFactory.MethodDefIndex(_method);
+                BoundExpression fileIndex = _methodBodyFactory.SourceDocumentIndex(GetSourceDocument(_methodBody.Syntax));
                 BoundExpression payloadSlot = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)));
-                BoundStatement createPayloadCall = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload), _methodBodyFactory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)));
+                BoundStatement createPayloadCall = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload), _methodBodyFactory.Call(null, _createPayload, mvid, methodToken, fileIndex, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)));
 
                 BoundExpression payloadNullTest = _methodBodyFactory.Binary(BinaryOperatorKind.ObjectEqual, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload), _methodBodyFactory.Null(_payloadType));
                 BoundStatement payloadIf = _methodBodyFactory.If(payloadNullTest, createPayloadCall);
@@ -236,21 +237,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten);
         }
 
+        private Cci.DebugSourceDocument GetSourceDocument(CSharpSyntaxNode syntax)
+        {
+            return GetSourceDocument(syntax, syntax.GetLocation().GetMappedLineSpan());
+        }
+
+        private Cci.DebugSourceDocument GetSourceDocument(CSharpSyntaxNode syntax, FileLinePositionSpan span)
+        {
+            string path = span.Path;
+            // If the path for the syntax node is empty, try the path for the entire syntax tree.
+            if (path.Length == 0)
+            {
+                path = syntax.SyntaxTree.FilePath;
+            }
+
+            return _debugDocumentProvider.Invoke(path, basePath: "");
+        }
+
         private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
         {
             // Add an entry in the spans array.
 
-            Location location = syntaxForSpan.GetLocation();
-            FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
-            string path = spanPosition.Path;
-            // If the path for the syntax node is empty, try the path for the entire syntax tree.
-            if (path.Length == 0)
-            {
-                path = syntaxForSpan.SyntaxTree.FilePath;
-            }
-
+            FileLinePositionSpan spanPosition = syntaxForSpan.GetLocation().GetMappedLineSpan();
             int spansIndex = _spansBuilder.Count;
-            _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
+            _spansBuilder.Add(new SourceSpan(GetSourceDocument(syntaxForSpan, spanPosition), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
 
             // Generate "_payload[pointIndex] = true".
 

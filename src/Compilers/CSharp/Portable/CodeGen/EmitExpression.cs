@@ -235,6 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitMaximumMethodDefIndexExpression((BoundMaximumMethodDefIndex)expression);
                     break;
 
+                case BoundKind.SourceDocumentIndex:
+                    Debug.Assert(used);
+                    EmitSourceDocumentIndex((BoundSourceDocumentIndex)expression);
+                    break;
+
                 case BoundKind.MethodInfo:
                     if (used)
                     {
@@ -2721,6 +2726,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
         {
             _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitSourceDocumentIndexToken(node.Document);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

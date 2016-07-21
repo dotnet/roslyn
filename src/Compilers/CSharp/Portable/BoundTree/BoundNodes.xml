@@ -522,6 +522,14 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
+  <!-- Represents the index in the documents table of the source document containing a method definition.
+       Used by dynamic instrumentation to identify the source document containing a method. -->
+  <Node Name="BoundSourceDocumentIndex" Base="BoundExpression">
+      <!-- Non-null type is required for this node kind -->
+      <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="Document" Type="Cci.DebugSourceDocument"/>
+  </Node>
+
   <Node Name="BoundMethodInfo" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

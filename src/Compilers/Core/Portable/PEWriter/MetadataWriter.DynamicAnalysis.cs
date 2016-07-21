@@ -117,7 +117,7 @@ namespace Microsoft.Cci
             _guidWriter.WriteBytes(guid.ToByteArray());
             return result;
         }
-        
+
         #endregion
 
         #region Spans
@@ -197,6 +197,11 @@ namespace Microsoft.Cci
         #endregion
 
         #region Documents
+
+        internal int GetOrAddDocument(DebugSourceDocument document)
+        {
+            return GetOrAddDocument(document, _documentIndex);
+        }
 
         private int GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, int> index)
         {
