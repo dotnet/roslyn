@@ -26,9 +26,8 @@
             },
             "defaultValues": {
                 "toolName": "terminal",
-                "settings": {
-                    "Project": "./build/run/build"
-                }
+                "Project": "./build/run/build",
+                "settings": { }
             }
         },
         "sync": {
