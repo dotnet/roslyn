@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                     implementation => CreateItemsForImplementation(implementation, mapping.Solution));
 
                 var presenter = _navigableItemPresenters.First();
-                presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(mapping.Project, mapping.Symbol), navigableItems);
+
+                var taggedParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(mapping.Project, mapping.Symbol);
+
+                presenter.Value.DisplayResult(taggedParts.JoinText(), navigableItems);
                 message = null;
                 return true;
             }
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             return NavigableItemFactory.GetItemsFromPreferredSourceLocations(
                 solution,
                 implementation,
-                displayString: symbolDisplayService.ToDisplayString(implementation));
+                displayTaggedParts: symbolDisplayService.ToDisplayParts(implementation).ToTaggedText());
         }
 
         private bool TryExternalGotoDefinition(Document document, int position, CancellationToken cancellationToken, out string message)

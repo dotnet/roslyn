@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
     {
         internal class DeclaredSymbolNavigableItem : INavigableItem
         {
-            public string DisplayString => _lazyDisplayString.Value;
+            public ImmutableArray<TaggedText> DisplayTaggedParts => _lazyDisplayTaggedParts.Value; 
+
             public Document Document { get; }
             public Glyph Glyph => Symbol?.GetGlyph() ?? Glyph.Error;
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             public bool DisplayFileLocation => false;
 
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
-            private readonly Lazy<string> _lazyDisplayString;
+            private readonly Lazy<ImmutableArray<TaggedText>> _lazyDisplayTaggedParts;
             private readonly Lazy<ISymbol> _lazySymbol;
 
             /// <summary>
@@ -40,16 +41,17 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 _declaredSymbolInfo = declaredSymbolInfo;
 
                 _lazySymbol = new Lazy<ISymbol>(FindSymbol);
-                _lazyDisplayString = new Lazy<string>(() =>
+
+                _lazyDisplayTaggedParts = new Lazy<ImmutableArray<TaggedText>>(() =>
                 {
                     try
                     {
                         if (Symbol == null)
                         {
-                            return null;
+                            return default(ImmutableArray<TaggedText>);
                         }
 
-                        return GetSymbolDisplayString(Document.Project, Symbol);
+                        return GetSymbolDisplayTaggedParts(Document.Project, Symbol);
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {

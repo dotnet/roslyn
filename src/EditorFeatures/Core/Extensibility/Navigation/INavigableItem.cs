@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         Glyph Glyph { get; }
 
         /// <summary>
-        /// The string to display for this item. If null, the line of text from <see cref="Document"/> is used.
+        /// The tagged parts to display for this item. If default, the line of text from <see cref="Document"/> is used.
         /// </summary>
-        string DisplayString { get; }
+        ImmutableArray<TaggedText> DisplayTaggedParts { get; }
 
         /// <summary>
         /// Return true to display the file path of <see cref="Document"/> and the span of <see cref="SourceSpan"/> when displaying this item.

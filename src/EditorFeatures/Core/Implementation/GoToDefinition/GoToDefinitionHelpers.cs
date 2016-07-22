@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var options = project.Solution.Options;
 
             var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
-            var title = NavigableItemFactory.GetSymbolDisplayString(project, symbol);
+            var displayParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(project, symbol);
+            var title = displayParts.JoinText();
+
             if (!preferredSourceLocations.Any())
             {
                 // Attempt to find source locations from external definition providers.
@@ -92,7 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     cancellationToken: cancellationToken);
             }
 
-            var navigableItems = preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToImmutableArray();
+            var navigableItems = preferredSourceLocations.Select(location =>
+                NavigableItemFactory.GetItemFromSymbolLocation(
+                    solution, symbol, location,
+                    displayTaggedParts: null)).ToImmutableArray();
             return TryGoToDefinition(navigableItems, title, options, presenters, throwOnHiddenDefinition);
         }
 
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             if (externalDefinitions != null && externalDefinitions.Any())
             {
                 var itemsArray = externalDefinitions.ToImmutableArrayOrEmpty();
-                var title = itemsArray[0].DisplayString;
+                var title = itemsArray[0].DisplayTaggedParts.JoinText();
                 return TryGoToDefinition(externalDefinitions.ToImmutableArrayOrEmpty(), title, document.Project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition: true);
             }
 

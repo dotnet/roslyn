@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts());
             }
 
-            return CompletionDescription.Create(textContentBuilder.Select(p => new TaggedText(SymbolDisplayPartKindTags.GetTag(p.Kind), p.ToString())).ToImmutableArray());
+            return CompletionDescription.Create(textContentBuilder.ToTaggedText());
         }
 
         private static void AddOverloadPart(List<SymbolDisplayPart> textContentBuilder, int overloadCount, bool isGeneric)
