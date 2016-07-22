@@ -105,13 +105,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             var parameters = new List<IParameter>();
 
-            var signaturePrefixParts = _signatureHelpItem.PrefixDisplayParts.ToTaggedText();
+            var signaturePrefixParts = _signatureHelpItem.PrefixDisplayParts;
             var signaturePrefixContent = _signatureHelpItem.PrefixDisplayParts.GetFullText();
 
             AddRange(signaturePrefixParts, parts, prettyPrintedParts);
             Append(signaturePrefixContent, content, prettyPrintedContent);
 
-            var separatorParts = _signatureHelpItem.SeparatorDisplayParts.ToTaggedText();
+            var separatorParts = _signatureHelpItem.SeparatorDisplayParts;
             var separatorContent = separatorParts.GetFullText();
 
             var newLinePart = new TaggedText(TextTags.LineBreak, "\r\n");
@@ -125,14 +125,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             {
                 var sigHelpParameter = _signatureHelpItem.Parameters[i];
 
-                var parameterPrefixParts = sigHelpParameter.PrefixDisplayParts.ToTaggedText();
+                var parameterPrefixParts = sigHelpParameter.PrefixDisplayParts;
                 var parameterPrefixContext = sigHelpParameter.PrefixDisplayParts.GetFullText();
 
                 var parameterParts = AddOptionalBrackets(
-                    sigHelpParameter.IsOptional, sigHelpParameter.DisplayParts.ToTaggedText());
+                    sigHelpParameter.IsOptional, sigHelpParameter.DisplayParts);
                 var parameterContent = parameterParts.GetFullText();
 
-                var parameterSuffixParts = sigHelpParameter.SuffixDisplayParts.ToTaggedText();
+                var parameterSuffixParts = sigHelpParameter.SuffixDisplayParts;
                 var parameterSuffixContext = sigHelpParameter.SuffixDisplayParts.GetFullText();
 
                 paramColumnCount += separatorContent.Length + parameterPrefixContext.Length + parameterContent.Length + parameterSuffixContext.Length;
@@ -165,18 +165,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 Append(parameterSuffixContext, content, prettyPrintedContent);
             }
 
-            AddRange(_signatureHelpItem.SuffixDisplayParts.ToTaggedText(), parts, prettyPrintedParts);
+            AddRange(_signatureHelpItem.SuffixDisplayParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.SuffixDisplayParts.GetFullText(), content, prettyPrintedContent);
 
             if (_parameterIndex >= 0)
             {
                 var sigHelpParameter = _signatureHelpItem.Parameters[_parameterIndex];
 
-                AddRange(sigHelpParameter.SelectedDisplayParts.ToTaggedText(), parts, prettyPrintedParts);
+                AddRange(sigHelpParameter.SelectedDisplayParts, parts, prettyPrintedParts);
                 Append(sigHelpParameter.SelectedDisplayParts.GetFullText(), content, prettyPrintedContent);
             }
 
-            AddRange(_signatureHelpItem.DescriptionParts.ToTaggedText(), parts, prettyPrintedParts);
+            AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
 
             var documentation = _signatureHelpItem.DocumentationFactory(CancellationToken.None).ToList();

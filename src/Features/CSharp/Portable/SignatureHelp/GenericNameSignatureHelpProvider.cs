@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     false,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
-                    GetSeparatorParts(),
-                    GetPostambleParts(namedType),
-                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                    GetSeparatorParts().ToList(),
+                    GetPostambleParts(namedType).ToList(),
+                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
             else
             {
@@ -198,9 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     false,
                     c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                     GetPreambleParts(method, semanticModel, position),
-                    GetSeparatorParts(),
-                    GetPostambleParts(method, semanticModel, position),
-                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                    GetSeparatorParts().ToList(),
+                    GetPostambleParts(method, semanticModel, position).ToList(),
+                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
 
             return item;
@@ -210,14 +210,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
                 SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private SignatureHelpParameter Convert(
+        private SignatureHelpSymbolParameter Convert(
             ITypeParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
-            return new SignatureHelpParameter(
+            return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 isOptional: false,
                 documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),

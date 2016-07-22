@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 isVariadic: false,
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
-                separatorParts: GetSeparatorParts(),
-                suffixParts: GetDelegateTypePostambleParts(invokeMethod),
-                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
+                separatorParts: GetSeparatorParts().ToList(),
+                suffixParts: GetDelegateTypePostambleParts(invokeMethod).ToList(),
+                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken).ToList());
 
             return SpecializedCollections.SingletonEnumerable(item);
         }
 
-        private IEnumerable<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SignatureHelpParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private IEnumerable<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             const string TargetName = "target";
 
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             parts.Add(Space());
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, TargetName));
 
-            yield return new SignatureHelpParameter(
+            yield return new SignatureHelpSymbolParameter(
                 TargetName,
                 isOptional: false,
                 documentationFactory: null,

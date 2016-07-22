@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
-                GetSeparatorParts(),
-                GetPostambleParts(constructor),
-                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken));
+                GetSeparatorParts().ToList(),
+                GetPostambleParts(constructor).ToList(),
+                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken).ToList());
             return item;
         }
 
-        private IEnumerable<SignatureHelpParameter> GetParameters(
+        private IEnumerable<SignatureHelpSymbolParameter> GetParameters(
             IMethodSymbol constructor,
             SemanticModel semanticModel,
             int position,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 displayParts.Add(Space());
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
 
-                yield return new SignatureHelpParameter(
+                yield return new SignatureHelpSymbolParameter(
                     namedParameter.Name,
                     isOptional: true,
                     documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)

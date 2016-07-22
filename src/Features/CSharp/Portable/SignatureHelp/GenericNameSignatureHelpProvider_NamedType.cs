@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class GenericNameSignatureHelpProvider
     {
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             INamedTypeSymbol namedType,
             SemanticModel semanticModel,
             int position)

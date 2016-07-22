@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis
     {
         public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts)
         {
+            if (displayParts == null)
+            {
+                return ImmutableArray<TaggedText>.Empty;
+            }
+
             return displayParts.Select(d =>
                 new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray();
         }

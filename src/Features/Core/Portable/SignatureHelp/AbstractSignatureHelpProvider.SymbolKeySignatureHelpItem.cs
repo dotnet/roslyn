@@ -16,11 +16,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 ISymbol symbol,
                 bool isVariadic,
                 Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
-                IEnumerable<SymbolDisplayPart> prefixParts,
-                IEnumerable<SymbolDisplayPart> separatorParts,
-                IEnumerable<SymbolDisplayPart> suffixParts,
+                IEnumerable<TaggedText> prefixParts,
+                IEnumerable<TaggedText> separatorParts,
+                IEnumerable<TaggedText> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
+                IEnumerable<TaggedText> descriptionParts) : 
+                base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
                 this.SymbolKey = symbol?.GetSymbolKey();
             }

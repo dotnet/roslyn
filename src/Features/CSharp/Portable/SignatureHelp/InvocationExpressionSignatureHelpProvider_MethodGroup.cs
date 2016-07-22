@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 method.IsParams(),
                 c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
-                GetSeparatorParts(),
-                GetMethodGroupPostambleParts(method),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                GetSeparatorParts().ToList(),
+                GetMethodGroupPostambleParts(method).ToList(),
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetMethodGroupPreambleParts(
+        private IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)

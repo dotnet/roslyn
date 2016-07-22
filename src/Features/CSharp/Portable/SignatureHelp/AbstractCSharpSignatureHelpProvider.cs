@@ -46,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             yield return Space();
         }
 
-        protected static SignatureHelpParameter Convert(
+        protected static SignatureHelpSymbolParameter Convert(
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
-            return new SignatureHelpParameter(
+            return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),

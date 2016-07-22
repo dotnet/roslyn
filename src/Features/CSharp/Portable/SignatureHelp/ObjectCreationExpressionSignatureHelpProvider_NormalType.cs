@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position),
-                GetSeparatorParts(),
-                GetNormalTypePostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                GetSeparatorParts().ToList(),
+                GetNormalTypePostambleParts(constructor).ToList(),
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
 
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetNormalTypePreambleParts(
+        private IList<SymbolDisplayPart> GetNormalTypePreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)

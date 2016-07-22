@@ -42,18 +42,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 symbolDisplayService, anonymousTypeDisplayService,
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(), GetNormalTypePostambleParts(constructor), constructor.Parameters.[Select](Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
+                GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(),
+                GetNormalTypePostambleParts(constructor),
+                constructor.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
             Return item
         End Function
 
-        Private Function GetNormalTypePreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetNormalTypePreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetNormalTypePostambleParts(method As IMethodSymbol) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetNormalTypePostambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

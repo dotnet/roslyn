@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// </summary>
         public bool IsVariadic { get; }
 
-        public ImmutableArray<SymbolDisplayPart> PrefixDisplayParts { get; }
-        public ImmutableArray<SymbolDisplayPart> SuffixDisplayParts { get; }
+        public ImmutableArray<TaggedText> PrefixDisplayParts { get; }
+        public ImmutableArray<TaggedText> SuffixDisplayParts { get; }
 
         // TODO: This probably won't be sufficient for VB query signature help.  It has
         // arbitrary separators between parameters.
-        public ImmutableArray<SymbolDisplayPart> SeparatorDisplayParts { get; }
+        public ImmutableArray<TaggedText> SeparatorDisplayParts { get; }
 
         public ImmutableArray<SignatureHelpParameter> Parameters { get; }
 
-        public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
+        public ImmutableArray<TaggedText> DescriptionParts { get; internal set; }
 
         public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public SignatureHelpItem(
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
-            IEnumerable<SymbolDisplayPart> prefixParts,
-            IEnumerable<SymbolDisplayPart> separatorParts,
-            IEnumerable<SymbolDisplayPart> suffixParts,
+            IEnumerable<TaggedText> prefixParts,
+            IEnumerable<TaggedText> separatorParts,
+            IEnumerable<TaggedText> suffixParts,
             IEnumerable<SignatureHelpParameter> parameters,
-            IEnumerable<SymbolDisplayPart> descriptionParts)
+            IEnumerable<TaggedText> descriptionParts)
         {
             if (isVariadic && !parameters.Any())
             {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             this.DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
         }
 
-        internal IEnumerable<SymbolDisplayPart> GetAllParts()
+        internal IEnumerable<TaggedText> GetAllParts()
         {
             return
                 PrefixDisplayParts.Concat(

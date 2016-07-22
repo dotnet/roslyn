@@ -233,13 +233,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 indexer.IsParams(),
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
-                GetSeparatorParts(),
-                GetPostambleParts(indexer),
-                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                GetSeparatorParts().ToList(),
+                GetPostambleParts(indexer).ToList(),
+                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IPropertySymbol indexer,
             int position,
             SemanticModel semanticModel)
