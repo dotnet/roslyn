@@ -12323,7 +12323,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithPatterns);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (7,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
@@ -12358,7 +12358,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithPatterns);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1): return;
@@ -12381,7 +12381,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithPatterns);
+            var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (7,25): error CS1003: Syntax error, ':' expected
                 //             case (1, 1) t: return;
