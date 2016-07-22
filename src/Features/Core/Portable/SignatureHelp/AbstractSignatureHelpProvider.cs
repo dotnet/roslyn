@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
             IEnumerable<SymbolDisplayPart> prefixParts,
             IEnumerable<SymbolDisplayPart> separatorParts,
             IEnumerable<SymbolDisplayPart> suffixParts,

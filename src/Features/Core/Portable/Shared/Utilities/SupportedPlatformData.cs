@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return SpecializedCollections.EmptyList<SymbolDisplayPart>();
             }
 
-            IList<SymbolDisplayPart> builder = new List<SymbolDisplayPart>();
+            var builder = new List<SymbolDisplayPart>();
             builder.AddLineBreak();
 
             var projects = this.CandidateProjects.Select(p => this.Workspace.CurrentSolution.GetProject(p)).OrderBy(p => p.Name);

@@ -543,8 +543,6 @@
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_Sorting.cs" />
-    <Compile Include="Shared\Extensions\SymbolDisplayPartExtensions.cs" />
-    <Compile Include="Shared\Extensions\SymbolDisplayPartKindExtensions.cs" />
     <Compile Include="Shared\Options\OrganizerOptions.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptions.cs" />
     <Compile Include="Shared\TestHooks\AggregateAsynchronousOperationListener.cs" />

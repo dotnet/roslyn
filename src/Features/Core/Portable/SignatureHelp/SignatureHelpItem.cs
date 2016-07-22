@@ -31,13 +31,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
 
-        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationFactory { get; }
+        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationFactory = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
+            _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
 
         public SignatureHelpItem(
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
             IEnumerable<SymbolDisplayPart> prefixParts,
             IEnumerable<SymbolDisplayPart> separatorParts,
             IEnumerable<SymbolDisplayPart> suffixParts,

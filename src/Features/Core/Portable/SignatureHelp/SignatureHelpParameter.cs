@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// Documentation for this parameter.  This should normally be presented to the user when
         /// this parameter is selected.
         /// </summary>
-        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationFactory { get; }
+        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
         /// <summary>
         /// Display parts to show before the normal display parts for the parameter.
@@ -50,12 +50,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// </summary>
         public IList<SymbolDisplayPart> SelectedDisplayParts { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationFactory = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory = 
+            _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
 
         public SignatureHelpParameter(
             string name,
             bool isOptional,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
             IEnumerable<SymbolDisplayPart> displayParts,
             IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
             IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,

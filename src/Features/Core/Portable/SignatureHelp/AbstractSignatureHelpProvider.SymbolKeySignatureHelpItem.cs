@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,
                 bool isVariadic,
-                Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+                Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
                 IEnumerable<SymbolDisplayPart> prefixParts,
                 IEnumerable<SymbolDisplayPart> separatorParts,
                 IEnumerable<SymbolDisplayPart> suffixParts,

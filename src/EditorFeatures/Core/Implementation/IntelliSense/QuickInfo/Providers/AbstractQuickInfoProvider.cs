@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             ISymbol symbol,
             bool showWarningGlyph,
             bool showSymbolGlyph,
-            IList<SymbolDisplayPart> mainDescription,
+            IList<TaggedText> mainDescription,
             IDeferredQuickInfoContent documentation,
-            IList<SymbolDisplayPart> typeParameterMap,
-            IList<SymbolDisplayPart> anonymousTypes,
-            IList<SymbolDisplayPart> usageText,
-            IList<SymbolDisplayPart> exceptionText)
+            IList<TaggedText> typeParameterMap,
+            IList<TaggedText> anonymousTypes,
+            IList<TaggedText> usageText,
+            IList<TaggedText> exceptionText)
         {
             return new QuickInfoDisplayDeferredContent(
                 symbolGlyph: showSymbolGlyph ? CreateGlyphDeferredContent(symbol) : null,
@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         protected IDeferredQuickInfoContent CreateQuickInfoDisplayDeferredContent(
             Glyph glyph,
-            IList<SymbolDisplayPart> mainDescription,
+            IList<TaggedText> mainDescription,
             IDeferredQuickInfoContent documentation,
-            IList<SymbolDisplayPart> typeParameterMap,
-            IList<SymbolDisplayPart> anonymousTypes,
-            IList<SymbolDisplayPart> usageText,
-            IList<SymbolDisplayPart> exceptionText)
+            IList<TaggedText> typeParameterMap,
+            IList<TaggedText> anonymousTypes,
+            IList<TaggedText> usageText,
+            IList<TaggedText> exceptionText)
         {
             return new QuickInfoDisplayDeferredContent(
                 symbolGlyph: new SymbolGlyphDeferredContent(glyph, _glyphService),
@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return new SymbolGlyphDeferredContent(symbol.GetGlyph(), _glyphService);
         }
 
-        protected IDeferredQuickInfoContent CreateClassifiableDeferredContent(IList<SymbolDisplayPart> content)
+        protected IDeferredQuickInfoContent CreateClassifiableDeferredContent(
+            IList<TaggedText> content)
         {
             return new ClassifiableDeferredContent(content, _typeMap);
         }

@@ -60,14 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.ToMinimalDisplayParts(semanticModel, position));
         }
 
-        protected IList<SymbolDisplayPart> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
+        protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             if (method.IsAwaitableNonDynamic(semanticModel, position))
             {
-                return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position);
+                return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position)
+                             .ToTaggedText();
             }
 
-            return SpecializedCollections.EmptyList<SymbolDisplayPart>();
+            return SpecializedCollections.EmptyList<TaggedText>();
         }
     }
 }
