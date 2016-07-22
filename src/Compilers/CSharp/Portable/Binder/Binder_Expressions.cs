@@ -2099,12 +2099,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindArgumentValue(DiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
         {
-            var declarationExpression = argumentSyntax.Expression as DeclarationExpressionSyntax;
-            if (declarationExpression == null)
+            if (argumentSyntax.Expression.Kind() != SyntaxKind.DeclarationExpression)
             {
                 return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
             }
 
+            var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
             var declaration = declarationExpression.Declaration;
             var typeSyntax = declaration.Type;
 

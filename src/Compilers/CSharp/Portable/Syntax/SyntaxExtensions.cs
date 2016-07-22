@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the type syntax of an out declaration argument expression.
         /// </summary>
-        public static TypeSyntax Type(this DeclarationExpressionSyntax self)
+        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
         {
             return self.Declaration.Type;
         }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the identifier of an out declaration argument expression.
         /// </summary>
-        public static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
+        internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
             return self.Declaration.Variables[0].Identifier;
         }

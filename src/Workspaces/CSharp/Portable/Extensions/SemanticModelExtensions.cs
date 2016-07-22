@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else if (current is DeclarationExpressionSyntax)
                 {
-                    return ((DeclarationExpressionSyntax)current).Identifier().ValueText.ToCamelCase();
+                    return ((DeclarationExpressionSyntax)current).Declaration.Variables[0].Identifier.ValueText.ToCamelCase();
                 }
                 else
                 {
