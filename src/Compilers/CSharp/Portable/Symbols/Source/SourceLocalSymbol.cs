@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             if (initializer == null)
             {
-                ArgumentSyntax argument;
-                if (ArgumentSyntax.IsIdentifierOfOutVariableDeclaration(identifierToken, out argument))
+                DeclarationExpressionSyntax declarationExpression;
+                if (identifierToken.IsIdentifierOfOutVariableDeclaration(out declarationExpression))
                 {
-                    if (argument.Type.IsVar)
+                    if (declarationExpression.Type().IsVar)
                     {
                         return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
                     }
@@ -592,11 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
             {
 #if DEBUG
-                ArgumentSyntax argument;
-                Debug.Assert(ArgumentSyntax.IsIdentifierOfOutVariableDeclaration(identifierToken, out argument));
-                Debug.Assert(argument.Parent.Parent is ConstructorInitializerSyntax ?
-                                 binder.ScopeDesignator == argument.Parent :
-                                 binder.ScopeDesignator.Contains(argument.Parent.Parent));
+                DeclarationExpressionSyntax declarationExpression;
+                Debug.Assert(identifierToken.IsIdentifierOfOutVariableDeclaration(out declarationExpression));
+                Debug.Assert(declarationExpression.Parent.Parent.Parent is ConstructorInitializerSyntax ?
+                                 binder.ScopeDesignator == declarationExpression.Parent.Parent :
+                                 binder.ScopeDesignator.Contains(declarationExpression.Parent.Parent.Parent));
 #endif
             }
 
@@ -607,6 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CSharpSyntaxNode invocation = (CSharpSyntaxNode)IdentifierToken.
                                                                 Parent. // VariableDeclaratorSyntax
                                                                 Parent. // VariableDeclarationSyntax
+                                                                Parent. // DeclarationExpressionSyntax
                                                                 Parent. // ArgumentSyntax
                                                                 Parent. // ArgumentListSyntax
                                                                 Parent; // invocation/constructor initializer
