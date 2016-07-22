@@ -365,7 +365,6 @@ class Base
     }
 }";
             var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(); // without the fix for bug 11649, the compilation would fail emitting
             CompileAndVerify(comp);
         }
