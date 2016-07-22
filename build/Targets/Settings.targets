@@ -41,7 +41,7 @@
 
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
+      <Error Text="Toolset packages have not been restored, run `run sync` before building"
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
   </Target>
 
