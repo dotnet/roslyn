@@ -1432,20 +1432,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol type,
             Cci.ITypeReference typeRef)
         {
-            ImmutableArray<Cci.ICustomAttribute> attrs;
             if (type.ContainsTuple())
             {
                 var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
-                attrs = attr == null
-                    ? ImmutableArray<Cci.ICustomAttribute>.Empty
-                    : ImmutableArray.Create<Cci.ICustomAttribute>(attr);
-            }
-            else
-            {
-                attrs = ImmutableArray<Cci.ICustomAttribute>.Empty;
+                if (attr != null)
+                {
+                    return new Cci.TypeReferenceWithAttributes(
+                        typeRef,
+                        ImmutableArray.Create<Cci.ICustomAttribute>(attr));
+                }
             }
 
-            return new Cci.TypeReferenceWithAttributes(typeRef, attrs);
+            return new Cci.TypeReferenceWithAttributes(typeRef);
         }
     }
 }
