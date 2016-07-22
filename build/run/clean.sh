@@ -60,6 +60,7 @@ fi
 
 if [[ $DeleteUserCache = true ]]
 then
+    echo "removing user package cache"
     rm -rf ~/.local/share/NuGet/Cache/ || true
     rm -rf ~/.nuget/packages || true
 fi
