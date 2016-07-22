@@ -757,23 +757,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            // Call custom validator
-            Write("      Validate{0}Parts(", StripPost(nd.Name, "Syntax"));
-            if (nd.Kinds.Count > 1)
-            {
-                Write("kind, ");
-            }
-            for (int i = 0, n = nd.Fields.Count; i < n; i++)
-            {
-                var field = nd.Fields[i];
-                if (i > 0)
-                    Write(", ");
-                Write("{0}", CamelCase(field.Name));
-            }
-            WriteLine(");");
-
             WriteLine("#endif");
-
 
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -829,14 +813,6 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteLine("    }");
-
-            // Declare custom validator
-            WriteLine();
-            WriteLine("#if DEBUG");
-            Write("    {0}partial void Validate{1}Parts(", withSyntaxFactoryContext ? "" : "static ", StripPost(nd.Name, "Syntax"));
-            WriteGreenFactoryParameters(nd);
-            WriteLine(");");
-            WriteLine("#endif");
         }
 
         private void WriteGreenFactoryParameters(Node nd)
@@ -1310,9 +1286,6 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    {0} {1} With{2}({3} {4})", AccessibilityModifier(field), node.Name, StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
                 WriteLine("    {");
 
-                // call custom validator
-                WriteLine("        ValidateWith{0}Input({1});", StripPost(field.Name, "Opt"), CamelCase(field.Name));
-
                 // call update inside each setter
                 Write("        return this.Update(");
                 for (int f2 = 0; f2 < node.Fields.Count; f2++)
@@ -1333,10 +1306,6 @@ namespace CSharpSyntaxGenerator
                 WriteLine(");");
 
                 WriteLine("    }");
-
-                // Declare the custom validator
-                WriteLine();
-                WriteLine("    partial void ValidateWith{0}Input({1} {2});", StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
             }
         }
 
@@ -1621,23 +1590,6 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            // Call custom validator
-            Write("      Validate{0}Parts(", StripPost(nd.Name, "Syntax"));
-            if (nd.Kinds.Count > 1)
-            {
-                Write("kind, ");
-            }
-
-            for (int i = 0, n = nd.Fields.Count; i < n; i++)
-            {
-                var field = nd.Fields[i];
-                if (i > 0)
-                    Write(", ");
-
-                Write("{0}", CamelCase(field.Name));
-            }
-            WriteLine(");");
-
             Write("      return ({0})Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.{1}(", nd.Name, StripPost(nd.Name, "Syntax"));
             if (nd.Kinds.Count > 1)
             {
@@ -1686,11 +1638,6 @@ namespace CSharpSyntaxGenerator
             WriteLine("    }");
 
             this.WriteLine();
-
-            // Add partial definition for a custom validator
-            Write("    static partial void Validate{0}Parts(", StripPost(nd.Name, "Syntax"));
-            WriteRedFactoryParameters(nd);
-            WriteLine(");");
         }
 
         private void WriteRedFactoryParameters(Node nd)

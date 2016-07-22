@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             (editor, invocation, nameNode, newName) =>
             {
                 if (invocation.ArgumentList?.Arguments.Count != 1 ||
-                    invocation.ArgumentList.Arguments[0].Declaration != null)
+                    invocation.ArgumentList.Arguments[0].Expression.Kind() == SyntaxKind.DeclarationExpression)
                 {
                     var annotation = ConflictAnnotation.Create(FeaturesResources.Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property);
                     editor.ReplaceNode(nameNode, newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)));

@@ -751,7 +751,6 @@
     <Compile Include="Symbols\Wrapped\WrappedPropertySymbol.cs" />
     <Compile Include="Symbols\Wrapped\WrappedTypeParameterSymbol.cs" />
     <Compile Include="Syntax\AliasedQualifiedNameSyntax.cs" />
-    <Compile Include="Syntax\ArgumentSyntax.cs" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />

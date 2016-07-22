@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
             {
                 for (int i = 0; i < constructor.Parameters.Length; i++)
                 {
-                    var typeInfo = model.GetTypeInfo(args[i].Expression ?? args[i].Declaration.Type);
+                    var typeInfo = model.GetTypeInfo(args[i].Expression);
                     if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))
                     {
                         return false;
