@@ -269,6 +269,7 @@
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
+    <Compile Include="Implementation\FindReferences\FindAllReferencesUtilities.cs" />
     <Compile Include="Implementation\FindReferences\FindReferencesContext.cs" />
     <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
     <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />

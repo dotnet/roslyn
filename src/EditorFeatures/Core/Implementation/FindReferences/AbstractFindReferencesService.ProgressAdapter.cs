@@ -39,8 +39,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             {
                 _solution = solution;
                 _context = context;
-                _navigableItemFactory = s => NavigableItemFactory.GetItemFromSymbolLocation(
-                    solution, s, s.Locations.First());
+                _navigableItemFactory = s =>
+                {
+                    var taggedParts = s.ToDisplayParts(FindAllReferencesUtilities.DefinitionDisplayFormat)
+                                       .ToTaggedText();
+                    return NavigableItemFactory.GetItemFromSymbolLocation(
+                        solution, s, s.Locations.First(), taggedParts);
+                };
             }
 
             // Simple context forwarding functions.
@@ -66,9 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public void OnReferenceFound(ISymbol definition, ReferenceLocation location)
             {
+                // For references, we will just use the line of text that the reference
+                // is on.  That's why we don't need displayTaggedParts.
                 _context.OnReferenceFound(
                     GetNavigableItem(definition),
-                    NavigableItemFactory.GetItemFromSymbolLocation(_solution, definition, location.Location));
+                    NavigableItemFactory.GetItemFromSymbolLocation(
+                        _solution, definition, location.Location, displayTaggedParts: null));
             }
         }
     }
