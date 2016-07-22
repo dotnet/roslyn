@@ -1,7 +1,7 @@
 @echo off
 @setlocal
 
-set RoslynRoot=%~dp0
+set RoslynRoot=%~dp0\..\..\
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
 
 :ParseArguments

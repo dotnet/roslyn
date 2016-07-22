@@ -1,58 +1,33 @@
 {
     "settings": {
-        "MsBuildLogging": {
-            "description": "MsBuild logging options.",
+        "CleanBinaries": {
+            "description": "Cleans out built binaries.",
             "valueType": "passThrough",
             "values": [],
-            "defaultValue": "/flp:v=normal"
+            "defaultValue": "-b"
         },
-        "MsBuildParameters": {
-            "description": "MsBuild building options.",
+        "CleanLocalPackages": {
+            "description": "Cleans out the local package cache.",
             "valueType": "passThrough",
             "values": [],
-            "defaultValue": "/nologo /maxcpucount /verbosity:minimal /clp:Summary"
+            "defaultValue": "-p"
         },
-        "Project": {
-            "description": "Project where the commands are going to be applied.",
+        "CleanUserPackages": {
+            "description": "Cleans out the users package cache.",
             "valueType": "passThrough",
             "values": [],
-            "defaultValue": ""
-        },
-        "CleanAllProjects": {
-            "description": "MsBuild target that deletes the binary output directory.",
-            "valueType": "target",
-            "values": [],
-            "defaultValue": ""
-        },
-        "CleanPackages": {
-            "description": "MsBuild target that deletes the repo-local nuget package directory.",
-            "valueType": "target",
-            "values": [],
-            "defaultValue": ""
-        },
-        "CleanPackagesCache": {
-            "description": "MsBuild target that deletes the user-local nuget package cache.",
-            "valueType": "target",
-            "values": [],
-            "defaultValue": ""
+            "defaultValue": "-c"
         }
-
     },
 
     "commands": {
         "build": {
             "alias": {
-                "compilers": {
-                    "description": "build the compilers",
-                    "settings": {
-                        "Project": "./Compilers.sln"
-                    }
-                }
             },
             "defaultValues": {
-                "toolName": "msbuild",
+                "toolName": "terminal",
                 "settings": {
-                    "Project": "./Roslyn.sln"
+                    "Project": "./build/run/build"
                 }
             }
         },
@@ -60,54 +35,48 @@
             "alias": { },
             "defaultValues": {
                 "toolName": "terminal",
-                "Project": "./restore",
+                "Project": "./build/run/sync",
                 "settings": { }
             }
         },
         "clean":{
             "alias":{
-                "b":{
+                "b": {
                     "description": "Deletes the binary output directory.",
-                    "settings":{
-                        "CleanAllProjects": "default"
+                    "settings": {
+                        "CleanBinaries": "default"
                     }
                 },
-                "p":{
+                "p": {
                     "description": "Deletes the repo-local nuget package directory.",
-                    "settings":{
-                        "CleanPackages": "default"
+                    "settings": {
+                        "CleanLocalPackages": "default"
                     }
                 },
-                "c":{
+                "c": {
                     "description": "Deletes the user-local nuget package cache.",
-                    "settings":{
-                        "CleanPackagesCache": "default"
+                    "settings": {
+                        "CleanUserPackages": "default"
+                    }
+                },
+                "all": {
+                    "description": "same as providing all of the above options",
+                    "settings": {
+                        "CleanBinaries": "default",
+                        "CleanLocalPackages": "default",
+                        "CleanUserPackages": "default"
                     }
                 }
             },
             "defaultValues":{
-                "toolName": "msbuild",
-                "settings": {
-                    "Project": "./Compilers.sln",
-                    "MsBuildParameters":"default",
-                    "MsBuildLogging":"default"
-                }
+                "toolName": "terminal",
+                "Project": "./build/run/clean",
+                "settings": { }
             }
         }      
     },
 
     "tools": {
-        "msbuild": {
-            "run": {
-                "windows": "Tools/msbuild.cmd",
-                "unix": "Tools/msbuild.sh"
-            },
-            "valueTypes": {
-                "property": "/p:{name}={value}",
-                "target": "/t:{name}",
-                "internal": "/{name}"
-            }
-        },
         "terminal": {
             "run": {
                 "windows": "cmd",

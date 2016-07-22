@@ -1,7 +1,7 @@
 @echo off
 @setlocal
 
-set RoslynRoot=%~dp0
+set RoslynRoot=%~dp0\..\..\
 call "%RoslynRoot%build\scripts\LoadNuGetInfo.cmd" || goto :CleanFailed
 
 :ParseArguments
@@ -24,12 +24,12 @@ goto :DoneParsing
 
 if "%ClearBinaries%" == "true" (
     echo Clearing the binaries directory
-    rd /s /q "%RoslynRoot%/Binaries/" || goto :CleanFailed
+    rd /s /q "%RoslynRoot%/Binaries/" 
 )
 
 if "%ClearLocalPackages%" == "true" (
     echo Clearing the local packages directory
-    rd /s /q "%RoslynRoot%/packages/" || goto :CleanFailed
+    rd /s /q "%RoslynRoot%/packages/"
 )
 
 if "%ClearUserPackages%" == "true" (

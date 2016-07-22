@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RoslynDir="$(dirname $0)"
+RoslynDir="$(dirname $0)/../../"
 
 if [[ -z "$RoslynDir" ]]
 then
