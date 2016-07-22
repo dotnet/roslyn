@@ -1428,8 +1428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
+            this TypeSymbol type,
             CSharpCompilation declaringCompilation,
-            TypeSymbol type,
             Cci.ITypeReference typeRef)
         {
             if (type.ContainsTuple())

@@ -104,10 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     context.Diagnostics);
 
-                yield return TypeSymbolExtensions.
-                    GetTypeRefWithAttributes(UnderlyingNamedType.DeclaringCompilation,
-                                             @interface,
-                                             typeRef);
+                yield return @interface.GetTypeRefWithAttributes(
+                    UnderlyingNamedType.DeclaringCompilation,
+                    typeRef);
             }
         }
 

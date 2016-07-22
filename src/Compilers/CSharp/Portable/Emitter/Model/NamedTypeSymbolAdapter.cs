@@ -446,10 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                yield return TypeSymbolExtensions.
-                    GetTypeRefWithAttributes(this.DeclaringCompilation,
-                                             @interface,
-                                             typeRef);
+                yield return @interface.GetTypeRefWithAttributes(this.DeclaringCompilation,
+                                                                 typeRef);
             }
         }
 

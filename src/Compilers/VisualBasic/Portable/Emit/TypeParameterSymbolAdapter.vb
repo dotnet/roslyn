@@ -198,14 +198,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' TODO(https://github.com/dotnet/roslyn/issues/12592):
                 ' Add support for tuple attributes on interface implementations
-                Yield New Cci.TypeReferenceWithAttributes(typeRef, ImmutableArray(Of Cci.ICustomAttribute).Empty)
+                Yield New Cci.TypeReferenceWithAttributes(typeRef)
             Next
             If Me.HasValueTypeConstraint AndAlso Not seenValueType Then
                 ' Add System.ValueType constraint to comply with Dev11 C# output
                 Dim typeRef As INamedTypeReference = _module.GetSpecialType(CodeAnalysis.SpecialType.System_ValueType,
                                              DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
 
-                Yield New Cci.TypeReferenceWithAttributes(typeRef, ImmutableArray(Of Cci.ICustomAttribute).Empty)
+                Yield New Cci.TypeReferenceWithAttributes(typeRef)
             End If
         End Function
 

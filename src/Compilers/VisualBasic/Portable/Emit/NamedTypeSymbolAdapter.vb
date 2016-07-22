@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' TODO(https://github.com/dotnet/roslyn/issues/12592):
                 ' TODO: Add support for tuple attributes on interface implementations
-                Yield New Cci.TypeReferenceWithAttributes(translated, ImmutableArray(Of Cci.ICustomAttribute).Empty)
+                Yield New Cci.TypeReferenceWithAttributes(translated)
             Next
         End Function
 
