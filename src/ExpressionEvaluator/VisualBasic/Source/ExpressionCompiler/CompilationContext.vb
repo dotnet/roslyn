@@ -1288,7 +1288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
 
-                    If variableKind = DisplayClassVariableKind.Parameter AndAlso instance.Type.Name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                    If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
                         displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
                     End If
 
