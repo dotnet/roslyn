@@ -9,6 +9,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
+    /// <summary>
+    /// Used for C#/VB sig help providers so they can build up information using SymbolDisplayParts.
+    /// These parts will then by used to properly replace anonymous type information in the parts.
+    /// Once that it done, this will be converted to normal SignatureHelpParameters which only 
+    /// point to TaggedText parts.
+    /// </summary>
     internal class SignatureHelpSymbolParameter
     {
         /// <summary>
