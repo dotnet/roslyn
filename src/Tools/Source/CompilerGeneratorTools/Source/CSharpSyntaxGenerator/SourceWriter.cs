@@ -931,7 +931,7 @@ namespace CSharpSyntaxGenerator
                         var fieldType = field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", AccessibilityModifier(field), (IsNew(field) ? "new " : ""), fieldType, field.Name);
+                        WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
                     }
                 }
 
@@ -940,7 +940,7 @@ namespace CSharpSyntaxGenerator
                     var field = valueFields[i];
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", AccessibilityModifier(field), (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                    WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                 }
 
                 WriteLine("  }");
@@ -988,7 +988,7 @@ namespace CSharpSyntaxGenerator
                     if (field.Type == "SyntaxToken")
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}{2} {3} ", AccessibilityModifier(field), OverrideOrNewModifier(field), field.Type, field.Name);
+                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
                         WriteLine("    {");
                         if (IsOptional(field))
                         {
@@ -1010,7 +1010,7 @@ namespace CSharpSyntaxGenerator
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}SyntaxTokenList {2} ", AccessibilityModifier(field), OverrideOrNewModifier(field), field.Name);
+                        WriteLine("    {0} {1}SyntaxTokenList {2} ", "public", OverrideOrNewModifier(field), field.Name);
                         WriteLine("    {");
                         WriteLine("        get");
                         WriteLine("        {");
@@ -1025,7 +1025,7 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}{2} {3} ", AccessibilityModifier(field), OverrideOrNewModifier(field), field.Type, field.Name);
+                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
                         WriteLine("    {");
                         WriteLine("        get");
                         WriteLine("        {");
@@ -1068,7 +1068,7 @@ namespace CSharpSyntaxGenerator
                     var field = valueFields[i];
                     WriteComment(field.PropertyComment, "    ");
                     WriteLine("    {0} {1}{2} {3} {{ get {{ return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{4})this.Green).{3}; }} }}",
-                        AccessibilityModifier(field), OverrideOrNewModifier(field), field.Type, field.Name, node.Name
+                        "public", OverrideOrNewModifier(field), field.Type, field.Name, node.Name
                         );
                     WriteLine();
                 }
@@ -1208,7 +1208,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
-            Write("    {0} {1} Update(", (node.Fields.Any(f => IsInternal(f)) || node.InternalFactory) ? "internal" : "public", node.Name);
+            Write("    {0} {1} Update(", "public", node.Name);
 
             // parameters
             for (int f = 0; f < node.Fields.Count; f++)
@@ -1307,7 +1307,7 @@ namespace CSharpSyntaxGenerator
                 var type = this.GetRedPropertyType(field);
 
                 WriteLine();
-                WriteLine("    {0} {1} With{2}({3} {4})", AccessibilityModifier(field), node.Name, StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
+                WriteLine("    {0} {1} With{2}({3} {4})", "public", node.Name, StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
                 WriteLine("    {");
 
                 // call custom validator
@@ -1353,7 +1353,7 @@ namespace CSharpSyntaxGenerator
                 else
                 {
                     Node referencedNode = GetNode(field.Type);
-                    if (referencedNode != null && !referencedNode.AvoidAutoCreation && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
+                    if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
                     {
                         // look for list members...
                         for (int rf = 0; rf < referencedNode.Fields.Count; rf++)
@@ -1479,14 +1479,10 @@ namespace CSharpSyntaxGenerator
             {
                 var node = nodes[i];
                 this.WriteRedFactory(node);
-
-                if (!node.InternalFactory)
-                {
-                    this.WriteRedFactoryWithNoAutoCreatableTokens(node);
-                    this.WriteRedMinimalFactory(node);
-                    this.WriteRedMinimalFactory(node, withStringNames: true);
-                    this.WriteKindConverters(node);
-                }
+                this.WriteRedFactoryWithNoAutoCreatableTokens(node);
+                this.WriteRedMinimalFactory(node);
+                this.WriteRedMinimalFactory(node, withStringNames: true);
+                this.WriteKindConverters(node);
             }
 
             WriteLine("  }");
@@ -1507,7 +1503,7 @@ namespace CSharpSyntaxGenerator
         private bool IsAutoCreatableNode(Node node, Field field)
         {
             var referencedNode = GetNode(field.Type);
-            return (referencedNode != null && !referencedNode.AvoidAutoCreation && RequiredFactoryArgumentCount(referencedNode) == 0);
+            return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);
         }
 
         private bool IsRequiredFactoryField(Node node, Field field)
@@ -1567,7 +1563,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
 
-            Write("    {0} static {1} {2}(", (nd.Fields.Any(f => IsInternal(f)) || nd.InternalFactory) ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
             WriteRedFactoryParameters(nd);
 
             WriteLine(")");
@@ -1799,7 +1795,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
-            Write("    {0} static {1} {2}(", factoryWithNoAutoCreatableTokenFields.Any(f => IsInternal(f)) ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
@@ -1920,7 +1916,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
-            Write("    {0} static {1} {2}(", minimalFactoryfields.Any(f => IsInternal(f)) ? "internal" : "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
