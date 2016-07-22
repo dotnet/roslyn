@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetDelegateInvokeItems(
+        private IList<SignatureHelpItem> GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateInvokePostambleParts().ToList(),
                 parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken).ToList());
 
-            return SpecializedCollections.SingletonEnumerable(item);
+            return SpecializedCollections.SingletonList(item);
         }
 
         private IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

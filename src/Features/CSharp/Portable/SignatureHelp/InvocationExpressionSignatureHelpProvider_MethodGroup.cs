@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetMethodGroupItems(
+        private IList<SignatureHelpItem> GetMethodGroupItems(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToList();
 
             return accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)

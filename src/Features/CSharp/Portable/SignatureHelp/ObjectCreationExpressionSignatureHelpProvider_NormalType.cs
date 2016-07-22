@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetNormalTypeConstructors(
+        private IList<SignatureHelpItem> GetNormalTypeConstructors(
             Document document,
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
@@ -32,13 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                                    .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                                    .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
-            if (!accessibleConstructors.Any())
-            {
-                return null;
-            }
-
             return accessibleConstructors.Select(c =>
-                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
         }
 
         private SignatureHelpItem ConvertNormalTypeConstructor(

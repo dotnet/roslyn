@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                      delegateType As INamedTypeSymbol,
                                                      within As ISymbol,
-                                                     cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+                                                     cancellationToken As CancellationToken) As IList(Of SignatureHelpItem)
             Dim invokeMethod = delegateType.DelegateInvokeMethod
             If invokeMethod Is Nothing Then
                 Return Nothing
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=GetDelegateTypePostambleParts(invokeMethod),
                 parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken))
-            Return SpecializedCollections.SingletonEnumerable(item)
+            Return SpecializedCollections.SingletonList(item)
         End Function
 
         Private Function GetDelegateTypePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)

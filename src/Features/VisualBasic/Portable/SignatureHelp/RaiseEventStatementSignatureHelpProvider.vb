@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
+                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 

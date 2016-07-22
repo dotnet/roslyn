@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems CreateSignatureHelpItems(
-            IEnumerable<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
         {
             if (items == null || !items.Any() || state == null)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return new SignatureHelpItems(items.ToList(), applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
         }
 
-        private static IList<SignatureHelpItem> Filter(IEnumerable<SignatureHelpItem> items, IEnumerable<string> parameterNames)
+        private static IList<SignatureHelpItem> Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames)
         {
             if (parameterNames == null)
             {

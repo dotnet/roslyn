@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 parameter.DisplayParts.ToTaggedText(),
                 parameter.PrefixDisplayParts.ToTaggedText(),
                 parameter.SuffixDisplayParts.ToTaggedText(),
-                parameter.DisplayParts.ToTaggedText());
+                parameter.SelectedDisplayParts.ToTaggedText());
         }
     }
 

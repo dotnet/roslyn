@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetDelegateTypeConstructors(
+        private IList<SignatureHelpItem> GetDelegateTypeConstructors(
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
-                return null;
+                return SpecializedCollections.EmptyList<SignatureHelpItem>();
             }
 
             var position = objectCreationExpression.SpanStart;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateTypePostambleParts(invokeMethod).ToList(),
                 parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken).ToList());
 
-            return SpecializedCollections.SingletonEnumerable(item);
+            return SpecializedCollections.SingletonList(item);
         }
 
         private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

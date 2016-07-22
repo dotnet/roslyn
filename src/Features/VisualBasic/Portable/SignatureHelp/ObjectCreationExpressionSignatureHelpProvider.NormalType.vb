@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                    anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
-                                                   cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+                                                   cancellationToken As CancellationToken) As IList(Of SignatureHelpItem)
             Dim accessibleConstructors = normalType.InstanceConstructors.Where(Function(c) c.IsAccessibleWithin(within)).
                                                     FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                                     Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart)
@@ -28,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
-            Return accessibleConstructors.[Select](Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
+            Return accessibleConstructors.Select(
+                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
         End Function
 
         Private Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
@@ -60,4 +61,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
     End Class
 End Namespace
-

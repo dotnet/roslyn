@@ -80,8 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Return CreateSignatureHelpItems(
                 If(type.TypeKind = TypeKind.Delegate,
-                      GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
-                      GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)),
+                      GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken).ToList(),
+                      GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken).ToList()),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
     End Class

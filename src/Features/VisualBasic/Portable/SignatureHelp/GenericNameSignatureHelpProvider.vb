@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim _syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
+                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken))
         End Function
 
