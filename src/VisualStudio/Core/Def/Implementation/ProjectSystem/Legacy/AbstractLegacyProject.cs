@@ -46,6 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             ConnectHierarchyEvents();
 
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
+
+            _lastParsedCompilerOptions = string.Empty;
+            var commandLineArguments = ParseCommandLineArguments(SpecializedCollections.EmptyEnumerable<string>());
+            base.SetArguments(commandLineArguments);
         }
 
         public override void Disconnect()

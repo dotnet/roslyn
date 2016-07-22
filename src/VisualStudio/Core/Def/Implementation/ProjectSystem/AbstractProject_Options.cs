@@ -29,14 +29,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Creates and sets new options using the given parsed command line arguments.
+        /// Sets the given command line arguments to be the last parsed command line arguments.
+        /// </summary>
+        protected void SetArguments(CommandLineArguments commandLineArguments)
+        {
+            _lastParsedCommandLineArguments = commandLineArguments;
+        }
+
+        /// <summary>
+        /// Sets the given command line arguments to be the last parsed command line arguments and
+        /// creates and sets new options using these command line arguments.
         /// </summary>
         protected void SetArgumentsAndUpdateOptions(CommandLineArguments commandLineArguments)
         {
-            _lastParsedCommandLineArguments = commandLineArguments;
+            SetArguments(commandLineArguments);
             UpdateOptions();            
         }
 
+        /// <summary>
+        /// Sets the given compilation and parse options.
+        /// </summary>
         protected void SetOptions(CompilationOptions newCompilationOptions, ParseOptions newParseOptions)
         {
             this.UpdateRuleSetError(this.RuleSetFile);
@@ -52,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Gets the compilation options from parsed command line arguments, with additional workspace specific options appended.
+        /// Creates new compilation options from parsed command line arguments, with additional workspace specific options appended.
         /// It is expected that derived types which need to add more specific options will fetch the base options and override those options.
         /// </summary>
         protected virtual CompilationOptions CreateCompilationOptions(CommandLineArguments commandLineArguments, ParseOptions newParseOptions)
@@ -98,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Gets the parse options from parsed command line arguments (with overridden default DocumentationMode).
+        /// Creates new parse options from parsed command line arguments (with overridden default DocumentationMode).
         /// It is expected that derived types which need to add more specific options will fetch the base options and override those options.
         /// </summary>
         protected virtual ParseOptions CreateParseOptions(CommandLineArguments commandLineArguments)

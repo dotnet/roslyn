@@ -14,33 +14,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
         {
-            UpdateOptions(compilerOptions);
+            if (!string.Equals(_lastParsedCompilerOptions, compilerOptions, StringComparison.OrdinalIgnoreCase))
+            {
+                // Command line options have changed, so update options with new parsed CommandLineArguments.
+                var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(compilerOptions, removeHashComments: false);
+                var commandLineArguments = ParseCommandLineArguments(splitArguments);
+                SetArgumentsAndUpdateOptions(commandLineArguments);
+                _lastParsedCompilerOptions = compilerOptions;
+            }
+
             supported = true;
             return VSConstants.S_OK;
         }
 
         protected abstract CommandLineArguments ParseCommandLineArguments(IEnumerable<string> splitArguments);
-
-        /// <summary>
-        /// Parses the given command line (if different from the last command line), and updates options using the latest state.
-        /// </summary>
-        /// <param name="commandLine">Optional command line to parse options. If null, default CommandLineArguments will be used.</param>
-        protected void UpdateOptions(string commandLine = null)
-        {
-            commandLine = commandLine ?? string.Empty;
-            if (!string.Equals(_lastParsedCompilerOptions, commandLine, StringComparison.OrdinalIgnoreCase))
-            {
-                // Command line options have changed, so update options with new parsed CommandLineArguments.
-                var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
-                var commandLineArguments = ParseCommandLineArguments(splitArguments);
-                SetArgumentsAndUpdateOptions(commandLineArguments);
-                _lastParsedCompilerOptions = commandLine;
-            }
-            else
-            {
-                // Command line options are same, so update options with the last parsed CommandLineArguments.
-                base.UpdateOptions();
-            }
-        }
     }
 }
