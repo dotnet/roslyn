@@ -721,6 +721,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
+
+            internal override TypeSymbol IteratorElementType
+            {
+                get
+                {
+                    // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
+                    // https://github.com/dotnet/roslyn/issues/11649
+
+                    return null;
+                }
+            }
         }
     }
 }
