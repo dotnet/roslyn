@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
 
-                Dim boundArgument As BoundExpression = BindRValue(argumentSyntax.Expression, diagnostics)
+                Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
                 boundArguments.Add(boundArgument)
 
                 Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasErrors)

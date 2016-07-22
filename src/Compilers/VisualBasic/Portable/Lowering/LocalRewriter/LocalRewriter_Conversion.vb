@@ -101,6 +101,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
 
+            ElseIf node.ConversionKind = ConversionKind.WideningTuple OrElse
+                node.ConversionKind = ConversionKind.NarrowingTuple Then
+                returnValue = RewriteTupleConversion(node)
+
             Else
                 returnValue = MyBase.VisitConversion(node)
                 If returnValue.Kind = BoundKind.Conversion Then
@@ -110,6 +114,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _inExpressionLambda = wasInExpressionlambda
             Return returnValue
+        End Function
+
+        Private Function RewriteTupleConversion(node As BoundConversion) As BoundNode
+            Dim loweredOperand = VisitExpression(node.Operand)
+
+            If node.Type.IsSameTypeIgnoringCustomModifiers(loweredOperand.Type) Then
+                'binder keeps some tuple conversions just for the purpose of semantic model
+                'otherwisw they are as good as identity conversions
+
+                Return loweredOperand
+            End If
+
+            Throw New NotImplementedException
         End Function
 
         Private Function RewriteLambdaRelaxationConversion(node As BoundConversion) As BoundNode

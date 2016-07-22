@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
 
-        Private ReadOnly _lazyParameters As ImmutableArray(Of ParameterSymbol)
+        Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
         Public Overrides ReadOnly Property IsTupleMethod As Boolean
             Get

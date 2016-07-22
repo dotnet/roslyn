@@ -61,6 +61,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
+        Public Function TryGetElementTypesIfTupleOrCompatible(type As TypeSymbol, <Out> elementTypes As ImmutableArray(Of TypeSymbol)) As Boolean
+            If type.IsTupleType Then
+                elementTypes = DirectCast(type, TupleTypeSymbol).TupleElementTypes
+                Return True
+            End If
+
+            ' The following codepath should be very uncommon since it would be rare
+            ' to see a tuple underlying type not represented as a tuple.
+            ' It still might happen since tuple underlying types are creatable via public APIs 
+            ' and it is also possible that they would be passed in.
+
+            ' PERF: if allocations here become nuisance, consider caching the results
+            '       in the type symbols that can actually be tuple compatible
+            Dim cardinality As Integer
+            If (Not type.IsTupleCompatible(cardinality)) Then
+                ' source not a tuple or compatible
+                elementTypes = Nothing
+                Return False
+            End If
+
+            Dim elementTypesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(cardinality)
+            TupleTypeSymbol.AddElementTypes(DirectCast(type, NamedTypeSymbol), elementTypesBuilder)
+
+            Debug.Assert(elementTypesBuilder.Count = cardinality)
+
+            elementTypes = elementTypesBuilder.ToImmutableAndFree()
+            Return True
+        End Function
+
+        <Extension()>
+        Public Function GetElementTypesOfTupleOrCompatible(Type As TypeSymbol) As ImmutableArray(Of TypeSymbol)
+            If Type.IsTupleType Then
+                Return DirectCast(Type, TupleTypeSymbol).TupleElementTypes
+            End If
+
+            ' The following codepath should be very uncommon since it would be rare
+            ' to see a tuple underlying type not represented as a tuple.
+            ' It still might happen since tuple underlying types are creatable via public APIs 
+            ' and it is also possible that they would be passed in.
+
+            Debug.Assert(Type.IsTupleCompatible())
+
+            ' PERF: if allocations here become nuisance, consider caching the results
+            '       in the type symbols that can actually be tuple compatible
+            Dim elementTypesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance()
+            TupleTypeSymbol.AddElementTypes(DirectCast(Type, NamedTypeSymbol), elementTypesBuilder)
+
+            Return elementTypesBuilder.ToImmutableAndFree()
+        End Function
+
+        <Extension()>
         Friend Function IsEnumType(type As TypeSymbol) As Boolean
             Debug.Assert(type IsNot Nothing)
             Return type.TypeKind = TypeKind.Enum
@@ -181,6 +232,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return type.TypeKind = TypeKind.Delegate
         End Function
 
+        'PROTOTYPE: tuples should we give a better (and preferrably shorter) name to this?
+        ''' <summary>
+        ''' Compares types ignoring type modifiers.
+        ''' Also ignores distinctions between tuple types and their underlying types (thus ignoring tuple element names)
+        ''' </summary>
         <Extension()>
         Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
 

@@ -494,6 +494,103 @@ BC30269: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions wit
 
         End Sub
 
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (String, String) = (Nothing, Nothing)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, )
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of String, String) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldnull
+  IL_0004:  call       "Sub System.ValueTuple(Of String, String)..ctor(String, String)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. "System.ValueTuple(Of String, String)"
+  IL_0011:  callvirt   "Function Object.ToString() As String"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (Func(Of integer), Func(of String)) = (Function() 42, Function() "hi")
+        System.Console.WriteLine((x.Item1(), x.Item2()).ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(42, hi)
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x = CType((String, String),(Nothing, Nothing))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, )
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of String, String) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldnull
+  IL_0004:  call       "Sub System.ValueTuple(Of String, String)..ctor(String, String)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. "System.ValueTuple(Of String, String)"
+  IL_0011:  callvirt   "Function Object.ToString() As String"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
+}
+]]>)
+        End Sub
+
     End Class
 
 End Namespace
