@@ -2791,10 +2791,7 @@ class Program
             VerifyDiagnostics(source,
     // (16,9): error CS0103: The name 'Local' does not exist in the current context
     //         Local();
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(16, 9),
-    // (18,9): error CS0841: Cannot use local variable 'Local2' before it is declared
-    //         Local2();
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(18, 9)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(16, 9)
     );
         }
 
@@ -3592,11 +3589,85 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (8,27): error CS0841: Cannot use local variable 'Local' before it is declared
-    //         Console.WriteLine(Local());
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(8, 27)
-    );
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void ForwardReferenceCapture()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int x = 2;
+        Console.WriteLine(Local());
+        int Local() => x;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void ForwardRefInLocalFunc()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int x = 2;
+        Console.WriteLine(Local());
+        int Local()
+        {
+            x = 3;
+            return Local2();
+        }
+        int Local2() => x;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void LocalFuncMutualRecursion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int x = 5;
+        int y = 0;
+        Console.WriteLine(Local1());
+        int Local1()
+        {
+            x -= 1;
+            return Local2(y++);
+        }
+        int Local2(int z)
+        {
+            if (x == 0)
+            {
+                return z;
+            }
+            else
+            {
+                return Local1();
+            }
+        }
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "4");
         }
 
         [Fact]
