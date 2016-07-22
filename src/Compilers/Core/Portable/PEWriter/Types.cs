@@ -397,6 +397,19 @@ namespace Microsoft.Cci
         ITypeReference GetTargetType(EmitContext context);
     }
 
+    /// <summary>
+    /// A type ref with attributes attached directly to the type reference
+    /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
+    /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
+    /// for the "pointed at" declaration, and all attributes will be emitted
+    /// directly on the type ref, rather than the declaration.
+    /// </summary>
+    // TODO(https://github.com/dotnet/roslyn/issues/12677):
+    // Consider: This is basically just a work-around for our overly loose
+    // interpretation of IReference and IDefinition. This type would probably
+    // be unnecessary if we added a GetAttributes method onto IDefinition and
+    // properly segregated attributes that are on type references and attributes
+    // that are on underlying type definitions.
     internal struct TypeReferenceWithAttributes
     {
         /// <summary>
@@ -411,10 +424,12 @@ namespace Microsoft.Cci
 
         public TypeReferenceWithAttributes(
             ITypeReference typeRef,
-            ImmutableArray<ICustomAttribute> attributes)
+            ImmutableArray<ICustomAttribute> attributes = default(ImmutableArray<ICustomAttribute>))
         {
             TypeRef = typeRef;
-            Attributes = attributes;
+            Attributes = attributes.IsDefault
+                ? ImmutableArray<ICustomAttribute>.Empty
+                : attributes;
         }
     }
 

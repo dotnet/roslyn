@@ -250,8 +250,7 @@ public class C3 : IEnumerable<(int key, int val)>
 
         public void Dispose() { }
 
-        public bool MoveNext() =>
-            ++index < _backing.Length ? true : false;
+        public bool MoveNext() => ++index < _backing.Length;
 
         public void Reset()
         {
@@ -457,8 +456,7 @@ public struct TestEnumerable : IEnumerable<(int key, int val)>
 
         public void Dispose() { }
 
-        public bool MoveNext() =>
-            ++index < _backing.Length ? true : false;
+        public bool MoveNext() => ++index < _backing.Length;
 
         public void Reset()
         {

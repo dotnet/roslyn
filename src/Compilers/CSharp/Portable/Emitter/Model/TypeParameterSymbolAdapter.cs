@@ -239,7 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                          syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                          diagnostics: context.Diagnostics);
 
-                yield return this.GetTypeRefWithAttributes(type, typeRef);
+                yield return TypeSymbolExtensions.
+                    GetTypeRefWithAttributes(this.DeclaringCompilation,
+                                             type,
+                                             typeRef);
             }
             if (this.HasValueTypeConstraint && !seenValueType)
             {
@@ -248,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                               diagnostics: context.Diagnostics);
 
-                yield return new Cci.TypeReferenceWithAttributes(typeRef, ImmutableArray<Cci.ICustomAttribute>.Empty);
+                yield return new Cci.TypeReferenceWithAttributes(typeRef);
             }
         }
 
