@@ -206,6 +206,12 @@ namespace Microsoft.Cci
         // provide a basis for approximating the capacities of
         // various databases used during Emit.
         int HintNumberOfMethodDefinitions { get; }
+
+        /// <summary>
+        /// Number of debug documents in the module. 
+        /// Used to determine capacities of lists and indices when emitting debug info.
+        /// </summary>
+        int DebugDocumentCount { get; }
     }
 
     internal struct DefinitionWithLocation

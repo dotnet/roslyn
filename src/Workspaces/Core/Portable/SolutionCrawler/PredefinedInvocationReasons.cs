@@ -6,6 +6,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         public const string SolutionRemoved = nameof(SolutionRemoved);
 
+        public const string ProjectParseOptionsChanged = nameof(ProjectParseOptionsChanged);
+        public const string ProjectConfigurationChanged = nameof(ProjectConfigurationChanged);
+
         public const string DocumentAdded = nameof(DocumentAdded);
         public const string DocumentRemoved = nameof(DocumentRemoved);
         public const string DocumentOpened = nameof(DocumentOpened);

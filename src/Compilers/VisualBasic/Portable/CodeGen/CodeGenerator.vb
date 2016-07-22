@@ -211,8 +211,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VisualBasicSyntaxNode)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
+        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VisualBasicSyntaxNode, Optional encodeAsRawDefinitionToken As Boolean = False)
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken)
         End Sub
 
         Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)

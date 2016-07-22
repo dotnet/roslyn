@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,24 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenCondition = (BoundExpression)Visit(node.Condition);
             var rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            TextSpan conditionSequencePointSpan = default(TextSpan);
-            if (this.GenerateDebugInfo)
-            {
-                if (!node.WasCompilerGenerated)
-                {
-                    WhileStatementSyntax whileSyntax = (WhileStatementSyntax)node.Syntax;
-                    conditionSequencePointSpan = TextSpan.FromBounds(
-                        whileSyntax.WhileKeyword.SpanStart,
-                        whileSyntax.CloseParenToken.Span.End);
-                }
-            }
-
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
+            if (!node.WasCompilerGenerated && this.Instrument)
+            {
+                rewrittenCondition = _instrumenter.InstrumentWhileStatementCondition(node, rewrittenCondition, _factory);
+            }
+
             return RewriteWhileStatement(
-                node.Syntax,
-                AddConditionSequencePoint(rewrittenCondition, node),
-                conditionSequencePointSpan,
+                node,
+                rewrittenCondition,
                 rewrittenBody,
                 node.BreakLabel,
                 node.ContinueLabel,
@@ -42,20 +35,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement RewriteWhileStatement(
-            CSharpSyntaxNode syntax,
+            BoundLoopStatement loop,
             BoundExpression rewrittenCondition,
-            TextSpan conditionSequencePointSpan,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
+            Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
+            CSharpSyntaxNode syntax = loop.Syntax;
             var startLabel = new GeneratedLabelSymbol("start");
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
 
-            if (this.GenerateDebugInfo)
+            if (this.Instrument && !loop.WasCompilerGenerated)
             {
-                ifConditionGotoStart = new BoundSequencePointWithSpan(syntax, ifConditionGotoStart, conditionSequencePointSpan);
+                switch (loop.Kind)
+                {
+                    case BoundKind.WhileStatement:
+                        ifConditionGotoStart = _instrumenter.InstrumentWhileStatementConditionalGotoStart((BoundWhileStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    case BoundKind.ForEachStatement:
+                        ifConditionGotoStart = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(loop.Kind);
+                }
             }
 
             // while (condition) 
@@ -73,12 +79,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // break:
 
             BoundStatement gotoContinue = new BoundGotoStatement(syntax, continueLabel);
-            if (this.GenerateDebugInfo)
+            if (this.Instrument && !loop.WasCompilerGenerated)
             {
                 // mark the initial jump as hidden. We do it to tell that this is not a part of previous statement. This
                 // jump may be a target of another jump (for example if loops are nested) and that would give the
                 // impression that the previous statement is being re-executed.
-                gotoContinue = new BoundSequencePoint(null, gotoContinue);
+                switch (loop.Kind)
+                {
+                    case BoundKind.WhileStatement:
+                        gotoContinue = _instrumenter.InstrumentWhileStatementGotoContinue((BoundWhileStatement)loop, gotoContinue);
+                        break;
+
+                    case BoundKind.ForEachStatement:
+                        gotoContinue = _instrumenter.InstrumentForEachStatementGotoContinue((BoundForEachStatement)loop, gotoContinue);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(loop.Kind);
+                }
             }
 
             return BoundStatementList.Synthesized(syntax, hasErrors,

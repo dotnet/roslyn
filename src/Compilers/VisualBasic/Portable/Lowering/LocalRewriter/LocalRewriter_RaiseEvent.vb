@@ -102,7 +102,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, result, canThrow:=True)
             End If
 
-            Return MarkStatementWithSequencePoint(result)
+            If Instrument(node, result) Then
+                result = _instrumenter.InstrumentRaiseEventStatement(node, result)
+            End If
+
+            Return result
         End Function
 
         ' If the event is a WinRT event, then the backing field is actually an EventRegistrationTokenTable,

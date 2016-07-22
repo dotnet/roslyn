@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 return false;
             }
 
-            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 // method body change
                 if (bodyOpt != null || !document.IsOpen())
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.Notification
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }

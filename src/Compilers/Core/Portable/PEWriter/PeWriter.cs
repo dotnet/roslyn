@@ -54,13 +54,14 @@ namespace Microsoft.Cci
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
 
-            Blob mvidFixup;
+            Blob mvidFixup, mvidStringFixup;
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                out mvidFixup);
+                out mvidFixup,
+                out mvidStringFixup);
 
             MethodDefinitionHandle entryPointHandle;
             MethodDefinitionHandle debugEntryPointHandle;
@@ -183,13 +184,7 @@ namespace Microsoft.Cci
             BlobContentId peContentId;
             peBuilder.Serialize(peBlob, out peContentId);
 
-            // Patch MVID
-            if (!mvidFixup.IsDefault)
-            {
-                var writer = new BlobWriter(mvidFixup);
-                writer.WriteGuid(peContentId.Guid);
-                Debug.Assert(writer.RemainingBytes == 0);
-            }
+            PatchModuleVersionIds(mvidFixup, mvidStringFixup, peContentId.Guid);
 
             try
             {
@@ -201,6 +196,23 @@ namespace Microsoft.Cci
             }
 
             return true;
+        }
+
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob stringFixup, Guid mvid)
+        {
+            if (!guidFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidFixup);
+                writer.WriteGuid(mvid);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!stringFixup.IsDefault)
+            {
+                var writer = new BlobWriter(stringFixup);
+                writer.WriteUserString(mvid.ToString());
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
         }
 
         // Padding: We pad the path to this minimal size to

@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis
         System_CLSCompliantAttribute__ctor,
         System_FlagsAttribute__ctor,
         System_Guid__ctor,
+        System_Guid__Parse,
 
         System_Type__GetTypeFromCLSID,
         System_Type__GetTypeFromHandle,
@@ -413,6 +414,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
         System_String__Format_IFormatProvider,
+
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+
         Count
     }
 }
