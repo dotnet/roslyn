@@ -42,15 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             var uniqueLocations = new HashSet<ValueTuple<Document, TextSpan>>();
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
-            referencedSymbols = referencedSymbols.FilterUnreferencedSyntheticDefinitions().ToList();
+            referencedSymbols = referencedSymbols.FilterToItemsToShow().ToList();
 
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetDefinitionPrecedence))
             {
-                if (!IncludeDefinition(referencedSymbol))
-                {
-                    continue;
-                }
-
                 var definition = referencedSymbol.Definition;
                 var locations = definition.Locations;
 
@@ -75,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     if (definitionItem != null)
                     {
                         definitions.Add(definitionItem);
+
                         var referenceItems = CreateReferenceItems(solution, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location));
                         definitionItem.Children.AddRange(referenceItems);
                         definitionItem.SetReferenceCount(referenceItems.Count);

@@ -11,6 +11,8 @@ Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
+        Private Const DefinitionKey As String = "Definition"
+
         Private ReadOnly _outputHelper As ITestOutputHelper
 
         Public Sub New(outputHelper As ITestOutputHelper)
@@ -38,14 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     End If
 
                     Dim actualDefinitions =
-                        result.FilterUnreferencedSyntheticDefinitions().
-                               Where(Function(r)
-                                         Return Not r.Definition.IsImplicitlyDeclared OrElse
-                                            (r.Definition.Kind = SymbolKind.Property AndAlso
-                                            r.Definition.ContainingSymbol IsNot Nothing AndAlso
-                                            r.Definition.ContainingSymbol.Kind = SymbolKind.NamedType AndAlso
-                                            DirectCast(r.Definition.ContainingSymbol, INamedTypeSymbol).IsAnonymousType)
-                                     End Function).
+                        result.FilterToItemsToShow().
+                               Where(Function(s) Not IsImplicitNamespace(s)).
                                SelectMany(Function(r) r.Definition.Locations).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
                                GroupBy(Function(loc) loc.SourceTree).
@@ -56,11 +52,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-                        Assert.Equal(Of Text.TextSpan)(doc.AnnotatedSpans("Definition").Order(), actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order())
+                        Assert.Equal(Of Text.TextSpan)(doc.AnnotatedSpans(DefinitionKey).Order(), actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order())
                     Next
 
                     Dim actualReferences =
-                        result.FilterUnreferencedSyntheticDefinitions().
+                        result.FilterToItemsToShow().
                                SelectMany(Function(r) r.Locations.Select(Function(loc) loc.Location)).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
                                Distinct().
@@ -80,6 +76,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Next
                 Next
             End Using
+        End Function
+
+        Private Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean
+            Return referencedSymbol.Definition.IsImplicitlyDeclared AndAlso
+                   referencedSymbol.Definition.Kind = SymbolKind.Namespace
         End Function
 
         Private Shared Function IsInSource(workspace As Workspace, loc As Location, uiVisibleOnly As Boolean) As Boolean
