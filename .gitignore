@@ -25,6 +25,9 @@ x64/
 NuGet.exe
 nuget.exe
 
+# Build tools log
+build/run/init-tools.log
+
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
 

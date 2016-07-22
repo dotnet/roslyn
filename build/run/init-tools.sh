@@ -2,8 +2,8 @@
 
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __init_tools_log=$__scriptpath/init-tools.log
-__PACKAGES_DIR=$__scriptpath/packages
-__TOOLRUNTIME_DIR=$__scriptpath/Tools
+__PACKAGES_DIR=$__scriptpath/../../packages
+__TOOLRUNTIME_DIR=$__scriptpath/../../Tools
 __DOTNET_PATH=$__TOOLRUNTIME_DIR/dotnetcli
 __DOTNET_CMD=$__DOTNET_PATH/dotnet
 if [ -z "$__BUILDTOOLS_SOURCE" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
@@ -80,8 +80,8 @@ if [ ! -e $__INIT_TOOLS_DONE_MARKER ]; then
     fi
 
     echo "Initializing BuildTools..."
-    echo "Running: $__BUILD_TOOLS_PATH/init-tools.sh $__scriptpath $__DOTNET_CMD $__TOOLRUNTIME_DIR" >> $__init_tools_log
-    $__BUILD_TOOLS_PATH/init-tools.sh $__scriptpath $__DOTNET_CMD $__TOOLRUNTIME_DIR >> $__init_tools_log
+    echo "Running: $__BUILD_TOOLS_PATH/init-tools.sh $__scriptpath/../../ $__DOTNET_CMD $__TOOLRUNTIME_DIR" >> $__init_tools_log
+    $__BUILD_TOOLS_PATH/init-tools.sh $__scriptpath/../../ $__DOTNET_CMD $__TOOLRUNTIME_DIR >> $__init_tools_log
     if [ "$?" != "0" ]; then
         echo "ERROR: An error occured when trying to initialize the tools. Please check '$__init_tools_log' for more details."
         exit 1
