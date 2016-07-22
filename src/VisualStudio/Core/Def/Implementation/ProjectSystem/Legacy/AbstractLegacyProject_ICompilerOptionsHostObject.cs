@@ -4,37 +4,43 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
     internal partial class AbstractLegacyProject : ICompilerOptionsHostObject
     {
+        private string _lastParsedCompilerOptions;
+
         int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
         {
-            CommandLineArguments commandLineArguments;
-            if (TryGetNewCommandLineArguments(compilerOptions, out commandLineArguments))
-            {
-                base.SetCommandLineArguments(commandLineArguments);
-            }
-
+            UpdateOptions(compilerOptions);
             supported = true;
             return VSConstants.S_OK;
         }
 
         protected abstract CommandLineArguments ParseCommandLineArguments(IEnumerable<string> splitArguments);
 
-        private bool TryGetNewCommandLineArguments(string compilerOptions, out CommandLineArguments commandLineArguments)
+        /// <summary>
+        /// Parses the given command line (if different from the last command line), and updates options using the latest state.
+        /// </summary>
+        /// <param name="commandLine">Optional command line to parse options. If null, default CommandLineArguments will be used.</param>
+        protected void UpdateOptions(string commandLine = null)
         {
-            if (!string.Equals(_lastParsedCompilerOptions, compilerOptions, StringComparison.OrdinalIgnoreCase))
+            commandLine = commandLine ?? string.Empty;
+            if (!string.Equals(_lastParsedCompilerOptions, commandLine, StringComparison.OrdinalIgnoreCase))
             {
-                var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(compilerOptions, removeHashComments: false);
-                commandLineArguments = ParseCommandLineArguments(splitArguments);
-                _lastParsedCompilerOptions = compilerOptions;
-                return true;
+                // Command line options have changed, so update options with new parsed CommandLineArguments.
+                var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
+                var commandLineArguments = ParseCommandLineArguments(splitArguments);
+                SetArgumentsAndUpdateOptions(commandLineArguments);
+                _lastParsedCompilerOptions = commandLine;
             }
-
-            commandLineArguments = null;
-            return false;
+            else
+            {
+                // Command line options are same, so update options with the last parsed CommandLineArguments.
+                base.UpdateOptions();
+            }
         }
     }
 }

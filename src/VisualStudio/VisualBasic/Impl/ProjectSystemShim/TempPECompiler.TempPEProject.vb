@@ -199,8 +199,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Public Sub SetCompilerOptions(ByRef pCompilerOptions As VBCompilerOptions) Implements IVbCompilerProject.SetCompilerOptions
                 _runtimeLibraries = VisualBasicProjectOptionsHelper.GetRuntimeLibraries(_compilerHost, pCompilerOptions)
                 _outputPath = VisualBasicProjectOptionsHelper.GetOutputPath(pCompilerOptions)
-                _parseOptions = VisualBasicProjectOptionsHelper.GetParseOptions(Nothing, pCompilerOptions)
-                _compilationOptions = VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptionsOpt:=Nothing,
+                _parseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(Nothing, pCompilerOptions)
+                _compilationOptions = VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptionsOpt:=Nothing,
                                                                                             newParseOptions:=_parseOptions,
                                                                                             compilerOptions:=pCompilerOptions,
                                                                                             compilerHost:=_compilerHost,

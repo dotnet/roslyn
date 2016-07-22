@@ -41,17 +41,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         // TODO: CPS should push design time build status for every design time build.
         protected sealed override bool DesignTimeBuildStatus => true;
-
-        protected override void PostSetOptions()
-        {
-            base.PostSetOptions();
-
-            // If outputPath has changed, then invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
-            if (ParsedCommandLineArguments.OutputFileName != null && ParsedCommandLineArguments.OutputDirectory != null)
-            {
-                var newOutputPath = PathUtilities.CombinePathsUnchecked(ParsedCommandLineArguments.OutputDirectory, ParsedCommandLineArguments.OutputFileName);
-                SetOutputPathAndRelatedData(newOutputPath, hasSameBinAndObjOutputPaths: true);
-            }
-        }
     }
 }

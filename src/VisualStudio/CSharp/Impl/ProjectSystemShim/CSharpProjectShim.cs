@@ -64,16 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             _projectRoot = projectRoot;
             _warningNumberArrayPointer = Marshal.AllocHGlobal(0);
 
-            InitializeOptions();
-
-            projectTracker.AddProject(this);
-        }
-
-        private void InitializeOptions()
-        {
             // Ensure the default options are set up
             ResetAllOptions();
             UpdateOptions();
+
+            projectTracker.AddProject(this);
         }
 
         public override void Disconnect()
@@ -88,10 +83,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return "CS" + errorCode.ToString("0000");
         }
 
-        protected override CompilationOptions GetCompilationOptions(ParseOptions newParseOptions)
+        protected override CompilationOptions CreateCompilationOptions(CommandLineArguments commandLineArguments, ParseOptions newParseOptions)
         {
             // Get the base options from command line arguments + common workspace defaults.
-            var options = (CSharpCompilationOptions)base.GetCompilationOptions(newParseOptions);
+            var options = (CSharpCompilationOptions)base.CreateCompilationOptions(commandLineArguments, newParseOptions);
 
             // Now override these with the options from our state.
             IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;
@@ -260,10 +255,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
         }
 
-        protected override ParseOptions GetParseOptions()
+        protected override ParseOptions CreateParseOptions(CommandLineArguments commandLineArguments)
         {
             // Get the base parse options and override the defaults with the options from state.
-            var options = (CSharpParseOptions)base.GetParseOptions();
+            var options = (CSharpParseOptions)base.CreateParseOptions(commandLineArguments);
             var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             DocumentationMode documentationMode = DocumentationMode.Parse;

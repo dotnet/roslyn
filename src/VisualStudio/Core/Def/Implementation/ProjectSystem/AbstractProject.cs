@@ -381,17 +381,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetOptions(CompilationOptions compilationOptions, ParseOptions parseOptions)
-        {
-            CurrentCompilationOptions = compilationOptions;
-            CurrentParseOptions = parseOptions;
-
-            if (_pushingChangesToWorkspaceHosts)
-            {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(Id, compilationOptions, parseOptions));
-            }
-        }
-
         protected bool CanConvertToProjectReferences
         {
             get

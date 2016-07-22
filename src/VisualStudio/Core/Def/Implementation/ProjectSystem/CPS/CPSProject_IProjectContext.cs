@@ -62,9 +62,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #endregion
         
         #region Options
-        public new void SetCommandLineArguments(CommandLineArguments commandLineArguments)
+        public void SetCommandLineArguments(CommandLineArguments commandLineArguments)
         {
-            base.SetCommandLineArguments(commandLineArguments);
+            SetArgumentsAndUpdateOptions(commandLineArguments);
+
+            // If outputPath has changed, then invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
+            if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
+            {
+                var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
+                SetOutputPathAndRelatedData(newOutputPath, hasSameBinAndObjOutputPaths: true);
+            }
         }
         #endregion
 

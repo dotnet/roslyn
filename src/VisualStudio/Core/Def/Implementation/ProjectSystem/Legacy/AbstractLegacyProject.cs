@@ -22,8 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     /// </summary>
     internal abstract partial class AbstractLegacyProject : AbstractProject
     {
-        private string _lastParsedCompilerOptions;
-
         public AbstractLegacyProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -48,12 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             ConnectHierarchyEvents();
 
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
-
-            CommandLineArguments commandLineArguments;
-            if (TryGetNewCommandLineArguments(string.Empty, out commandLineArguments))
-            {
-                ParsedCommandLineArguments = commandLineArguments;
-            }
         }
 
         public override void Disconnect()

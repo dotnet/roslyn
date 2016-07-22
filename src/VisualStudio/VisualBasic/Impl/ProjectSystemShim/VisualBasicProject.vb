@@ -381,19 +381,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Try
         End Sub
 
-        Protected Overrides Function GetCompilationOptions(newParseOptions As ParseOptions) As CompilationOptions
-            Dim baseCompilationOptions = DirectCast(MyBase.GetCompilationOptions(newParseOptions), VisualBasicCompilationOptions)
+        Protected Overrides Function CreateCompilationOptions(commandLineArguments As CommandLineArguments, newParseOptions As ParseOptions) As CompilationOptions
+            Dim baseCompilationOptions = DirectCast(MyBase.CreateCompilationOptions(commandLineArguments, newParseOptions), VisualBasicCompilationOptions)
             Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.GetCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
+            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
         End Function
 
-        Protected Overrides Function GetParseOptions() As ParseOptions
-            Dim baseParseOptions = DirectCast(MyBase.GetParseOptions(), VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.GetParseOptions(baseParseOptions, _rawOptions)
+        Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions
+            Dim baseParseOptions = DirectCast(MyBase.CreateParseOptions(commandLineArguments), VisualBasicParseOptions)
+            Return VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
         End Function
 
-        Protected Overrides Sub PostSetOptions()
-            MyBase.PostSetOptions()
+        Private Shadows Sub UpdateOptions()
+            MyBase.UpdateOptions()
 
             ' NOTE: _NOT_ using OrdinalIgnoreCase, even though this is a path. If the user
             ' changes the casing in options, we want that to be reflected in the binary we 

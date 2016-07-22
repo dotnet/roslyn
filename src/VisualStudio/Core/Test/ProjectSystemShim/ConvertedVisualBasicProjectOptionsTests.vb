@@ -161,7 +161,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                                 .wszDisabledWarnings = commandLineNoWarns
                             }
             Dim compilerHost = New MockCompilerHost("C:\SDK")
-            Dim convertedOptions = VisualBasicProjectOptionsHelper.GetCompilationOptions(
+            Dim convertedOptions = VisualBasicProjectOptionsHelper.CreateCompilationOptions(
                                     Nothing,
                                     VisualBasicParseOptions.Default,
                                     compilerOptions,

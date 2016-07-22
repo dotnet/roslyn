@@ -9,45 +9,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal abstract partial class AbstractProject
     {
-        protected CommandLineArguments ParsedCommandLineArguments { get; set; }
+        private CommandLineArguments _lastParsedCommandLineArguments;
 
-        protected void SetCommandLineArguments(CommandLineArguments commandLineArguments)
-        {
-            ParsedCommandLineArguments = commandLineArguments;
-            UpdateOptions();
-        }
-
+        /// <summary>
+        /// Creates and sets new options using the last parsed command line arguments.
+        /// </summary>
         protected void UpdateOptions()
         {
-            var parseOptions = GetParseOptions();
-            var compilationOptions = GetCompilationOptions(parseOptions);
-            if (compilationOptions == CurrentCompilationOptions && parseOptions == CurrentParseOptions)
+            Contract.ThrowIfNull(_lastParsedCommandLineArguments);
+
+            var newParseOptions = CreateParseOptions(_lastParsedCommandLineArguments);
+            var newCompilationOptions = CreateCompilationOptions(_lastParsedCommandLineArguments, newParseOptions);
+            if (newCompilationOptions == CurrentCompilationOptions && newParseOptions == CurrentParseOptions)
             {
                 return;
             }
 
-            this.UpdateRuleSetError(this.RuleSetFile);
-            this.SetOptions(compilationOptions, parseOptions);
-            this.PostSetOptions();
+            SetOptions(newCompilationOptions, newParseOptions);
         }
 
         /// <summary>
-        /// Override this method to execute anything after the options have been set.
+        /// Creates and sets new options using the given parsed command line arguments.
         /// </summary>
-        protected virtual void PostSetOptions()
+        protected void SetArgumentsAndUpdateOptions(CommandLineArguments commandLineArguments)
         {
+            _lastParsedCommandLineArguments = commandLineArguments;
+            UpdateOptions();            
+        }
+
+        protected void SetOptions(CompilationOptions newCompilationOptions, ParseOptions newParseOptions)
+        {
+            this.UpdateRuleSetError(this.RuleSetFile);
+
+            // Set options.
+            CurrentCompilationOptions = newCompilationOptions;
+            CurrentParseOptions = newParseOptions;
+
+            if (_pushingChangesToWorkspaceHosts)
+            {
+                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(Id, newCompilationOptions, newParseOptions));
+            }
         }
 
         /// <summary>
         /// Gets the compilation options from parsed command line arguments, with additional workspace specific options appended.
         /// It is expected that derived types which need to add more specific options will fetch the base options and override those options.
         /// </summary>
-        protected virtual CompilationOptions GetCompilationOptions(ParseOptions newParseOptions)
+        protected virtual CompilationOptions CreateCompilationOptions(CommandLineArguments commandLineArguments, ParseOptions newParseOptions)
         {
-            Contract.ThrowIfNull(ParsedCommandLineArguments);
+            Contract.ThrowIfNull(commandLineArguments);
 
             // Get options from command line arguments.
-            var options = ParsedCommandLineArguments.CompilationOptions;
+            var options = commandLineArguments.CompilationOptions;
 
             // Now set the default workspace options (these are not set by the command line parser).
             string projectDirectory = this.ContainingDirectoryPathOpt;
@@ -88,13 +101,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gets the parse options from parsed command line arguments (with overridden default DocumentationMode).
         /// It is expected that derived types which need to add more specific options will fetch the base options and override those options.
         /// </summary>
-        protected virtual ParseOptions GetParseOptions()
+        protected virtual ParseOptions CreateParseOptions(CommandLineArguments commandLineArguments)
         {
-            Contract.ThrowIfNull(ParsedCommandLineArguments);
+            Contract.ThrowIfNull(commandLineArguments);
 
             // Override the default documentation mode.
-            var documentationMode = ParsedCommandLineArguments.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;
-            return ParsedCommandLineArguments.ParseOptions.WithDocumentationMode(documentationMode);
+            var documentationMode = commandLineArguments.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;
+            return commandLineArguments.ParseOptions.WithDocumentationMode(documentationMode);
         }
     }
 }

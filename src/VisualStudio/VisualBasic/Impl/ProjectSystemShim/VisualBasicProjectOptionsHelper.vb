@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Private Shared ReadOnly s_EmptyCommandLineArguments As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(SpecializedCollections.EmptyEnumerable(Of String)(), baseDirectory:="", sdkDirectory:=Nothing)
 
-        Public Shared Function GetCompilationOptions(baseCompilationOptionsOpt As VisualBasicCompilationOptions,
+        Public Shared Function CreateCompilationOptions(baseCompilationOptionsOpt As VisualBasicCompilationOptions,
                                                      newParseOptions As VisualBasicParseOptions,
                                                      compilerOptions As VBCompilerOptions,
                                                      compilerHost As IVbCompilerHost,
@@ -153,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             Return String.Empty
         End Function
-        Public Shared Function GetParseOptions(baseParseOptionsOpt As VisualBasicParseOptions, compilerOptions As VBCompilerOptions) As VisualBasicParseOptions
+        Public Shared Function CreateParseOptions(baseParseOptionsOpt As VisualBasicParseOptions, compilerOptions As VBCompilerOptions) As VisualBasicParseOptions
             Dim outputKind = GetOutputKind(compilerOptions)
             Dim conditionalCompilationSymbols = GetConditionalCompilationSymbols(outputKind, If(compilerOptions.wszCondComp, ""))
 
