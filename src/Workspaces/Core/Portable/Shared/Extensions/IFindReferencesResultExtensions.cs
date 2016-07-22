@@ -11,29 +11,40 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class IFindReferencesResultExtensions
     {
-        public static IEnumerable<ReferencedSymbol> FilterUnreferencedSyntheticDefinitions(
+        public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
             this IEnumerable<ReferencedSymbol> result)
         {
-            return result.Where(ShouldKeep);
+            return result.Where(ShouldShow);
         }
 
-        private static bool ShouldKeep(ReferencedSymbol r)
+        private static bool ShouldShow(ReferencedSymbol referencedSymbol)
         {
-            if (r.Locations.Any())
+            // If the reference has any locations then we will present it.
+            if (referencedSymbol.Locations.Any())
             {
                 return true;
             }
 
-            if (r.Definition.IsImplicitlyDeclared)
+            return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations();
+        }
+
+        public static bool ShouldShowWithNoReferenceLocations(this ISymbol definition)
+        {
+            // If the definition is implicit and we have no references, then we don't want to
+            // clutter the UI with it.
+            if (definition.IsImplicitlyDeclared)
             {
                 return false;
             }
 
-            if (r.Definition.IsPropertyAccessor())
+            // We don't want to clutter the UI with property accessors if there are no direct
+            // references to them.
+            if (definition.IsPropertyAccessor())
             {
                 return false;
             }
 
+            // Otherwise we still show the item even if there are no references to it.
             return true;
         }
 

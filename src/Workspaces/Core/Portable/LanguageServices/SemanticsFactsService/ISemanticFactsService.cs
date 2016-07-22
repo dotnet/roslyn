@@ -89,5 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
 
         bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
+
+        bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
     }
 }

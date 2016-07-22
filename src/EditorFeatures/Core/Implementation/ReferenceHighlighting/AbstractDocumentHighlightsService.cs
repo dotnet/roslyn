@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private async Task<IEnumerable<DocumentHighlights>> FilterAndCreateSpansAsync(
             IEnumerable<ReferencedSymbol> references, Solution solution, IImmutableSet<Document> documentsToSearch, ISymbol symbol, CancellationToken cancellationToken)
         {
-            references = references.FilterUnreferencedSyntheticDefinitions();
+            references = references.FilterToItemsToShow();
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 

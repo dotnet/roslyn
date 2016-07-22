@@ -108,6 +108,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ChecksumAlgorithm = "";
             Assert.Equal("/out:test.exe /checksumalgorithm: test.cs", csc.GenerateResponseFileContents());
         }
+        
+        [Fact]
+        public void InstrumentTestNamesFlag()
+        {
+            var csc = new Csc();
+            csc.Instrument = "Instrument.This.Flag";
+            Assert.Equal("/instrument:Instrument.This.Flag", csc.GenerateResponseFileContents());
+        }
 
         [Fact]
         public void TargetTypeDll()

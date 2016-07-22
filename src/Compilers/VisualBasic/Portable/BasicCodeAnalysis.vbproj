@@ -383,6 +383,7 @@
     <Compile Include="Emit\SpecializedNestedTypeReference.vb" />
     <Compile Include="Emit\SymbolAdapter.vb" />
     <Compile Include="Emit\SymbolTranslator.vb" />
+    <Compile Include="Emit\SynthesizedPrivateImplementationDetailsSharedConstructor.vb" />
     <Compile Include="Emit\SynthesizedStaticLocalBackingFieldAdapter.vb" />
     <Compile Include="Emit\TypeMemberReference.vb" />
     <Compile Include="Emit\TypeParameterSymbolAdapter.vb" />
@@ -421,6 +422,11 @@
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_ConditionalExpresion.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_Conversion.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_UnaryOperator.vb" />
+    <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.vb" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector.vb" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.vb" />
+    <Compile Include="Lowering\Instrumentation\DynamicAnalysisInjector.vb" />
+    <Compile Include="Lowering\Instrumentation\Instrumenter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.IteratorMethodToClassRewriter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorStateMachine.vb" />
@@ -478,7 +484,6 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_RedimClause.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Return.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SelectCase.vb" />
-    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SyncLock.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Throw.vb" />

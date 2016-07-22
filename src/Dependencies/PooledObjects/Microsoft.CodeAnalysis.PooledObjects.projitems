@@ -14,5 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPool`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledStringBuilder.cs" />
   </ItemGroup>
 </Project>

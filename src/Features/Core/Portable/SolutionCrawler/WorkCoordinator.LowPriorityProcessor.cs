@@ -145,12 +145,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 var project = processingSolution.GetProject(projectId);
                                 if (project != null)
                                 {
-                                    var semanticsChanged = workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
-                                                           workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
+                                    var reasons = workItem.InvocationReasons;
+                                    var semanticsChanged = reasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
+                                                           reasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, c), cancellationToken).ConfigureAwait(false);
+                                        await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else

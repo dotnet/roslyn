@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -36,13 +39,29 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this.Tag = tag;
-            this.Text = text;
+            Tag = tag;
+            Text = text;
         }
 
         public override string ToString()
         {
-            return this.Text;
+            return Text;
+        }
+    }
+
+    internal static class TaggedTextExtensions
+    {
+        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts)
+        {
+            return displayParts.Select(d =>
+                new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray();
+        }
+
+        public static string JoinText(this ImmutableArray<TaggedText> values)
+        {
+            return values.IsDefault
+                ? null
+                : string.Join("", values.Select(t => t.Text));
         }
     }
 }

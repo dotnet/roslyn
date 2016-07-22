@@ -111,13 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            public string Name
-            {
-                get
-                {
-                    return _searchResult.NavigableItem.DisplayString;
-                }
-            }
+            public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
             public void NavigateTo()
             {

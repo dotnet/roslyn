@@ -2291,8 +2291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
+            var emitOptions = moduleBeingBuilt.EmitOptions;
 
-            if (moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
+            if (emitOptions.EmitMetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2310,7 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
+                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
                     return false;
                 }

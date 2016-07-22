@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -615,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetUntranslatedSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -629,7 +630,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
             }
 
-            return Translate(typeSymbol,
+            return typeSymbol;
+        }
+
+        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
@@ -1334,6 +1340,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var found = _fixedImplementationTypes.TryGetValue(field, out result);
             Debug.Assert(found);
             return result;
+        }
+
+        protected override IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
     }
 }

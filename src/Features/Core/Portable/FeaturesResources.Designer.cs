@@ -1823,6 +1823,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move type to {0}.
+        /// </summary>
+        internal static string Move_type_to_0 {
+            get {
+                return ResourceManager.GetString("Move_type_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Moving &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Moving_0_will_prevent_the_debug_session_from_continuing {
@@ -2102,6 +2111,24 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_" +
                         "continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename file to {0}.
+        /// </summary>
+        internal static string Rename_file_to_0 {
+            get {
+                return ResourceManager.GetString("Rename_file_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename type to {0}.
+        /// </summary>
+        internal static string Rename_type_to_0 {
+            get {
+                return ResourceManager.GetString("Rename_type_to_0", resourceCulture);
             }
         }
         
