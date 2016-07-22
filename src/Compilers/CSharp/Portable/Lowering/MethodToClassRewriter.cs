@@ -727,8 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get
                 {
                     // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
-                    // https://github.com/dotnet/roslyn/issues/11649
-
                     return null;
                 }
             }
