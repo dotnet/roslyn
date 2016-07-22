@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             #endregion
 
-            #region EditorFindReferencesContext overrides.
+            #region FindReferencesContext overrides.
 
             public override void OnStarted()
             {
