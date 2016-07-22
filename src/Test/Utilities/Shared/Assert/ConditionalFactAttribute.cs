@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Text;
+using System.Reflection;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -59,5 +61,12 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public override string SkipReason => "Not in release mode.";
+    }
+
+    public class HasMemoryStreamTryGetBuffer : ExecutionCondition
+    {
+        public override bool ShouldSkip => typeof(MemoryStream).GetTypeInfo().GetDeclaredMethod("TryGetBuffer") == null;
+
+        public override string SkipReason => "MemoryStream.TryGetBuffer does not exist.";
     }
 }

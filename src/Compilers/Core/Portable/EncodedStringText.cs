@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// If the MemoryStream was created with publiclyVisible=true, then we can access its buffer
+        /// If the MemoryStream was created with publiclyVisible=true, then we can try to access its buffer
         /// directly and save allocations in StreamReader. The input MemoryStream is not closed on exit.
         /// </summary>
         /// <returns>True if a byte array could be created.</returns>
@@ -178,22 +178,37 @@ namespace Microsoft.CodeAnalysis.Text
         {
             Debug.Assert(data.Position == 0);
 
-            try
+            if (PortableShim.MemoryStream.TryGetBuffer != null)
             {
-                if (PortableShim.MemoryStream.GetBuffer != null)
+                ArraySegment<byte> bufferArraySegment;
+
+                // since we can't return offset, make sure MemoryStream uses the array from the start
+                if (PortableShim.MemoryStream.TryGetBuffer(data, out bufferArraySegment) &&
+                    bufferArraySegment.Offset == 0)
                 {
-                    buffer = (byte[])PortableShim.MemoryStream.GetBuffer.Invoke(data, null);
+                    buffer = bufferArraySegment.Array;
                     return true;
                 }
 
                 buffer = null;
                 return false;
             }
+
+            try
+            {
+                // on .Net 4.5, TryGetBuffer is not available
+                if (PortableShim.MemoryStream.GetBuffer != null)
+                {
+                    buffer = PortableShim.MemoryStream.GetBuffer(data);
+                    return true;
+                }
+            }
             catch (Exception)
             {
-                buffer = null;
-                return false;
             }
+
+            buffer = null;
+            return false;
         }
 
         /// <summary>
