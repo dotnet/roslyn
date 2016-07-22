@@ -233,8 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 indexer.IsParams(),
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
-                GetSeparatorParts().ToList(),
-                GetPostambleParts(indexer).ToList(),
+                GetSeparatorParts(),
+                GetPostambleParts(indexer),
                 indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
@@ -261,9 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
+        private IList<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
         {
-            yield return Punctuation(SyntaxKind.CloseBracketToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseBracketToken));
         }
 
         private static class CompleteElementAccessExpression

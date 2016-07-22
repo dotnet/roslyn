@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 

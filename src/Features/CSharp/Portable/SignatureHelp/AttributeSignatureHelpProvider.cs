@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
-                GetSeparatorParts().ToList(),
-                GetPostambleParts(constructor).ToList(),
-                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken).ToList());
+                GetSeparatorParts(),
+                GetPostambleParts(constructor),
+                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken));
             return item;
         }
 
-        private IEnumerable<SignatureHelpSymbolParameter> GetParameters(
+        private IList<SignatureHelpSymbolParameter> GetParameters(
             IMethodSymbol constructor,
             SemanticModel semanticModel,
             int position,
@@ -151,9 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
         {
+            var result = new List<SignatureHelpSymbolParameter>();
             foreach (var parameter in constructor.Parameters)
             {
-                yield return Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken);
+                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
             }
 
             for (int i = 0; i < namedParameters.Count; i++)
@@ -174,13 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 displayParts.Add(Space());
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
 
-                yield return new SignatureHelpSymbolParameter(
+                result.Add(new SignatureHelpSymbolParameter(
                     namedParameter.Name,
                     isOptional: true,
                     documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                     displayParts: displayParts,
-                    prefixDisplayParts: GetParameterPrefixDisplayParts(i));
+                    prefixDisplayParts: GetParameterPrefixDisplayParts(i)));
             }
+
+            return result;
         }
 
         private static List<SymbolDisplayPart> GetParameterPrefixDisplayParts(int i)
@@ -211,9 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

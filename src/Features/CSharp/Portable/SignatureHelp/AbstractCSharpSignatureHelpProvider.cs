@@ -40,10 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
         }
 
-        protected static IEnumerable<SymbolDisplayPart> GetSeparatorParts()
+        protected static IList<SymbolDisplayPart> GetSeparatorParts()
         {
-            yield return Punctuation(SyntaxKind.CommaToken);
-            yield return Space();
+            return new List<SymbolDisplayPart> {
+                Punctuation(SyntaxKind.CommaToken),
+                Space()
+            };
         }
 
         protected static SignatureHelpSymbolParameter Convert(

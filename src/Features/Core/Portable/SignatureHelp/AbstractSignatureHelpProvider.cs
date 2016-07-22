@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             items = Filter(items, state.ArgumentNames);
-            return new SignatureHelpItems(items.ToList(), applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
         }
 
         private static IList<SignatureHelpItem> Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames)
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart> descriptionParts = null)
         {
-            prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts.ToList(), semanticModel, position, symbolDisplayService);
-            separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts.ToList(), semanticModel, position, symbolDisplayService);
-            suffixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts.ToList(), semanticModel, position, symbolDisplayService);
+            prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position, symbolDisplayService);
+            separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position, symbolDisplayService);
+            suffixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts, semanticModel, position, symbolDisplayService);
             parameters = parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService)).ToList();
             descriptionParts = descriptionParts == null
                 ? SpecializedCollections.EmptyList<SymbolDisplayPart>()

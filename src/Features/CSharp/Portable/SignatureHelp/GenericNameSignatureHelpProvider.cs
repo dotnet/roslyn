@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     false,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
-                    GetSeparatorParts().ToList(),
-                    GetPostambleParts(namedType).ToList(),
+                    GetSeparatorParts(),
+                    GetPostambleParts(namedType),
                     namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
             else
@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     false,
                     c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                     GetPreambleParts(method, semanticModel, position),
-                    GetSeparatorParts().ToList(),
-                    GetPostambleParts(method, semanticModel, position).ToList(),
+                    GetSeparatorParts(),
+                    GetPostambleParts(method, semanticModel, position),
                     method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
 

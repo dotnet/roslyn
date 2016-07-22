@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 isVariadic: invokeMethod.IsParams(),
                 documentationFactory: null,
                 prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
-                separatorParts: GetSeparatorParts().ToList(),
-                suffixParts: GetDelegateInvokePostambleParts().ToList(),
-                parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken).ToList());
+                separatorParts: GetSeparatorParts(),
+                suffixParts: GetDelegateInvokePostambleParts(),
+                parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
 
             return SpecializedCollections.SingletonList(item);
         }
@@ -58,23 +58,28 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return displayParts;
         }
 
-        private IEnumerable<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
+        private IList<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
             IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
         {
+            var result = new List<SignatureHelpSymbolParameter>();
+
             foreach (var parameter in invokeMethod.Parameters)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                yield return new SignatureHelpSymbolParameter(
+                result.Add(new SignatureHelpSymbolParameter(
                     parameter.Name,
                     parameter.IsOptional,
                     parameter.GetDocumentationPartsFactory(semanticModel, position, formattingService),
-                    parameter.ToMinimalDisplayParts(semanticModel, position));
+                    parameter.ToMinimalDisplayParts(semanticModel, position)));
             }
+
+            return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetDelegateInvokePostambleParts()
+        private IList<SymbolDisplayPart> GetDelegateInvokePostambleParts()
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

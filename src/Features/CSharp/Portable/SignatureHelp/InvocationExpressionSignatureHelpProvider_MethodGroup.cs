@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 method.IsParams(),
                 c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
-                GetSeparatorParts().ToList(),
-                GetMethodGroupPostambleParts(method).ToList(),
+                GetSeparatorParts(),
+                GetMethodGroupPostambleParts(method),
                 method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
@@ -156,9 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetMethodGroupPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetMethodGroupPostambleParts(IMethodSymbol method)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }
