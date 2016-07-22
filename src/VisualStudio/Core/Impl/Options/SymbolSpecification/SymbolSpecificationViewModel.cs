@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -128,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 SymbolSpecName,
                 SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToList(),
                 AccessibilityList.Where(a => a.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToList(),
-                ModifierList.Where(m => m.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToList(),
+                ModifierKindEnum.None,
                 CustomTagList.Where(t => t.IsChecked).Select(t => t.Name).ToList());
         }
 
@@ -178,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public class AccessibilityViewModel: AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public class AccessibilityViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             internal readonly Accessibility _accessibility;
 
@@ -200,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public class ModifierViewModel: AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             public string Name { get; set; }
 
@@ -217,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 this._modifier = modifier;
                 Name = name;
-                IsChecked = specification.RequiredModifierList.Any(m => m.Modifier == modifier);
+                //IsChecked = specification.RequiredModifierList & modifier..Any(m => m.Modifier == modifier);
             }
         }
 

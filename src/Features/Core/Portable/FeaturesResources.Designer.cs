@@ -80,15 +80,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; naming violation - {1}.
-        /// </summary>
-        internal static string _0_naming_violation_1 {
-            get {
-                return ResourceManager.GetString("_0_naming_violation_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing {
@@ -339,6 +330,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All lowercase.
+        /// </summary>
+        internal static string All_lowercase {
+            get {
+                return ResourceManager.GetString("All_lowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All uppercase.
+        /// </summary>
+        internal static string All_uppercase {
+            get {
+                return ResourceManager.GetString("All_uppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session..
         /// </summary>
         internal static string An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session {
@@ -483,6 +492,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string Awaited_task_returns {
             get {
                 return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Begins with &apos;{0}&apos;.
+        /// </summary>
+        internal static string Begins_with_0 {
+            get {
+                return ResourceManager.GetString("Begins_with_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Begins with &apos;{0}&apos;; camel case.
+        /// </summary>
+        internal static string Begins_with_0_camel_case {
+            get {
+                return ResourceManager.GetString("Begins_with_0_camel_case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Camel Case.
+        /// </summary>
+        internal static string Camel_Case {
+            get {
+                return ResourceManager.GetString("Camel_Case", resourceCulture);
             }
         }
         
@@ -856,6 +892,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ends with &apos;{0}&apos;.
+        /// </summary>
+        internal static string Ends_with_0 {
+            get {
+                return ResourceManager.GetString("Ends_with_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to enum.
         /// </summary>
         internal static string enum_ {
@@ -1014,6 +1059,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Find_and_install_latest_version_of_0 {
             get {
                 return ResourceManager.GetString("Find_and_install_latest_version_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First word capitalized.
+        /// </summary>
+        internal static string First_word_capitalized {
+            get {
+                return ResourceManager.GetString("First_word_capitalized", resourceCulture);
             }
         }
         
@@ -1895,6 +1949,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rule violation: {0}.
+        /// </summary>
+        internal static string Naming_rule_violation_0 {
+            get {
+                return ResourceManager.GetString("Naming_rule_violation_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Naming Styles.
         /// </summary>
         internal static string Naming_Styles {
@@ -2010,6 +2073,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string paren_Unknown_paren {
             get {
                 return ResourceManager.GetString("paren_Unknown_paren", resourceCulture);
+			}
+		}
+		
+		/// <summary>
+        ///   Looks up a localized string similar to Pascal Case.
+        /// </summary>
+        internal static string Pascal_Case {
+            get {
+                return ResourceManager.GetString("Pascal_Case", resourceCulture);
             }
         }
         
@@ -2028,6 +2100,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string plus_additional_0_1 {
             get {
                 return ResourceManager.GetString("plus_additional_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private or internal field.
+        /// </summary>
+        internal static string Private_or_internal_field {
+            get {
+                return ResourceManager.GetString("Private_or_internal_field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private or internal static field.
+        /// </summary>
+        internal static string Private_or_internal_static_field {
+            get {
+                return ResourceManager.GetString("Private_or_internal_static_field", resourceCulture);
             }
         }
         
@@ -2073,6 +2163,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property_referenced_implicitly {
             get {
                 return ResourceManager.GetString("Property_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public or protected field.
+        /// </summary>
+        internal static string Public_or_protected_field {
+            get {
+                return ResourceManager.GetString("Public_or_protected_field", resourceCulture);
             }
         }
         
@@ -2346,6 +2445,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Static field.
+        /// </summary>
+        internal static string Static_field {
+            get {
+                return ResourceManager.GetString("Static_field", resourceCulture);
             }
         }
         

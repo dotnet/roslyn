@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     {
                         if (!char.IsLower(words.First()[0]))
                         {
-                            failureReason = FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character;
+                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character, words.First());
                         }
 
                         var violations = words.Skip(1).Where(w => !char.IsUpper(w[0]));

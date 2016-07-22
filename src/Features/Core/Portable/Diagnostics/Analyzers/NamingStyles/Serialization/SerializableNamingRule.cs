@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal XElement CreateXElement()
         {
             var element = new XElement(nameof(SerializableNamingRule),
-                new XAttribute(nameof(Title), Title),
+                //new XAttribute(nameof(Title), Title),
                 new XAttribute(nameof(SymbolSpecificationID), SymbolSpecificationID),
                 new XAttribute(nameof(NamingStyleID), NamingStyleID),
                 new XAttribute(nameof(EnforcementLevel), EnforcementLevel));
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal static SerializableNamingRule FromXElement(XElement namingRuleElement)
         {
             var result = new SerializableNamingRule();
-            result.Title = namingRuleElement.Attribute(nameof(Title)).Value;
+           // result.Title = namingRuleElement.Attribute(nameof(Title)).Value;
             result.EnforcementLevel = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel)).Value);
             result.NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID)).Value);
             result.SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID)).Value);

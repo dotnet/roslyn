@@ -105,6 +105,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 SymbolSpecifications.Add(SymbolSpecification.FromXElement(symbolSpecificationElement));
             }
+
+            foreach (var symbolSpecification in WellKnownSymbolSpecifications.GetWellKnownSymbolSpecifications())
+            {
+                SymbolSpecifications.Add(symbolSpecification);
+            }
         }
 
         private void SetNamingStyleListFromXElement(XElement namingStylesElement)
@@ -112,6 +117,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             foreach (var namingStyleElement in namingStylesElement.Elements(nameof(NamingStyle)))
             {
                 NamingStyles.Add(NamingStyle.FromXElement(namingStyleElement));
+            }
+
+            foreach (var namingStyle in WellKnownSymbolSpecifications.GetWellKnownNamingStyles())
+            {
+                NamingStyles.Add(namingStyle);
             }
         }
 

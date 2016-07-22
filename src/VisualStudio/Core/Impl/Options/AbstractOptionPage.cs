@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         protected abstract AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider);
 
-        private AbstractOptionPageControl _pageControl;
+        protected AbstractOptionPageControl _pageControl;
         private bool _needsLoadOnNextActivate = true;
 
         private void EnsureOptionPageCreated()

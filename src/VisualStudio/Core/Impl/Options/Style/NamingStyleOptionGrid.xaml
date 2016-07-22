@@ -1,0 +1,216 @@
+﻿<local:AbstractOptionPageControl
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingStyleOptionGrid"
+    x:ClassModifier="internal"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:converters="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+    xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
+
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="DataGridStyle" TargetType="DataGrid">
+                <Setter Property="CellStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="1" />
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Thickness x:Key="cellPadding">8 0 8 0</Thickness>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:MarginConverter x:Key="MarginConverter" />
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <DataGrid
+            Grid.Row="0"
+            x:Uid="CodeStyleContent"
+            x:Name="CodeStyleMembers"
+            Margin="0,5,0,0"
+            ItemsSource="{Binding CodeStyleItems, Mode=OneWay}"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            CanUserSortColumns="False"
+            CanUserAddRows="False"
+            CanUserDeleteRows="False"
+            CanUserResizeRows="False"
+            CanUserResizeColumns="False"
+            IsReadOnly="True"
+            BorderThickness="1"
+            BorderBrush="Gray"
+            RowHeaderWidth="0"
+            GridLinesVisibility="None"
+            VerticalAlignment="Stretch"
+            SelectionMode="Single"
+            HorizontalAlignment="Stretch"
+            Style="{StaticResource ResourceKey=DataGridStyle}"
+            AlternationCount="2">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <Trigger Property="ItemsControl.AlternationIndex"  Value="0">
+                            <Setter Property="Background" Value="LightBlue" />
+                        </Trigger>
+                        <Trigger Property="ItemsControl.AlternationIndex"  Value="1">
+                            <Setter Property="Background" Value="LightGray" />
+                        </Trigger>
+                    </Style.Triggers>
+                    <Setter Property="MinHeight" Value="26"/>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.Resources>
+                <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type GroupItem}">
+                                <StackPanel>
+                                    <TextBlock Margin="5" Text="{Binding Name}"/>
+                                    <ItemsPresenter/>
+                                </StackPanel>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.GroupStyle>
+                <GroupStyle ContainerStyle="{StaticResource GroupHeaderStyle}">
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <DataGridRowsPresenter/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn 
+                    x:Name="symbolSpec" 
+                    Header="Specification"
+                    Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                Height="22"
+                                ItemsSource="{Binding Specifications}"
+                                DisplayMemberPath="Name"
+                                SelectedItem="{Binding SelectedSpecification, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Left"
+                                ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn 
+                    x:Name="preference" 
+                    Header="Preference"
+                    Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                    Height="22"
+                                    ItemsSource="{Binding NamingStyles}"
+                                    DisplayMemberPath="Name"
+                                    SelectedItem="{Binding SelectedStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
+                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+
+                            </ComboBox>
+
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn 
+                    x:Name="severity" 
+                    Header="Severity"
+                    Width="2.5*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                    Height="22"
+                                    ItemsSource="{Binding NotificationPreferences}"
+                                    SelectedItem="{Binding SelectedNotificationPreference,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Visibility="{Binding NotificationsAvailable, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
+                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <imaging:CrispImage
+                                            Height="16" 
+                                            Width="16" 
+                                            Moniker="{Binding Moniker}"
+                                            Grid.Column="0"/>
+                                            <TextBlock 
+                                            Margin="5, 0, 0, 0" 
+                                            Text="{Binding Name}"
+                                            Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
+                    x:Name="Delete"
+                    Width="30"
+                    >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Click="RemoveButton_Click"  Height="16" Width="16" Margin="5, 0, 0, 0"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <imaging:CrispImage
+                                    Moniker="{x:Static imagecatalog:KnownMonikers.DeleteListItem}">
+
+                                </imaging:CrispImage>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Height="auto" Width="auto" Grid.Column="4" Click="AddButton_Click" x:Name="AddButton">
+                    <imaging:CrispImage
+                                    Moniker="{x:Static imagecatalog:KnownMonikers.Add}">
+
+                    </imaging:CrispImage>
+                </Button>
+            </Grid>
+        </Border>
+
+
+
+
+    </Grid>
+</local:AbstractOptionPageControl>
