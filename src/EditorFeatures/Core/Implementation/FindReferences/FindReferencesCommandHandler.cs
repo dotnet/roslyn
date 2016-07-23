@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -19,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler :
         ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _presenters;
+        private readonly IEnumerable<INavigableItemsPresenter> _presenters;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> presenters)
+            [ImportMany] IEnumerable<INavigableItemsPresenter> presenters)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(presenters);
@@ -47,15 +49,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     var service = document.Project.LanguageServices.GetService<IFindReferencesService>();
                     if (service != null)
                     {
-                        using (Logger.LogBlock(FunctionId.CommandHandler_FindAllReference, context.CancellationToken))
+                        var cancellationToken = context.CancellationToken;
+                        using (Logger.LogBlock(FunctionId.CommandHandler_FindAllReference, cancellationToken))
                         {
-                            if (!service.TryFindReferences(document, caretPosition, context))
+                            var result = service.FindReferencesAsync(document, caretPosition, context).WaitAndGetResult(cancellationToken);
+
+                            // var solution = result.HasValue ? result.Value.Solution : document.Project.Solution;
+                            var items = result.HasValue ? result.Value.Items : ImmutableArray<INavigableItem>.Empty;
+
+                            foreach (var presenter in _presenters)
                             {
-                                foreach (var presenter in _presenters)
-                                {
-                                    presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
-                                    return;
-                                }
+                                presenter.DisplayResult(items);
+                                return;
                             }
                         }
                     }

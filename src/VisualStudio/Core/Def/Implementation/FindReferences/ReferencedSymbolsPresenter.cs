@@ -14,42 +14,42 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
-    [Export(typeof(IReferencedSymbolsPresenter))]
-    internal sealed class ReferencedSymbolsPresenter : ForegroundThreadAffinitizedObject, IReferencedSymbolsPresenter
-    {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly LibraryManager _manager;
+    //[Export(typeof(IReferencedSymbolsPresenter))]
+    //internal sealed class ReferencedSymbolsPresenter : ForegroundThreadAffinitizedObject, IReferencedSymbolsPresenter
+    //{
+    //    private readonly IServiceProvider _serviceProvider;
+    //    private readonly LibraryManager _manager;
 
-        [ImportingConstructor]
-        private ReferencedSymbolsPresenter(SVsServiceProvider serviceProvider) :
-            base(assertIsForeground: true)
-        {
-            _serviceProvider = serviceProvider;
+    //    [ImportingConstructor]
+    //    private ReferencedSymbolsPresenter(SVsServiceProvider serviceProvider) :
+    //        base(assertIsForeground: true)
+    //    {
+    //        _serviceProvider = serviceProvider;
 
-            // VS service should only be used in UI thread.
-            _manager = (LibraryManager)serviceProvider.GetService(typeof(LibraryManager));
-        }
+    //        // VS service should only be used in UI thread.
+    //        _manager = (LibraryManager)serviceProvider.GetService(typeof(LibraryManager));
+    //    }
 
-        public void DisplayResult(Solution solution, IEnumerable<ReferencedSymbol> symbols)
-        {
-            var firstResult = symbols.FirstOrDefault();
-            string title;
-            if (firstResult != null)
-            {
-                title = firstResult.Definition.Name;
-                if (title == string.Empty)
-                {
-                    // Anonymous types have no name.
-                    title = firstResult.Definition.ToDisplayString();
-                }
-            }
-            else
-            {
-                // PresentFindReferencesResult ignores the title for an empty result, but "VS library" system throws if it is an empty string.
-                title = "None";
-            }
+    //    public void DisplayResult(Solution solution, IEnumerable<ReferencedSymbol> symbols)
+    //    {
+    //        var firstResult = symbols.FirstOrDefault();
+    //        string title;
+    //        if (firstResult != null)
+    //        {
+    //            title = firstResult.Definition.Name;
+    //            if (title == string.Empty)
+    //            {
+    //                // Anonymous types have no name.
+    //                title = firstResult.Definition.ToDisplayString();
+    //            }
+    //        }
+    //        else
+    //        {
+    //            // PresentFindReferencesResult ignores the title for an empty result, but "VS library" system throws if it is an empty string.
+    //            title = "None";
+    //        }
 
-            _manager.PresentReferencedSymbols(title, solution, symbols);
-        }
-    }
+    //        _manager.PresentReferencedSymbols(title, solution, symbols);
+    //    }
+    // }
 }

@@ -66,6 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private void PresentObjectList(string title, ObjectList objectList)
         {
+            // VS cannot handle a null/empty name.  So just jam in a dummy name
+            // if we have nothing better to show.
+            title = string.IsNullOrWhiteSpace(title) ? "None" : title;
             var navInfo = new NavInfo(objectList);
             var findSymbol = (IVsFindSymbol)this.ServiceProvider.GetService(typeof(SVsObjectSearch));
             var searchCriteria = new VSOBSEARCHCRITERIA2()

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
-        private readonly IEnumerable<Lazy<IReferencedSymbolsPresenter>> _referencedSymbolsPresenters;
+        // private readonly IEnumerable<Lazy<IReferencedSymbolsPresenter>> _referencedSymbolsPresenters;
         private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
-            [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters,
+            // [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
             : base(
                 serviceProvider,
@@ -46,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             InitializeStandardVisualStudioWorkspace(serviceProvider, saveEventsService);
 
             _navigableItemsPresenters = navigableItemsPresenters;
-            _referencedSymbolsPresenters = referencedSymbolsPresenters;
+            // _referencedSymbolsPresenters = referencedSymbolsPresenters;
             _externalDefinitionProviders = externalDefinitionProviders;
         }
 
@@ -195,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_referencedSymbolsPresenters.Any())
+            if (!_navigableItemsPresenters.Any())
             {
                 return false;
             }
@@ -222,11 +223,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             return false;
         }
 
-        public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        public override void DisplayReferencedSymbols(
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
-            foreach (var presenter in _referencedSymbolsPresenters)
+            var navigableItems = referencedSymbols.ConvertToNavigableItems();
+            foreach (var presenter in _navigableItemsPresenters)
             {
-                presenter.Value.DisplayResult(solution, referencedSymbols);
+                presenter.Value.DisplayResult(navigableItems);
             }
         }
 
