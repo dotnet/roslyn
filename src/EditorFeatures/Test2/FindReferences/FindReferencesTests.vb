@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         Private Function GetFileNamesAndSpans(items As IEnumerable(Of INavigableItem)) As List(Of FileNameAndSpans)
-            Return items.Where(Function(i) Not i.IsImplicitlyDeclared AndAlso i.Document IsNot Nothing).
+            Return items.Where(Function(i) i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
                          Select(Function(g) GetFileNameAndSpans(g)).ToList()
