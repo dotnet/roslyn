@@ -136,8 +136,26 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// </summary>
         public IList<TaggedText> SelectedDisplayParts { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory = 
+        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
             _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
+
+        // Constructor kept for binary compat with TS.  Remove when they move to the new API.
+        public SignatureHelpParameter(
+            string name,
+            bool isOptional,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+            IEnumerable<SymbolDisplayPart> displayParts,
+            IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart> selectedDisplayParts = null)
+            : this(name, isOptional,
+                  c => documentationFactory(c).ToTaggedText(),
+                  displayParts.ToTaggedText(),
+                  prefixDisplayParts.ToTaggedText(),
+                  suffixDisplayParts.ToTaggedText(),
+                  selectedDisplayParts.ToTaggedText())
+        {
+        }
 
         public SignatureHelpParameter(
             string name,

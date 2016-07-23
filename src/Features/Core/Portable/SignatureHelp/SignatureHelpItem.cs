@@ -59,6 +59,25 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             this.DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
         }
 
+        // Constructor kept for back compat
+        public SignatureHelpItem(
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+            IEnumerable<SymbolDisplayPart> prefixParts,
+            IEnumerable<SymbolDisplayPart> separatorParts,
+            IEnumerable<SymbolDisplayPart> suffixParts,
+            IEnumerable<SignatureHelpParameter> parameters,
+            IEnumerable<SymbolDisplayPart> descriptionParts)
+            : this(isVariadic,
+                  c => documentationFactory(c).ToTaggedText(), 
+                  prefixParts.ToTaggedText(),
+                  separatorParts.ToTaggedText(),
+                  suffixParts.ToTaggedText(),
+                  parameters,
+                  descriptionParts.ToTaggedText())
+        {
+        }
+
         internal IEnumerable<TaggedText> GetAllParts()
         {
             return
