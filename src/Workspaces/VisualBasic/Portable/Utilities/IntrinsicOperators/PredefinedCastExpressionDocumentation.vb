@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, _keywordText),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}

@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return this.BuildDescription(groups);
             }
 
-            public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>>> BuildDescriptionSectionsAsync(ImmutableArray<ISymbol> symbolGroup)
+            public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> BuildDescriptionSectionsAsync(ImmutableArray<ISymbol> symbolGroup)
             {
                 Contract.ThrowIfFalse(symbolGroup.Length > 0);
 
@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            private IDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>> BuildDescriptionSections()
+            private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
             {
-                return _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutableOrEmpty());
+                return _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToTaggedText());
             }
 
             private void AddDescriptionForDynamicType()

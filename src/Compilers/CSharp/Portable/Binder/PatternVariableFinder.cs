@@ -157,17 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             operands.Free();
         }
 
-        public override void VisitArgument(ArgumentSyntax node)
+        public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            if (node.Expression != null)
-            {
-                base.VisitArgument(node);
-                return;
-            }
-
-            var contextKind = node.Parent. // ArgumentListSyntax
-                                   Parent. // invocation/constructor initializer
-                                   Kind();
+            var contextKind = node?.Parent // ArgumentSyntax
+                                  ?.Parent // ArgumentListSyntax
+                                  ?.Parent // invocation/constructor initializer
+                                  ?.Kind();
 
             switch (contextKind)
             {
@@ -184,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(contextKind);
             }
 
-            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type, node.Identifier, LocalDeclarationKind.RegularVariable));
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type(), node.Identifier(), LocalDeclarationKind.RegularVariable));
         }
 
         #region pool

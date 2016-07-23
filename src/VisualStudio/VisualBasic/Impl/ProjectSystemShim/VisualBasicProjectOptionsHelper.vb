@@ -11,76 +11,96 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.In
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     ''' <summary>
-    ''' Converts a legacy VBCompilerOptions into the new Roslyn CompilerOptions and ParseOptions.
+    ''' Helper to convert a legacy VBCompilerOptions into the new Roslyn CompilerOptions and ParseOptions.
     ''' </summary>
     ''' <remarks></remarks>
-    Friend NotInheritable Class ConvertedVisualBasicProjectOptions
-
-        Public Shared ReadOnly EmptyOptions As ConvertedVisualBasicProjectOptions = New ConvertedVisualBasicProjectOptions()
-
-        ''' <summary>
-        ''' The resulting CompilationOptions.
-        ''' </summary>
-        Public ReadOnly CompilationOptions As VisualBasicCompilationOptions
-
-        ''' <summary>
-        ''' The full paths to any libraries (such as System.dll, or Microsoft.VisualBasic.dll) that
-        ''' should be added.
-        ''' </summary>
-        Public ReadOnly RuntimeLibraries As IEnumerable(Of String)
-
-        ''' <summary>
-        ''' The full output path.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Public ReadOnly OutputPath As String
-        Public ReadOnly ParseOptions As VisualBasicParseOptions
+    Friend NotInheritable Class VisualBasicProjectOptionsHelper
 
         ''' <summary>
         ''' Maps a string to the parsed conditional compilation symbols.
         ''' It is expected that most projects in a solution will have similar (if not identical)
         ''' sets of conditional compilation symbols. From a performance perspective, it makes sense
-        ''' to cache these rather than reparse them every time we create a new <see cref="ConvertedVisualBasicProjectOptions"/>
+        ''' to cache these rather than reparse them every time we create a new <see cref="VisualBasicProjectOptionsHelper"/>
         ''' instance. We also expect the total set of these to be small, which is why we never evict anything from this cache.
         ''' </summary>
         Private Shared s_conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
             New Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object)))
 
-        Private Sub New()
-            CompilationOptions = Nothing
-            OutputPath = Nothing
-            ParseOptions = Nothing
-            RuntimeLibraries = SpecializedCollections.EmptyEnumerable(Of String)
-        End Sub
-
         Private Shared ReadOnly s_EmptyCommandLineArguments As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(SpecializedCollections.EmptyEnumerable(Of String)(), baseDirectory:="", sdkDirectory:=Nothing)
 
-        Public Sub New(options As VBCompilerOptions, compilerHost As IVbCompilerHost, globalImports As IEnumerable(Of GlobalImport), strongNameKeyPaths As ImmutableArray(Of String), projectDirectoryOpt As String, ruleSetOpt As IRuleSetFile, Optional parsedCommandLineArguments As CommandLineArguments = Nothing)
-            parsedCommandLineArguments = If(parsedCommandLineArguments, s_EmptyCommandLineArguments)
-
-            If options.wszOutputPath IsNot Nothing AndAlso options.wszExeName IsNot Nothing Then
-                OutputPath = PathUtilities.CombinePathsUnchecked(options.wszOutputPath, options.wszExeName)
-            Else
-                OutputPath = String.Empty
+        Public Shared Function CreateCompilationOptions(baseCompilationOptionsOpt As VisualBasicCompilationOptions,
+                                                     newParseOptions As VisualBasicParseOptions,
+                                                     compilerOptions As VBCompilerOptions,
+                                                     compilerHost As IVbCompilerHost,
+                                                     globalImports As IEnumerable(Of GlobalImport),
+                                                     projectDirectoryOpt As String,
+                                                     ruleSetOpt As IRuleSetFile) As VisualBasicCompilationOptions
+            Dim platform As Platform
+            If Not System.Enum.TryParse(compilerOptions.wszPlatformType, ignoreCase:=True, result:=platform) Then
+                platform = Platform.AnyCpu
             End If
 
-            Dim kind As OutputKind
+            Dim ruleSetFileGeneralDiagnosticOption As ReportDiagnostic? = Nothing
+            Dim ruleSetFileSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic) = Nothing
 
+            If ruleSetOpt IsNot Nothing Then
+                ruleSetFileGeneralDiagnosticOption = ruleSetOpt.GetGeneralDiagnosticOption()
+                ruleSetFileSpecificDiagnosticOptions = ruleSetOpt.GetSpecificDiagnosticOptions()
+            End If
+
+            Dim generalDiagnosticOption As ReportDiagnostic = DetermineGeneralDiagnosticOption(compilerOptions.WarningLevel, ruleSetFileGeneralDiagnosticOption)
+            Dim specificDiagnosticOptions As IReadOnlyDictionary(Of String, ReportDiagnostic) = DetermineSpecificDiagnosticOptions(compilerOptions, ruleSetFileSpecificDiagnosticOptions)
+            Dim outputKind = GetOutputKind(compilerOptions)
+
+            If baseCompilationOptionsOpt Is Nothing Then
+                baseCompilationOptionsOpt = New VisualBasicCompilationOptions(outputKind) _
+                    .WithConcurrentBuild(False) _
+                    .WithXmlReferenceResolver(New XmlFileResolver(projectDirectoryOpt)) _
+                    .WithSourceReferenceResolver(New SourceFileResolver(Array.Empty(Of String), projectDirectoryOpt)) _
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default) _
+                    .WithStrongNameProvider(New DesktopStrongNameProvider(ImmutableArray(Of String).Empty))
+            End If
+
+            Return baseCompilationOptionsOpt.WithOverflowChecks(Not compilerOptions.bRemoveIntChecks) _
+                .WithCryptoKeyContainer(compilerOptions.wszStrongNameContainer) _
+                .WithCryptoKeyFile(compilerOptions.wszStrongNameKeyFile) _
+                .WithDelaySign(If(compilerOptions.bDelaySign, CType(True, Boolean?), Nothing)) _
+                .WithEmbedVbCoreRuntime(compilerOptions.vbRuntimeKind = VBRuntimeKind.EmbeddedRuntime) _
+                .WithGeneralDiagnosticOption(generalDiagnosticOption) _
+                .WithGlobalImports(globalImports) _
+                .WithMainTypeName(If(compilerOptions.wszStartup <> String.Empty, compilerOptions.wszStartup, Nothing)) _
+                .WithOptionExplicit(Not compilerOptions.bOptionExplicitOff) _
+                .WithOptionInfer(Not compilerOptions.bOptionInferOff) _
+                .WithOptionStrict(If(compilerOptions.bOptionStrictOff, OptionStrict.Custom, OptionStrict.On)) _
+                .WithOptionCompareText(compilerOptions.bOptionCompareText) _
+                .WithOptimizationLevel(If(compilerOptions.bOptimize, OptimizationLevel.Release, OptimizationLevel.Debug)) _
+                .WithOutputKind(outputKind) _
+                .WithPlatform(platform) _
+                .WithRootNamespace(If(compilerOptions.wszDefaultNamespace, String.Empty)) _
+                .WithSpecificDiagnosticOptions(specificDiagnosticOptions) _
+                .WithParseOptions(newParseOptions)
+        End Function
+
+        Private Shared Function GetOutputKind(options As VBCompilerOptions) As OutputKind
             Select Case options.OutputType
                 Case VBCompilerOutputTypes.OUTPUT_ConsoleEXE
-                    kind = OutputKind.ConsoleApplication
+                    Return OutputKind.ConsoleApplication
                 Case VBCompilerOutputTypes.OUTPUT_Library, VBCompilerOutputTypes.OUTPUT_None
-                    kind = OutputKind.DynamicallyLinkedLibrary
+                    Return OutputKind.DynamicallyLinkedLibrary
                 Case VBCompilerOutputTypes.OUTPUT_Module
-                    kind = OutputKind.NetModule
+                    Return OutputKind.NetModule
                 Case VBCompilerOutputTypes.OUTPUT_WindowsEXE
-                    kind = OutputKind.WindowsApplication
+                    Return OutputKind.WindowsApplication
                 Case VBCompilerOutputTypes.OUTPUT_AppContainerEXE
-                    kind = OutputKind.WindowsRuntimeApplication
+                    Return OutputKind.WindowsRuntimeApplication
                 Case VBCompilerOutputTypes.OUTPUT_WinMDObj
-                    kind = OutputKind.WindowsRuntimeMetadata
+                    Return OutputKind.WindowsRuntimeMetadata
+                Case Else
+                    Return Nothing
             End Select
+        End Function
 
+        Public Shared Function GetRuntimeLibraries(compilerHost As IVbCompilerHost, options As VBCompilerOptions) As List(Of String)
             ' GetSDKPath can return E_NOTIMPL if there is no SDK path at all
             Dim sdkPath As String = Nothing
             Dim sdkPathHResult = compilerHost.GetSdkPath(sdkPath)
@@ -123,69 +143,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "mscorlib.dll"))
             End If
 
-            RuntimeLibraries = runtimes
+            Return runtimes
+        End Function
 
-            Dim conditionalCompilationSymbols = GetConditionalCompilationSymbols(kind, If(options.wszCondComp, ""))
+        Public Shared Function GetOutputPath(compilerOptions As VBCompilerOptions) As String
+            If compilerOptions.wszOutputPath IsNot Nothing AndAlso compilerOptions.wszExeName IsNot Nothing Then
+                Return PathUtilities.CombinePathsUnchecked(compilerOptions.wszOutputPath, compilerOptions.wszExeName)
+            End If
+
+            Return String.Empty
+        End Function
+        Public Shared Function CreateParseOptions(baseParseOptionsOpt As VisualBasicParseOptions, compilerOptions As VBCompilerOptions) As VisualBasicParseOptions
+            Dim outputKind = GetOutputKind(compilerOptions)
+            Dim conditionalCompilationSymbols = GetConditionalCompilationSymbols(outputKind, If(compilerOptions.wszCondComp, ""))
 
             ' The project system may pass us zero to mean "default". Old project system binaries (prior to mid-September 2014)
             ' would also use other constants that we just got rid of. This check can be replaced with an explicit check for just
             ' zero in October 2014 or later.
-            If options.langVersion < LanguageVersion.VisualBasic9 Then
-                options.langVersion = VisualBasicParseOptions.Default.LanguageVersion
+            If compilerOptions.langVersion < LanguageVersion.VisualBasic9 Then
+                compilerOptions.langVersion = VisualBasicParseOptions.Default.LanguageVersion
             End If
 
-            ParseOptions = New VisualBasicParseOptions(
-                languageVersion:=options.langVersion,
-                preprocessorSymbols:=conditionalCompilationSymbols,
-                documentationMode:=If(Not String.IsNullOrEmpty(options.wszXMLDocName), DocumentationMode.Diagnose, DocumentationMode.Parse)) _
-                .WithFeatures(parsedCommandLineArguments.ParseOptions.Features)
-
-            Dim platform As Platform
-            If Not System.Enum.TryParse(options.wszPlatformType, ignoreCase:=True, result:=platform) Then
-                platform = Platform.AnyCpu
-            End If
-
-            ' TODO: support #load search paths
-            Dim sourceSearchpaths = ImmutableArray(Of String).Empty
-
-            Dim ruleSetFileGeneralDiagnosticOption As ReportDiagnostic? = Nothing
-            Dim ruleSetFileSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic) = Nothing
-
-            If ruleSetOpt IsNot Nothing Then
-                ruleSetFileGeneralDiagnosticOption = ruleSetOpt.GetGeneralDiagnosticOption()
-                ruleSetFileSpecificDiagnosticOptions = ruleSetOpt.GetSpecificDiagnosticOptions()
-            End If
-
-            Dim generalDiagnosticOption As ReportDiagnostic = DetermineGeneralDiagnosticOption(options.WarningLevel, ruleSetFileGeneralDiagnosticOption)
-            Dim specificDiagnosticOptions As IReadOnlyDictionary(Of String, ReportDiagnostic) = DetermineSpecificDiagnosticOptions(options, ruleSetFileSpecificDiagnosticOptions)
-
-            CompilationOptions = New VisualBasicCompilationOptions(
-                                    checkOverflow:=Not options.bRemoveIntChecks,
-                                    concurrentBuild:=False,
-                                    cryptoKeyContainer:=options.wszStrongNameContainer,
-                                    cryptoKeyFile:=options.wszStrongNameKeyFile,
-                                    delaySign:=If(options.bDelaySign, CType(True, Boolean?), Nothing),
-                                    deterministic:=parsedCommandLineArguments.CompilationOptions.Deterministic,
-                                    embedVbCoreRuntime:=options.vbRuntimeKind = VBRuntimeKind.EmbeddedRuntime,
-                                    generalDiagnosticOption:=generalDiagnosticOption,
-                                    globalImports:=globalImports,
-                                    mainTypeName:=If(options.wszStartup <> String.Empty, options.wszStartup, Nothing),
-                                    optionExplicit:=Not options.bOptionExplicitOff,
-                                    optionInfer:=Not options.bOptionInferOff,
-                                    optionStrict:=If(options.bOptionStrictOff, OptionStrict.Custom, OptionStrict.On),
-                                    optionCompareText:=options.bOptionCompareText,
-                                    optimizationLevel:=If(options.bOptimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                                    outputKind:=kind,
-                                    parseOptions:=ParseOptions,
-                                    publicSign:=parsedCommandLineArguments.CompilationOptions.PublicSign,
-                                    platform:=platform,
-                                    rootNamespace:=If(options.wszDefaultNamespace, ""),
-                                    specificDiagnosticOptions:=specificDiagnosticOptions,
-                                    sourceReferenceResolver:=New SourceFileResolver(sourceSearchpaths, projectDirectoryOpt),
-                                    xmlReferenceResolver:=New XmlFileResolver(projectDirectoryOpt),
-                                    assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default,
-                                    strongNameProvider:=New DesktopStrongNameProvider(strongNameKeyPaths))
-        End Sub
+            baseParseOptionsOpt = If(baseParseOptionsOpt, New VisualBasicParseOptions())
+            Return baseParseOptionsOpt.WithLanguageVersion(compilerOptions.langVersion) _
+                .WithPreprocessorSymbols(conditionalCompilationSymbols) _
+                .WithDocumentationMode(If(Not String.IsNullOrEmpty(compilerOptions.wszXMLDocName), DocumentationMode.Diagnose, DocumentationMode.Parse))
+        End Function
 
         Private Shared Function GetConditionalCompilationSymbols(kind As OutputKind, str As String) As ImmutableArray(Of KeyValuePair(Of String, Object))
             Debug.Assert(str IsNot Nothing)

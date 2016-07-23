@@ -44,15 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 return;
             }
 
-            if (argument.Expression != null)
+            var cancellationToken = context.CancellationToken;
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
+            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                var cancellationToken = context.CancellationToken;
-                var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
-                AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
-                foreach (var symbol in symbolInfo.CandidateSymbols)
-                {
-                    AddIneligibleField(symbol, ineligibleFields);
-                }
+                AddIneligibleField(symbol, ineligibleFields);
             }
         }
 

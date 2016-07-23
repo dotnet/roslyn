@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framew
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
+namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     public class AnalyzersTests
     {

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public Overrides Function GetParameterDisplayParts(index As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
             If index = 0 Then
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                         New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "Boolean")}
             Else
-                Return SpecializedCollections.SingletonEnumerable(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)))
+                Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index))}
             End If
         End Function
 
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "If"),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}

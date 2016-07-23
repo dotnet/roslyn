@@ -579,6 +579,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
         }
 
+        public override ISymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier());
+        }
+
         public override ILabelSymbol GetDeclaredSymbol(LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);

@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             End If
 
             If types.Count > 1 Then
-                Dim contentBuilder = New List(Of SymbolDisplayPart)
+                Dim contentBuilder = New List(Of TaggedText)
                 contentBuilder.AddText(VBEditorResources.Multiple_Types)
                 Return Me.CreateClassifiableDeferredContent(contentBuilder)
             End If
@@ -175,12 +175,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
             Return CreateQuickInfoDisplayDeferredContent(
                 glyph,
-                builder,
+                builder.ToTaggedText(),
                 CreateDocumentationCommentDeferredContent(documentation.DocumentationText),
-                SpecializedCollections.EmptyList(Of SymbolDisplayPart),
-                SpecializedCollections.EmptyList(Of SymbolDisplayPart),
-                SpecializedCollections.EmptyList(Of SymbolDisplayPart),
-                SpecializedCollections.EmptyList(Of SymbolDisplayPart))
+                SpecializedCollections.EmptyList(Of TaggedText),
+                SpecializedCollections.EmptyList(Of TaggedText),
+                SpecializedCollections.EmptyList(Of TaggedText),
+                SpecializedCollections.EmptyList(Of TaggedText))
         End Function
     End Class
 End Namespace
