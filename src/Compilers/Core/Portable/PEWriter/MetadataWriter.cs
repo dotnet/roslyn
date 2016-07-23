@@ -1960,6 +1960,10 @@ namespace Microsoft.Cci
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
             this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
+            foreach (var param in sortedGenericParameters)
+            {
+                this.AddCustomAttributesToTable(param.GetConstraints(Context));
+            }
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2058,13 +2062,12 @@ namespace Microsoft.Cci
             }
         }
 
-        private void AddCustomAttributesToTable(
-            IEnumerable<InterfaceImplementation> interfaces)
+        private void AddCustomAttributesToTable(IEnumerable<TypeReferenceWithAttributes> typeRefsWithAttributes)
         {
-            foreach (var iface in interfaces)
+            foreach (var typeRefWithAttributes in typeRefsWithAttributes)
             {
-                var ifaceHandle = GetTypeHandle(iface.Interface);
-                foreach (var customAttribute in iface.Attributes)
+                var ifaceHandle = GetTypeHandle(typeRefWithAttributes.TypeRef);
+                foreach (var customAttribute in typeRefWithAttributes.Attributes)
                 {
                     AddCustomAttributeToTable(ifaceHandle, customAttribute);
                 }
@@ -2369,11 +2372,11 @@ namespace Microsoft.Cci
                     name: GetStringHandleForNameAndCheckLength(genericParameter.Name, genericParameter),
                     index: genericParameter.Index);
 
-                foreach (ITypeReference constraint in genericParameter.GetConstraints(Context))
+                foreach (var refWithAttributes in genericParameter.GetConstraints(Context))
                 {
                     metadata.AddGenericParameterConstraint(
                         genericParameter: genericParameterHandle,
-                        constraint: GetTypeHandle(constraint));
+                        constraint: GetTypeHandle(refWithAttributes.TypeRef));
                 }
             }
         }
@@ -2411,7 +2414,7 @@ namespace Microsoft.Cci
                 {
                     metadata.AddInterfaceImplementation(
                         type: typeDefHandle,
-                        implementedInterface: GetTypeHandle(interfaceImpl.Interface));
+                        implementedInterface: GetTypeHandle(interfaceImpl.TypeRef));
                 }
             }
         }

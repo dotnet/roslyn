@@ -250,8 +250,7 @@ public class C3 : IEnumerable<(int key, int val)>
 
         public void Dispose() { }
 
-        public bool MoveNext() =>
-            ++index < _backing.Length ? true : false;
+        public bool MoveNext() => ++index < _backing.Length;
 
         public void Reset()
         {
@@ -370,6 +369,189 @@ y: 0
 (key: 1, val: 1)
 (key: 2, val: 2)
 (key: 3, val: 3)");
+        }
+
+        [Fact]
+        public void GenericConstraintAttributes()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public interface ITest<T> 
+{ 
+    T Get { get; }
+}
+
+public class Test : ITest<(int key, int val)>
+{
+    public (int key, int val) Get => (0, 0);
+}
+
+public class Base<T> : ITest<T>
+{
+    public T Get { get; }
+    protected Base(T t)
+    {
+        Get = t;
+    }
+}
+
+public class C<T> where T : ITest<(int key, int val)>
+{
+    public T Get { get; }
+
+    public C(T t)
+    {
+        Get = t;
+    }
+}
+
+public class C2<T> where T : Base<(int key, int val)>
+{
+    public T Get { get; }
+    public C2(T t)
+    {
+        Get = t;
+    }
+}
+
+public sealed class Test2 : Base<(int key, int val)>
+{
+    public Test2() : base((-1, -2)) {}
+}
+
+public class C3<T> where T : IEnumerable<(int key, int val)>
+{
+    public T Get { get; }
+    public C3(T t)
+    {
+        Get = t;
+    }
+}
+
+public struct TestEnumerable : IEnumerable<(int key, int val)>
+{
+    private readonly (int, int)[] _backing;
+
+    public TestEnumerable((int, int)[] backing)
+    {
+        _backing = backing;
+    }
+
+    private class Inner : IEnumerator<(int key, int val)>, IEnumerator
+    {
+        private int index = -1;
+        private readonly (int, int)[] _backing;
+
+        public Inner((int, int)[] backing)
+        {
+            _backing = backing;
+        }
+
+        public (int key, int val) Current => _backing[index];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        public bool MoveNext() => ++index < _backing.Length;
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    IEnumerator<(int key, int val)> IEnumerable<(int key, int val)>.GetEnumerator() =>
+        new Inner(_backing);
+
+    IEnumerator IEnumerable.GetEnumerator() => new Inner(_backing);
+}
+",
+            references: s_valueTupleRefs);
+            CompileAndVerify(comp, symbolValidator: m =>
+            {
+                var c = m.GlobalNamespace.GetTypeMember("C");
+                Assert.Equal(1, c.TypeParameters.Length);
+                var param = c.TypeParameters[0];
+                Assert.Equal(1, param.ConstraintTypes.Length);
+                var constraint = Assert.IsAssignableFrom<NamedTypeSymbol>(param.ConstraintTypes[0]);
+                Assert.True(constraint.IsGenericType);
+                Assert.Equal(1, constraint.TypeArguments.Length);
+                TypeSymbol typeArg = constraint.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.False(typeArg.TupleElementNames.IsDefault);
+                Assert.Equal(2, typeArg.TupleElementNames.Length);
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+
+                var c2 = m.GlobalNamespace.GetTypeMember("C2");
+                Assert.Equal(1, c2.TypeParameters.Length);
+                param = c2.TypeParameters[0];
+                Assert.Equal(1, param.ConstraintTypes.Length);
+                constraint = Assert.IsAssignableFrom<NamedTypeSymbol>(param.ConstraintTypes[0]);
+                Assert.True(constraint.IsGenericType);
+                Assert.Equal(1, constraint.TypeArguments.Length);
+                typeArg = constraint.TypeArguments[0];
+                Assert.True(typeArg.IsTupleType);
+                Assert.Equal(2, typeArg.TupleElementTypes.Length);
+                Assert.All(typeArg.TupleElementTypes,
+                   t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
+                Assert.False(typeArg.TupleElementNames.IsDefault);
+                Assert.Equal(2, typeArg.TupleElementNames.Length);
+                Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
+            });
+
+            CompileAndVerify(@"
+using System;
+
+class D
+{
+    public static void Main(string[] args)
+    {
+        var c = new C<Test>(new Test());
+        var temp = c.Get.Get;
+        Console.WriteLine(temp);
+        Console.WriteLine(""key: "" + temp.key);
+        Console.WriteLine(""val: "" + temp.val);
+
+        var c2 = new C2<Test2>(new Test2());
+        var temp2 = c2.Get.Get;
+        Console.WriteLine(temp2);
+        Console.WriteLine(""key: "" + temp2.key);
+        Console.WriteLine(""val: "" + temp2.val);
+
+        var backing = new[] { (1, 2), (3, 4), (5, 6) };
+        var c3 = new C3<TestEnumerable>(new TestEnumerable(backing));
+        foreach (var kvp in c3.Get)
+        {
+            Console.WriteLine($""key: {kvp.key}, val: {kvp.val}"");
+        }
+
+        var c4 = new C<Test2>(new Test2());
+        var temp4 = c4.Get.Get;
+        Console.WriteLine(temp4);
+        Console.WriteLine(""key: "" + temp4.key);
+        Console.WriteLine(""val: "" + temp4.val);
+    }
+}", additionalRefs: s_valueTupleRefs.Concat(new[] { comp.EmitToImageReference() }),
+    expectedOutput: @"(0, 0)
+key: 0
+val: 0
+(-1, -2)
+key: -1
+val: -2
+key: 1, val: 2
+key: 3, val: 4
+key: 5, val: 6
+(-1, -2)
+key: -1
+val: -2
+");
         }
 
         [Fact]
