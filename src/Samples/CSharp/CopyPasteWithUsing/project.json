@@ -1,10 +1,12 @@
 {
-  "dependencies": {
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": {}
-  }
+    "dependencies": {
+        "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
+        "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407"
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }
