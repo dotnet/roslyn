@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly INavigableItem _item;
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
-            private readonly List<SymbolDisplayPart> _classifiedLineParts;
+            private readonly ImmutableArray<TaggedText> _taggedParts;
             private readonly bool _displayGlyph;
 
             public NavigableItemEntryData(
@@ -35,14 +36,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 INavigableItem item,
                 Guid projectGuid,
                 SourceText sourceText,
-                List<SymbolDisplayPart> classifiedLineParts,
+                ImmutableArray<TaggedText> taggedParts,
                 bool displayGlyph)
             {
                 _presenter = presenter;
                 _item = item;
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
-                _classifiedLineParts = classifiedLineParts;
+                _taggedParts = taggedParts;
                 _displayGlyph = displayGlyph;
             }
 
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return _sourceText.Lines.GetLineFromPosition(_item.SourceSpan.Start).ToString().Trim();
 
                     case StandardTableKeyNames2.TextInlines:
-                        return _classifiedLineParts.ToTextBlock(_presenter._typeMap).Inlines;
+                        return _taggedParts.ToTextBlock(_presenter._typeMap).Inlines;
 
                     case StandardTableKeyNames2.DefinitionIcon:
                         return _displayGlyph ? (object)_item.Glyph.GetImageMoniker() : null;

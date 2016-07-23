@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Navigation;
@@ -161,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 // Now make the underlying data object for the reference.
                 var entryData = await this.TryCreateNavigableItemEntryData(
-                    referenceItem, displayGlyph: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    referenceItem, isDefinition: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var referenceEntry = new ReferenceEntry(definitionBucket, referenceItem, entryData);
 
                 lock (_gate)
@@ -176,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             private async Task<NavigableItemEntryData> TryCreateNavigableItemEntryData(
-                INavigableItem item, bool displayGlyph, CancellationToken cancellationToken)
+                INavigableItem item, bool isDefinition, CancellationToken cancellationToken)
             {
                 var document = item.Document;
 
@@ -194,6 +195,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return null;
                 }
 
+                var taggedText = await GetTaggedTextAsync(document, item, isDefinition, cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                return new NavigableItemEntryData(
+                    _presenter, item, projectGuid.Value, sourceText, 
+                    taggedText, displayGlyph: isDefinition);
+            }
+
+            private Task<ImmutableArray<TaggedText>> GetTaggedTextAsync(
+                Document document, INavigableItem item, bool isDefinition, CancellationToken cancellationToken)
+            {
+                return isDefinition
+                    ? GetTaggedTextForDefinitionAsync(item)
+                    : GetTaggedTextForReferenceAsync(document, item, cancellationToken);
+            }
+
+            private Task<ImmutableArray<TaggedText>> GetTaggedTextForDefinitionAsync(
+                INavigableItem item)
+            {
+                return Task.FromResult(item.DisplayTaggedParts);
+            }
+
+            private async Task<ImmutableArray<TaggedText>> GetTaggedTextForReferenceAsync(
+                Document document, INavigableItem item, CancellationToken cancellationToken)
+            {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -207,8 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                     semanticModel, span, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
 
-                return new NavigableItemEntryData(
-                    _presenter, item, projectGuid.Value, sourceText, classifiedLineParts, displayGlyph);
+                return classifiedLineParts.ToTaggedText();
             }
 
             private Task<RoslynDefinitionBucket> GetOrCreateDefinitionBucketAsync(
@@ -231,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 INavigableItem definitionItem, CancellationToken cancellationToken)
             {
                 var entryData = await TryCreateNavigableItemEntryData(
-                    definitionItem, displayGlyph: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    definitionItem, isDefinition: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (entryData == null)
                 {
                     return null;
