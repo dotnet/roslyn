@@ -1409,6 +1409,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CantChangeAccessOnOverride" xml:space="preserve">
     <value>'{0}': cannot change access modifiers when overriding '{1}' inherited member '{2}'</value>
   </data>
+  <data name="ERR_CantChangeTupleNamesOnOverride" xml:space="preserve">
+    <value>'{0}': cannot change tuple element names when overriding inherited member '{1}'</value>
+  </data>
   <data name="ERR_CantChangeReturnTypeOnOverride" xml:space="preserve">
     <value>'{0}': return type must be '{2}' to match overridden member '{1}'</value>
   </data>
@@ -1456,6 +1459,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_DuplicateInterfaceInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in interface list</value>
+  </data>
+  <data name="ERR_DuplicateInterfaceWithTupleNamesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in interface list with different tuple element names</value>
   </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>

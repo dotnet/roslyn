@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             considerRefOutDifference: true,
-            considerCustomModifiers: false);
+            considerCustomModifiers: false,
+            ignoreTupleNames: true);
 
         /// <summary>
         /// This instance is used as a fallback when it is determined that one member does not implicitly implement
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// This instance checks whether two signatures match including tuples names in both return type and parameters.
         /// </summary>
-        public static readonly MemberSignatureComparer CSharpTupleNamesComparer = new MemberSignatureComparer(
+        public static readonly MemberSignatureComparer CSharpWithTupleNamesComparer = new MemberSignatureComparer(
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ignoreDynamic: true,
             ignoreTupleNames: false);
 
-        public static readonly MemberSignatureComparer CSharpNegativeTupleNamesComparer = new MemberSignatureComparer(
+        public static readonly MemberSignatureComparer CSharpWithoutTupleNamesComparer = new MemberSignatureComparer(
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,

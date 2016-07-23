@@ -429,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
                                 continue;
                             }
+                            else if (t.Equals(baseType, ignoreTupleNames: true))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, baseType);
+                                continue;
+                            }
                         }
 
                         if (this.IsStatic)

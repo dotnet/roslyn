@@ -2366,6 +2366,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot change tuple element names when overriding inherited member &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_CantChangeTupleNamesOnOverride {
+            get {
+                return ResourceManager.GetString("ERR_CantChangeTupleNamesOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: type must be &apos;{2}&apos; to match overridden member &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_CantChangeTypeOnOverride {
@@ -3478,6 +3487,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DuplicateInterfaceInBaseList {
             get {
                 return ResourceManager.GetString("ERR_DuplicateInterfaceInBaseList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in interface list with different tuple element names.
+        /// </summary>
+        internal static string ERR_DuplicateInterfaceWithTupleNamesInBaseList {
+            get {
+                return ResourceManager.GetString("ERR_DuplicateInterfaceWithTupleNamesInBaseList", resourceCulture);
             }
         }
         

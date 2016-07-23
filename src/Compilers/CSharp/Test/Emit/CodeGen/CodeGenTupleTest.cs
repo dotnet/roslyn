@@ -4312,9 +4312,9 @@ class D : C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (11,36): error CS0115: 'D.M((int g, int h))': no suitable method found to override
+                // (11,36): error CS8218: 'D.M((int g, int h))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
                 //     public override (int e, int f) M((int g, int h) y)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("D.M((int g, int h))").WithLocation(11, 36)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M((int g, int h))", "C.M((int c, int d))").WithLocation(11, 36)
                 );
         }
 
@@ -8307,12 +8307,12 @@ class D : C, I<(int a, int b), (int c, int d)>
     }
 }
 ";
-
+            // TODO: there should be an error on C.M()
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (17,54): error CS0115: 'D.M(((int a, int b), (int b, int a)))': no suitable method found to override
+                // (17,54): error CS8218: 'D.M(((int a, int b), (int b, int a)))': cannot change tuple element names when overriding inherited member 'C.M(((int, int), (int, int)))'
                 //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("D.M(((int a, int b), (int b, int a)))").WithLocation(17, 54)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "C.M(((int, int), (int, int)))").WithLocation(17, 54)
                 );
         }
 
@@ -8678,9 +8678,9 @@ class C
             Assert.True(tuple.Equals(tuple, false, ignoreDynamic: false, ignoreTupleNames: false));
             Assert.True(tuple.Equals(tuple, false, ignoreDynamic: true, ignoreTupleNames: true));
             Assert.False(tuple.Equals(tuple.TupleUnderlyingType, ignoreDynamic: false, ignoreTupleNames: false));
-            Assert.False(tuple.TupleUnderlyingType.Equals(tuple,  ignoreDynamic:false, ignoreTupleNames:false));
-            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, false,  ignoreDynamic:true, ignoreTupleNames:true));
-            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, false,  ignoreDynamic:true, ignoreTupleNames:true));
+            Assert.False(tuple.TupleUnderlyingType.Equals(tuple, ignoreDynamic: false, ignoreTupleNames: false));
+            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, false, ignoreDynamic: true, ignoreTupleNames: true));
+            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, false, ignoreDynamic: true, ignoreTupleNames: true));
 
             var members = tuple.GetMembers();
 
@@ -15301,18 +15301,18 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,44): error CS0115: 'Derived.M3()': no suitable method found to override
+                // (12,44): error CS8218: 'Derived.M3()': cannot change tuple element names when overriding inherited member 'Base.M3()'
                 //     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived.M3()").WithLocation(12, 44),
-                // (13,59): error CS0115: 'Derived.M4()': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(12, 44),
+                // (13,59): error CS8218: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
                 //     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("Derived.M4()").WithLocation(13, 59),
-                // (14,53): error CS0115: 'Derived.M5()': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(13, 59),
+                // (14,53): error CS8218: 'Derived.M5()': cannot change tuple element names when overriding inherited member 'Base.M5()'
                 //     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("Derived.M5()").WithLocation(14, 53),
-                // (11,42): error CS0115: 'Derived.M2()': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M5").WithArguments("Derived.M5()", "Base.M5()").WithLocation(14, 53),
+                // (11,42): error CS8218: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
                 //     public override (int notA, int notB) M2() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("Derived.M2()").WithLocation(11, 42)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(11, 42)
                 );
         }
 
@@ -15337,18 +15337,18 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,26): error CS0115: 'Derived.M2((int notA, int notB)[])': no suitable method found to override
+                // (12,26): error CS8218: 'Derived.M2((int notA, int notB)[])': cannot change tuple element names when overriding inherited member 'Base.M2((int a, int b)[])'
                 //     public override void M2((int notA, int notB)[] x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("Derived.M2((int notA, int notB)[])").WithLocation(12, 26),
-                // (13,26): error CS0115: 'Derived.M3((int notA, int notB)?)': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2((int notA, int notB)[])", "Base.M2((int a, int b)[])").WithLocation(12, 26),
+                // (13,26): error CS8218: 'Derived.M3((int notA, int notB)?)': cannot change tuple element names when overriding inherited member 'Base.M3((int a, int b)?)'
                 //     public override void M3(System.Nullable<(int notA, int notB)> x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived.M3((int notA, int notB)?)").WithLocation(13, 26),
-                // (14,26): error CS0115: 'Derived.M4(((int notA, int notB) c, int d))': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3((int notA, int notB)?)", "Base.M3((int a, int b)?)").WithLocation(13, 26),
+                // (14,26): error CS8218: 'Derived.M4(((int notA, int notB) c, int d))': cannot change tuple element names when overriding inherited member 'Base.M4(((int a, int b) c, int d))'
                 //     public override void M4(((int notA, int notB) c, int d) x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))").WithLocation(14, 26),
-                // (11,26): error CS0115: 'Derived.M1((int notA, int notB))': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))", "Base.M4(((int a, int b) c, int d))").WithLocation(14, 26),
+                // (11,26): error CS8218: 'Derived.M1((int notA, int notB))': cannot change tuple element names when overriding inherited member 'Base.M1((int a, int b))'
                 //     public override void M1((int notA, int notB) y) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1((int notA, int notB))").WithLocation(11, 26)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M1").WithArguments("Derived.M1((int notA, int notB))", "Base.M1((int a, int b))").WithLocation(11, 26)
                 );
         }
 
@@ -15358,14 +15358,14 @@ public class Derived : Base
             var source = @"
 public class Base
 {
-    public virtual (int a, int b) P1 { get; set; }
+    public virtual (int a, int b) P1 { get { return (1, 2); } set { } }
     public virtual (int a, int b)[] P2 { get; set; }
     public virtual (int a, int b)? P3 { get { return (1, 2); } set { } }
     public virtual ((int a, int b) c, int d) P4 { get; set; }
 }
 public class Derived : Base
 {
-    public override (int notA, int notB) P1 { get; set; }
+    public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
     public override (int notA, int notB)[] P2 { get; set; }
     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
     public override ((int notA, int notB) c, int d) P4 { get; set; }
@@ -15373,18 +15373,36 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,44): error CS0115: 'Derived.P2': no suitable method found to override
+                // (12,44): error CS8218: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
                 //     public override (int notA, int notB)[] P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P2").WithArguments("Derived.P2").WithLocation(12, 44),
-                // (13,43): error CS0115: 'Derived.P3': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P2").WithArguments("Derived.P2", "Base.P2").WithLocation(12, 44),
+                // (12,54): error CS8218: 'Derived.P2.set': cannot change tuple element names when overriding inherited member 'Base.P2.set'
+                //     public override (int notA, int notB)[] P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P2.set", "Base.P2.set").WithLocation(12, 54),
+                // (13,43): error CS8218: 'Derived.P3': cannot change tuple element names when overriding inherited member 'Base.P3'
                 //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P3").WithArguments("Derived.P3").WithLocation(13, 43),
-                // (14,53): error CS0115: 'Derived.P4': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P3").WithArguments("Derived.P3", "Base.P3").WithLocation(13, 43),
+                // (13,71): error CS8218: 'Derived.P3.set': cannot change tuple element names when overriding inherited member 'Base.P3.set'
+                //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P3.set", "Base.P3.set").WithLocation(13, 71),
+                // (14,53): error CS8218: 'Derived.P4': cannot change tuple element names when overriding inherited member 'Base.P4'
                 //     public override ((int notA, int notB) c, int d) P4 { get; set; }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P4").WithArguments("Derived.P4").WithLocation(14, 53),
-                // (11,42): error CS0115: 'Derived.P1': no suitable method found to override
-                //     public override (int notA, int notB) P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P1").WithArguments("Derived.P1").WithLocation(11, 42)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P4").WithArguments("Derived.P4", "Base.P4").WithLocation(14, 53),
+                // (14,58): error CS8218: 'Derived.P4.get': cannot change tuple element names when overriding inherited member 'Base.P4.get'
+                //     public override ((int notA, int notB) c, int d) P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P4.get", "Base.P4.get").WithLocation(14, 58),
+                // (14,63): error CS8218: 'Derived.P4.set': cannot change tuple element names when overriding inherited member 'Base.P4.set'
+                //     public override ((int notA, int notB) c, int d) P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P4.set", "Base.P4.set").WithLocation(14, 63),
+                // (11,42): error CS8218: 'Derived.P1': cannot change tuple element names when overriding inherited member 'Base.P1'
+                //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P1").WithArguments("Derived.P1", "Base.P1").WithLocation(11, 42),
+                // (11,47): error CS8218: 'Derived.P1.get': cannot change tuple element names when overriding inherited member 'Base.P1.get'
+                //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P1.get", "Base.P1.get").WithLocation(11, 47),
+                // (11,70): error CS8218: 'Derived.P1.set': cannot change tuple element names when overriding inherited member 'Base.P1.set'
+                //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P1.set", "Base.P1.set").WithLocation(11, 70)
                 );
         }
 
@@ -15498,6 +15516,88 @@ public class Derived : Base
                 // (11,17): warning CS0114: 'Derived.M1((int notA, int notB))' hides inherited member 'Base.M1((int a, int b))'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M1").WithArguments("Derived.M1((int notA, int notB))", "Base.M1((int a, int b))").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void NamesDontMatterInInterfaceImplementation()
+        {
+            var source = @"
+public interface I0
+{
+    void M1((int a, int b) x);
+    void M2((int a, int b) x);
+    (int a, int b) MR1();
+    (int a, int b) MR2();
+}
+public class C : I0
+{
+    public void M1((int a, int b) z) { }
+    public void M2((int notA, int notB) z) { }
+    public (int a, int b) MR1() { return (1, 2); }
+    public (int notA, int notB) MR2() { return (1, 2); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NamesDontMatterInHiddingInterfaceMethods()
+        {
+            var source = @"
+public interface I0
+{
+    void M1((int a, int b) x);
+    void M2((int a, int b) x);
+    void M3((int a, int b) x);
+    void M4((int a, int b) x);
+    (int a, int b) M5();
+    (int a, int b) M6();
+}
+public interface I1 : I0
+{
+    void M1((int notA, int notB) x);
+    void M2((int a, int b) x);
+    new void M3((int a, int b) x);
+    new void M4((int notA, int notB) x);
+    (int notA, int notB) M5();
+    (int a, int b) M6();
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (18,20): warning CS0108: 'I1.M6()' hides inherited member 'I0.M6()'. Use the new keyword if hiding was intended.
+                //     (int a, int b) M6();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M6").WithArguments("I1.M6()", "I0.M6()").WithLocation(18, 20),
+                // (14,10): warning CS0108: 'I1.M2((int a, int b))' hides inherited member 'I0.M2((int a, int b))'. Use the new keyword if hiding was intended.
+                //     void M2((int a, int b) x);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("I1.M2((int a, int b))", "I0.M2((int a, int b))").WithLocation(14, 10),
+                // (17,26): warning CS0108: 'I1.M5()' hides inherited member 'I0.M5()'. Use the new keyword if hiding was intended.
+                //     (int notA, int notB) M5();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M5").WithArguments("I1.M5()", "I0.M5()").WithLocation(17, 26),
+                // (13,10): warning CS0108: 'I1.M1((int notA, int notB))' hides inherited member 'I0.M1((int a, int b))'. Use the new keyword if hiding was intended.
+                //     void M1((int notA, int notB) x);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("I1.M1((int notA, int notB))", "I0.M1((int a, int b))").WithLocation(13, 10)
+                );
+        }
+
+        [Fact]
+        public void NamesDontMatterInDuplicateInterfaceDetection()
+        {
+            var source = @"
+public interface I0<T> { }
+public class C : I0<(int a, int b)>, I0<(int notA, int notB)> { }
+public class D : I0<int>, I0<int> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0528: 'I0<int>' is already listed in interface list
+                // public class D : I0<int>, I0<int> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<int>").WithArguments("I0<int>").WithLocation(4, 27),
+                // (3,38): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names
+                // public class C : I0<(int a, int b)>, I0<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "I0<(int notA, int notB)>").WithArguments("I0<(int notA, int notB)>").WithLocation(3, 38)
                 );
         }
     }

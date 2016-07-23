@@ -667,6 +667,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantChangeAccessOnOverride, overridingMemberLocation, overridingMember, accessibility, overriddenMember);
                         suppressAccessors = true;
                     }
+                    else if (!OverriddenOrHiddenMembersHelpers.IsOverrideMatchingInTupleNames(overridingMember, overriddenMember))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CantChangeTupleNamesOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
+                    }
                     else
                     {
                         // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
