@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim actualDefinitions =
                         result.FilterToItemsToShow().
                                Where(Function(s) Not IsImplicitNamespace(s)).
-                               SelectMany(Function(r) r.Definition.Locations).
+                               SelectMany(Function(r) r.Definition.GetDefinitionLocationsToShow()).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
                                GroupBy(Function(loc) loc.SourceTree).
                                ToDictionary(

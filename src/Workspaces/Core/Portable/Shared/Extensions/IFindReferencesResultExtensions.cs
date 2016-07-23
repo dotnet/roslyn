@@ -6,11 +6,20 @@ using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class IFindReferencesResultExtensions
     {
+        public static IEnumerable<Location> GetDefinitionLocationsToShow(
+            this ISymbol definition)
+        {
+            return definition.IsKind(SymbolKind.Namespace)
+                ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
+                : definition.Locations;
+        }
+
         public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
             this IEnumerable<ReferencedSymbol> result)
         {

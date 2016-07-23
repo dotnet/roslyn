@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             {
             }
         }
-        namespace {|Definition:[|N|]|}.Inner
+        namespace [|N|].Inner
         {
         }
         </Document>

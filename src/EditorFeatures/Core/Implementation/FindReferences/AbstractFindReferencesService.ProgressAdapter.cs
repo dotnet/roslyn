@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 {
                     var taggedParts = s.ToDisplayParts(FindAllReferencesUtilities.DefinitionDisplayFormat)
                                        .ToTaggedText();
-                    var definitionLocations = s.IsKind(SymbolKind.Namespace)
-                        ? SpecializedCollections.SingletonEnumerable(s.Locations.First())
-                        : s.Locations;
 
+                    var definitionLocations = s.GetDefinitionLocationsToShow();
                     return definitionLocations.Select(loc => NavigableItemFactory.GetItemFromSymbolLocation(
                         solution, s, loc, taggedParts)).ToList();
                 };

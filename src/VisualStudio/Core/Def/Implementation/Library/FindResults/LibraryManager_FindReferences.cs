@@ -60,9 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 // reference deduplication and there being no meaningful way to partition them),
                 // we pick a single declaration to use as the top-level definition and nest all of
                 // the declarations & references underneath.
-                var definitionLocations = definition.IsKind(SymbolKind.Namespace)
-                    ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
-                    : definition.Locations;
+                var definitionLocations = definition.GetDefinitionLocationsToShow();
 
                 foreach (var definitionLocation in definitionLocations)
                 {
