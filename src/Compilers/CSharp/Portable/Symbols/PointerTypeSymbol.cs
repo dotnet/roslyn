@@ -229,24 +229,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, indirections);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
         {
-            return this.Equals(t2 as PointerTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as PointerTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames);
         }
 
         internal bool Equals(PointerTypeSymbol other)
         {
-            return this.Equals(other, false, false);
+            return this.Equals(other, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false, ignoreTupleNames: true);
         }
 
-        private bool Equals(PointerTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(PointerTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames))
             {
                 return false;
             }

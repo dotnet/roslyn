@@ -6,8 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -152,8 +150,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> runtimeOverriddenMembers;
             FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, out runtimeOverriddenMembers, ref hiddenBuilder);
 
+            // TODO: optimize with ArrayBuilder
+            overriddenMembers = RemoveOverridesWithDifferentTupleElementNames(member, overriddenMembers);
+            
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
             return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
+        }
+
+        private static ImmutableArray<Symbol> RemoveOverridesWithDifferentTupleElementNames(Symbol member, ImmutableArray<Symbol> overriddenMembers)
+        {
+            var result = ArrayBuilder<Symbol>.GetInstance(overriddenMembers.Length);
+            foreach (var overriddenMember in overriddenMembers)
+            {
+                if (!MemberSignatureComparer.CSharpNegativeTupleNamesComparer.Equals(overriddenMember, member) || MemberSignatureComparer.CSharpTupleNamesComparer.Equals(overriddenMember, member))
+                {
+                    result.Add(overriddenMember);
+                }
+            }
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>

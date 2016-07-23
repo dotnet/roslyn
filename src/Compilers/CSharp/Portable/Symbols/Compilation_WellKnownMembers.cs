@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var wkType = GetWellKnownType(wellKnownType);
-            return type.Equals(wkType, ignoreDynamic: false) || type.IsDerivedFrom(wkType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            return type.Equals(wkType, ignoreDynamic: false, ignoreTupleNames: false) || type.IsDerivedFrom(wkType, ignoreDynamicAndTupleNames: false, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
         internal override bool IsSystemTypeReference(ITypeSymbol type)

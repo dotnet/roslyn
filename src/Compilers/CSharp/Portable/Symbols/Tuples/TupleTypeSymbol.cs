@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static ImmutableArray<CustomModifier> GetModifiers(ImmutableArray<ImmutableArray<CustomModifier>> modifiers, int i)
         {
-            return modifiers.IsDefaultOrEmpty? ImmutableArray<CustomModifier>.Empty: modifiers[i];
+            return modifiers.IsDefaultOrEmpty ? ImmutableArray<CustomModifier>.Empty : modifiers[i];
         }
 
         /// <summary>
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _lazyUnderlyingDefinitionToMemberMap ??
-                    (_lazyUnderlyingDefinitionToMemberMap = ComputeDefinitionToMemberMap()); 
+                    (_lazyUnderlyingDefinitionToMemberMap = ComputeDefinitionToMemberMap());
             }
         }
 
@@ -1095,40 +1095,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic, bool ignoreTupleNames)
         {
-            if (ignoreDynamic)
+            if (ignoreTupleNames)
             {
                 if (t2?.IsTupleType == true)
                 {
                     t2 = t2.TupleUnderlyingType;
                 }
 
-                return _underlyingType.Equals(t2, ignoreCustomModifiers, ignoreDynamic);
+                return _underlyingType.Equals(t2, ignoreCustomModifiers, ignoreDynamic, ignoreTupleNames);
             }
 
-            return this.Equals(t2 as TupleTypeSymbol, ignoreCustomModifiers, ignoreDynamic);
+            return this.Equals(t2 as TupleTypeSymbol, ignoreCustomModifiers, ignoreDynamic, ignoreTupleNames);
         }
 
         internal bool Equals(TupleTypeSymbol other)
         {
-            return Equals(other, false, false);
+            return Equals(other, ignoreCustomModifiers: false, ignoreDynamic: false, ignoreTupleNames: false);
         }
 
-        private bool Equals(TupleTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic)
+        private bool Equals(TupleTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic, bool ignoreTupleNames)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._underlyingType.Equals(_underlyingType, ignoreCustomModifiers, ignoreDynamic))
+            if ((object)other == null || !other._underlyingType.Equals(_underlyingType, ignoreCustomModifiers, ignoreDynamic, ignoreTupleNames))
             {
                 return false;
             }
 
             // Make sure field names are the same.
-            if (!ignoreDynamic)
+            if (!ignoreTupleNames)
             {
                 if (this._elementNames.IsDefault)
                 {

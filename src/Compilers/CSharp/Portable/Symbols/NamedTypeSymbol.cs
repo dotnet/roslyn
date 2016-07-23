@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false, bool ignoreTupleNames = false)
         {
             Debug.Assert(!this.IsTupleType);
 
@@ -680,12 +680,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 }
+            }
 
-                // If ignoring dynamic, compare underlying tuple types
+            if (ignoreTupleNames)
+            {
+                // If ignoring tuple element names, compare underlying tuple types
                 if (t2.IsTupleType)
                 {
                     t2 = t2.TupleUnderlyingType;
-                    if (this.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic)) return true;
+                    if (this.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames)) return true;
                 }
             }
 
@@ -713,15 +716,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // The checks above are supposed to handle the vast majority of cases.
             // More complicated cases are handled in a special helper to make the common case scenario simple/fast
-            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
         {
-            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+            if ((object)this.ContainingType != null &&
+                !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames))
             {
                 return false;
             }
@@ -762,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < count; i++)
             {
-                if (!typeArguments[i].Equals(otherTypeArguments[i], ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic)) return false;
+                if (!typeArguments[i].Equals(otherTypeArguments[i], ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames)) return false;
             }
 
             if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers)
@@ -1304,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!IsUnboundGenericType &&
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
-                Name == TupleTypeSymbol.TupleTypeName && 
+                Name == TupleTypeSymbol.TupleTypeName &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;

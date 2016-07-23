@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(right.Fields.Length == count);
                 for (int i = 0; i < count; i++)
                 {
-                    if (!left.Fields[i].Type.Equals(right.Fields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                    if (!left.Fields[i].Type.Equals(right.Fields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames: false))
                     {
                         return false;
                     }

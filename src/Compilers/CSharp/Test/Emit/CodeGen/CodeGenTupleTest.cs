@@ -4304,24 +4304,18 @@ class C
 }
 class D : C
 {
-    static void Main()
-    {
-        C c = new D();
-        var r = c.M((1, 2));
-        System.Console.WriteLine($""{r.a} {r.b}"");
-    }
-
     public override (int e, int f) M((int g, int h) y)
     {
         return y;
     }
 }
 ";
-
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                expectedOutput: @"1 2");
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (11,36): error CS0115: 'D.M((int g, int h))': no suitable method found to override
+                //     public override (int e, int f) M((int g, int h) y)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("D.M((int g, int h))").WithLocation(11, 36)
+                );
         }
 
         [Fact]
@@ -4777,7 +4771,7 @@ class C
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: "Item1: 2  Rest: (2, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -5473,13 +5467,13 @@ class C
             var tuple4 = (TypeSymbol)comp.CreateTupleTypeSymbol((INamedTypeSymbol)tuple1.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b"));
 
             Assert.True(tuple1.Equals(tuple2));
-            Assert.True(tuple1.Equals(tuple2, ignoreDynamic: true));
+            Assert.True(tuple1.Equals(tuple2, ignoreDynamic: true, ignoreTupleNames: true));
 
             Assert.False(tuple1.Equals(tuple3));
-            Assert.True(tuple1.Equals(tuple3, ignoreDynamic: true));
+            Assert.True(tuple1.Equals(tuple3, ignoreDynamic: true, ignoreTupleNames: true));
 
             Assert.False(tuple1.Equals(tuple4));
-            Assert.True(tuple1.Equals(tuple4, ignoreDynamic: true));
+            Assert.True(tuple1.Equals(tuple4, ignoreDynamic: true, ignoreTupleNames: true));
         }
 
         [Fact]
@@ -8307,13 +8301,6 @@ class C : I<(int b, int a), (int a, int b)>
 
 class D : C, I<(int a, int b), (int c, int d)>
 {
-    static void Main()
-    {
-        C c = new D();
-        var r = c.M(((1, 2), (3, 4)));
-        System.Console.WriteLine($""{r.x} {r.y}"");
-    }
-
     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
     {
         return y;
@@ -8321,21 +8308,12 @@ class D : C, I<(int a, int b), (int c, int d)>
 }
 ";
 
-            Action<ModuleSymbol> validator = module =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                TypeSymbol y = (TypeSymbol)compilation.GlobalNamespace.GetMember("D");
-
-                Assert.Equal(2, y.AllInterfaces.Length);
-                Assert.Equal("I<(System.Int32 b, System.Int32 a), (System.Int32 a, System.Int32 b)>", y.AllInterfaces[0].ToTestDisplayString());
-                Assert.Equal("I<(System.Int32 a, System.Int32 b), (System.Int32 c, System.Int32 d)>", y.AllInterfaces[1].ToTestDisplayString());
-            };
-
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                expectedOutput: @"(1, 2) (3, 4)", sourceSymbolValidator: validator);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (17,54): error CS0115: 'D.M(((int a, int b), (int b, int a)))': no suitable method found to override
+                //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("D.M(((int a, int b), (int b, int a)))").WithLocation(17, 54)
+                );
         }
 
         [Fact]
@@ -8697,12 +8675,12 @@ class C
         private static void AssertTupleTypeEquality(TypeSymbol tuple)
         {
             Assert.True(tuple.Equals(tuple));
-            Assert.True(tuple.Equals(tuple, false, false));
-            Assert.True(tuple.Equals(tuple, false, true));
-            Assert.False(tuple.Equals(tuple.TupleUnderlyingType, false, false));
-            Assert.False(tuple.TupleUnderlyingType.Equals(tuple, false, false));
-            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, false, true));
-            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, false, true));
+            Assert.True(tuple.Equals(tuple, false, ignoreDynamic: false, ignoreTupleNames: false));
+            Assert.True(tuple.Equals(tuple, false, ignoreDynamic: true, ignoreTupleNames: true));
+            Assert.False(tuple.Equals(tuple.TupleUnderlyingType, ignoreDynamic: false, ignoreTupleNames: false));
+            Assert.False(tuple.TupleUnderlyingType.Equals(tuple,  ignoreDynamic:false, ignoreTupleNames:false));
+            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, false,  ignoreDynamic:true, ignoreTupleNames:true));
+            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, false,  ignoreDynamic:true, ignoreTupleNames:true));
 
             var members = tuple.GetMembers();
 
@@ -10435,16 +10413,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true));
-                Assert.True(t3.Equals(t1, false, true));
+                Assert.True(t1.Equals(t3, false, true, true));
+                Assert.True(t3.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true));
-                Assert.True(t3.Equals(t5, false, true));
+                Assert.True(t5.Equals(t3, false, true, true));
+                Assert.True(t3.Equals(t5, false, true, true));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2"));
@@ -10454,20 +10432,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true));
-                Assert.True(t6.Equals(t1, false, true));
+                Assert.True(t1.Equals(t6, false, true, true));
+                Assert.True(t6.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true));
-                Assert.True(t8.Equals(t1, false, true));
+                Assert.True(t1.Equals(t8, false, true, true));
+                Assert.True(t8.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true));
-                Assert.True(t8.Equals(t6, false, true));
+                Assert.True(t6.Equals(t8, false, true, true));
+                Assert.True(t8.Equals(t6, false, true, true));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
 
@@ -10487,16 +10465,16 @@ namespace System
                                                   ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "i", "h"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true));
-                Assert.True(t3.Equals(t1, false, true));
+                Assert.True(t1.Equals(t3, false, true, true));
+                Assert.True(t3.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true));
-                Assert.True(t3.Equals(t5, false, true));
+                Assert.True(t5.Equals(t3, false, true, true));
+                Assert.True(t3.Equals(t5, false, true, true));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10508,21 +10486,21 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true));
-                Assert.True(t6.Equals(t1, false, true));
+                Assert.True(t1.Equals(t6, false, true, true));
+                Assert.True(t6.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
                                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item9", "Item8"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true));
-                Assert.True(t8.Equals(t1, false, true));
+                Assert.True(t1.Equals(t8, false, true, true));
+                Assert.True(t8.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true));
-                Assert.True(t8.Equals(t6, false, true));
+                Assert.True(t6.Equals(t8, false, true, true));
+                Assert.True(t8.Equals(t6, false, true, true));
                 AssertTupleTypeMembersEquality(t6, t8);
 
                 var t9 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10541,12 +10519,12 @@ namespace System
 
                 Assert.False(t1.Equals(t11));
                 AssertTupleTypeMembersEquality(t1, t11);
-                Assert.True(t1.Equals(t11, false, true));
-                Assert.True(t11.Equals(t1, false, true));
+                Assert.True(t1.Equals(t11, false, true, true));
+                Assert.True(t11.Equals(t1, false, true, true));
                 Assert.False(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, false, true));
+                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, false, true, true));
                 Assert.False(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true));
+                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true, true));
 
                 AssertTestDisplayString(t11.GetMembers(),
                     "System.Int32 ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item1",
@@ -10598,12 +10576,12 @@ namespace System
 
                 Assert.False(t1.Equals(t12));
                 AssertTupleTypeMembersEquality(t1, t12);
-                Assert.True(t1.Equals(t12, false, true));
-                Assert.True(t12.Equals(t1, false, true));
+                Assert.True(t1.Equals(t12, false, true, true));
+                Assert.True(t12.Equals(t1, false, true, true));
                 Assert.False(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, false, true));
+                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, false, true, true));
                 Assert.False(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true));
+                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true, true));
 
                 AssertTestDisplayString(t12.GetMembers(),
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item1",
@@ -10669,16 +10647,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("c", "b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true));
-                Assert.True(t3.Equals(t1, false, true));
+                Assert.True(t1.Equals(t3, false, true, true));
+                Assert.True(t3.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true));
-                Assert.True(t3.Equals(t5, false, true));
+                Assert.True(t5.Equals(t3, false, true, true));
+                Assert.True(t3.Equals(t5, false, true, true));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3"));
@@ -10688,20 +10666,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true));
-                Assert.True(t6.Equals(t1, false, true));
+                Assert.True(t1.Equals(t6, false, true, true));
+                Assert.True(t6.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item3", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true));
-                Assert.True(t8.Equals(t1, false, true));
+                Assert.True(t1.Equals(t8, false, true, true));
+                Assert.True(t8.Equals(t1, false, true, true));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true));
-                Assert.True(t8.Equals(t6, false, true));
+                Assert.True(t6.Equals(t8, false, true, true));
+                Assert.True(t8.Equals(t6, false, true, true));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
         }
@@ -15300,6 +15278,227 @@ class Derived : Base
             // Metadata
             var comp4 = CreateCompilationWithMscorlib45(source2, references: new[] { comp2.EmitToImageReference() });
             comp4.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NamesMatterInOverridenMethodReturn()
+        {
+            var source = @"
+public class Base
+{
+    public virtual (int a, int b) M2() { return (1, 2); }
+    public virtual (int a, int b)[] M3() { return new[] { (1, 2) }; }
+    public virtual System.Nullable<(int a, int b)> M4() { return (1, 2); }
+    public virtual ((int a, int b) c, int d) M5() { return ((1, 2), 3); }
+}
+public class Derived : Base
+{
+    public override (int notA, int notB) M2() { return (1, 2); }
+    public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
+    public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
+    public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,44): error CS0115: 'Derived.M3()': no suitable method found to override
+                //     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived.M3()").WithLocation(12, 44),
+                // (13,59): error CS0115: 'Derived.M4()': no suitable method found to override
+                //     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("Derived.M4()").WithLocation(13, 59),
+                // (14,53): error CS0115: 'Derived.M5()': no suitable method found to override
+                //     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("Derived.M5()").WithLocation(14, 53),
+                // (11,42): error CS0115: 'Derived.M2()': no suitable method found to override
+                //     public override (int notA, int notB) M2() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("Derived.M2()").WithLocation(11, 42)
+                );
+        }
+
+        [Fact]
+        public void NamesMatterInOverridenMethodParameters()
+        {
+            var source = @"
+public class Base
+{
+    public virtual void M1((int a, int b) x) { }
+    public virtual void M2((int a, int b)[] x) { }
+    public virtual void M3(System.Nullable<(int a, int b)> x) { }
+    public virtual void M4(((int a, int b) c, int d) x) { }
+}
+public class Derived : Base
+{
+    public override void M1((int notA, int notB) y) { }
+    public override void M2((int notA, int notB)[] x) { }
+    public override void M3(System.Nullable<(int notA, int notB)> x) { }
+    public override void M4(((int notA, int notB) c, int d) x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,26): error CS0115: 'Derived.M2((int notA, int notB)[])': no suitable method found to override
+                //     public override void M2((int notA, int notB)[] x) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("Derived.M2((int notA, int notB)[])").WithLocation(12, 26),
+                // (13,26): error CS0115: 'Derived.M3((int notA, int notB)?)': no suitable method found to override
+                //     public override void M3(System.Nullable<(int notA, int notB)> x) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived.M3((int notA, int notB)?)").WithLocation(13, 26),
+                // (14,26): error CS0115: 'Derived.M4(((int notA, int notB) c, int d))': no suitable method found to override
+                //     public override void M4(((int notA, int notB) c, int d) x) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))").WithLocation(14, 26),
+                // (11,26): error CS0115: 'Derived.M1((int notA, int notB))': no suitable method found to override
+                //     public override void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1((int notA, int notB))").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void NamesMatterInOverridenProperties()
+        {
+            var source = @"
+public class Base
+{
+    public virtual (int a, int b) P1 { get; set; }
+    public virtual (int a, int b)[] P2 { get; set; }
+    public virtual (int a, int b)? P3 { get { return (1, 2); } set { } }
+    public virtual ((int a, int b) c, int d) P4 { get; set; }
+}
+public class Derived : Base
+{
+    public override (int notA, int notB) P1 { get; set; }
+    public override (int notA, int notB)[] P2 { get; set; }
+    public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+    public override ((int notA, int notB) c, int d) P4 { get; set; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,44): error CS0115: 'Derived.P2': no suitable method found to override
+                //     public override (int notA, int notB)[] P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P2").WithArguments("Derived.P2").WithLocation(12, 44),
+                // (13,43): error CS0115: 'Derived.P3': no suitable method found to override
+                //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P3").WithArguments("Derived.P3").WithLocation(13, 43),
+                // (14,53): error CS0115: 'Derived.P4': no suitable method found to override
+                //     public override ((int notA, int notB) c, int d) P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P4").WithArguments("Derived.P4").WithLocation(14, 53),
+                // (11,42): error CS0115: 'Derived.P1': no suitable method found to override
+                //     public override (int notA, int notB) P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "P1").WithArguments("Derived.P1").WithLocation(11, 42)
+                );
+        }
+
+        [Fact]
+        public void ReturnTypeOrNamesDontMatterInHiddenDetection()
+        {
+            var source = @"
+public class Base
+{
+    public virtual int M0() { return 0; }
+    public virtual (int a, int b) M1() { return (1, 2); }
+    public virtual (int a, int b)[] M2() { return new[] { (1, 2) }; }
+    public virtual System.Nullable<(int a, int b)> M3() { return null; }
+    public virtual ((int a, int b) c, int d) M4() { return ((1, 2), 3); }
+}
+public class Derived : Base
+{
+    public string M0() { return null; }
+    public (int a, int b) M1() { return (1, 2); }
+    public (int notA, int notB)[] M2() { return new[] { (1, 2) }; }
+    public System.Nullable<(int notA, int notB)> M3() { return null; }
+    public ((int notA, int notB) c, int d) M4() { return ((1, 2), 3); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (13,27): warning CS0114: 'Derived.M1()' hides inherited member 'Base.M1()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public (int a, int b) M1() { return (1, 2); }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M1").WithArguments("Derived.M1()", "Base.M1()").WithLocation(13, 27),
+                // (14,35): warning CS0114: 'Derived.M2()' hides inherited member 'Base.M2()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public (int notA, int notB)[] M2() { return new[] { (1, 2) }; }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(14, 35),
+                // (15,50): warning CS0114: 'Derived.M3()' hides inherited member 'Base.M3()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public System.Nullable<(int notA, int notB)> M3() { return null; }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(15, 50),
+                // (16,44): warning CS0114: 'Derived.M4()' hides inherited member 'Base.M4()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public ((int notA, int notB) c, int d) M4() { return ((1, 2), 3); }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(16, 44),
+                // (12,19): warning CS0114: 'Derived.M0()' hides inherited member 'Base.M0()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public string M0() { return null; }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M0").WithArguments("Derived.M0()", "Base.M0()").WithLocation(12, 19)
+                );
+        }
+
+        [Fact]
+        public void NamesDontMatterInDuplicateMethodDetection()
+        {
+            var source = @"
+public class C
+{
+    public void M1((int a, int b) x) { }
+    public void M1((int notA, int notB) x) { }
+
+    public void M2((int a, int b)[] x) { }
+    public void M2((int notA, int notB)[] x) { }
+
+    public void M3(System.Nullable<(int a, int b)> x) { }
+    public void M3(System.Nullable<(int notA, int notB)> x) { }
+
+    public void M4(((int a, int b) c, int d) x) { }
+    public void M4(((int notA, int notB) c, int d) x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0111: Type 'C' already defines a member called 'M1' with the same parameter types
+                //     public void M1((int notA, int notB) x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C").WithLocation(5, 17),
+                // (8,17): error CS0111: Type 'C' already defines a member called 'M2' with the same parameter types
+                //     public void M2((int notA, int notB)[] x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C").WithLocation(8, 17),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'M3' with the same parameter types
+                //     public void M3(System.Nullable<(int notA, int notB)> x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C").WithLocation(11, 17),
+                // (14,17): error CS0111: Type 'C' already defines a member called 'M4' with the same parameter types
+                //     public void M4(((int notA, int notB) c, int d) x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        public void NamesDontMatterInHiddenMethodParameters()
+        {
+            var source = @"
+public class Base
+{
+    public virtual void M1((int a, int b) x) { }
+    public virtual void M2((int a, int b)[] x) { }
+    public virtual void M3(System.Nullable<(int a, int b)> x) { }
+    public virtual void M4(((int a, int b) c, int d) x) { }
+}
+public class Derived : Base
+{
+    public void M1((int notA, int notB) y) { }
+    public void M2((int notA, int notB)[] x) { }
+    public void M3(System.Nullable<(int notA, int notB)> x) { }
+    public void M4(((int notA, int notB) c, int d) x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,17): warning CS0114: 'Derived.M2((int notA, int notB)[])' hides inherited member 'Base.M2((int a, int b)[])'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M2((int notA, int notB)[] x) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M2").WithArguments("Derived.M2((int notA, int notB)[])", "Base.M2((int a, int b)[])").WithLocation(12, 17),
+                // (13,17): warning CS0114: 'Derived.M3((int notA, int notB)?)' hides inherited member 'Base.M3((int a, int b)?)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M3(System.Nullable<(int notA, int notB)> x) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M3").WithArguments("Derived.M3((int notA, int notB)?)", "Base.M3((int a, int b)?)").WithLocation(13, 17),
+                // (14,17): warning CS0114: 'Derived.M4(((int notA, int notB) c, int d))' hides inherited member 'Base.M4(((int a, int b) c, int d))'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M4(((int notA, int notB) c, int d) x) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))", "Base.M4(((int a, int b) c, int d))").WithLocation(14, 17),
+                // (11,17): warning CS0114: 'Derived.M1((int notA, int notB))' hides inherited member 'Base.M1((int a, int b))'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M1").WithArguments("Derived.M1((int notA, int notB))", "Base.M1((int a, int b))").WithLocation(11, 17)
+                );
         }
     }
 }

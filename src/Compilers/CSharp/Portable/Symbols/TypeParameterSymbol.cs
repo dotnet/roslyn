@@ -493,17 +493,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
         {
-            return this.Equals(t2 as TypeParameterSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as TypeParameterSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames);
         }
 
         internal bool Equals(TypeParameterSymbol other)
         {
-            return Equals(other, false, false);
+            return Equals(other, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false, ignoreTupleNames: false);
         }
 
-        private bool Equals(TypeParameterSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(TypeParameterSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
         {
             if (ReferenceEquals(this, other))
             {
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Type parameters may be equal but not reference equal due to independent alpha renamings.
-            return other.ContainingSymbol.ContainingType.Equals(this.ContainingSymbol.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return other.ContainingSymbol.ContainingType.Equals(this.ContainingSymbol.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames);
         }
 
         public override int GetHashCode()

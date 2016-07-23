@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
         {
-            Debug.Assert(left.Type.Equals(right.Type, ignoreDynamic: true) || right.Type.IsErrorType() || left.Type.IsErrorType());
+            Debug.Assert(left.Type.Equals(right.Type, ignoreDynamic: true, ignoreTupleNames: true) || right.Type.IsErrorType() || left.Type.IsErrorType());
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
         }
 
