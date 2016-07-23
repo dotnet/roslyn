@@ -184,6 +184,7 @@
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
+    <Compile Include="LanguageServices\CSharpSyntaxFactsServiceFactory.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactory.PathSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.cs" />
