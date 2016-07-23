@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
         }
 
-        private async Task<FindReferencesResult?> FindReferencedSymbolsAsync(
+        private async Task<ImmutableArray<INavigableItem>> FindReferencedSymbolsAsync(
             Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndSolution == null)
             {
-                return null;
+                return ImmutableArray<INavigableItem>.Empty;
             }
 
             var symbol = symbolAndSolution.Item1;
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
-            return new FindReferencesResult(solution, result.ConvertToNavigableItems());
+            return result.ConvertToNavigableItems();
         }
 
-        public async Task<FindReferencesResult?> FindReferencesAsync(
+        public async Task<ImmutableArray<INavigableItem>> FindReferencesAsync(
             Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var items = await FindExternalNavigableItemsReferencesAsync(document, position, waitContext).ConfigureAwait(false);
             if (items.Length > 0)
             {
-                return new FindReferencesResult(document.Project.Solution, items);
+                return items;
             }
 
             // Otherwise, fall back to displaying SymbolFinder based references.

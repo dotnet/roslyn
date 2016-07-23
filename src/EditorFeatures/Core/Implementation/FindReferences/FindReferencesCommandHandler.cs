@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         var cancellationToken = context.CancellationToken;
                         using (Logger.LogBlock(FunctionId.CommandHandler_FindAllReference, cancellationToken))
                         {
-                            var result = service.FindReferencesAsync(document, caretPosition, context).WaitAndGetResult(cancellationToken);
-
-                            // var solution = result.HasValue ? result.Value.Solution : document.Project.Solution;
-                            var items = result.HasValue ? result.Value.Items : ImmutableArray<INavigableItem>.Empty;
+                            var items = service.FindReferencesAsync(document, caretPosition, context).WaitAndGetResult(cancellationToken);
 
                             foreach (var presenter in _presenters)
                             {
