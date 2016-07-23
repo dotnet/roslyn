@@ -181,9 +181,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             get
             {
                 // TODO: Should probably use original syntax & formatting exactly instead of regenerating here
-                List<SymbolDisplayPart> displayParts = GetSignatureDisplayParts();
+                var displayParts = GetSignatureDisplayParts();
 
-                var textBlock = displayParts.ToTextBlock(_classificationTypeMap);
+                var textBlock = displayParts.ToTaggedText().ToTextBlock(_classificationTypeMap);
 
                 foreach (var inline in textBlock.Inlines)
                 {
