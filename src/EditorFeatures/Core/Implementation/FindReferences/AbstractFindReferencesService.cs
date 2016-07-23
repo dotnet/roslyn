@@ -192,6 +192,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             // Find the symbol we want to search and the solution we want to search in.
             var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndSolution == null)
+            {
+                return;
+            }
+
 
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;

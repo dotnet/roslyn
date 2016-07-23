@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -71,8 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public void OnReferenceFound(ISymbol definition, ReferenceLocation location)
             {
-                // For references, we will just use the line of text that the reference
-                // is on.  That's why we don't need displayTaggedParts.
                 _context.OnReferenceFound(
                     GetNavigableItem(definition),
                     NavigableItemFactory.GetItemFromSymbolLocation(

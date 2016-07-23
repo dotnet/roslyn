@@ -61,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return _item.Document.Project.Name;
                     case StandardTableKeyNames.ProjectGuid:
                         return _boxedProjectGuid;
+
                     case StandardTableKeyNames.Text:
                         return _sourceText.Lines.GetLineFromPosition(_item.SourceSpan.Start).ToString().Trim();
 
