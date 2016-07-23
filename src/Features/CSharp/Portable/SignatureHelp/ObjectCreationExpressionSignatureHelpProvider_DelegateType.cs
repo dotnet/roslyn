@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
-                return SpecializedCollections.EmptyList<SignatureHelpItem>();
+                return null;
             }
 
             var position = objectCreationExpression.SpanStart;

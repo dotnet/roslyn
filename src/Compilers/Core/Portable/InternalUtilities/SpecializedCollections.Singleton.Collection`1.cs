@@ -10,11 +10,11 @@ namespace Roslyn.Utilities
     {
         private static partial class Singleton
         {
-            internal class Collection<T> : ICollection<T>, IReadOnlyCollection<T>
+            internal sealed class List<T> : IList<T>, IReadOnlyCollection<T>
             {
-                protected readonly T _loneValue;
+                private readonly T _loneValue;
 
-                public Collection(T value)
+                public List(T value)
                 {
                     _loneValue = value;
                 }
@@ -62,13 +62,6 @@ namespace Roslyn.Utilities
                 IEnumerator IEnumerable.GetEnumerator()
                 {
                     return GetEnumerator();
-                }
-            }
-
-            internal class List<T> : Collection<T>, IList<T>
-            {
-                public List(T value) : base(value)
-                {
                 }
 
                 public T this[int index]
