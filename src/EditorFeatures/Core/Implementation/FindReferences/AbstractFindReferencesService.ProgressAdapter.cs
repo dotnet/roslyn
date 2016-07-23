@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
@@ -28,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             /// This dictionary allows us to make that mapping once and then keep it around for
             /// all future callbacks.
             /// </summary>
-            private readonly ConcurrentDictionary<ISymbol, INavigableItem> _definitionToNavigableItem =
-                new ConcurrentDictionary<ISymbol, INavigableItem>(SymbolEquivalenceComparer.Instance);
+            private readonly ConcurrentDictionary<ISymbol, IList<INavigableItem>> _definitionToNavigableItem =
+                new ConcurrentDictionary<ISymbol, IList<INavigableItem>>(SymbolEquivalenceComparer.Instance);
 
-            private readonly Func<ISymbol, INavigableItem> _navigableItemFactory;
+            private readonly Func<ISymbol, IList<INavigableItem>> _navigableItemFactory;
 
             public ProgressAdapter(Solution solution, FindReferencesContext context)
             {
@@ -41,8 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 {
                     var taggedParts = s.ToDisplayParts(FindAllReferencesUtilities.DefinitionDisplayFormat)
                                        .ToTaggedText();
-                    return NavigableItemFactory.GetItemFromSymbolLocation(
-                        solution, s, s.Locations.First(), taggedParts);
+                    var definitionLocations = s.IsKind(SymbolKind.Namespace)
+                        ? SpecializedCollections.SingletonEnumerable(s.Locations.First())
+                        : s.Locations;
+
+                    return definitionLocations.Select(loc => NavigableItemFactory.GetItemFromSymbolLocation(
+                        solution, s, loc, taggedParts)).ToList();
                 };
             }
 
@@ -57,22 +63,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private INavigableItem GetNavigableItem(ISymbol definition)
+            private IList<INavigableItem> GetNavigableItems(ISymbol definition)
             {
                 return _definitionToNavigableItem.GetOrAdd(definition, _navigableItemFactory);
             }
 
             public void OnDefinitionFound(ISymbol definition)
             {
-                _context.OnDefinitionFound(
-                    GetNavigableItem(definition),
-                    definition.ShouldShowWithNoReferenceLocations());
+                foreach (var item in GetNavigableItems(definition))
+                {
+                    _context.OnDefinitionFound(
+                        item,
+                        definition.ShouldShowWithNoReferenceLocations());
+                }
             }
 
             public void OnReferenceFound(ISymbol definition, ReferenceLocation location)
             {
                 _context.OnReferenceFound(
-                    GetNavigableItem(definition),
+                    GetNavigableItems(definition).First(),
                     NavigableItemFactory.GetItemFromSymbolLocation(
                         _solution, definition, location.Location, displayTaggedParts: null));
             }
