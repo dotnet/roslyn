@@ -4,9 +4,9 @@ using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
-    internal partial class AbstractProject : IVsHierarchyEvents
+    internal partial class AbstractLegacyProject : IVsHierarchyEvents
     {
         private uint _hierarchyEventsCookie;
 
@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Debug.Assert(!this.AreHierarchyEventsConnected, "IVsHierarchyEvents are already connected!");
 
-            if (ErrorHandler.Failed(_hierarchy.AdviseHierarchyEvents(this, out _hierarchyEventsCookie)))
+            if (ErrorHandler.Failed(Hierarchy.AdviseHierarchyEvents(this, out _hierarchyEventsCookie)))
             {
                 Debug.Fail("Failed to connect IVsHierarchyEvents");
                 _hierarchyEventsCookie = 0;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (this.AreHierarchyEventsConnected)
             {
-                _hierarchy.UnadviseHierarchyEvents(_hierarchyEventsCookie);
+                Hierarchy.UnadviseHierarchyEvents(_hierarchyEventsCookie);
                 _hierarchyEventsCookie = 0;
             }
         }
@@ -66,14 +66,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                  propid == (int)__VSHPROPID.VSHPROPID_Name) &&
                 itemid == (uint)VSConstants.VSITEMID.Root)
             {
-                UpdateProjectDisplayNameAndFilePath();
+                string newDisplayName = GetProjectDisplayName(Hierarchy);
+                string newPath = GetProjectFilePath(Hierarchy);
+
+                UpdateProjectDisplayNameAndFilePath(newDisplayName, newPath);
             }
 
             if ((propid == (int)__VSHPROPID.VSHPROPID_ProjectIDGuid) &&
                  itemid == (uint)VSConstants.VSITEMID.Root)
             {
                 // this should happen while project loading if it ever happens
-                _guid = GetProjectIDGuid(_hierarchy);
+                Guid = GetProjectIDGuid(Hierarchy);
             }
 
             return VSConstants.S_OK;

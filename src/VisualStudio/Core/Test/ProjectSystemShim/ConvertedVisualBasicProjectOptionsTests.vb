@@ -22,8 +22,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Sub RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
             Dim convertedOptions = GetConvertedOptions(ruleSetGeneralOption:=ReportDiagnostic.Warn, commandLineGeneralOption:=WarningLevel.WARN_AsError)
 
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=0, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=0, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -35,9 +35,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Dim convertedOptions = GetConvertedOptions(commandLineGeneralOption:=WarningLevel.WARN_AsError, ruleSetSpecificOptions:=ruleSetSpecificOptions)
 
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=1, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -49,9 +49,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Dim convertedOptions = GetConvertedOptions(commandLineGeneralOption:=WarningLevel.WARN_AsError, ruleSetSpecificOptions:=ruleSetSpecificOptions)
 
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=1, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Info, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Info, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -66,9 +66,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 commandLineGeneralOption:=WarningLevel.WARN_AsError,
                 commandLineWarnAsErrors:="Test001")
 
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=1, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -83,9 +83,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 commandLineGeneralOption:=WarningLevel.WARN_AsError,
                 commandLineWarnNotAsErrors:="Test001")
 
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=1, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -100,10 +100,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 commandLineGeneralOption:=WarningLevel.WARN_AsError,
                 commandLineWarnNotAsErrors:="Test001;Test002")
 
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=2, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
-            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test002"))
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=2, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=convertedOptions.SpecificDiagnosticOptions("Test002"))
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -119,11 +119,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ruleSetSpecificOptions:=ruleSetSpecificOptions,
                 commandLineGeneralOption:=WarningLevel.WARN_None)
 
-            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=3, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
-            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test002"))
-            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test003"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=3, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.SpecificDiagnosticOptions("Test002"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.SpecificDiagnosticOptions("Test003"))
         End Sub
 
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
@@ -138,9 +138,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 commandLineWarnAsErrors:="Test001",
                 commandLineNoWarns:="Test001")
 
-            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=convertedOptions.CompilationOptions.GeneralDiagnosticOption)
-            Assert.Equal(expected:=1, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
-            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=convertedOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=convertedOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
         Private Shared Function GetConvertedOptions(
@@ -149,7 +149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Optional commandLineGeneralOption As WarningLevel = WarningLevel.WARN_Regular,
             Optional commandLineWarnAsErrors As String = "",
             Optional commandLineWarnNotAsErrors As String = "",
-            Optional commandLineNoWarns As String = "") As ConvertedVisualBasicProjectOptions
+            Optional commandLineNoWarns As String = "") As VisualBasicCompilationOptions
 
             ruleSetSpecificOptions = If(ruleSetSpecificOptions Is Nothing, ImmutableDictionary(Of String, ReportDiagnostic).Empty, ruleSetSpecificOptions)
 
@@ -161,11 +161,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                                 .wszDisabledWarnings = commandLineNoWarns
                             }
             Dim compilerHost = New MockCompilerHost("C:\SDK")
-            Dim convertedOptions = New ConvertedVisualBasicProjectOptions(
+            Dim convertedOptions = VisualBasicProjectOptionsHelper.CreateCompilationOptions(
+                                    Nothing,
+                                    VisualBasicParseOptions.Default,
                                     compilerOptions,
                                     compilerHost,
                                     SpecializedCollections.EmptyEnumerable(Of GlobalImport),
-                                    ImmutableArray(Of String).Empty,
                                     Nothing,
                                     New MockRuleSetFile(ruleSetGeneralOption, ruleSetSpecificOptions))
             Return convertedOptions

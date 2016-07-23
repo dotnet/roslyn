@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 DocumentProvider documentProvider,
                 IVisualStudioHostProject project,
                 DocumentKey documentKey,
-                uint itemId,
+                IReadOnlyList<string> folderNames,
                 SourceCodeKind sourceCodeKind,
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
-                this.Folders = project.GetFolderNames(itemId);
+                this.Folders = folderNames;
 
                 _documentProvider = documentProvider;
 

@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
-    internal partial class AbstractProject : IIntellisenseBuildTarget
+    internal partial class AbstractLegacyProject : IIntellisenseBuildTarget
     {
         private static readonly object s_diagnosticKey = new object();
 
@@ -18,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // implement IIntellisenseBuildTarget
         private bool _intellisenseBuildSucceeded = true;
         private string _intellisenseBuildFailureReason = null;
+
+        protected override bool DesignTimeBuildStatus => _intellisenseBuildSucceeded;
 
         public void SetIntellisenseBuildResult(bool succeeded, string reason)
         {
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             UpdateHostDiagnostics(succeeded, reason);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspaceHosts)
             {
                 // set workspace reference info
                 ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.OnHasAllInformation(Id, succeeded));
@@ -40,12 +42,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // report intellisense build failure to error list
                 this.HostDiagnosticUpdateSource?.UpdateDiagnosticsForProject(
-                    _id, s_diagnosticKey, SpecializedCollections.SingletonEnumerable(CreateIntellisenseBuildFailureDiagnostic(reason)));
+                    Id, s_diagnosticKey, SpecializedCollections.SingletonEnumerable(CreateIntellisenseBuildFailureDiagnostic(reason)));
             }
             else
             {
                 // clear intellisense build failure diagnostic from error list.
-                this.HostDiagnosticUpdateSource?.ClearDiagnosticsForProject(_id, s_diagnosticKey);
+                this.HostDiagnosticUpdateSource?.ClearDiagnosticsForProject(Id, s_diagnosticKey);
             }
         }
 
@@ -71,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetDescription(string reason)
         {
-            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this._filePathOpt)}_*.designtime.log";
+            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this.ProjectFilePath)}_*.designtime.log";
 
             var logFileDescription = string.Format(ServicesVSResources.To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_2_Open_a_Visual_Studio_Developer_Command_Prompt_3_Set_environment_variable_TraceDesignTime_to_true_set_TraceDesignTime_true_4_Delete_vs_directory_suo_file_5_Restart_VS_from_the_command_prompt_you_set_the_environment_varaible_devenv_6_Open_the_solution_7_Check_0_and_look_for_the_failed_tasks_FAILED, logFilePath);
             if (string.IsNullOrWhiteSpace(reason))

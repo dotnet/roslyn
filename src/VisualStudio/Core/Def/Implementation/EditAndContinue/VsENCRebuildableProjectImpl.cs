@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
 
             var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
-            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
+            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractProject;
             if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
                 _debugEncNotify.NotifyEncEditDisallowedByProject(hostProject.Hierarchy);
