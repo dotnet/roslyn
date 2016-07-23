@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
@@ -63,7 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public void OnDefinitionFound(ISymbol definition)
             {
-                _context.OnDefinitionFound(GetNavigableItem(definition));
+                _context.OnDefinitionFound(
+                    GetNavigableItem(definition),
+                    definition.ShouldShowWithNoReferenceLocations());
             }
 
             public void OnReferenceFound(ISymbol definition, ReferenceLocation location)

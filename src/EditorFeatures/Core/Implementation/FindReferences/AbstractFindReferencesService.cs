@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 return;
             }
 
-
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;
 

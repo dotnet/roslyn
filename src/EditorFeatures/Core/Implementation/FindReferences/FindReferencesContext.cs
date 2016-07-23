@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public virtual void OnDefinitionFound(INavigableItem definition)
+        public virtual void OnDefinitionFound(
+            INavigableItem definition, bool shouldDisplayWithNoReferences)
         {
         }
 

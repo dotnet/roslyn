@@ -49,7 +49,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                             Select(Function(d) New FileNameAndSpans(
                                                    d.Name, d.AnnotatedSpans(DefinitionKey).ToList())).ToList()
 
-                    Dim actualDefinitions = GetFileNamesAndSpans(context.Definitions)
+                    Dim actualDefinitions = GetFileNamesAndSpans(
+                        context.Definitions.Where(AddressOf context.ShouldShow))
 
                     Assert.Equal(expectedDefinitions, actualDefinitions)
 
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Function GetFileNamesAndSpans(items As IList(Of INavigableItem)) As List(Of FileNameAndSpans)
+        Private Function GetFileNamesAndSpans(items As IEnumerable(Of INavigableItem)) As List(Of FileNameAndSpans)
             Return items.Where(Function(i) Not i.IsImplicitlyDeclared AndAlso i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
@@ -111,18 +112,42 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Private ReadOnly gate As Object = New Object()
 
-            Public ReadOnly Definitions As IList(Of INavigableItem) = New List(Of INavigableItem)
-            Public ReadOnly References As IList(Of INavigableItem) = New List(Of INavigableItem)
+            Private ReadOnly definitionToShouldShowWithNoReferences As Dictionary(Of INavigableItem, Boolean) = New Dictionary(Of INavigableItem, Boolean)
+            Public ReadOnly definitionToReferences As MultiDictionary(Of INavigableItem, INavigableItem) = New MultiDictionary(Of INavigableItem, INavigableItem)
 
-            Public Overrides Sub OnDefinitionFound(definition As INavigableItem)
+            Public ReadOnly Property Definitions As IEnumerable(Of INavigableItem)
+                Get
+                    Return definitionToShouldShowWithNoReferences.Keys
+                End Get
+            End Property
+
+            Public Iterator Function References() As IEnumerable(Of INavigableItem)
+                For Each kvp In definitionToReferences
+                    For Each value In kvp.Value
+                        Yield value
+                    Next
+                Next
+            End Function
+
+
+            Public Function ShouldShow(definition As INavigableItem) As Boolean
+                If definitionToReferences(definition).Count > 0 Then
+                    Return True
+                End If
+
+                Return definitionToShouldShowWithNoReferences(definition)
+            End Function
+
+            Public Overrides Sub OnDefinitionFound(definition As INavigableItem,
+                                                   shouldDisplayWithNoReferences As Boolean)
                 SyncLock gate
-                    Definitions.Add(definition)
+                    Me.definitionToShouldShowWithNoReferences(definition) = shouldDisplayWithNoReferences
                 End SyncLock
             End Sub
 
             Public Overrides Sub OnReferenceFound(definition As INavigableItem, reference As INavigableItem)
                 SyncLock gate
-                    References.Add(reference)
+                    definitionToReferences.Add(definition, reference)
                 End SyncLock
             End Sub
         End Class
