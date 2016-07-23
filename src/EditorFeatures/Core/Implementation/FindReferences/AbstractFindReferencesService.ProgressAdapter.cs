@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             /// all future callbacks.
             /// </summary>
             private readonly ConcurrentDictionary<ISymbol, IList<INavigableItem>> _definitionToNavigableItem =
-                new ConcurrentDictionary<ISymbol, IList<INavigableItem>>(SymbolEquivalenceComparer.Instance);
+                new ConcurrentDictionary<ISymbol, IList<INavigableItem>>(MetadataUnifyingEquivalenceComparer.Instance);
 
             private readonly Func<ISymbol, IList<INavigableItem>> _navigableItemFactory;
 
