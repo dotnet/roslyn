@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     var externalSourceDefinitions = FindExternalDefinitionsAsync(symbol, project, externalDefinitionProviders, cancellationToken).WaitAndGetResult(cancellationToken).ToImmutableArray();
                     if (externalSourceDefinitions.Length > 0)
                     {
-                        return TryGoToDefinition(
-                            externalSourceDefinitions, title, options, presenters, throwOnHiddenDefinition);
+                        return TryGoToDefinition(externalSourceDefinitions, title, options, presenters, throwOnHiddenDefinition);
                     }
                 }
 
