@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
             return _definitionLocation.OriginationParts.Length == 0
                 ? displayString
-                : $"{_definitionLocation.OriginationParts.JoinText()} {displayString}";
+                : $"[{_definitionLocation.OriginationParts.JoinText()}] {displayString}";
         }
 
         public override int GoToSource()

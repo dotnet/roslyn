@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
 
             public override ImmutableArray<TaggedText> OriginationParts =>
-                ImmutableArray.Create(
-                    new TaggedText(TextTags.Punctuation, "["),
-                    new TaggedText(TextTags.Text, _location.Document.Project.Name),
-                    new TaggedText(TextTags.Punctuation, "]"));
+                ImmutableArray.Create(new TaggedText(TextTags.Text, _location.Document.Project.Name));
 
             public override bool CanNavigateTo()
             {
@@ -71,10 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             return string.IsNullOrWhiteSpace(assemblyName)
                 ? ImmutableArray<TaggedText>.Empty
-                : ImmutableArray.Create(
-                    new TaggedText(TextTags.Punctuation, "["),
-                    new TaggedText(TextTags.Assembly, assemblyName),
-                    new TaggedText(TextTags.Punctuation, "]"));
+                : ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
         }
 
         private sealed class SymbolDefinitionLocation : DefinitionLocation
