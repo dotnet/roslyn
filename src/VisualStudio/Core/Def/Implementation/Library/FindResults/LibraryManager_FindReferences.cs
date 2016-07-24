@@ -112,11 +112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     Glyph.Reference.GetGlyphIndex()));
             }
 
-            //var linkedReferences = referenceItems.GroupBy(r => r.DisplayText.ToLowerInvariant()).Where(g => g.Count() > 1).SelectMany(g => g);
-            //foreach (var linkedReference in linkedReferences)
-            //{
-            //    linkedReference.AddProjectNameDisambiguator();
-            //}
+            var linkedReferences = result.GroupBy(r => r.DisplayText.ToLowerInvariant()).Where(g => g.Count() > 1).SelectMany(g => g);
+            foreach (var linkedReference in linkedReferences)
+            {
+                linkedReference.AddProjectNameDisambiguator();
+            }
 
             result.Sort();
             return result;
