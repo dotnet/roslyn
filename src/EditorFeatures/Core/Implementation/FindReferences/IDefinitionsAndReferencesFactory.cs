@@ -36,6 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             return new DefinitionsAndReferences(definitions.ToImmutable(), references.ToImmutable());
         }
 
+        /// <summary>
+        /// Reference locations are deduplicated across the entire find references result set
+        /// Order the definitions so that references to multiple definitions appear under the
+        /// desired definition (e.g. constructor references should prefer the constructor method
+        /// over the type definition). Note that this does not change the order in which
+        /// definitions are displayed in Find Symbol Results, it only changes which definition
+        /// a given reference should appear under when its location is a reference to multiple
+        /// definitions.
+        /// </summary>
         private static int GetPrecedence(ReferencedSymbol referencedSymbol)
         {
             switch (referencedSymbol.Definition.Kind)

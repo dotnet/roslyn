@@ -3,19 +3,18 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 {
-    internal class MockReferencedSymbolsPresenter : IReferencedSymbolsPresenter
+    internal class MockReferencedSymbolsPresenter : IFindReferencesPresenter
     {
-        public Solution Solution { get; private set; }
-        public IEnumerable<ReferencedSymbol> Result { get; private set; }
+        public DefinitionsAndReferences DefinitionsAndReferences;
 
-        public void DisplayResult(Solution solution, IEnumerable<ReferencedSymbol> result)
+        public void DisplayResult(DefinitionsAndReferences definitionsAndReferences)
         {
-            this.Solution = solution;
-            this.Result = result;
+            DefinitionsAndReferences = definitionsAndReferences;
         }
     }
 }

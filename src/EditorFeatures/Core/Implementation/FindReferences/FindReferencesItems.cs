@@ -242,6 +242,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
     internal struct DefinitionsAndReferences
     {
+        public static readonly DefinitionsAndReferences Empty =
+            new DefinitionsAndReferences(ImmutableArray<DefinitionItem>.Empty, ImmutableArray<SourceReferenceItem>.Empty);
+
         /// <summary>
         /// All the definitions to show.  Note: not all definitions may have references.
         /// </summary>

@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
-        private readonly IEnumerable<Lazy<IReferencedSymbolsPresenter>> _referencedSymbolsPresenters;
+        private readonly IEnumerable<Lazy<IFindReferencesPresenter>> _referencedSymbolsPresenters;
         private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
-            [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters,
+            [ImportMany] IEnumerable<Lazy<IFindReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
             : base(
                 serviceProvider,
@@ -222,11 +223,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             return false;
         }
 
-        public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        public override void DisplayReferencedSymbols(
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
+            var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+
             foreach (var presenter in _referencedSymbolsPresenters)
             {
-                presenter.Value.DisplayResult(solution, referencedSymbols);
+                presenter.Value.DisplayResult(definitionsAndReferences);
+                return;
             }
         }
 

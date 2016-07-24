@@ -30,18 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
         }
 
-        public override bool CanGoToReference()
-        {
-            return true;
-        }
+        public override bool CanGoToReference() => true;
 
-        public override bool UseGrayText
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool UseGrayText => false;
 
         public void AddProjectNameDisambiguator()
         {

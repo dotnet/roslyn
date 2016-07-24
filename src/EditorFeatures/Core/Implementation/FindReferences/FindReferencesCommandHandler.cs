@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -19,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler :
         ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _presenters;
+        private readonly IEnumerable<IFindReferencesPresenter> _presenters;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> presenters)
+            [ImportMany] IEnumerable<IFindReferencesPresenter> presenters)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(presenters);
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                             {
                                 foreach (var presenter in _presenters)
                                 {
-                                    presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
+                                    presenter.DisplayResult(DefinitionsAndReferences.Empty);
                                     return;
                                 }
                             }
