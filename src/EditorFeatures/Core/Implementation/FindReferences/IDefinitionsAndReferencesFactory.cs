@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -116,29 +117,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 return null;
             }
 
-            var firstLocation = locations.First();
-            var allParts = ImmutableArray.CreateBuilder<TaggedText>();
-
-            // For a symbol from metadata, include the assembly name before the symbol name.
-            if (firstLocation.IsInMetadata)
-            {
-                var assemblyName = definition.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-
-                if (!string.IsNullOrWhiteSpace(assemblyName))
-                {
-                    allParts.AddPunctuation("[");
-                    allParts.AddText(assemblyName);
-                    allParts.AddPunctuation("]");
-                    allParts.AddSpace();
-                }
-            }
-
-            var symbolParts = definition.ToDisplayParts(FindReferencesUtilities.DefinitionDisplayFormat).ToTaggedText();
-            allParts.AddRange(symbolParts);
+            var displayParts = definition.ToDisplayParts(FindReferencesUtilities.DefinitionDisplayFormat).ToTaggedText();
 
             return new DefinitionItem(
                 GlyphTags.GetTags(definition.GetGlyph()),
-                allParts.ToImmutable(),
+                displayParts,
                 definitionLocations,
                 definition.ShouldShowWithNoReferenceLocations());
         }
@@ -156,12 +139,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrDefault();
                     if (firstSourceReferenceLocation != null)
                     {
-                        result.Add(DefinitionLocation.CreateForSymbol(
+                        result.Add(DefinitionLocation.CreateSymbolLocation(
                             definition, firstSourceReferenceLocation.Document.Project));
                     }
                     else
                     {
-                        result.Add(DefinitionLocation.NonNavigatingInstance);
+                        result.Add(DefinitionLocation.CreateNonNavigatingLocation(
+                            DefinitionLocation.GetOriginationParts(definition)));
                     }
                 }
                 else if (location.IsInSource)
@@ -172,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         var documentLocation = new DocumentLocation(document, location.SourceSpan);
                         if (documentLocation.CanNavigateTo())
                         {
-                            result.Add(DefinitionLocation.CreateForDocumentLocation(documentLocation));
+                            result.Add(DefinitionLocation.CreateDocumentLocation(documentLocation));
                         }
                     }
                 }

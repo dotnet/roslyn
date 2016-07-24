@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
@@ -49,10 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
 #endif
 
-#if false // source contructor
-                        _symbolDisplay = symbol.ToDisplayString(FindReferencesUtilities.DefinitionDisplayFormat);
-            this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay}";
+            this.DisplayText = CreateDisplayText();
 
+#if false // source contructor
             _canGoToDefinition = symbol.Kind != SymbolKind.Namespace;
 
 #endif
@@ -61,13 +61,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                         _workspace = workspace;
             _referencingProjectId = referencingProjectId;
             _symbolKey = definition.GetSymbolKey();
-            _assemblyName = definition.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             _symbolDefinition = definition.ToDisplayString(FindReferencesUtilities.DefinitionDisplayFormat);
             _canGoToDefinition = definition.Kind != SymbolKind.Namespace;
-
-            this.DisplayText = $"{GetAssemblyNameString()}{_symbolDefinition}";
-
 #endif
+        }
+
+        private string CreateDisplayText()
+        {
+            var displayString = _definitionItem.DisplayParts.JoinText();
+
+            return _definitionLocation.OriginationParts.Length == 0
+                ? displayString
+                : $"{_definitionLocation.OriginationParts.JoinText()} {displayString}";
         }
 
         public override int GoToSource()
@@ -89,33 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 ? ServicesVSResources._1_reference
                 : string.Format(ServicesVSResources._0_references, referenceCount);
 
-#if false // source case
-            this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay} ({referenceCountDisplay})";
-#endif
-
-#if false // metadata case
-            var referenceCountDisplay = referenceCount == 1
-                ? ServicesVSResources._1_reference
-                : string.Format(ServicesVSResources._0_references, referenceCount);
-
-            this.DisplayText = $"{GetAssemblyNameString()}{_symbolDefinition} ({referenceCountDisplay})";
-#endif
-        }
-
-#if false
-                private string GetAssemblyNameString()
-        {
-            return (_assemblyName != null && _canGoToDefinition) ? $"[{_assemblyName}] " : string.Empty;
-        }
-#endif
-
-        private string GetProjectNameString()
-        {
-            return "";
-
-#if false
-            return (_projectName != null && _canGoToDefinition) ? $"[{_projectName}] " : string.Empty;
-#endif
+            this.DisplayText = CreateDisplayText() + $" ({referenceCount})";
         }
     }
 }

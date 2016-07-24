@@ -100,6 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
+            public override ImmutableArray<TaggedText> OriginationParts => ImmutableArray<TaggedText>.Empty;
+
             public override bool CanNavigateTo() => true;
 
             public override bool TryNavigateTo()

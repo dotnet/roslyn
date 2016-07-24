@@ -11,39 +11,70 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal abstract class DefinitionLocation
     {
-        public static readonly DefinitionLocation NonNavigatingInstance = NonNavigatingDefinitionLocation.Instance;
+        /// <summary>
+        /// Where the location originally came from (for example, the containing assembly or
+        /// project name).  May be used in the presentation of a definition.
+        /// </summary>
+        public abstract ImmutableArray<TaggedText> OriginationParts { get; }
+
+        protected DefinitionLocation()
+        {
+        }
 
         public abstract bool CanNavigateTo();
         public abstract bool TryNavigateTo();
 
-        public static DefinitionLocation CreateForDocumentLocation(DocumentLocation location)
+        public static DefinitionLocation CreateDocumentLocation(DocumentLocation location)
         {
             return new DocumentDefinitionLocation(location);
         }
 
-        public static DefinitionLocation CreateForSymbol(ISymbol symbol, Project referencingProject)
+        public static DefinitionLocation CreateSymbolLocation(ISymbol symbol, Project referencingProject)
         {
             return new SymbolDefinitionLocation(symbol, referencingProject);
         }
 
+        public static DefinitionLocation CreateNonNavigatingLocation(
+            ImmutableArray<TaggedText> originationParts)
+        {
+            return new NonNavigatingDefinitionLocation(originationParts);
+        }
+
         private sealed class DocumentDefinitionLocation : DefinitionLocation
         {
-            public DocumentLocation Location { get; }
+            private readonly DocumentLocation _location;
 
             public DocumentDefinitionLocation(DocumentLocation location)
             {
-                Location = location;
+                _location = location;
             }
+
+            public override ImmutableArray<TaggedText> OriginationParts =>
+                ImmutableArray.Create(
+                    new TaggedText(TextTags.Punctuation, "["),
+                    new TaggedText(TextTags.Text, _location.Document.Project.Name),
+                    new TaggedText(TextTags.Punctuation, "]"));
 
             public override bool CanNavigateTo()
             {
-                return Location.CanNavigateTo();
+                return _location.CanNavigateTo();
             }
 
             public override bool TryNavigateTo()
             {
-                return Location.TryNavigateTo();
+                return _location.TryNavigateTo();
             }
+        }
+
+        internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
+        {
+            var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            return string.IsNullOrWhiteSpace(assemblyName)
+                ? ImmutableArray<TaggedText>.Empty
+                : ImmutableArray.Create(
+                    new TaggedText(TextTags.Punctuation, "["),
+                    new TaggedText(TextTags.Assembly, assemblyName),
+                    new TaggedText(TextTags.Punctuation, "]"));
         }
 
         private sealed class SymbolDefinitionLocation : DefinitionLocation
@@ -51,13 +82,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             private readonly Workspace _workspace;
             private readonly ProjectId _referencingProjectId;
             private readonly SymbolKey _symbolKey;
+            private readonly ImmutableArray<TaggedText> _originationParts;
 
             public SymbolDefinitionLocation(ISymbol definition, Project project)
             {
                 _workspace = project.Solution.Workspace;
                 _referencingProjectId = project.Id;
                 _symbolKey = definition.GetSymbolKey();
+                _originationParts = GetOriginationParts(definition);
             }
+
+            public override ImmutableArray<TaggedText> OriginationParts => _originationParts;
 
             public override bool CanNavigateTo()
             {
@@ -94,11 +129,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
         private sealed class NonNavigatingDefinitionLocation : DefinitionLocation
         {
-            public static readonly DefinitionLocation Instance = new NonNavigatingDefinitionLocation();
+            private readonly ImmutableArray<TaggedText> _originationParts;
 
-            private NonNavigatingDefinitionLocation()
+            public NonNavigatingDefinitionLocation(ImmutableArray<TaggedText> originationParts)
             {
+                _originationParts = originationParts;
             }
+
+            public override ImmutableArray<TaggedText> OriginationParts => _originationParts;
 
             public override bool CanNavigateTo()
             {
@@ -182,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal sealed class DefinitionItem
     {
         public ImmutableArray<string> Tags { get; }
+
         public ImmutableArray<TaggedText> DisplayParts { get; }
 
         /// <summary>
