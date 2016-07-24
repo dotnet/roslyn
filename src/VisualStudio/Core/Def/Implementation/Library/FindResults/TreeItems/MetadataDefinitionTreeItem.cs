@@ -2,6 +2,8 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _referencingProjectId = referencingProjectId;
             _symbolKey = definition.GetSymbolKey();
             _assemblyName = definition.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            _symbolDefinition = definition.ToDisplayString(definitionDisplayFormat);
+            _symbolDefinition = definition.ToDisplayString(FindReferencesUtilities.DefinitionDisplayFormat);
             _canGoToDefinition = definition.Kind != SymbolKind.Namespace;
 
             this.DisplayText = $"{GetAssemblyNameString()}{_symbolDefinition}";

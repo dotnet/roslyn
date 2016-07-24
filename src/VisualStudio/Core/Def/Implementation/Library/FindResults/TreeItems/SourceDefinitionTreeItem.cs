@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
@@ -13,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         public SourceDefinitionTreeItem(Document document, TextSpan sourceSpan, ISymbol symbol, ushort glyphIndex)
             : base(document, sourceSpan, glyphIndex)
         {
-            _symbolDisplay = symbol.ToDisplayString(definitionDisplayFormat);
+            _symbolDisplay = symbol.ToDisplayString(FindReferencesUtilities.DefinitionDisplayFormat);
             this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay}";
 
             _canGoToDefinition = symbol.Kind != SymbolKind.Namespace;
