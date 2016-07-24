@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -271,10 +273,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         }
     }
 
-    internal static class DefinitionItemExtensions
+    internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        public static DefinitionsAndReferences ToDefinitionItems(
-            this IEnumerable<ReferencedSymbol> referencedSymbols, Solution solution)
+        DefinitionsAndReferences CreateDefinitionsAndReferences(
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);
+    }
+
+    [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
+    internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
+    {
+        public DefinitionsAndReferences CreateDefinitionsAndReferences(
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
             var references = ImmutableArray.CreateBuilder<SourceReferenceItem>();
@@ -287,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             return new DefinitionsAndReferences(definitions.ToImmutable(), references.ToImmutable());
         }
 
-        private static void ProcessReferencedSymbol(
+        private void ProcessReferencedSymbol(
             Solution solution,
             ReferencedSymbol referencedSymbol,
             ImmutableArray<DefinitionItem>.Builder definitions,
@@ -306,6 +315,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             definitions.Add(definitionItem);
             CreateReferences(referencedSymbol, references, definitionItem);
+
+            var thirdPartyItem = GetThirdPartyDefinitionItem();
+            if (thirdPartyItem != null)
+            {
+                definitions.Add(thirdPartyItem);
+            }
+        }
+
+        protected virtual DefinitionItem GetThirdPartyDefinitionItem()
+        {
+            return null;
         }
 
         private static DefinitionItem CreateDefinitionItem(
