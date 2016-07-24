@@ -75,26 +75,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public AbstractProject(
+        protected AbstractProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
             string projectSystemName,
             string projectFilePath,
-            Guid projectGuid,
-            string projectTypeGuid,
             IVsHierarchy hierarchy,
             string language,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt)
         {
             Contract.ThrowIfNull(projectSystemName);
 
             ServiceProvider = serviceProvider;
             Language = language;
             Hierarchy = hierarchy;
-            Guid = projectGuid;
-            ProjectType = projectTypeGuid;
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
@@ -105,6 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             ProjectSystemName = projectSystemName;
             Workspace = visualStudioWorkspaceOpt;
+            CommandLineParserService = commandLineParserServiceOpt;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSourceOpt;
 
             UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
@@ -128,6 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
+
+            // Initialize parsed command line arguments.
+            SetArguments(commandlineForOptions: string.Empty);
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -160,6 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ProjectId Id { get; }
 
         public string Language { get; }
+
+        private ICommandLineParserService CommandLineParserService { get; }
 
         public IVsHierarchy Hierarchy { get; }
 
@@ -355,7 +358,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _analyzers.ContainsKey(fullPath);
         }
 
-        protected CompilationOptions CurrentCompilationOptions { get; private set; }
+        // internal for testing purposes.
+        internal CompilationOptions CurrentCompilationOptions { get; private set; }
         protected ParseOptions CurrentParseOptions { get; private set; }
 
         /// <summary>

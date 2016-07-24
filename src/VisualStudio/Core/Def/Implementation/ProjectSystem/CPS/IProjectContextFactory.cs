@@ -19,10 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="languageName">Project language.</param>
         /// <param name="projectDisplayName">Display name for the project.</param>
         /// <param name="projectFilePath">Full path to the project file for the project.</param>
-        /// <param name="projectGuid">Project <see cref="Guid"/>. Guid can also be initialized lazily with <see cref="IProjectContext.Guid"/>.</param>
-        /// <param name="projectTypeGuid">String representing the Guid for the Project type. Project type can also be initialized lazily with <see cref="IProjectContext.ProjectType"/>.</param>
         /// <param name="hierarchy"><see cref="IVsHierarchy"/> for the project.</param>
-        /// <param name="commandLineArguments">Initial command line arguments to initialize the compilation and parse options for the project.</param>
-        IProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, string projectTypeGuid, IVsHierarchy hierarchy, CommandLineArguments commandLineArguments);
+        IProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, IVsHierarchy hierarchy);
     }
 }

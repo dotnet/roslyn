@@ -59,14 +59,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 base.ProjectType = value;
             }
         }
+
+        bool IProjectContext.DesignTimeBuildStatus
+        {
+            get
+            {
+                return _designTimeBuildStatus;
+            }
+            set
+            {
+                _designTimeBuildStatus = value;
+            }
+        }
         #endregion
-        
+
         #region Options
         public void SetCommandLineArguments(CommandLineArguments commandLineArguments)
         {
             SetArgumentsAndUpdateOptions(commandLineArguments);
+            PostSetCommandLineArguments(commandLineArguments);            
+        }
 
-            // If outputPath has changed, then invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
+        public void SetCommandLineArguments(string commandLineForOptions)
+        {
+            var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
+            PostSetCommandLineArguments(commandLineArguments);
+        }
+
+        private void PostSetCommandLineArguments(CommandLineArguments commandLineArguments)
+        {
+            // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project, if required.
             if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
             {
                 var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
@@ -90,10 +112,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void AddProjectReference(IProjectContext project, MetadataReferenceProperties properties)
         {
+            var abstractProject = GetAbstractProject(project);
+
             // AbstractProject and ProjectTracker track project references using the project bin output path.
             // Setting the command line arguments should have already set the output file name and folder.
             // We fetch this output path to add the reference.
-            var referencedProject = this.ProjectTracker.GetProject(project.Id);
+            var referencedProject = this.ProjectTracker.GetProject(abstractProject.Id);
             var binPathOpt = referencedProject.TryGetBinOutputPath();
             if (!string.IsNullOrEmpty(binPathOpt))
             {
@@ -103,14 +127,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void RemoveProjectReference(IProjectContext project)
         {
-            foreach (var projectReference in GetCurrentProjectReferences())
+            var referencedProject = GetAbstractProject(project);
+
+            // AbstractProject and ProjectTracker track project references using the project bin output path.
+            // We fetch this output path to remove the reference.
+            var binPathOpt = referencedProject.TryGetBinOutputPath();
+            if (!string.IsNullOrEmpty(binPathOpt))
             {
-                if (projectReference.ProjectId.Equals(project.Id))
-                {
-                    RemoveProjectReference(projectReference);
-                    return;
-                }
+                base.RemoveMetadataReference(binPathOpt);
             }
+        }
+
+        private AbstractProject GetAbstractProject(IProjectContext project)
+        {
+            var abstractProject = project as AbstractProject;
+            if (abstractProject == null)
+            {
+                throw new ArgumentException("Unsupported project kind", nameof(project));
+            }
+
+            return abstractProject;
         }
         #endregion
 
@@ -123,6 +159,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveSourceFile(string filePath)
         {
             RemoveFile(filePath);
+        }
+        #endregion
+
+        #region IDisposable
+        public void Dispose()
+        {
+            Disconnect();
         }
         #endregion
     }

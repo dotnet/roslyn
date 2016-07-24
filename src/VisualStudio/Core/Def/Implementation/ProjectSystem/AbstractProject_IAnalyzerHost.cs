@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ClearAnalyzerRuleSet();
             SetAnalyzerRuleSet(ruleSetFileFullPath);
-            UpdateOptions();
+            ResetArgumentsAndUpdateOptions();
         }
 
         private void SetAnalyzerRuleSet(string ruleSetFileFullPath)
@@ -175,7 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void OnRuleSetFileUpdateOnDisk(object sender, EventArgs e)
+        // internal for testing purpose.
+        internal void OnRuleSetFileUpdateOnDisk(object sender, EventArgs e)
         {
             var filePath = this.RuleSetFile.FilePath;
 

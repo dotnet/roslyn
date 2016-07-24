@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -30,26 +31,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string language,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt)
             : base(projectTracker,
                   reportExternalErrorCreatorOpt,
                   projectSystemName,
                   projectFilePath: GetProjectFilePath(hierarchy),
-                  projectGuid: GetProjectIDGuid(hierarchy),
-                  projectTypeGuid: GetProjectType(hierarchy),
                   hierarchy: hierarchy,
                   language: language,
                   serviceProvider: serviceProvider,
                   visualStudioWorkspaceOpt: visualStudioWorkspaceOpt,
-                  hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt)
+                  hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
+                  commandLineParserServiceOpt: commandLineParserServiceOpt)
         {
+            Guid = GetProjectIDGuid(hierarchy);
+            ProjectType = GetProjectType(hierarchy);
             ConnectHierarchyEvents();
-
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
-
-            _lastParsedCompilerOptions = string.Empty;
-            var commandLineArguments = ParseCommandLineArguments(SpecializedCollections.EmptyEnumerable<string>());
-            base.SetArguments(commandLineArguments);
         }
 
         public override void Disconnect()

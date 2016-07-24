@@ -7,25 +7,33 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see cref="IProjectContextFactory.CreateProjectContext(string, string, string, Guid, string, Shell.Interop.IVsHierarchy, CommandLineArguments)"/>. 
+    /// Project context to initialize properties and items of a Workspace project created with <see cref="IProjectContextFactory.CreateProjectContext(string, string, string, Shell.Interop.IVsHierarchy)"/>. 
     /// </summary>
-    internal interface IProjectContext
+    internal interface IProjectContext : IDisposable
     {
         // Project properties.
-        ProjectId Id { get; }
         string DisplayName { get; set; }
         string ProjectFilePath { get; set; }
         Guid Guid { get; set; }
         string ProjectType { get; set; }
+        bool DesignTimeBuildStatus { get; set; }
 
         // Options.
         void SetCommandLineArguments(CommandLineArguments commandLineArguments);
+        void SetCommandLineArguments(string commandLineForOptions);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
         void RemoveMetadataReference(string referencePath);
         void AddProjectReference(IProjectContext project, MetadataReferenceProperties properties);
         void RemoveProjectReference(IProjectContext project);
+
+        // Analyzers.
+        void AddAnalyzerAssembly(string analyzerAssemblyFullPath);
+        void RemoveAnalyzerAssembly(string analyzerAssemblyFullPath);
+        void SetRuleSetFile(string ruleSetFileFullPath);
+        void AddAdditionalFile(string additionalFilePath);
+        void RemoveAdditionalFile(string additionalFilePath);
 
         // Source files.
         void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);

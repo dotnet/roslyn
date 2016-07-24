@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -9,6 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal abstract partial class AbstractProject
     {
+        private string _lastParsedCompilerOptions;
         private CommandLineArguments _lastParsedCommandLineArguments;
 
         /// <summary>
@@ -29,21 +31,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Sets the given command line arguments to be the last parsed command line arguments.
-        /// </summary>
-        protected void SetArguments(CommandLineArguments commandLineArguments)
-        {
-            _lastParsedCommandLineArguments = commandLineArguments;
-        }
-
-        /// <summary>
         /// Sets the given command line arguments to be the last parsed command line arguments and
         /// creates and sets new options using these command line arguments.
         /// </summary>
         protected void SetArgumentsAndUpdateOptions(CommandLineArguments commandLineArguments)
         {
-            SetArguments(commandLineArguments);
+            _lastParsedCommandLineArguments = commandLineArguments;
             UpdateOptions();            
+        }
+
+        /// <summary>
+        /// If the command line has changed from the last parsed command line, then it parses it and sets new command line arguments.
+        /// Subsequently, regardless of whether command line changed, it creates and sets new options using the last parsed command line arguments.
+        /// </summary>
+        protected CommandLineArguments SetArgumentsAndUpdateOptions(string commandlineForOptions)
+        {
+            SetArguments(commandlineForOptions);
+            UpdateOptions();
+            return _lastParsedCommandLineArguments;
+        }
+
+        /// <summary>
+        /// Resets the last parsed command line and updates options with the same command line.
+        /// </summary>
+        /// <remarks>
+        /// Use this method when options can go stale due to side effects, even though the command line is identical.
+        /// For example, changes to contents of a ruleset file needs to force update the options for the same command line.
+        /// </remarks>
+        protected CommandLineArguments ResetArgumentsAndUpdateOptions()
+        {
+            // Clear last parsed command line.
+            var savedLastParsedCompilerOptions = _lastParsedCompilerOptions;
+            _lastParsedCompilerOptions = null;
+            _lastParsedCommandLineArguments = null;
+
+            // Now set arguments and update options with the saved command line.
+            return SetArgumentsAndUpdateOptions(savedLastParsedCompilerOptions);
+        }
+
+        private CommandLineArguments SetArguments(string commandlineForOptions)
+        {
+            if (!string.Equals(_lastParsedCompilerOptions, commandlineForOptions, StringComparison.OrdinalIgnoreCase))
+            {
+                // Command line options have changed, so update options with new parsed CommandLineArguments.
+                var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandlineForOptions, removeHashComments: false);
+                _lastParsedCommandLineArguments = CommandLineParserService.Parse(splitArguments, this.ContainingDirectoryPathOpt, isInteractive: false, sdkDirectory: null);
+                _lastParsedCompilerOptions = commandlineForOptions;
+            }
+
+            return _lastParsedCommandLineArguments;
         }
 
         /// <summary>

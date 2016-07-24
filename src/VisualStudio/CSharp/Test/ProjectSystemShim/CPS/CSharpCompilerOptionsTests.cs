@@ -19,9 +19,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void DocumentationModeSetToDiagnoseIfProducingDocFile_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/doc:DocFile.xml"))
             {
-                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/doc:DocFile.xml");
-
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
 
@@ -34,9 +33,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void DocumentationModeSetToParseIfNotProducingDocFile_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/doc:"))
             {
-                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/doc:");
-
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
 
@@ -49,9 +47,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void ProjectSettingsOptionAddAndRemove_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/warnaserror:CS1111"))
             {
-                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/warnaserror:CS1111");
-
                 var options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
@@ -65,11 +62,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ProjectOutputBinPathChange_CPS()
         {
+            var initialBinPath = @"C:\test.dll";
+
             using (var environment = new TestEnvironment())
+            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", $"/out:{initialBinPath}"))
             {
-                var initialBinPath = @"C:\test.dll";
-                var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", $"/out:{initialBinPath}");
-                
                 Assert.Equal(initialBinPath, project.TryGetBinOutputPath());
                 Assert.Equal(initialBinPath, project.TryGetObjOutputPath());
 
@@ -97,20 +94,20 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ProjectGuidSetter_CPS()
         {
+            var initialGuid = Guid.NewGuid();
+            var intialProjectType = Guid.NewGuid().ToString();
+
             using (var environment = new TestEnvironment())
+            using (IProjectContext projectContext = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", initialGuid, intialProjectType))
             {
-                var initialGuid = new Guid();
-                var intialProjectType = new Guid().ToString();
-                var projectContext = (IProjectContext)CSharpHelpers.CreateCSharpCPSProject(environment, "Test", initialGuid, intialProjectType);
-                
                 Assert.Equal(initialGuid, projectContext.Guid);
                 Assert.Equal(intialProjectType, projectContext.ProjectType);
 
-                var newGuid = new Guid();
+                var newGuid = Guid.NewGuid();
                 projectContext.Guid = newGuid;
                 Assert.Equal(newGuid, projectContext.Guid);
 
-                var newProjectTypeGuid = new Guid().ToString();
+                var newProjectTypeGuid = Guid.NewGuid().ToString();
                 projectContext.ProjectType = newProjectTypeGuid;
                 Assert.Equal(newProjectTypeGuid, projectContext.ProjectType);
             }
@@ -121,8 +118,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void ProjectDisplayNameSetter_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (IProjectContext project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
-                var project = (IProjectContext)CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
                 Assert.Equal("Test", project.DisplayName);
                 var initialProjectFilePath = project.ProjectFilePath;
 
@@ -139,9 +136,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void ProjectFilePathSetter_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (IProjectContext project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
-                var project = (IProjectContext)CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
-                
                 var initialProjectDisplayName = project.DisplayName;
                 var initialProjectFilePath = project.ProjectFilePath;
                 var newFilePath = Temp.CreateFile().Path;

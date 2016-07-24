@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -12,26 +13,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : AbstractProject
     {
+        private bool _designTimeBuildStatus;
+
         public CPSProject(
-            CommandLineArguments commandLineArguments,
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
             string projectDisplayName,
             string projectFilePath,
-            Guid projectGuid,
-            string projectTypeGuid,
             IVsHierarchy hierarchy,
             string language,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
-            : base(projectTracker, reportExternalErrorCreatorOpt, projectDisplayName, projectFilePath, projectGuid,
-                   projectTypeGuid, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt)
+            : base(projectTracker, reportExternalErrorCreatorOpt, projectDisplayName, projectFilePath,
+                   hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
         {
-            // Set the initial options from the command line before we add the project to the project tracker.
-            SetCommandLineArguments(commandLineArguments);
+            // Set the initial default output bin path for the project, before we add the project to the project tracker.
+            var uniqueDefaultOutputPath = PathUtilities.CombinePathsUnchecked(Path.GetTempPath(), Guid.NewGuid().ToString());
+            SetOutputPathAndRelatedData(objOutputPath: uniqueDefaultOutputPath, hasSameBinAndObjOutputPaths: true);
 
             projectTracker.AddProject(this);
+
+            _designTimeBuildStatus = true;
         }
 
         protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
@@ -39,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             throw new NotSupportedException();
         }
 
-        // TODO: CPS should push design time build status for every design time build.
-        protected sealed override bool DesignTimeBuildStatus => true;
+        protected sealed override bool DesignTimeBuildStatus => _designTimeBuildStatus;
     }
 }

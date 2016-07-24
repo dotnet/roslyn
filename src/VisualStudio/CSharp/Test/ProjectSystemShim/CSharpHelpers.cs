@@ -10,6 +10,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -30,7 +31,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 hierarchy: hierarchy,
                 serviceProvider: environment.ServiceProvider,
                 visualStudioWorkspaceOpt: null,
-                hostDiagnosticUpdateSourceOpt: null);
+                hostDiagnosticUpdateSourceOpt: null,
+                commandLineParserServiceOpt: new CSharpCommandLineParserService());
         }
 
         public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)
@@ -43,18 +45,27 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             var tempPath = Path.GetTempPath();
             var projectFilePath = Path.Combine(tempPath, projectName);
             var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
-            var parsedArguments = GetParsedCommandLineArguments(hierarchy, commandLineArguments);
-
-            return CPSProjectFactory.CreateCPSProject(
+            
+            var project = CPSProjectFactory.CreateCPSProject(
                 environment.ProjectTracker,
                 environment.ServiceProvider,
                 hierarchy,
                 projectName,
                 projectFilePath,
                 LanguageNames.CSharp,
-                projectGuid,
-                projectTypeGuid,
-                parsedArguments);
+                new CSharpCommandLineParserService());
+
+            var projectContext = (IProjectContext)project;
+            projectContext.Guid = projectGuid;
+            projectContext.ProjectType = projectTypeGuid;
+
+            if (commandLineArguments.Length > 0)
+            {
+                var parsedArguments = GetParsedCommandLineArguments(hierarchy, commandLineArguments);
+                projectContext.SetCommandLineArguments(parsedArguments);
+            }
+
+            return project;
         }
 
         public static void SetCommandLineArguments(CPSProject project, params string[] commandLineArguments)
