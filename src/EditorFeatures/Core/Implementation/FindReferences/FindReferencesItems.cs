@@ -20,92 +20,104 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal abstract class DefinitionLocation
     {
+        public static readonly DefinitionLocation NonNavigatingInstance = NonNavigatingDefinitionLocation.Instance;
+
         public abstract bool CanNavigateTo();
         public abstract bool TryNavigateTo();
-    }
 
-    internal sealed class DocumentDefinitionLocation : DefinitionLocation
-    {
-        public DocumentLocation Location { get; }
-
-        public DocumentDefinitionLocation(DocumentLocation location)
+        public static DefinitionLocation CreateForDocumentLocation(DocumentLocation location)
         {
-            Location = location;
+            return new DocumentDefinitionLocation(location);
         }
 
-        public override bool CanNavigateTo()
+        public static DefinitionLocation CreateForSymbol(ISymbol symbol, Project referencingProject)
         {
-            return Location.CanNavigateTo();
+            return new SymbolDefinitionLocation(symbol, referencingProject);
         }
 
-        public override bool TryNavigateTo()
+        private sealed class DocumentDefinitionLocation : DefinitionLocation
         {
-            return Location.TryNavigateTo();
-        }
-    }
+            public DocumentLocation Location { get; }
 
-    internal sealed class SymbolDefinitionLocation : DefinitionLocation
-    {
-        private readonly Workspace _workspace;
-        private readonly ProjectId _referencingProjectId;
-        private readonly SymbolKey _symbolKey;
+            public DocumentDefinitionLocation(DocumentLocation location)
+            {
+                Location = location;
+            }
 
-        public SymbolDefinitionLocation(ISymbol definition, Project project)
-        {
-            _workspace = project.Solution.Workspace;
-            _referencingProjectId = project.Id;
-            _symbolKey = definition.GetSymbolKey();
-        }
+            public override bool CanNavigateTo()
+            {
+                return Location.CanNavigateTo();
+            }
 
-        public override bool CanNavigateTo()
-        {
-            return TryNavigateTo((symbol, project, service) => true);
+            public override bool TryNavigateTo()
+            {
+                return Location.TryNavigateTo();
+            }
         }
 
-        public override bool TryNavigateTo()
+        private sealed class SymbolDefinitionLocation : DefinitionLocation
         {
-            return TryNavigateTo((symbol, project, service) =>
-                service.TryNavigateToSymbol(symbol, project));
+            private readonly Workspace _workspace;
+            private readonly ProjectId _referencingProjectId;
+            private readonly SymbolKey _symbolKey;
+
+            public SymbolDefinitionLocation(ISymbol definition, Project project)
+            {
+                _workspace = project.Solution.Workspace;
+                _referencingProjectId = project.Id;
+                _symbolKey = definition.GetSymbolKey();
+            }
+
+            public override bool CanNavigateTo()
+            {
+                return TryNavigateTo((symbol, project, service) => true);
+            }
+
+            public override bool TryNavigateTo()
+            {
+                return TryNavigateTo((symbol, project, service) =>
+                    service.TryNavigateToSymbol(symbol, project));
+            }
+
+            private bool TryNavigateTo(Func<ISymbol, Project, ISymbolNavigationService, bool> action)
+            {
+                var symbol = ResolveSymbolInCurrentSolution();
+                var referencingProject = _workspace.CurrentSolution.GetProject(_referencingProjectId);
+                if (symbol == null || referencingProject == null)
+                {
+                    return false;
+                }
+
+                var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
+                return action(symbol, referencingProject, navigationService);
+            }
+
+            private ISymbol ResolveSymbolInCurrentSolution()
+            {
+                var compilation = _workspace.CurrentSolution.GetProject(_referencingProjectId)
+                                                            .GetCompilationAsync(CancellationToken.None)
+                                                            .WaitAndGetResult(CancellationToken.None);
+                return _symbolKey.Resolve(compilation).Symbol;
+            }
         }
 
-        private bool TryNavigateTo(Func<ISymbol, Project, ISymbolNavigationService, bool> action)
+        private sealed class NonNavigatingDefinitionLocation : DefinitionLocation
         {
-            var symbol = ResolveSymbolInCurrentSolution();
-            var referencingProject = _workspace.CurrentSolution.GetProject(_referencingProjectId);
-            if (symbol == null || referencingProject == null)
+            public static readonly DefinitionLocation Instance = new NonNavigatingDefinitionLocation();
+
+            private NonNavigatingDefinitionLocation()
+            {
+            }
+
+            public override bool CanNavigateTo()
             {
                 return false;
             }
 
-            var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-            return action(symbol, referencingProject, navigationService);
-        }
-
-        private ISymbol ResolveSymbolInCurrentSolution()
-        {
-            var compilation = _workspace.CurrentSolution.GetProject(_referencingProjectId)
-                                                        .GetCompilationAsync(CancellationToken.None)
-                                                        .WaitAndGetResult(CancellationToken.None);
-            return _symbolKey.Resolve(compilation).Symbol;
-        }
-    }
-
-    internal sealed class NonNavigableDefinitionLocation : DefinitionLocation
-    {
-        public static readonly DefinitionLocation Instance = new NonNavigableDefinitionLocation();
-
-        private NonNavigableDefinitionLocation()
-        {
-        }
-
-        public override bool CanNavigateTo()
-        {
-            return false;
-        }
-
-        public override bool TryNavigateTo()
-        {
-            return false;
+            public override bool TryNavigateTo()
+            {
+                return false;
+            }
         }
     }
 
@@ -348,12 +360,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrDefault();
                     if (firstSourceReferenceLocation != null)
                     {
-                        result.Add(new SymbolDefinitionLocation(
+                        result.Add(DefinitionLocation.CreateForSymbol(
                             definition, firstSourceReferenceLocation.Document.Project));
                     }
                     else
                     {
-                        result.Add(NonNavigableDefinitionLocation.Instance);
+                        result.Add(DefinitionLocation.NonNavigatingInstance);
                     }
                 }
                 else if (location.IsInSource)
@@ -364,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         var documentLocation = new DocumentLocation(document, location.SourceSpan);
                         if (documentLocation.CanNavigateTo())
                         {
-                            result.Add(new DocumentDefinitionLocation(documentLocation));
+                            result.Add(DefinitionLocation.CreateForDocumentLocation(documentLocation));
                         }
                     }
                 }
