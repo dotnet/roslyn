@@ -177,10 +177,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             return SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         }
-
-        protected string GetLanguage()
-        {
-            return GetDocument()?.Project.Language ?? "";
-        }
     }
 }
