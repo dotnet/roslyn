@@ -1,0 +1,13 @@
+﻿{
+  "supports": {},
+  "dependencies": {
+    "Newtonsoft.Json": "9.0.1"
+  },
+  "frameworks": {
+    ".NETFramework,Version=v4.6": {}
+  },
+  "runtimes": {
+    "win": {},
+    "win7": {}
+  }
+}
