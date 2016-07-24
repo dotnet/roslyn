@@ -15,21 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal partial class LibraryManager
     {
-        private bool IncludeDefinition(ReferencedSymbol reference)
-        {
-            var definition = reference.Definition;
-
-            // Don't include parameters to property accessors
-            if (definition is IParameterSymbol &&
-                definition.ContainingSymbol is IMethodSymbol &&
-                ((IMethodSymbol)definition.ContainingSymbol).AssociatedSymbol is IPropertySymbol)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public void PresentReferencedSymbols(string title, Solution solution, IEnumerable<ReferencedSymbol> items)
         {
             PresentObjectList(title, new ObjectList(CreateFindReferencesItems(solution, items), this));
