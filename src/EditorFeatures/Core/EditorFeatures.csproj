@@ -268,6 +268,7 @@
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="Implementation\FindReferences\FindReferencesItems.cs" />
     <Compile Include="Implementation\FindReferences\FindReferencesUtilities.cs" />
+    <Compile Include="Implementation\FindReferences\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
     <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
