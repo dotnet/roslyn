@@ -316,14 +316,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             definitions.Add(definitionItem);
             CreateReferences(referencedSymbol, references, definitionItem);
 
-            var thirdPartyItem = GetThirdPartyDefinitionItem();
+            var thirdPartyItem = GetThirdPartyDefinitionItem(solution, referencedSymbol.Definition);
             if (thirdPartyItem != null)
             {
                 definitions.Add(thirdPartyItem);
             }
         }
 
-        protected virtual DefinitionItem GetThirdPartyDefinitionItem()
+        protected virtual DefinitionItem GetThirdPartyDefinitionItem(
+            Solution solution, ISymbol definition)
         {
             return null;
         }

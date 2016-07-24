@@ -65,6 +65,7 @@
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\FindReferences\VisualStudioDefinitionsAndReferencesFactory.cs" />
     <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
