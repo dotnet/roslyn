@@ -274,7 +274,6 @@
     <Compile Include="Implementation\FindReferences\DocumentLocation.cs" />
     <Compile Include="Implementation\FindReferences\DefinitionLocation.DocumentDefinitionLocation.cs" />
     <Compile Include="Implementation\FindReferences\SourceReferenceItem.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesUtilities.cs" />
     <Compile Include="Implementation\FindReferences\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
     <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />

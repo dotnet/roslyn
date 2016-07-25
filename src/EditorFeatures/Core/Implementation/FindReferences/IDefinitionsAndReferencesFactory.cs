@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 return null;
             }
 
-            var displayParts = definition.ToDisplayParts(FindReferencesUtilities.DefinitionDisplayFormat).ToTaggedText();
+            var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
 
             return new DefinitionItem(
                 GlyphTags.GetTags(definition.GetGlyph()),
@@ -216,5 +216,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 references.Add(referenceItem);
             }
         }
+
+        public static readonly SymbolDisplayFormat s_definitionDisplayFormat =
+            new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType,
+                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword | SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword,
+                localOptions: SymbolDisplayLocalOptions.IncludeType,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
     }
 }
