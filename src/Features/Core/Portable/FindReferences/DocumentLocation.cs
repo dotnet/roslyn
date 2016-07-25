@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.FindReferences
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Document.FilePath, this.SourceSpan.GetHashCode());
+            return Hash.Combine(
+                StringComparer.OrdinalIgnoreCase.GetHashCode(this.Document.FilePath),
+                this.SourceSpan.GetHashCode());
         }
 
         public int CompareTo(DocumentLocation other)
