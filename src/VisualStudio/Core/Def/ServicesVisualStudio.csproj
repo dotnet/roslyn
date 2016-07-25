@@ -454,7 +454,6 @@
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsSimpleLibrary2.cs" />
     <Compile Include="Implementation\Library\AbstractObjectList.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\ExternalLanguageDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_FindReferences.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_GoToDefinition.cs" />
