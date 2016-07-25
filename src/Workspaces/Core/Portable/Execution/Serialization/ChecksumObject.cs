@@ -12,10 +12,16 @@ namespace Microsoft.CodeAnalysis.Execution
     internal abstract class ChecksumObject
     {
         /// <summary>
-        /// indicate waht kind of checksum object it is
+        /// Indicates what kind of checksum object it is
         /// <see cref="WellKnownChecksumObjects"/> for examples.
+        /// 
+        /// this later will be used to deserialize bits to actual object
         /// </summary>
         public readonly string Kind;
+
+        /// <summary>
+        /// Checksum of this object
+        /// </summary>
         public readonly Checksum Checksum;
 
         public ChecksumObject(Checksum checksum, string kind)
@@ -24,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Execution
             Kind = kind;
         }
 
+        /// <summary>
+        /// This will write out this object's data to bits
+        /// 
+        /// this hide how each data is serialized to bits
+        /// </summary>
         public abstract Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken);
     }
 

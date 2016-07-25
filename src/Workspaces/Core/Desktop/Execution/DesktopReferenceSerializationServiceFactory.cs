@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // TODO: find out a way to get analyzer assembly location
                 //       without actually loading analyzer in memory
-                //       desktop implementation doesn't do shadow copying and doesn't guarantee snapshot
                 var assembly = reference.GetAssembly();
                 return assembly?.Location;
             }

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     <ExportLanguageService(GetType(ILanguageSpecificSerializationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicLanguageSpecificSerializationService
-        Inherits LanguageSpecificSerializationService
+        Inherits AbstractLanguageSpecificSerializationService
 
         Public Overrides Sub WriteTo(options As CompilationOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteCompilationOptionsTo(options, writer, cancellationToken)

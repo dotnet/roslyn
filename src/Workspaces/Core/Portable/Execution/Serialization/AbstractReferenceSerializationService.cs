@@ -225,12 +225,12 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             {
                 var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
 
-                // TODO: find a way to deal with documentation
                 var filePath = reader.ReadString();
 
                 var tuple = ReadMetadataFrom(reader, kind, cancellationToken);
 
                 // TODO: deal with xml document provider properly
+                //       should be shadow copy xml doc comment?
                 return new SerializedMetadataReference(properties, filePath, tuple.Item1, tuple.Item2, XmlDocumentationProvider.Default);
             }
 

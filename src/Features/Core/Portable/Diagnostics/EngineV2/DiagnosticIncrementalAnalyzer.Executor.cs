@@ -417,9 +417,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private void UpdateAnalyzerTelemetryData(DiagnosticAnalysisResultMap analysisResult, Project project, CancellationToken cancellationToken)
+            private void UpdateAnalyzerTelemetryData(
+                DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> analysisResults, Project project, CancellationToken cancellationToken)
             {
-                foreach (var kv in analysisResult.TelemetryInfo)
+                foreach (var kv in analysisResults.TelemetryInfo)
                 {
                     DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(kv.Key, kv.Value, project, _owner.DiagnosticLogAggregator);
                 }
@@ -484,17 +485,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<DiagnosticAnalysisResultMap> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
+                CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
             {
                 // quick bail out
                 if (analyzerDriver.Analyzers.Length == 0)
                 {
-                    return new DiagnosticAnalysisResultMap(
+                    return DiagnosticAnalysisResultMap.Create(
                         ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty,
                         ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
 
-                var executor = project.Solution.Workspace.Services.GetHostSpecificServiceAvailable<ICompilerDiagnosticExecutor>();
+                var executor = project.Solution.Workspace.Services.GetService<ICompilerDiagnosticAnalyzer>();
                 return await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 

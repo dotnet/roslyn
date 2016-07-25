@@ -6,7 +6,9 @@ using Microsoft.CodeAnalysis.Execution;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // asset source provides a way to callback asset source (Ex, VS) to get asset with the given checksum
+    /// <summary>
+    /// Asset source provides a way to callback asset source (Ex, VS) to get asset with the given checksum
+    /// </summary>
     internal abstract class AssetSource
     {
         private static int s_serviceId = 0;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RoslynServices.AssetService.RegisterAssetSource(_currentId, this);
         }
 
-        public abstract Task RequestAssetAsync(int serviceId, Checksum checksum);
+        public abstract Task RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken cancellationToken);
 
         public void Done()
         {

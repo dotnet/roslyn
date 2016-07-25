@@ -56,15 +56,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
+    <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Services\CodeAnalysisService.cs" />
     <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />
     <Compile Include="Services\RemoteHostService.cs" />
     <Compile Include="Services\ServiceHubJsonRpcServiceBase.cs" />
     <Compile Include="Services\ServiceHubServiceBase.cs" />
-    <Compile Include="Services\SolutionSnapshotService.cs" />
+    <Compile Include="Services\ServiceHubSnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
-    <Compile Include="Shared\MasterDirectStream.cs" />
-    <Compile Include="Shared\SlaveDirectStream.cs" />
+    <Compile Include="Shared\ServerDirectStream.cs" />
+    <Compile Include="Shared\ClientDirectStream.cs" />
     <Compile Include="Shared\WellKnownServiceHubServices.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">

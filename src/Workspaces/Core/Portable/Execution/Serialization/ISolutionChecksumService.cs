@@ -8,14 +8,15 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// a service that lets one to create <see cref="SolutionSnapshot"/> that can be used to send over to other host
+    /// a service that lets one to create <see cref="ChecksumScope"/> that can be used to pin solution
+    /// while working on remote host
     /// </summary>
-    internal interface ISolutionSnapshotService : IWorkspaceService
+    internal interface ISolutionChecksumService : IWorkspaceService
     {
         /// <summary>
         /// Add global <see cref="Asset"/> which stays alive while host is alive.
         /// 
-        /// this asset can be something that is not part of <see cref="SolutionSnapshot"/> 
+        /// this asset can be something that is not part of <see cref="ChecksumScope"/> 
         /// 
         /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
         ///       this should be changed so that custom serializer can be discoverable by <see cref="ChecksumObject.Kind"/> 
@@ -33,29 +34,40 @@ namespace Microsoft.CodeAnalysis.Execution
         void RemoveGlobalAsset(object value, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Create <see cref="SolutionSnapshot"/> from <see cref="Solution"/>.
+        /// Create <see cref="ChecksumScope"/> from <see cref="Solution"/>.
         /// </summary>
-        Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken);
+        Task<ChecksumScope> CreateChecksumAsync(Solution solution, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="ChecksumObject"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>
-        Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken);
+        ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken);
     }
 
     /// <summary>
-    /// a solution snapshot that one can use to get checksums to send over
+    /// a checksum scope that one can use to pin assets in memory while working on remote host
     /// </summary>
-    internal abstract class SolutionSnapshot : IDisposable
+    internal class ChecksumScope : IDisposable
     {
-        public readonly Workspace Workspace;
-        public readonly SolutionSnapshotId Id;
+        private readonly SnapshotStorages _storages;
+        private readonly SnapshotStorage _storage;
 
-        protected SolutionSnapshot(Workspace workspace, SolutionSnapshotId id)
+        public readonly SolutionChecksumObject SolutionChecksum;
+
+        public ChecksumScope(
+            SnapshotStorages storages,
+            SnapshotStorage storage,
+            SolutionChecksumObject solutionChecksum)
         {
-            Workspace = workspace;
-            Id = id;
+            _storages = storages;
+            _storage = storage;
+
+            SolutionChecksum = solutionChecksum;
+
+            _storages.RegisterSnapshot(this, storage);
         }
+
+        public Workspace Workspace => _storage.Solution.Workspace;
 
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.
@@ -63,7 +75,14 @@ namespace Microsoft.CodeAnalysis.Execution
         /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
         ///       this should be changed so that custom serializer can be discoverable by <see cref="ChecksumObject.Kind"/> 
         /// </summary>
-        public abstract void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken);
-        public abstract void Dispose();
+        public void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
+        {
+            _storage.AddAdditionalAsset(asset, cancellationToken);
+        }
+
+        public void Dispose()
+        {
+            _storages.UnregisterSnapshot(this);
+        }
     }
 }

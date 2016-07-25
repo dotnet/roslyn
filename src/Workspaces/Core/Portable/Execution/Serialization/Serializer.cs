@@ -36,18 +36,16 @@ namespace Microsoft.CodeAnalysis.Execution
 
             switch (kind)
             {
-                case SolutionSnapshotId.Name:
-                    return (T)(object)DeserializeSolutionSnapshotId(reader, cancellationToken);
-                case ProjectSnapshotId.Name:
-                    return (T)(object)DeserializeProjectSnapshotId(reader, cancellationToken);
-                case DocumentSnapshotId.Name:
-                    return (T)(object)DeserializeDocumentSnapshotId(reader, cancellationToken);
+                case SolutionChecksumObject.Name:
+                    return (T)(object)DeserializeSolutionChecksumObject(reader, cancellationToken);
+                case ProjectChecksumObject.Name:
+                    return (T)(object)DeserializeProjectChecksumObject(reader, cancellationToken);
+                case DocumentChecksumObject.Name:
+                    return (T)(object)DeserializeDocumentChecksumObject(reader, cancellationToken);
 
                 case WellKnownChecksumObjects.Projects:
-                    return (T)(object)DeserializeSnapshotIdCollection<ProjectSnapshotId>(reader, cancellationToken);
                 case WellKnownChecksumObjects.Documents:
                 case WellKnownChecksumObjects.TextDocuments:
-                    return (T)(object)DeserializeSnapshotIdCollection<DocumentSnapshotId>(reader, cancellationToken);
                 case WellKnownChecksumObjects.ProjectReferences:
                 case WellKnownChecksumObjects.MetadataReferences:
                 case WellKnownChecksumObjects.AnalyzerReferences:

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal partial class Serializer
     {
-        public async Task SerializeAsync(SolutionSnapshotId snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
+        public async Task SerializeAsync(SolutionChecksumObject snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -24,25 +24,25 @@ namespace Microsoft.CodeAnalysis.Execution
             await snapshotId.Projects.WriteToAsync(writer, cancellationToken).ConfigureAwait(false);
         }
 
-        private SolutionSnapshotId DeserializeSolutionSnapshotId(ObjectReader reader, CancellationToken cancellationToken)
+        private SolutionChecksumObject DeserializeSolutionChecksumObject(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = reader.ReadString();
-            Contract.ThrowIfFalse(kind == SolutionSnapshotId.Name);
+            Contract.ThrowIfFalse(kind == SolutionChecksumObject.Name);
 
             var checksum = Checksum.ReadFrom(reader);
 
             var info = Checksum.ReadFrom(reader);
-            var projects = DeserializeSnapshotIdCollection<ProjectSnapshotId>(reader, cancellationToken);
+            var projects = DeserializeChecksumCollection(reader, cancellationToken);
 
-            var snapshotId = new SolutionSnapshotId(this, info, projects);
+            var snapshotId = new SolutionChecksumObject(this, info, projects);
             Contract.ThrowIfFalse(checksum.Equals(snapshotId.Checksum));
 
             return snapshotId;
         }
 
-        public async Task SerializeAsync(ProjectSnapshotId snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
+        public async Task SerializeAsync(ProjectChecksumObject snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteString(snapshotId.Kind);
             snapshotId.Checksum.WriteTo(writer);
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Execution
             await snapshotId.AdditionalDocuments.WriteToAsync(writer, cancellationToken).ConfigureAwait(false);
         }
 
-        private ProjectSnapshotId DeserializeProjectSnapshotId(ObjectReader reader, CancellationToken cancellationToken)
+        private ProjectChecksumObject DeserializeProjectChecksumObject(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = reader.ReadString();
-            Contract.ThrowIfFalse(kind == ProjectSnapshotId.Name);
+            Contract.ThrowIfFalse(kind == ProjectChecksumObject.Name);
 
             var checksum = Checksum.ReadFrom(reader);
 
@@ -71,15 +71,15 @@ namespace Microsoft.CodeAnalysis.Execution
             var compilationOptions = Checksum.ReadFrom(reader);
             var parseOptions = Checksum.ReadFrom(reader);
 
-            var documents = DeserializeSnapshotIdCollection<DocumentSnapshotId>(reader, cancellationToken);
+            var documents = DeserializeChecksumCollection(reader, cancellationToken);
 
             var projectReferences = DeserializeChecksumCollection(reader, cancellationToken);
             var metadataReferences = DeserializeChecksumCollection(reader, cancellationToken);
             var analyzerReferences = DeserializeChecksumCollection(reader, cancellationToken);
 
-            var additionalDocuments = DeserializeSnapshotIdCollection<DocumentSnapshotId>(reader, cancellationToken);
+            var additionalDocuments = DeserializeChecksumCollection(reader, cancellationToken);
 
-            var snapshotId = new ProjectSnapshotId(
+            var snapshotId = new ProjectChecksumObject(
                 this,
                 info, compilationOptions, parseOptions, documents,
                 projectReferences, metadataReferences, analyzerReferences, additionalDocuments);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return snapshotId;
         }
 
-        public void Serialize(DocumentSnapshotId snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
+        public void Serialize(DocumentChecksumObject snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteString(snapshotId.Kind);
             snapshotId.Checksum.WriteTo(writer);
@@ -97,51 +97,17 @@ namespace Microsoft.CodeAnalysis.Execution
             snapshotId.Text.WriteTo(writer);
         }
 
-        private DocumentSnapshotId DeserializeDocumentSnapshotId(ObjectReader reader, CancellationToken cancellationToken)
+        private DocumentChecksumObject DeserializeDocumentChecksumObject(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = reader.ReadString();
-            Contract.ThrowIfFalse(kind == DocumentSnapshotId.Name);
+            Contract.ThrowIfFalse(kind == DocumentChecksumObject.Name);
 
             var checksum = Checksum.ReadFrom(reader);
 
             var info = Checksum.ReadFrom(reader);
             var text = Checksum.ReadFrom(reader);
 
-            var snapshotId = new DocumentSnapshotId(this, info, text);
-            Contract.ThrowIfFalse(checksum.Equals(snapshotId.Checksum));
-
-            return snapshotId;
-        }
-
-        public async Task SerializeAsync<T>(SnapshotIdCollection<T> snapshotId, ObjectWriter writer, CancellationToken cancellationToken)
-            where T : ChecksumObject
-        {
-            writer.WriteString(snapshotId.Kind);
-            snapshotId.Checksum.WriteTo(writer);
-
-            writer.WriteInt32(snapshotId.Objects.Length);
-            foreach (var item in snapshotId.Objects)
-            {
-                await item.WriteToAsync(writer, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private SnapshotIdCollection<T> DeserializeSnapshotIdCollection<T>(ObjectReader reader, CancellationToken cancellationToken)
-            where T : ChecksumObject
-        {
-            var kind = reader.ReadString();
-            var checksum = Checksum.ReadFrom(reader);
-
-            var length = reader.ReadInt32();
-            var builder = ImmutableArray.CreateBuilder<T>(length);
-
-            var itemKind = GetItemKind(kind);
-            for (var i = 0; i < length; i++)
-            {
-                builder.Add(Deserialize<T>(itemKind, reader, cancellationToken));
-            }
-
-            var snapshotId = new SnapshotIdCollection<T>(this, builder.ToImmutable(), kind);
+            var snapshotId = new DocumentChecksumObject(this, info, text);
             Contract.ThrowIfFalse(checksum.Equals(snapshotId.Checksum));
 
             return snapshotId;
@@ -184,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Execution
             switch (kind)
             {
                 case WellKnownChecksumObjects.Projects:
-                    return ProjectSnapshotId.Name;
+                    return ProjectChecksumObject.Name;
                 case WellKnownChecksumObjects.Documents:
-                    return DocumentSnapshotId.Name;
+                    return DocumentChecksumObject.Name;
                 case WellKnownChecksumObjects.TextDocuments:
-                    return DocumentSnapshotId.Name;
+                    return DocumentChecksumObject.Name;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

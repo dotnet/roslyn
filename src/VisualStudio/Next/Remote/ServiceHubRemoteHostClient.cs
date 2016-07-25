@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -15,18 +14,18 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal partial class ServiceHubRemoteHost : RemoteHost
+    internal partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
         private readonly HubClient _hubClient;
         private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
-        public static async Task<ServiceHubRemoteHost> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<ServiceHubRemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             var primary = new HubClient("Primary");
             var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
-            var instance = new ServiceHubRemoteHost(workspace, primary, remoteHostStream);
+            var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
 
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
@@ -41,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return instance;
         }
 
-        private ServiceHubRemoteHost(Workspace workspace, HubClient hubClient, Stream stream) :
+        private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :
             base(workspace)
         {
             _hubClient = hubClient;
@@ -53,11 +52,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected override async Task<Session> CreateCodeAnalysisServiceSessionAsync(SolutionSnapshot snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> CreateCodeAnalysisServiceSessionAsync(ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
-            return new JsonRpcSnapshotSession(
-                snapshot, await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.SolutionSnapshotService, cancellationToken).ConfigureAwait(false),
-                callbackTarget, await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.CodeAnalysisService, cancellationToken).ConfigureAwait(false));
+            // get stream from service hub to communicate snapshot/asset related information
+            // this is the back channel the system uses to move data between VS and remote host
+            var snapshotStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.ServiceHubSnapshotService, cancellationToken).ConfigureAwait(false);
+
+            // get stream from service hub to communicate service specific information
+            // this is what consumer actually use to communicate information
+            var serviceStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.CodeAnalysisService, cancellationToken).ConfigureAwait(false);
+
+            return new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
         }
 
         protected override void OnConnected()

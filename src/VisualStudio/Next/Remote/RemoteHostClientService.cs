@@ -14,23 +14,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IRemoteHostService)), Shared]
-    internal partial class RemoteHostServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientService)), Shared]
+    internal partial class RemoteHostClientServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
         [ImportingConstructor]
-        public RemoteHostServiceFactory(IDiagnosticAnalyzerService analyzerService)
+        public RemoteHostClientServiceFactory(IDiagnosticAnalyzerService analyzerService)
         {
             _analyzerService = analyzerService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new RemoteHostService(workspaceServices.Workspace, _analyzerService);
+            return new RemoteHostClientService(workspaceServices.Workspace, _analyzerService);
         }
 
-        private class RemoteHostService : IRemoteHostService
+        private class RemoteHostClientService : IRemoteHostClientService
         {
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -38,9 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly SemaphoreSlim _lock;
 
             private CancellationTokenSource _shutdown;
-            private Task<RemoteHost> _instance;
+            private Task<RemoteHostClient> _instance;
 
-            public RemoteHostService(Workspace workspace, IDiagnosticAnalyzerService analyzerService)
+            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService)
             {
                 _workspace = workspace;
                 _analyzerService = analyzerService;
@@ -60,7 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // make sure we run it on background thread
                     _shutdown = new CancellationTokenSource();
-                    _instance = Task.Run(() => EnableAsync(), _shutdown.Token);
+
+                    var token = _shutdown.Token;
+                    _instance = Task.Run(() => EnableAsync(token), token);
                 }
             }
 
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            public async Task<RemoteHost> GetRemoteHostAsync(CancellationToken cancellationToken)
+            public async Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 var instance = _instance;
                 if (instance == null)
@@ -107,37 +109,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return await instance.ConfigureAwait(false);
             }
 
-            private async Task<RemoteHost> EnableAsync()
+            private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
-                await AddGlobalAssetsAsync().ConfigureAwait(false);
+                await AddGlobalAssetsAsync(cancellationToken).ConfigureAwait(false);
 
-                return await StartInternalAsync().ConfigureAwait(false);
+                return await StartInternalAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<RemoteHost> StartInternalAsync()
+            private async Task<RemoteHostClient> StartInternalAsync(CancellationToken cancellationToken)
             {
                 // TODO: abstract this out so that we can have more host than service hub
-                var instance = await ServiceHubRemoteHost.CreateAsync(_workspace, _shutdown.Token).ConfigureAwait(false);
+                var instance = await ServiceHubRemoteHostClient.CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
                 instance.ConnectionChanged += OnConnectionChanged;
 
                 return instance;
             }
 
-            private async Task AddGlobalAssetsAsync()
+            private async Task AddGlobalAssetsAsync(CancellationToken cancellationToken)
             {
-                var snapshotService = _workspace.Services.GetService<ISolutionSnapshotService>();
+                var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
                 var assetBuilder = new AssetBuilder(_workspace.CurrentSolution);
 
                 foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                 {
-                    var asset = await assetBuilder.BuildAsync(reference, _shutdown.Token).ConfigureAwait(false);
-                    snapshotService.AddGlobalAsset(reference, asset, _shutdown.Token);
+                    var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
+                    snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
                 }
             }
 
             private void RemoveGlobalAssets()
             {
-                var snapshotService = _workspace.Services.GetService<ISolutionSnapshotService>();
+                var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
 
                 foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                 {
@@ -145,6 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
+            // use local token and lock on instance
             private void OnConnectionChanged(object sender, bool connection)
             {
                 if (!connection)
@@ -154,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     //       we change operation to use in proc implementation
 
                     // re-start remote host
-                    _instance = StartInternalAsync();
+                    _instance = StartInternalAsync(_shutdown.Token);
                 }
             }
         }

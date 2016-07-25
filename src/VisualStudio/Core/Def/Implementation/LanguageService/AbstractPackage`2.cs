@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // start remote host if enabled
             if (this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.RemoteHost))
             {
-                Workspace.Services.GetService<IRemoteHostService>()?.Enable();
+                Workspace.Services.GetService<IRemoteHostClientService>()?.Enable();
             }
 
             // Ensure services that must be created on the UI thread have been.
@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 if (this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.RemoteHost))
                 {
-                    Workspace.Services.GetService<IRemoteHostService>()?.Disable();
+                    Workspace.Services.GetService<IRemoteHostClientService>()?.Disable();
                 }
             }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -10,67 +11,65 @@ namespace Microsoft.CodeAnalysis.Execution
 {
     internal struct SnapshotBuilder
     {
-        private readonly bool _rebuild;
         private readonly Serializer _serializer;
         private readonly SnapshotStorage _storage;
 
-        public SnapshotBuilder(SnapshotStorage storage, bool rebuild = false)
+        public SnapshotBuilder(SnapshotStorage storage)
         {
-            _rebuild = rebuild;
             _storage = storage;
             _serializer = storage.Serializer;
         }
 
-        public Task<SolutionSnapshotId> BuildAsync(Solution solution, CancellationToken cancellationToken)
+        public Task<SolutionChecksumObject> BuildAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(solution, solution, SolutionSnapshotId.Name, CreateSolutionSnapshotIdAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(solution, solution, SolutionChecksumObject.Name, CreateSolutionChecksumObjectAsync, cancellationToken);
         }
 
-        public Task<ProjectSnapshotId> BuildAsync(Project project, CancellationToken cancellationToken)
+        public Task<ProjectChecksumObject> BuildAsync(Project project, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), project, ProjectSnapshotId.Name, CreateProjectSnapshotIdAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), project, ProjectChecksumObject.Name, CreateProjectChecksumObjectAsync, cancellationToken);
         }
 
-        private Task<DocumentSnapshotId> BuildAsync(TextDocument document, CancellationToken cancellationToken)
+        private Task<DocumentChecksumObject> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(document.State, document, DocumentSnapshotId.Name, CreateDocumentSnapshotIdAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(document.State, document, DocumentChecksumObject.Name, CreateDocumentChecksumObjectAsync, cancellationToken);
         }
 
-        private Task<SnapshotIdCollection<ProjectSnapshotId>> BuildAsync(Solution solution, IEnumerable<Project> projects, CancellationToken cancellationToken)
+        private Task<ChecksumCollection> BuildAsync(Solution solution, IEnumerable<Project> projects, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(solution, projects, WellKnownChecksumObjects.Projects, CreateProjectSnapshotIdsAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(solution, projects, WellKnownChecksumObjects.Projects, CreateProjectChecksumCollectionAsync, cancellationToken);
         }
 
-        private Task<SnapshotIdCollection<DocumentSnapshotId>> BuildAsync(Project project, IEnumerable<TextDocument> documents, string kind, CancellationToken cancellationToken)
+        private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<TextDocument> documents, string kind, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), documents, kind, CreateDocumentSnapshotIdsAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), documents, kind, CreateDocumentChecksumObjectAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<ProjectReference> projectReferences, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), projectReferences, WellKnownChecksumObjects.ProjectReferences, CreateChecksumCollectionsAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), projectReferences, WellKnownChecksumObjects.ProjectReferences, CreateChecksumCollectionsAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<MetadataReference> metadataReferences, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), metadataReferences, WellKnownChecksumObjects.MetadataReferences, CreateChecksumCollectionsAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), metadataReferences, WellKnownChecksumObjects.MetadataReferences, CreateChecksumCollectionsAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<AnalyzerReference> analyzerReferences, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), analyzerReferences, WellKnownChecksumObjects.AnalyzerReferences, CreateChecksumCollectionsAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), analyzerReferences, WellKnownChecksumObjects.AnalyzerReferences, CreateChecksumCollectionsAsync, cancellationToken);
         }
 
-        private async Task<SolutionSnapshotId> CreateSolutionSnapshotIdAsync(
+        private async Task<SolutionChecksumObject> CreateSolutionChecksumObjectAsync(
             Solution solution, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
             var info = await assetBuilder.BuildAsync(solution, cancellationToken).ConfigureAwait(false);
             var projects = await snapshotBuilder.BuildAsync(solution, solution.Projects, cancellationToken).ConfigureAwait(false);
 
-            return new SolutionSnapshotId(_serializer, info.Checksum, projects);
+            return new SolutionChecksumObject(_serializer, info.Checksum, projects);
         }
 
-        private async Task<ProjectSnapshotId> CreateProjectSnapshotIdAsync(
+        private async Task<ProjectChecksumObject> CreateProjectChecksumObjectAsync(
             Project project, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
             var info = await assetBuilder.BuildAsync(project, cancellationToken).ConfigureAwait(false);
@@ -85,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var additionalDocuments = await snapshotBuilder.BuildAsync(project, project.AdditionalDocuments, WellKnownChecksumObjects.TextDocuments, cancellationToken).ConfigureAwait(false);
 
-            return new ProjectSnapshotId(
+            return new ProjectChecksumObject(
                 _serializer, info.Checksum, compilationOptions.Checksum, parseOptions.Checksum,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments);
         }
 
-        private async Task<DocumentSnapshotId> CreateDocumentSnapshotIdAsync(
+        private async Task<DocumentChecksumObject> CreateDocumentChecksumObjectAsync(
            TextDocument document, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
             var info = await assetBuilder.BuildAsync(document, cancellationToken).ConfigureAwait(false);
@@ -99,66 +98,46 @@ namespace Microsoft.CodeAnalysis.Execution
             var sourceText = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var text = await assetBuilder.BuildAsync(state, sourceText, cancellationToken).ConfigureAwait(false);
 
-            return new DocumentSnapshotId(_serializer, info.Checksum, text.Checksum);
+            return new DocumentChecksumObject(_serializer, info.Checksum, text.Checksum);
         }
 
-        private async Task<SnapshotIdCollection<ProjectSnapshotId>> CreateProjectSnapshotIdsAsync(
+        private Task<ChecksumCollection> CreateProjectChecksumCollectionAsync(
            IEnumerable<Project> projects, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<ProjectSnapshotId>();
-            foreach (var project in projects)
-            {
-                builder.Add(await snapshotBuilder.BuildAsync(project, cancellationToken).ConfigureAwait(false));
-            }
-
-            return new SnapshotIdCollection<ProjectSnapshotId>(_serializer, builder.ToImmutable(), kind);
+            return CreateChecksumCollectionsAsync(projects, kind, snapshotBuilder.BuildAsync, cancellationToken);
         }
 
-        private async Task<SnapshotIdCollection<DocumentSnapshotId>> CreateDocumentSnapshotIdsAsync(
+        private Task<ChecksumCollection> CreateDocumentChecksumObjectAsync(
            IEnumerable<TextDocument> documents, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<DocumentSnapshotId>();
-            foreach (var document in documents)
-            {
-                builder.Add(await snapshotBuilder.BuildAsync(document, cancellationToken).ConfigureAwait(false));
-            }
-
-            return new SnapshotIdCollection<DocumentSnapshotId>(_serializer, builder.ToImmutable(), kind);
+            return CreateChecksumCollectionsAsync(documents, kind, snapshotBuilder.BuildAsync, cancellationToken);
         }
 
-        private async Task<ChecksumCollection> CreateChecksumCollectionsAsync(
+        private Task<ChecksumCollection> CreateChecksumCollectionsAsync(
            IEnumerable<ProjectReference> references, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<Checksum>();
-            foreach (var reference in references)
-            {
-                var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
-                builder.Add(asset.Checksum);
-            }
-
-            return new ChecksumCollection(_serializer, builder.ToImmutable(), kind);
+            return CreateChecksumCollectionsAsync(references, kind, assetBuilder.BuildAsync, cancellationToken);
         }
 
-        private async Task<ChecksumCollection> CreateChecksumCollectionsAsync(
+        private Task<ChecksumCollection> CreateChecksumCollectionsAsync(
            IEnumerable<MetadataReference> references, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<Checksum>();
-            foreach (var reference in references)
-            {
-                var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
-                builder.Add(asset.Checksum);
-            }
-
-            return new ChecksumCollection(_serializer, builder.ToImmutable(), kind);
+            return CreateChecksumCollectionsAsync(references, kind, assetBuilder.BuildAsync, cancellationToken);
         }
 
-        private async Task<ChecksumCollection> CreateChecksumCollectionsAsync(
+        private Task<ChecksumCollection> CreateChecksumCollectionsAsync(
            IEnumerable<AnalyzerReference> references, string kind, SnapshotBuilder snapshotBuilder, AssetBuilder assetBuilder, CancellationToken cancellationToken)
         {
+            return CreateChecksumCollectionsAsync(references, kind, assetBuilder.BuildAsync, cancellationToken);
+        }
+
+        private async Task<ChecksumCollection> CreateChecksumCollectionsAsync<TValue, TChecksumObject>(
+           IEnumerable<TValue> checksumObjects, string kind, Func<TValue, CancellationToken, Task<TChecksumObject>> buildAsync, CancellationToken cancellationToken) where TChecksumObject : ChecksumObject
+        {
             var builder = ImmutableArray.CreateBuilder<Checksum>();
-            foreach (var reference in references)
+            foreach (var checksumObject in checksumObjects)
             {
-                var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
+                var asset = await buildAsync(checksumObject, cancellationToken).ConfigureAwait(false);
                 builder.Add(asset.Checksum);
             }
 

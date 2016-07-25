@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    internal abstract class LanguageSpecificSerializationService : ILanguageSpecificSerializationService
+    internal abstract class AbstractLanguageSpecificSerializationService : ILanguageSpecificSerializationService
     {
         public abstract void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         public abstract void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);

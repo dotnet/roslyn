@@ -14,8 +14,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal class DiagnosticComputer
     {
-        public async Task<DiagnosticResult> GetDiagnosticsAsync(
-            Solution solution, ProjectId projectId, IEnumerable<AnalyzerReference> hostAnalyzers, IEnumerable<string> analyzerIds, CancellationToken cancellationToken)
+        public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
+            Solution solution,
+            ProjectId projectId,
+            IEnumerable<AnalyzerReference> hostAnalyzers,
+            IEnumerable<string> analyzerIds,
+            bool reportSuppressedDiagnostics,
+            bool logAnalyzerExecutionTime,
+            CancellationToken cancellationToken)
         {
             var project = solution.GetProject(projectId);
 
@@ -24,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             if (analyzers.Length == 0)
             {
-                return new DiagnosticResult(ImmutableDictionary<string, DiagnosticAnalysisResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
+                return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<string, DiagnosticAnalysisResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -34,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     options: project.AnalyzerOptions,
                     onAnalyzerException: null,
                     analyzerExceptionFilter: null,
-                    concurrentAnalysis: false,
-                    logAnalyzerExecutionTime: false,
-                    reportSuppressedDiagnostics: false);
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: logAnalyzerExecutionTime,
+                    reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
             var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
 
@@ -45,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var builderMap = analysisResult.ToResultBuilderMap(project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
-            return new DiagnosticResult(builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                                        analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
+            return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                                                      analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
         }
 
         private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)

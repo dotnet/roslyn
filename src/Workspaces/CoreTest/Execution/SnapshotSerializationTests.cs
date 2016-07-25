@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -20,13 +21,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var solutionId = snapshot.Id;
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId).ConfigureAwait(false);
-                await VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId.Projects).ConfigureAwait(false);
+                var solutionId = snapshot.SolutionChecksum;
+                VerifyChecksumObjectInService(snapshotService, solutionId);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 0);
             }
@@ -37,10 +38,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
+                await VerifySnapshotSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
             }
         }
 
@@ -50,16 +51,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = new AdhocWorkspace().CurrentSolution;
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var solutionId = snapshot.Id;
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId).ConfigureAwait(false);
-                await VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId.Projects).ConfigureAwait(false);
+                var solutionId = snapshot.SolutionChecksum;
+                VerifyChecksumObjectInService(snapshotService, solutionId);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 1);
-                await VerifySnapshotInServiceAsync(snapshotService, solutionId.Projects.Objects[0], 0, 0, 0, 0, 0);
+                VerifySnapshotInService(snapshotService, solutionId.Projects.ToProjectObjects(snapshotService).Objects[0], 0, 0, 0, 0, 0);
             }
         }
 
@@ -69,10 +70,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = new AdhocWorkspace().CurrentSolution;
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
-                await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
+                await VerifySnapshotSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
             }
         }
 
@@ -85,16 +86,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var solutionId = snapshot.Id;
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId).ConfigureAwait(false);
-                await VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId.Projects).ConfigureAwait(false);
+                var solutionId = snapshot.SolutionChecksum;
+                VerifyChecksumObjectInService(snapshotService, solutionId);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 1);
-                await VerifySnapshotInServiceAsync(snapshotService, solutionId.Projects.Objects[0], 1, 0, 0, 0, 0);
+                VerifySnapshotInService(snapshotService, solutionId.Projects.ToProjectObjects(snapshotService).Objects[0], 1, 0, 0, 0, 0);
             }
         }
 
@@ -107,10 +108,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
-                await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
+                await VerifySnapshotSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
             }
         }
 
@@ -119,19 +120,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var solutionId = snapshot.Id;
+                var solutionId = snapshot.SolutionChecksum;
 
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId).ConfigureAwait(false);
-                await VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId.Projects).ConfigureAwait(false);
+                VerifyChecksumObjectInService(snapshotService, solutionId);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 2);
 
-                await VerifySnapshotInServiceAsync(snapshotService, solutionId.Projects.Objects[0], 1, 1, 1, 1, 1);
-                await VerifySnapshotInServiceAsync(snapshotService, solutionId.Projects.Objects[1], 1, 0, 0, 0, 0);
+                var projects = solutionId.Projects.ToProjectObjects(snapshotService);
+                VerifySnapshotInService(snapshotService, projects.Objects[0], 1, 1, 1, 1, 1);
+                VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
             }
         }
 
@@ -140,10 +142,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
+                await VerifySnapshotSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
             }
         }
 
@@ -152,10 +154,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                await VerifyAssetAsync(snapshotService, solution, snapshot.Id).ConfigureAwait(false);
+                await VerifyAssetAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
             }
         }
 
@@ -167,10 +169,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                await VerifyAssetAsync(snapshotService, solution, snapshot.Id).ConfigureAwait(false);
+                await VerifyAssetAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
             }
         }
 
@@ -181,21 +183,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // this is just data, one can hold the id outside of using statement. but
             // one can't get asset using checksum from the id.
-            SolutionSnapshotId solutionId1;
-            SolutionSnapshotId solutionId2;
+            SolutionChecksumObject solutionId1;
+            SolutionChecksumObject solutionId2;
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot1 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                solutionId1 = snapshot1.Id;
+                solutionId1 = snapshot1.SolutionChecksum;
             }
 
-            using (var snapshot2 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            using (var snapshot2 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                solutionId2 = snapshot2.Id;
+                solutionId2 = snapshot2.SolutionChecksum;
             }
 
-            SnapshotEqual(solutionId1, solutionId2);
+            SnapshotEqual(snapshotService, solutionId1, solutionId2);
         }
 
         [Fact]
@@ -203,12 +205,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
-            using (var snapshot2 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot1 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            using (var snapshot2 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var solutionId1 = snapshot1.Id;
-                var solutionId2 = snapshot2.Id;
+                var solutionId1 = snapshot1.SolutionChecksum;
+                var solutionId2 = snapshot2.SolutionChecksum;
 
                 Assert.True(object.ReferenceEquals(solutionId1, solutionId2));
             }
@@ -219,24 +221,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as SolutionSnapshotServiceFactory.Service;
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as SolutionChecksumServiceFactory.Service;
 
             // builds snapshot graph
-            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 snapshotService.TestOnly_ClearCache();
 
                 // now test whether we are rebuilding assets correctly.
-                var solutionId = snapshot.Id;
+                var solutionId = snapshot.SolutionChecksum;
 
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId).ConfigureAwait(false);
-                await VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId.Projects).ConfigureAwait(false);
+                VerifyChecksumObjectInService(snapshotService, solutionId);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 2);
 
-                await VerifySnapshotInServiceAsync(snapshotService, solutionId.Projects.Objects[0], 1, 1, 1, 1, 1);
-                await VerifySnapshotInServiceAsync(snapshotService, solutionId.Projects.Objects[1], 1, 0, 0, 0, 0);
+                var projects = solutionId.Projects.ToProjectObjects(snapshotService);
+                VerifySnapshotInService(snapshotService, projects.Objects[0], 1, 1, 1, 1, 1);
+                VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
             }
         }
 
@@ -245,41 +248,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
 
             // snapshot1 builds graph
-            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            using (var snapshot1 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 // now test whether we are rebuilding assets correctly.
-                var solutionId1 = snapshot1.Id;
+                var solutionId1 = snapshot1.SolutionChecksum;
                 {
-                    await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId1).ConfigureAwait(false);
-                    await VerifyChecksumInService(snapshotService, solutionId1.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                    await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId1.Projects).ConfigureAwait(false);
+                    VerifyChecksumObjectInService(snapshotService, solutionId1);
+                    VerifyChecksumInService(snapshotService, solutionId1.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                    VerifyChecksumObjectInService(snapshotService, solutionId1.Projects);
 
                     Assert.Equal(solutionId1.Projects.Objects.Length, 2);
 
-                    await VerifySnapshotInServiceAsync(snapshotService, solutionId1.Projects.Objects[0], 1, 1, 1, 1, 1);
-                    await VerifySnapshotInServiceAsync(snapshotService, solutionId1.Projects.Objects[1], 1, 0, 0, 0, 0);
+                    var projects = solutionId1.Projects.ToProjectObjects(snapshotService);
+                    VerifySnapshotInService(snapshotService, projects.Objects[0], 1, 1, 1, 1, 1);
+                    VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
                 }
 
                 // update solution
                 var solution2 = solution.AddDocument(DocumentId.CreateNewId(solution.ProjectIds.First(), "incremental"), "incremental", "incremental");
 
                 // snapshot2 reuse some data cached from snapshot1
-                using (var snapshot2 = await snapshotService.CreateSnapshotAsync(solution2, CancellationToken.None).ConfigureAwait(false))
+                using (var snapshot2 = await snapshotService.CreateChecksumAsync(solution2, CancellationToken.None).ConfigureAwait(false))
                 {
                     // now test whether we are rebuilding assets correctly.
-                    var solutionId2 = snapshot2.Id;
+                    var solutionId2 = snapshot2.SolutionChecksum;
                     {
-                        await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId2).ConfigureAwait(false);
-                        await VerifyChecksumInService(snapshotService, solutionId2.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
-                        await VerifyChecksumObjectInServiceAsync(snapshotService, solutionId2.Projects).ConfigureAwait(false);
+                        VerifyChecksumObjectInService(snapshotService, solutionId2);
+                        VerifyChecksumInService(snapshotService, solutionId2.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                        VerifyChecksumObjectInService(snapshotService, solutionId2.Projects);
 
                         Assert.Equal(solutionId2.Projects.Objects.Length, 2);
 
-                        await VerifySnapshotInServiceAsync(snapshotService, solutionId2.Projects.Objects[0], 2, 1, 1, 1, 1);
-                        await VerifySnapshotInServiceAsync(snapshotService, solutionId2.Projects.Objects[1], 1, 0, 0, 0, 0);
+                        var projects = solutionId2.Projects.ToProjectObjects(snapshotService);
+                        VerifySnapshotInService(snapshotService, projects.Objects[0], 2, 1, 1, 1, 1);
+                        VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
                     }
 
                     // make sure solutionSnapshots are changed
@@ -290,8 +295,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.False(object.ReferenceEquals(solutionId1.Info, solutionId2.Info));
 
                     // make sure projectSnapshots are changed
-                    var projectId1 = solutionId1.Projects.Objects[0];
-                    var projectId2 = solutionId2.Projects.Objects[0];
+                    var projectId1 = solutionId1.Projects.ToProjectObjects(snapshotService).Objects[0];
+                    var projectId2 = solutionId2.Projects.ToProjectObjects(snapshotService).Objects[0];
 
                     Assert.False(object.ReferenceEquals(projectId1, projectId2));
                     Assert.False(object.ReferenceEquals(projectId1.Documents, projectId2.Documents));
@@ -340,32 +345,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot1 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 // recover solution from given snapshot
                 var recovered = await GetSolutionAsync(snapshotService, snapshot1).ConfigureAwait(false);
 
                 // create new snapshot from recovered solution
-                using (var snapshot2 = await snapshotService.CreateSnapshotAsync(recovered, CancellationToken.None).ConfigureAwait(false))
+                using (var snapshot2 = await snapshotService.CreateChecksumAsync(recovered, CancellationToken.None).ConfigureAwait(false))
                 {
                     // verify asset created by recovered solution is good
-                    await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+                    await VerifyAssetAsync(snapshotService, recovered, snapshot2.SolutionChecksum).ConfigureAwait(false);
 
                     // verify snapshots created from original solution and recovered solution are same
-                    SnapshotEqual(snapshot1.Id, snapshot2.Id);
+                    SnapshotEqual(snapshotService, snapshot1.SolutionChecksum, snapshot2.SolutionChecksum);
 
                     // recover new solution from recovered solution
                     var roundtrip = await GetSolutionAsync(snapshotService, snapshot2).ConfigureAwait(false);
 
                     // create new snapshot from round tripped solution
-                    using (var snapshot3 = await snapshotService.CreateSnapshotAsync(roundtrip, CancellationToken.None).ConfigureAwait(false))
+                    using (var snapshot3 = await snapshotService.CreateChecksumAsync(roundtrip, CancellationToken.None).ConfigureAwait(false))
                     {
                         // verify asset created by rount trip solution is good
-                        await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+                        await VerifyAssetAsync(snapshotService, recovered, snapshot2.SolutionChecksum).ConfigureAwait(false);
 
                         // verify snapshots created from original solution and round trip solution are same.
-                        SnapshotEqual(snapshot1.Id, snapshot3.Id);
+                        SnapshotEqual(snapshotService, snapshot1.SolutionChecksum, snapshot3.SolutionChecksum);
                     }
                 }
             }
@@ -379,50 +384,50 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
-            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot1 = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 // recover solution from given snapshot
                 var recovered = await GetSolutionAsync(snapshotService, snapshot1).ConfigureAwait(false);
 
                 // create new snapshot from recovered solution
-                using (var snapshot2 = await snapshotService.CreateSnapshotAsync(recovered, CancellationToken.None).ConfigureAwait(false))
+                using (var snapshot2 = await snapshotService.CreateChecksumAsync(recovered, CancellationToken.None).ConfigureAwait(false))
                 {
                     // verify asset created by recovered solution is good
-                    await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+                    await VerifyAssetAsync(snapshotService, recovered, snapshot2.SolutionChecksum).ConfigureAwait(false);
 
                     // verify snapshots created from original solution and recovered solution are same
-                    SnapshotEqual(snapshot1.Id, snapshot2.Id);
+                    SnapshotEqual(snapshotService, snapshot1.SolutionChecksum, snapshot2.SolutionChecksum);
 
                     // recover new solution from recovered solution
                     var roundtrip = await GetSolutionAsync(snapshotService, snapshot2).ConfigureAwait(false);
 
                     // create new snapshot from round tripped solution
-                    using (var snapshot3 = await snapshotService.CreateSnapshotAsync(roundtrip, CancellationToken.None).ConfigureAwait(false))
+                    using (var snapshot3 = await snapshotService.CreateChecksumAsync(roundtrip, CancellationToken.None).ConfigureAwait(false))
                     {
                         // verify asset created by rount trip solution is good
-                        await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+                        await VerifyAssetAsync(snapshotService, recovered, snapshot2.SolutionChecksum).ConfigureAwait(false);
 
                         // verify snapshots created from original solution and round trip solution are same.
-                        SnapshotEqual(snapshot1.Id, snapshot3.Id);
+                        SnapshotEqual(snapshotService, snapshot1.SolutionChecksum, snapshot3.SolutionChecksum);
                     }
                 }
             }
         }
 
-        private async Task<Solution> GetSolutionAsync(ISolutionSnapshotService service, SolutionSnapshot snapshot)
+        private async Task<Solution> GetSolutionAsync(ISolutionChecksumService service, ChecksumScope snapshot)
         {
             var workspace = new AdhocWorkspace();
 
-            var solutionInfo = await GetValueAsync<SolutionSnapshotInfo>(service, snapshot.Id.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
+            var solutionInfo = await GetValueAsync<SolutionChecksumObjectInfo>(service, snapshot.SolutionChecksum.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
-            foreach (var projectSnapshot in snapshot.Id.Projects.Objects)
+            foreach (var projectSnapshot in snapshot.SolutionChecksum.Projects.ToProjectObjects(service).Objects)
             {
                 var documents = new List<DocumentInfo>();
-                foreach (var documentSnapshot in projectSnapshot.Documents.Objects)
+                foreach (var documentSnapshot in projectSnapshot.Documents.ToDocumentObjects(service).Objects)
                 {
-                    var documentInfo = await GetValueAsync<DocumentSnapshotInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
+                    var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
                     var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
 
                     // TODO: do we need version?
@@ -458,9 +463,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 var additionals = new List<DocumentInfo>();
-                foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.Objects)
+                foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.ToDocumentObjects(service).Objects)
                 {
-                    var documentInfo = await GetValueAsync<DocumentSnapshotInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
+                    var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
                     var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
 
                     // TODO: do we need version?
@@ -475,7 +480,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await GetValueAsync<ProjectSnapshotInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectSnapshotInfo).ConfigureAwait(false);
+                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectSnapshotInfo).ConfigureAwait(false);
                 var compilationOptions = await GetValueAsync<CompilationOptions>(service, projectSnapshot.CompilationOptions, WellKnownChecksumObjects.CompilationOptions).ConfigureAwait(false);
                 var parseOptions = await GetValueAsync<ParseOptions>(service, projectSnapshot.ParseOptions, WellKnownChecksumObjects.ParseOptions).ConfigureAwait(false);
 

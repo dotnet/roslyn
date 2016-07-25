@@ -63,26 +63,29 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
+      <Link>Diagnostics\DiagnosticArguments.cs</Link>
+    </Compile>
     <Compile Include="..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
       <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
+      <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
     <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\MasterDirectStream.cs">
-      <Link>Shared\MasterDirectStream.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\SlaveDirectStream.cs">
-      <Link>Shared\SlaveDirectStream.cs</Link>
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
+      <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
     <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\WellKnownServiceHubServices.cs">
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
-    <Compile Include="Diagnostics\DiagnosticOutOfProcHostSpecificService.cs" />
-    <Compile Include="Remote\RemoteHostService.cs" />
+    <Compile Include="Diagnostics\OutOfProcCompilerDiagnosticAnalyzer.cs" />
+    <Compile Include="Remote\RemoteHostClientService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
-    <Compile Include="Remote\ServiceHubRemoteHost.JsonRpcSnapshot.cs" />
-    <Compile Include="Remote\ServiceHubRemoteHost.cs" />
+    <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
+    <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
   </ItemGroup>
   <ItemGroup />
   <ImportGroup Label="Targets">

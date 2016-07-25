@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// this represents hierarchical checksum of solution
     /// </summary>
-    internal class SolutionSnapshotId : HierarchicalChecksumObject
+    internal class SolutionChecksumObject : HierarchicalChecksumObject
     {
-        public const string Name = nameof(SolutionSnapshotId);
+        public const string Name = nameof(SolutionChecksumObject);
 
         public readonly Checksum Info;
-        public readonly SnapshotIdCollection<ProjectSnapshotId> Projects;
+        public readonly ChecksumCollection Projects;
 
-        internal SolutionSnapshotId(Serializer serializer, Checksum info, SnapshotIdCollection<ProjectSnapshotId> projects) :
+        internal SolutionChecksumObject(Serializer serializer, Checksum info, ChecksumCollection projects) :
             base(serializer, Checksum.Create(Name, info, projects.Checksum), Name)
         {
             Info = info;
@@ -30,30 +30,30 @@ namespace Microsoft.CodeAnalysis.Execution
         }
     }
 
-    internal class ProjectSnapshotId : HierarchicalChecksumObject
+    internal class ProjectChecksumObject : HierarchicalChecksumObject
     {
-        public const string Name = nameof(ProjectSnapshotId);
+        public const string Name = nameof(ProjectChecksumObject);
 
         public readonly Checksum Info;
         public readonly Checksum CompilationOptions;
         public readonly Checksum ParseOptions;
 
-        public readonly SnapshotIdCollection<DocumentSnapshotId> Documents;
+        public readonly ChecksumCollection Documents;
 
         public readonly ChecksumCollection ProjectReferences;
         public readonly ChecksumCollection MetadataReferences;
         public readonly ChecksumCollection AnalyzerReferences;
 
-        public readonly SnapshotIdCollection<DocumentSnapshotId> AdditionalDocuments;
+        public readonly ChecksumCollection AdditionalDocuments;
 
-        public ProjectSnapshotId(
+        public ProjectChecksumObject(
             Serializer serializer,
             Checksum info, Checksum compilationOptions, Checksum parseOptions,
-            SnapshotIdCollection<DocumentSnapshotId> documents,
+            ChecksumCollection documents,
             ChecksumCollection projectReferences,
             ChecksumCollection metadataReferences,
             ChecksumCollection analyzerReferences,
-            SnapshotIdCollection<DocumentSnapshotId> additionalDocuments) :
+            ChecksumCollection additionalDocuments) :
             base(serializer, Checksum.Create(
                 Name,
                 info, compilationOptions, parseOptions,
@@ -79,14 +79,14 @@ namespace Microsoft.CodeAnalysis.Execution
         }
     }
 
-    internal class DocumentSnapshotId : HierarchicalChecksumObject
+    internal class DocumentChecksumObject : HierarchicalChecksumObject
     {
-        public const string Name = nameof(DocumentSnapshotId);
+        public const string Name = nameof(DocumentChecksumObject);
 
         public readonly Checksum Info;
         public readonly Checksum Text;
 
-        public DocumentSnapshotId(Serializer serializer, Checksum info, Checksum text) :
+        public DocumentChecksumObject(Serializer serializer, Checksum info, Checksum text) :
             base(serializer, Checksum.Create(Name, info, text), Name)
         {
             Info = info;
@@ -100,22 +100,9 @@ namespace Microsoft.CodeAnalysis.Execution
         }
     }
 
-    internal class SnapshotIdCollection<T> : HierarchicalChecksumObject where T : ChecksumObject
-    {
-        public readonly ImmutableArray<T> Objects;
-
-        public SnapshotIdCollection(Serializer serializer, ImmutableArray<T> objects, string kind) :
-            base(serializer, Checksum.Create(kind, objects), kind)
-        {
-            Objects = objects;
-        }
-
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            return Serializer.SerializeAsync(this, writer, cancellationToken);
-        }
-    }
-
+    /// <summary>
+    /// Collection of checksums of checksum objects.
+    /// </summary>
     internal class ChecksumCollection : HierarchicalChecksumObject
     {
         public readonly ImmutableArray<Checksum> Objects;

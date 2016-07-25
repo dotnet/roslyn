@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task InvokeAsync(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (var stream = new MasterDirectStream())
+            using (var stream = new ServerDirectStream())
             {
                 // send request by adding direct stream name to end of arguments
                 var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<T> InvokeAsync<T>(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (var stream = new MasterDirectStream())
+            using (var stream = new ServerDirectStream())
             {
                 // send request to asset source
                 var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());

@@ -71,34 +71,34 @@ namespace Microsoft.CodeAnalysis.Execution
             return _storage.GetOrCreateAssetAsync(state, state, WellKnownChecksumObjects.SourceText, CreateSourceTextAsync, cancellationToken);
         }
 
-        private Task<Asset> CreateSolutionSnapshotInfoAsync(SolutionSnapshotInfo info, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateSolutionSnapshotInfoAsync(SolutionChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<SolutionSnapshotInfo>(info, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<SolutionChecksumObjectInfo>(info, kind, _serializer.Serialize));
         }
 
-        private Task<Asset> CreateProjectSnapshotInfoAsync(ProjectSnapshotInfo info, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateProjectSnapshotInfoAsync(ProjectChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<ProjectSnapshotInfo>(info, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<ProjectChecksumObjectInfo>(info, kind, _serializer.Serialize));
         }
 
-        private Task<Asset> CreateDocumentSnapshotInfoAsync(DocumentSnapshotInfo info, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateDocumentSnapshotInfoAsync(DocumentChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<DocumentSnapshotInfo>(info, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<DocumentChecksumObjectInfo>(info, kind, _serializer.Serialize));
         }
 
         private Task<Asset> CreateCompilationOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<string, CompilationOptions>(project.Language, project.CompilationOptions, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new LanguageSpecificAsset<CompilationOptions>(project.Language, project.CompilationOptions, kind, _serializer.Serialize));
         }
 
         private Task<Asset> CreateParseOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<string, ParseOptions>(project.Language, project.ParseOptions, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new LanguageSpecificAsset<ParseOptions>(project.Language, project.ParseOptions, kind, _serializer.Serialize));
         }
 
         private Task<Asset> CreateProjectReferenceAsync(ProjectReference reference, string kind, CancellationToken cancellationToken)
@@ -133,20 +133,20 @@ namespace Microsoft.CodeAnalysis.Execution
             return new SourceTextAsset(_serializer, state, checksum, kind);
         }
 
-        private SolutionSnapshotInfo GetInfo(Solution solution)
+        private SolutionChecksumObjectInfo GetInfo(Solution solution)
         {
-            return new SolutionSnapshotInfo(solution.Id, solution.Version, solution.FilePath);
+            return new SolutionChecksumObjectInfo(solution.Id, solution.Version, solution.FilePath);
         }
 
-        private ProjectSnapshotInfo GetInfo(Project project)
+        private ProjectChecksumObjectInfo GetInfo(Project project)
         {
-            return new ProjectSnapshotInfo(project.Id, project.Version, project.Name, project.AssemblyName, project.Language, project.FilePath, project.OutputFilePath);
+            return new ProjectChecksumObjectInfo(project.Id, project.Version, project.Name, project.AssemblyName, project.Language, project.FilePath, project.OutputFilePath);
         }
 
-        private DocumentSnapshotInfo GetInfo(TextDocument document)
+        private DocumentChecksumObjectInfo GetInfo(TextDocument document)
         {
             // we might just split it to TextDocument and Document.
-            return new DocumentSnapshotInfo(document.Id, document.Name, document.Folders, GetSourceCodeKind(document), document.FilePath, IsGenerated(document));
+            return new DocumentChecksumObjectInfo(document.Id, document.Name, document.Folders, GetSourceCodeKind(document), document.FilePath, IsGenerated(document));
         }
 
         private bool IsGenerated(TextDocument document)
@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public override Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
                 TKey key, TValue value, string kind,
-                Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, bool rebuild,
-                CancellationToken cancellationToken)
+                Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
             {
                 return Contract.FailWithReturn<Task<TChecksumObject>>("shouldn't be called");
             }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -35,10 +37,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return textDocument1.Project.Solution;
         }
 
-        internal static async Task<T> GetValueAsync<T>(ISolutionSnapshotService service, Checksum checksum, string kind)
+        internal static async Task<T> GetValueAsync<T>(ISolutionChecksumService service, Checksum checksum, string kind)
         {
-            var snapshotService = (SolutionSnapshotServiceFactory.Service)service;
-            var checksumObject = await service.GetChecksumObjectAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var snapshotService = (SolutionChecksumServiceFactory.Service)service;
+            var checksumObject = service.GetChecksumObject(checksum, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -56,39 +58,41 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static async Task VerifyAssetAsync(ISolutionSnapshotService service, Solution solution, SolutionSnapshotId solutionId)
+        internal static async Task VerifyAssetAsync(ISolutionChecksumService service, Solution solution, SolutionChecksumObject solutionId)
         {
-            await VerifyAssetSerializationAsync<SolutionSnapshotInfo>(
+            await VerifyAssetSerializationAsync<SolutionChecksumObjectInfo>(
                 service, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo,
-                (v, k, s) => new Asset<SolutionSnapshotInfo>(v, k, s.Serialize)).ConfigureAwait(false);
+                (v, k, s) => new Asset<SolutionChecksumObjectInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
-            foreach (var projectId in solutionId.Projects.Objects)
+            foreach (var checksum in solutionId.Projects.Objects)
             {
+                var projectId = (ProjectChecksumObject)service.GetChecksumObject(checksum, CancellationToken.None);
                 await VerifyAssetAsync(service, solution, projectId).ConfigureAwait(false);
             }
         }
 
         internal static async Task VerifyAssetAsync(
-            ISolutionSnapshotService service,
+            ISolutionChecksumService service,
             Solution solution,
-            ProjectSnapshotId projectId)
+            ProjectChecksumObject projectId)
         {
-            var info = await VerifyAssetSerializationAsync<ProjectSnapshotInfo>(
+            var info = await VerifyAssetSerializationAsync<ProjectChecksumObjectInfo>(
                 service, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo,
-                (v, k, s) => new Asset<ProjectSnapshotInfo>(v, k, s.Serialize)).ConfigureAwait(false);
+                (v, k, s) => new Asset<ProjectChecksumObjectInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             var project = solution.GetProject(info.Id);
 
             await VerifyAssetSerializationAsync<CompilationOptions>(
                 service, projectId.CompilationOptions, WellKnownChecksumObjects.CompilationOptions,
-                (v, k, s) => new Asset<string, CompilationOptions>(project.Language, v, k, s.Serialize));
+                (v, k, s) => new LanguageSpecificAsset<CompilationOptions>(project.Language, v, k, s.Serialize));
 
             await VerifyAssetSerializationAsync<ParseOptions>(
                 service, projectId.ParseOptions, WellKnownChecksumObjects.ParseOptions,
-                (v, k, s) => new Asset<string, ParseOptions>(project.Language, v, k, s.Serialize));
+                (v, k, s) => new LanguageSpecificAsset<ParseOptions>(project.Language, v, k, s.Serialize));
 
-            foreach (var documentId in projectId.Documents.Objects)
+            foreach (var checksum in projectId.Documents.Objects)
             {
+                var documentId = (DocumentChecksumObject)service.GetChecksumObject(checksum, CancellationToken.None);
                 await VerifyAssetAsync(service, solution, documentId).ConfigureAwait(false);
             }
 
@@ -113,20 +117,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     (v, k, s) => new AnalyzerReferenceAsset(s, v, s.HostSerializationService.CreateChecksum(v, CancellationToken.None), k));
             }
 
-            foreach (var documentId in projectId.AdditionalDocuments.Objects)
+            foreach (var checksum in projectId.AdditionalDocuments.Objects)
             {
+                var documentId = (DocumentChecksumObject)service.GetChecksumObject(checksum, CancellationToken.None);
                 await VerifyAssetAsync(service, solution, documentId).ConfigureAwait(false);
             }
         }
 
         internal static async Task VerifyAssetAsync(
-            ISolutionSnapshotService service,
+            ISolutionChecksumService service,
             Solution solution,
-            DocumentSnapshotId documentId)
+            DocumentChecksumObject documentId)
         {
-            var info = await VerifyAssetSerializationAsync<DocumentSnapshotInfo>(
+            var info = await VerifyAssetSerializationAsync<DocumentChecksumObjectInfo>(
                 service, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo,
-                (v, k, s) => new Asset<DocumentSnapshotInfo>(v, k, s.Serialize)).ConfigureAwait(false);
+                (v, k, s) => new Asset<DocumentChecksumObjectInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
                 service, documentId.Text, WellKnownChecksumObjects.SourceText,
@@ -143,13 +148,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static async Task<T> VerifyAssetSerializationAsync<T>(
-            ISolutionSnapshotService service,
+            ISolutionChecksumService service,
             Checksum checksum,
             string kind,
             Func<T, string, Serializer, Asset> assetGetter)
         {
-            var snapshotService = (SolutionSnapshotServiceFactory.Service)service;
-            var originalChecksumObject = await service.GetChecksumObjectAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var snapshotService = (SolutionChecksumServiceFactory.Service)service;
+            var originalChecksumObject = service.GetChecksumObject(checksum, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -175,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static async Task VerifySnapshotSerializationAsync(Solution solution, SolutionSnapshotId solutionId)
+        internal static async Task VerifySnapshotSerializationAsync(ISolutionChecksumService service, Solution solution, SolutionChecksumObject solutionId)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -186,33 +191,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 using (var reader = new ObjectReader(stream))
                 {
                     var serializer = new Serializer(solution.Workspace.Services);
-                    var recovered = serializer.Deserialize<SolutionSnapshotId>(SolutionSnapshotId.Name, reader, CancellationToken.None);
+                    var recovered = serializer.Deserialize<SolutionChecksumObject>(SolutionChecksumObject.Name, reader, CancellationToken.None);
 
-                    SnapshotEqual(solutionId, recovered);
+                    SnapshotEqual(service, solutionId, recovered);
                 }
             }
         }
 
-        internal static void SnapshotEqual(SolutionSnapshotId solutionId1, SolutionSnapshotId solutionId2)
+        internal static void SnapshotEqual(ISolutionChecksumService service, SolutionChecksumObject solutionId1, SolutionChecksumObject solutionId2)
         {
             ChecksumObjectEqual(solutionId1, solutionId2);
             Assert.Equal(solutionId1.Info, solutionId2.Info);
 
-            CollectionEqual(solutionId1.Projects, solutionId2.Projects);
+            CollectionEqual(service, solutionId1.Projects.ToProjectObjects(service), solutionId2.Projects.ToProjectObjects(service));
         }
 
-        internal static void CollectionEqual(SnapshotIdCollection<ProjectSnapshotId> projectIds1, SnapshotIdCollection<ProjectSnapshotId> projectIds2)
+        internal static void CollectionEqual(ISolutionChecksumService service, ChecksumObjects<ProjectChecksumObject> projectIds1, ChecksumObjects<ProjectChecksumObject> projectIds2)
         {
             ChecksumObjectEqual(projectIds1, projectIds2);
             Assert.Equal(projectIds1.Objects.Length, projectIds2.Objects.Length);
 
             for (var i = 0; i < projectIds1.Objects.Length; i++)
             {
-                SnapshotEqual(projectIds1.Objects[i], projectIds2.Objects[i]);
+                SnapshotEqual(service, projectIds1.Objects[i], projectIds2.Objects[i]);
             }
         }
 
-        internal static void SnapshotEqual(ProjectSnapshotId projectId1, ProjectSnapshotId projectId2)
+        internal static void SnapshotEqual(ISolutionChecksumService service, ProjectChecksumObject projectId1, ProjectChecksumObject projectId2)
         {
             ChecksumObjectEqual(projectId1, projectId2);
 
@@ -220,13 +225,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(projectId1.CompilationOptions, projectId2.CompilationOptions);
             Assert.Equal(projectId1.ParseOptions, projectId2.ParseOptions);
 
-            CollectionEqual(projectId1.Documents, projectId2.Documents);
+            CollectionEqual(projectId1.Documents.ToDocumentObjects(service), projectId2.Documents.ToDocumentObjects(service));
 
             CollectionEqual(projectId1.ProjectReferences, projectId2.ProjectReferences);
             CollectionEqual(projectId1.MetadataReferences, projectId2.MetadataReferences);
             CollectionEqual(projectId1.AnalyzerReferences, projectId2.AnalyzerReferences);
 
-            CollectionEqual(projectId1.AdditionalDocuments, projectId2.AdditionalDocuments);
+            CollectionEqual(projectId1.AdditionalDocuments.ToDocumentObjects(service), projectId2.AdditionalDocuments.ToDocumentObjects(service));
         }
 
         internal static void CollectionEqual(ChecksumCollection checksums1, ChecksumCollection checksums2)
@@ -240,7 +245,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static void CollectionEqual(SnapshotIdCollection<DocumentSnapshotId> documentIds1, SnapshotIdCollection<DocumentSnapshotId> documentIds2)
+        internal static void CollectionEqual(ChecksumObjects<DocumentChecksumObject> documentIds1, ChecksumObjects<DocumentChecksumObject> documentIds2)
         {
             ChecksumObjectEqual(documentIds1, documentIds2);
             Assert.Equal(documentIds1.Objects.Length, documentIds2.Objects.Length);
@@ -251,68 +256,68 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static void SnapshotEqual(DocumentSnapshotId documentId1, DocumentSnapshotId documentId2)
+        internal static void SnapshotEqual(DocumentChecksumObject documentId1, DocumentChecksumObject documentId2)
         {
             ChecksumObjectEqual(documentId1, documentId2);
             Assert.Equal(documentId1.Info, documentId2.Info);
             Assert.Equal(documentId1.Text, documentId2.Text);
         }
 
-        internal static async Task VerifySnapshotInServiceAsync(
-            ISolutionSnapshotService snapshotService,
-            ProjectSnapshotId projectId,
+        internal static void VerifySnapshotInService(
+            ISolutionChecksumService snapshotService,
+            ProjectChecksumObject projectId,
             int expectedDocumentCount,
             int expectedProjectReferenceCount,
             int expectedMetadataReferenceCount,
             int expectedAnalyzerReferenceCount,
             int expectedAdditionalDocumentCount)
         {
-            await VerifyChecksumObjectInServiceAsync(snapshotService, projectId).ConfigureAwait(false);
-            await VerifyChecksumInService(snapshotService, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo).ConfigureAwait(false);
-            await VerifyChecksumInService(snapshotService, projectId.CompilationOptions, WellKnownChecksumObjects.CompilationOptions).ConfigureAwait(false);
-            await VerifyChecksumInService(snapshotService, projectId.ParseOptions, WellKnownChecksumObjects.ParseOptions).ConfigureAwait(false);
+            VerifyChecksumObjectInService(snapshotService, projectId);
+            VerifyChecksumInService(snapshotService, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo);
+            VerifyChecksumInService(snapshotService, projectId.CompilationOptions, WellKnownChecksumObjects.CompilationOptions);
+            VerifyChecksumInService(snapshotService, projectId.ParseOptions, WellKnownChecksumObjects.ParseOptions);
 
-            await VerifyCollectionInServiceAsync(snapshotService, projectId.Documents, expectedDocumentCount).ConfigureAwait(false);
+            VerifyCollectionInService(snapshotService, projectId.Documents.ToDocumentObjects(snapshotService), expectedDocumentCount);
 
-            await VerifyCollectionInServiceAsync(snapshotService, projectId.ProjectReferences, expectedProjectReferenceCount, WellKnownChecksumObjects.ProjectReference).ConfigureAwait(false);
-            await VerifyCollectionInServiceAsync(snapshotService, projectId.MetadataReferences, expectedMetadataReferenceCount, WellKnownChecksumObjects.MetadataReference).ConfigureAwait(false);
-            await VerifyCollectionInServiceAsync(snapshotService, projectId.AnalyzerReferences, expectedAnalyzerReferenceCount, WellKnownChecksumObjects.AnalyzerReference).ConfigureAwait(false);
+            VerifyCollectionInService(snapshotService, projectId.ProjectReferences, expectedProjectReferenceCount, WellKnownChecksumObjects.ProjectReference);
+            VerifyCollectionInService(snapshotService, projectId.MetadataReferences, expectedMetadataReferenceCount, WellKnownChecksumObjects.MetadataReference);
+            VerifyCollectionInService(snapshotService, projectId.AnalyzerReferences, expectedAnalyzerReferenceCount, WellKnownChecksumObjects.AnalyzerReference);
 
-            await VerifyCollectionInServiceAsync(snapshotService, projectId.AdditionalDocuments, expectedAdditionalDocumentCount).ConfigureAwait(false);
+            VerifyCollectionInService(snapshotService, projectId.AdditionalDocuments.ToDocumentObjects(snapshotService), expectedAdditionalDocumentCount);
         }
 
-        internal static async Task VerifyCollectionInServiceAsync(ISolutionSnapshotService snapshotService, ChecksumCollection checksums, int expectedCount, string expectedItemKind)
+        internal static void VerifyCollectionInService(ISolutionChecksumService snapshotService, ChecksumCollection checksums, int expectedCount, string expectedItemKind)
         {
-            await VerifyChecksumObjectInServiceAsync(snapshotService, checksums).ConfigureAwait(false);
+            VerifyChecksumObjectInService(snapshotService, checksums);
             Assert.Equal(checksums.Objects.Length, expectedCount);
 
             foreach (var checksum in checksums.Objects)
             {
-                await VerifyChecksumInService(snapshotService, checksum, expectedItemKind).ConfigureAwait(false);
+                VerifyChecksumInService(snapshotService, checksum, expectedItemKind);
             }
         }
 
-        internal static async Task VerifyCollectionInServiceAsync(ISolutionSnapshotService snapshotService, SnapshotIdCollection<DocumentSnapshotId> documents, int expectedCount)
+        internal static void VerifyCollectionInService(ISolutionChecksumService snapshotService, ChecksumObjects<DocumentChecksumObject> documents, int expectedCount)
         {
-            await VerifyChecksumObjectInServiceAsync(snapshotService, documents).ConfigureAwait(false);
+            VerifyChecksumObjectInService(snapshotService, documents);
             Assert.Equal(documents.Objects.Length, expectedCount);
 
             foreach (var documentId in documents.Objects)
             {
-                await VerifySnapshotInServiceAsync(snapshotService, documentId).ConfigureAwait(false);
+                VerifySnapshotInService(snapshotService, documentId);
             }
         }
 
-        internal static async Task VerifySnapshotInServiceAsync(ISolutionSnapshotService snapshotService, DocumentSnapshotId documentId)
+        internal static void VerifySnapshotInService(ISolutionChecksumService snapshotService, DocumentChecksumObject documentId)
         {
-            await VerifyChecksumObjectInServiceAsync(snapshotService, documentId).ConfigureAwait(false);
-            await VerifyChecksumInService(snapshotService, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
-            await VerifyChecksumInService(snapshotService, documentId.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
+            VerifyChecksumObjectInService(snapshotService, documentId);
+            VerifyChecksumInService(snapshotService, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo);
+            VerifyChecksumInService(snapshotService, documentId.Text, WellKnownChecksumObjects.SourceText);
         }
 
-        internal static Task VerifyChecksumObjectInServiceAsync<T>(ISolutionSnapshotService snapshotService, T checksumObject) where T : ChecksumObject
+        internal static void VerifyChecksumObjectInService<T>(ISolutionChecksumService snapshotService, T checksumObject) where T : ChecksumObject
         {
-            return VerifyChecksumInService(snapshotService, checksumObject.Checksum, checksumObject.Kind);
+            VerifyChecksumInService(snapshotService, checksumObject.Checksum, checksumObject.Kind);
         }
 
         internal static void ChecksumObjectEqual<T>(T checksumObject1, T checksumObject2) where T : ChecksumObject
@@ -320,10 +325,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
         }
 
-        internal static async Task VerifyChecksumInService(ISolutionSnapshotService snapshotService, Checksum checksum, string kind)
+        internal static void VerifyChecksumInService(ISolutionChecksumService snapshotService, Checksum checksum, string kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = await snapshotService.GetChecksumObjectAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var otherObject = snapshotService.GetChecksumObject(checksum, CancellationToken.None);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

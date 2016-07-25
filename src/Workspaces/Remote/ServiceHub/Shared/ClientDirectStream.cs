@@ -10,31 +10,38 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Direct stream between service hub server and client to pass around big chunk of data
+    /// Direct stream between server and client to pass around big chunk of data
     /// </summary>
-    internal class MasterDirectStream : Stream
+    internal class ClientDirectStream : Stream
     {
         // 128KB buffer size
-        private const int BUFFERSIZE = 128 * 1024;
+        private const int BUFFERSIZE = 4 * 1024;
 
         private readonly string _name;
-        private readonly NamedPipeServerStream _pipe;
+        private readonly NamedPipeClientStream _pipe;
         private readonly Stream _stream;
 
-        public MasterDirectStream(int bufferSize = BUFFERSIZE)
+        public ClientDirectStream(string name)
         {
             // this type exists so that consumer doesn't need to care about all these arguments/flags to get good performance
-            _name = Guid.NewGuid().ToString();
-
-            _pipe = new NamedPipeServerStream(_name, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-            _stream = new BufferedStream(_pipe, bufferSize);
+            _name = name;
+            _pipe = new NamedPipeClientStream(".", name, PipeDirection.Out);
+            _stream = new BufferedStream(_pipe, BUFFERSIZE);
         }
 
         public string Name => _name;
 
-        public Task WaitForDirectConnectionAsync(CancellationToken cancellationToken)
+        public Task ConnectAsync(CancellationToken cancellationToken)
         {
-            return _pipe.WaitForConnectionAsync(cancellationToken);
+            return _pipe.ConnectAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Wait for server to read all data sent
+        /// </summary>
+        public void WaitForServer()
+        {
+            _pipe.WaitForPipeDrain();
         }
 
         public override long Position

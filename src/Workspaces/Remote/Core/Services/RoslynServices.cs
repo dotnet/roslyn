@@ -5,8 +5,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // TODO: currently, service hub provide no other way to share services between user service hub services.
-    //       only way to do so is using static type
+    /// <summary>
+    /// Various Roslyn services provider.
+    /// 
+    /// TODO: change all these services to WorkspaceServices
+    /// </summary>
     internal static class RoslynServices
     {
         // TODO: probably need to split this to private and public services

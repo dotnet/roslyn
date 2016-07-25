@@ -10,7 +10,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Asset indicates this type is flat data holder type. no nested checksum objects
+    /// Asset represents actual data. <see cref="HierarchicalChecksumObject"/> represents
+    /// collections of these data.
+    /// 
+    /// in hierarchical checksum tree, asset is leaf node, and hierarchicalChecksumObject
+    /// is node that has children
     /// </summary>
     internal abstract class Asset : ChecksumObject
     {
@@ -21,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
     /// <summary>
     /// helper type for common assets
+    /// 
+    /// this asset will be used for data that require only 1 information
+    /// to serialize such as project reference, solution/project/document info and etc
     /// </summary>
     internal sealed class Asset<T> : Asset
     {
@@ -42,25 +49,27 @@ namespace Microsoft.CodeAnalysis.Execution
     }
 
     /// <summary>
-    /// helper type for common assets
+    /// helper type for language specific assets
+    /// 
+    /// this asset will be used for language specific data such as CompilationOption/ParseOption
     /// </summary>
-    internal sealed class Asset<T1, T2> : Asset
+    internal sealed class LanguageSpecificAsset<T> : Asset
     {
-        private readonly T1 _value1;
-        private readonly T2 _value2;
-        private readonly Action<T1, T2, ObjectWriter, CancellationToken> _writer;
+        private readonly string _language;
+        private readonly T _value;
+        private readonly Action<string, T, ObjectWriter, CancellationToken> _writer;
 
-        public Asset(T1 value1, T2 value2, string kind, Action<T1, T2, ObjectWriter, CancellationToken> writer) :
-            base(Checksum.Create(value1, value2, kind, writer), kind)
+        public LanguageSpecificAsset(string language, T value, string kind, Action<string, T, ObjectWriter, CancellationToken> writer) :
+            base(Checksum.Create(language, value, kind, writer), kind)
         {
-            _value1 = value1;
-            _value2 = value2;
+            _language = language;
+            _value = value;
             _writer = writer;
         }
 
         public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            _writer(_value1, _value2, writer, cancellationToken);
+            _writer(_language, _value, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
         }
     }
@@ -109,8 +118,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
     internal sealed class SourceTextAsset : Asset
     {
-        // TODO: change this to recoverable text rather than document state
         private readonly Serializer _serializer;
+
+        // TODO: the way recoverable text works is a bit different than how recoverable tree works.
+        //       due to that, we can't just hold onto recoverable text but to document state
+        //       we should think about whether we can change recoverable text to work like recoverable tree
+        //       so we can serialize text without bring in text to memory first
         private readonly TextDocumentState _state;
 
         public SourceTextAsset(Serializer serializer, TextDocumentState state, Checksum checksum, string kind) :

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -9,8 +10,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // TODO: currently, service hub provide no other way to share services between user service hub services.
-    //       only way to do so is using static type
+    /// <summary>
+    /// This service provide a way to get roslyn objects from checksum
+    /// 
+    /// TODO: change this service to workspace service
+    /// </summary>
     internal class AssetService
     {
         // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
@@ -29,10 +33,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _assets.TryAdd(checksum, @object);
         }
 
-        public async Task<T> GetAssetAsync<T>(Checksum checksum)
+        public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            // TODO: need to figure out cancellation story.
-            //       this require cancellation from both caller and provider of asset
             object @object;
             if (_assets.TryGetValue(checksum, out @object))
             {
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // TODO: what happen if service doesn't come back. timeout?
-            await RequestAssetAsync(checksum).ConfigureAwait(false);
+            await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
             if (!_assets.TryGetValue(checksum, out @object))
             {
@@ -50,24 +52,30 @@ namespace Microsoft.CodeAnalysis.Remote
             return (T)@object;
         }
 
-        public async Task RequestAssetAsync(Checksum checksum)
+        public async Task RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            // there must be one that knows about object with the checksum
-            foreach (var kv in _assetSources)
+            // the service doesn't care which asset source it uses to get the asset. if there are multiple
+            // channel created (multiple caller to code analysis service), we will have multiple asset sources
+            // 
+            // but, there must be one that knows about the asset with the checksum that is pinned for this
+            //      particular call
+            foreach (var kv in _assetSources.ToArray())
             {
                 var serviceId = kv.Key;
                 var source = kv.Value;
 
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
-                    // request asset to source
-                    // we do this wierd stuff since service hub doesn't allow service to open new stream to client
-                    await source.RequestAssetAsync(serviceId, checksum).ConfigureAwait(false);
+                    // ask one of asset source for data
+                    await source.RequestAssetAsync(serviceId, checksum, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // TODO: we need better way than this
-                    // connection is closed from other side.
+                    // request is either cancelled or connection to the asset source has closed
+                    Contract.ThrowIfFalse(ex is OperationCanceledException || ex is IOException || ex is ObjectDisposedException);
+
                     continue;
                 }
 
@@ -82,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void RegisterAssetSource(int serviceId, AssetSource assetSource)
         {
-            // TODO: do some lifetime management for assets we got
             Contract.ThrowIfFalse(_assetSources.TryAdd(serviceId, assetSource));
         }
 

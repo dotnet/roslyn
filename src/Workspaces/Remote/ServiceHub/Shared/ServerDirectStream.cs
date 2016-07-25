@@ -10,35 +10,31 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Direct stream between server and client to pass around big chunk of data
+    /// Direct stream between service hub server and client to pass around big chunk of data
     /// </summary>
-    internal class SlaveDirectStream : Stream
+    internal class ServerDirectStream : Stream
     {
         // 128KB buffer size
-        private const int BUFFERSIZE = 4 * 1024;
+        private const int BUFFERSIZE = 128 * 1024;
 
         private readonly string _name;
-        private readonly NamedPipeClientStream _pipe;
+        private readonly NamedPipeServerStream _pipe;
         private readonly Stream _stream;
 
-        public SlaveDirectStream(string name)
+        public ServerDirectStream(int bufferSize = BUFFERSIZE)
         {
             // this type exists so that consumer doesn't need to care about all these arguments/flags to get good performance
-            _name = name;
-            _pipe = new NamedPipeClientStream(".", name, PipeDirection.Out);
-            _stream = new BufferedStream(_pipe, BUFFERSIZE);
+            _name = Guid.NewGuid().ToString();
+
+            _pipe = new NamedPipeServerStream(_name, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            _stream = new BufferedStream(_pipe, bufferSize);
         }
 
         public string Name => _name;
 
-        public Task ConnectAsync(CancellationToken cancellationToken)
+        public Task WaitForDirectConnectionAsync(CancellationToken cancellationToken)
         {
-            return _pipe.ConnectAsync(cancellationToken);
-        }
-
-        public void WaitForMaster()
-        {
-            _pipe.WaitForPipeDrain();
+            return _pipe.WaitForConnectionAsync(cancellationToken);
         }
 
         public override long Position

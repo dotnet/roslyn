@@ -6,14 +6,16 @@ using Microsoft.CodeAnalysis.Execution;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // TODO: currently, service hub provide no other way to share services between user service hub services.
-    //       only way to do so is using static type
-    // TODO: this whole thing should be refactored/improved
+    /// <summary>
+    /// Provide compilation from given solution checksum 
+    ///
+    /// TODO: change this to workspace service
+    /// </summary>
     internal class CompilationService
     {
-        public async Task<Compilation> GetCompilationAsync(SolutionSnapshotId id, ProjectId projectId, CancellationToken cancellationToken)
+        public async Task<Compilation> GetCompilationAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
         {
-            var solution = await RoslynServices.SolutionService.GetSolutionAsync(id, cancellationToken).ConfigureAwait(false);
+            var solution = await RoslynServices.SolutionService.GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // TODO: need to figure out how to deal with exceptions in service hub
             return await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);

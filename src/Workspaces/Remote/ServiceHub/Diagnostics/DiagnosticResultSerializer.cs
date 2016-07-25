@@ -14,9 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal static class DiagnosticResultSerializer
     {
-        public static void Serialize(ObjectWriter writer, ImmutableDictionary<string, DiagnosticAnalysisResultBuilder> analysisResult, ImmutableDictionary<string, AnalyzerTelemetryInfo> telemetryInfo, CancellationToken cancellationToken)
+        public static void Serialize(ObjectWriter writer, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
             var diagnosticSerializer = new DiagnosticDataSerializer(VersionStamp.Default, VersionStamp.Default);
+
+            var analysisResult = result.AnalysisResult;
 
             writer.WriteInt32(analysisResult.Count);
             foreach (var kv in analysisResult)
@@ -30,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 diagnosticSerializer.WriteTo(writer, kv.Value.Others, cancellationToken);
             }
 
+            var telemetryInfo = result.TelemetryInfo;
+
             writer.WriteInt32(telemetryInfo.Count);
             foreach (var kv in telemetryInfo)
             {
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        public static DiagnosticAnalysisResultMap Deserialize(
+        public static DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> Deserialize(
             ObjectReader reader, IDictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, VersionStamp version, CancellationToken cancellationToken)
         {
             var diagnosticDataSerializer = new DiagnosticDataSerializer(VersionStamp.Default, VersionStamp.Default);
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 telemetryMap.Add(analyzer, telemetryInfo);
             }
 
-            return new DiagnosticAnalysisResultMap(analysisMap.ToImmutable(), telemetryMap.ToImmutable());
+            return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable());
         }
 
         private static void Serialize(

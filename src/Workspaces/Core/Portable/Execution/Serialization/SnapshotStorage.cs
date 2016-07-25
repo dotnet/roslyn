@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Execution
     internal class SnapshotStorages
     {
         private readonly ConcurrentDictionary<object, Asset> _globalAssets;
-        private readonly ConcurrentDictionary<SolutionSnapshot, Storage> _snapshots;
+        private readonly ConcurrentDictionary<ChecksumScope, Storage> _snapshots;
 
         public SnapshotStorages()
         {
             _globalAssets = new ConcurrentDictionary<object, Asset>(concurrencyLevel: 2, capacity: 10);
-            _snapshots = new ConcurrentDictionary<SolutionSnapshot, Storage>(concurrencyLevel: 2, capacity: 10);
+            _snapshots = new ConcurrentDictionary<ChecksumScope, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
         public void AddGlobalAsset(object value, Asset asset, CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Storage(this, solution);
         }
 
-        public async Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken)
+        public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
         {
             // search snapshots we have
             foreach (var storage in _snapshots.Values)
@@ -68,28 +68,11 @@ namespace Microsoft.CodeAnalysis.Execution
             // search global assets
             foreach (var asset in _globalAssets.Values)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (asset.Checksum == checksum)
                 {
                     return asset;
-                }
-            }
-
-            // it looks like checksumObject doesn't exist. probably cache has released.
-            // that is okay, we can re-construct same checksumObject from solution
-            //
-            // REVIEW: right now, there is no MRU implemented, so cache will be there as long as snapshot is there.
-            foreach (var storage in _snapshots.Values)
-            {
-                var snapshotBuilder = new SnapshotBuilder(storage, rebuild: true);
-
-                // rebuild whole snapshot for this solution
-                await snapshotBuilder.BuildAsync(storage.Solution, cancellationToken).ConfigureAwait(false);
-
-                // find the object from this storage
-                var checksumObject = storage.TryGetChecksumObject(checksum, cancellationToken);
-                if (checksumObject != null)
-                {
-                    return checksumObject;
                 }
             }
 
@@ -101,23 +84,23 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             foreach (var storage in _snapshots.Values)
             {
-                var etrny = storage.TryGetChecksumObjectEntry(key, kind, cancellationToken);
-                if (etrny != null)
+                var entry = storage.TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                if (entry != null)
                 {
-                    return etrny;
+                    return entry;
                 }
             }
 
             return null;
         }
 
-        public void RegisterSnapshot(SolutionSnapshot snapshot, SnapshotStorage storage)
+        public void RegisterSnapshot(ChecksumScope snapshot, SnapshotStorage storage)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
             Contract.ThrowIfFalse(_snapshots.TryAdd(snapshot, (Storage)storage));
         }
 
-        public void UnregisterSnapshot(SolutionSnapshot snapshot)
+        public void UnregisterSnapshot(ChecksumScope snapshot)
         {
             // calling it multiple times for same snapshot is not allowed.
             Storage dummy;
@@ -161,9 +144,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public ChecksumObject TryGetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
             {
+                // search needed to be improved.
                 ChecksumObject checksumObject;
                 foreach (var entry in _cache.Values)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (entry.TryGetValue(checksum, out checksumObject))
                     {
                         // this storage has information for the checksum
@@ -232,19 +218,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public override async Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
                 TKey key, TValue value, string kind,
-                Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, bool rebuild,
-                CancellationToken cancellationToken)
+                Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
             {
-                if (rebuild)
-                {
-                    // force to re-create all sub checksum objects
-                    // save newly created one
-                    var snapshotBuilder = new SnapshotBuilder(GetStorage(key));
-                    var assetBuilder = new AssetBuilder(this);
-
-                    SaveAndReturn(key, await valueGetterAsync(value, kind, snapshotBuilder, assetBuilder, cancellationToken).ConfigureAwait(false));
-                }
-
                 return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) =>
                 {
                     var snapshotBuilder = new SnapshotBuilder(GetStorage(key));
@@ -439,7 +414,6 @@ namespace Microsoft.CodeAnalysis.Execution
         public abstract Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
             TKey key, TValue value, string kind,
             Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync,
-            bool rebuild,
             CancellationToken cancellationToken)
             where TKey : class
             where TChecksumObject : HierarchicalChecksumObject;

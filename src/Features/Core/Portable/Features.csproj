@@ -211,8 +211,8 @@
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
-    <Compile Include="Diagnostics\EngineV2\DiagnosticInProcHostSpecificService.cs" />
-    <Compile Include="Diagnostics\EngineV2\ICompilerDiagnosticExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV2\InProcCompilerDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\EngineV2\ICompilerDiagnosticAnalyzer.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />

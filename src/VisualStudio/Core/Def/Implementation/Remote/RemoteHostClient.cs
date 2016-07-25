@@ -12,11 +12,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
 {
-    internal abstract class RemoteHost
+    /// <summary>
+    /// This let users to create a session to communicate with remote host (ex, ServiceHub)
+    /// </summary>
+    internal abstract class RemoteHostClient
     {
         private readonly Workspace _workspace;
 
-        public RemoteHost(Workspace workspace)
+        public RemoteHostClient(Workspace workspace)
         {
             _workspace = workspace;
         }
@@ -32,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
         {
             Contract.ThrowIfFalse(solution.Workspace == _workspace);
 
-            var service = _workspace.Services.GetService<ISolutionSnapshotService>();
-            var snapshot = await service.CreateSnapshotAsync(solution, cancellationToken).ConfigureAwait(false);
+            var service = _workspace.Services.GetService<ISolutionChecksumService>();
+            var snapshot = await service.CreateChecksumAsync(solution, cancellationToken).ConfigureAwait(false);
 
             return await CreateCodeAnalysisServiceSessionAsync(snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
@@ -41,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
         protected abstract void OnConnected();
         protected abstract void OnDisconnected();
 
-        protected abstract Task<Session> CreateCodeAnalysisServiceSessionAsync(SolutionSnapshot snapshot, object callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Session> CreateCodeAnalysisServiceSessionAsync(ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken);
 
         internal void Shutdown()
         {
@@ -72,19 +75,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
             ConnectionChanged?.Invoke(this, connection);
         }
 
+        // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            public readonly SolutionSnapshot SolutionSnapshot;
+            protected readonly ChecksumScope ChecksumScope;
+            protected readonly CancellationToken CancellationToken;
 
-            protected Session(SolutionSnapshot snapshot)
+            protected Session(ChecksumScope scope, CancellationToken cancellationToken)
             {
-                SolutionSnapshot = snapshot;
+                ChecksumScope = scope;
+                CancellationToken = cancellationToken;
             }
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
             public abstract Task<Result> InvokeAsync<Result>(string targetName, params object[] arguments);
-            public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
+            public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
+            public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
             public abstract void Dispose();
         }

@@ -4,7 +4,8 @@ namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
     /// HierarchicalChecksumObject indicates this type is collection of checksumObject types.
-    /// it shouldn't hold any asset objects.
+    /// 
+    /// <see cref="Asset"/> represents actual data (leaf node of hierarchical checksum tree) 
     /// </summary>
     internal abstract class HierarchicalChecksumObject : ChecksumObject
     {

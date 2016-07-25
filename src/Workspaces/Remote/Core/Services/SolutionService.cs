@@ -9,28 +9,33 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // TODO: currently, service hub provide no other way to share services between user service hub services.
-    //       only way to do so is using static type
+    /// <summary>
+    /// Provide solution from given checksum
+    /// 
+    /// TODO: change this to workspace service
+    /// </summary>
     internal class SolutionService
     {
-        public async Task<Solution> GetSolutionAsync(SolutionSnapshotId snapshotId, CancellationToken cancellationToken)
+        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
+            var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
             // TODO: Make these to do work concurrently
             var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionSnapshotInfo>(snapshotId.Info).ConfigureAwait(false);
+            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObjectInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
-            foreach (var projectSnapshot in snapshotId.Projects.Objects)
+            foreach (var projectChecksum in solutionChecksumObject.Projects.Objects)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
 
                 var documents = new List<DocumentInfo>();
-                foreach (var documentSnapshot in projectSnapshot.Documents.Objects)
+                foreach (var documentChecksum in projectSnapshot.Documents.Objects)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
 
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentSnapshotInfo>(documentSnapshot.Info).ConfigureAwait(false);
-                    var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(documentSnapshot.Text).ConfigureAwait(false);
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     documents.Add(
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var reference = await RoslynServices.AssetService.GetAssetAsync<ProjectReference>(checksum).ConfigureAwait(false);
+                    var reference = await RoslynServices.AssetService.GetAssetAsync<ProjectReference>(checksum, cancellationToken).ConfigureAwait(false);
                     p2p.Add(reference);
                 }
 
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var reference = await RoslynServices.AssetService.GetAssetAsync<MetadataReference>(checksum).ConfigureAwait(false);
+                    var reference = await RoslynServices.AssetService.GetAssetAsync<MetadataReference>(checksum, cancellationToken).ConfigureAwait(false);
                     metadata.Add(reference);
                 }
 
@@ -67,17 +72,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var reference = await RoslynServices.AssetService.GetAssetAsync<AnalyzerReference>(checksum).ConfigureAwait(false);
+                    var reference = await RoslynServices.AssetService.GetAssetAsync<AnalyzerReference>(checksum, cancellationToken).ConfigureAwait(false);
                     analyzers.Add(reference);
                 }
 
                 var additionals = new List<DocumentInfo>();
-                foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.Objects)
+                foreach (var documentChecksum in projectSnapshot.AdditionalDocuments.Objects)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentSnapshotInfo>(documentSnapshot.Info).ConfigureAwait(false);
-                    var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(documentSnapshot.Text).ConfigureAwait(false);
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
+
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     additionals.Add(
@@ -91,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectSnapshotInfo>(projectSnapshot.Info).ConfigureAwait(false);
-                var compilationOptions = await RoslynServices.AssetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions).ConfigureAwait(false);
-                var parseOptions = await RoslynServices.AssetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions).ConfigureAwait(false);
+                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                var compilationOptions = await RoslynServices.AssetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
+                var parseOptions = await RoslynServices.AssetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
 
                 projects.Add(
                     ProjectInfo.Create(

@@ -4,15 +4,15 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class WellKnownServiceHubServices
     {
-        public const string RemoteHostService = "remotehostService";
+        public const string RemoteHostService = "remoteHostService";
         public const string RemoteHostService_Connect = "Connect";
 
-        public const string SolutionSnapshotService = "solutionSnapshotService";
-        public const string SolutionSnapshotService_Done = "Done";
+        public const string ServiceHubSnapshotService = "serviceHubSnapshotService";
+        public const string ServiceHubSnapshotService_Done = "Done";
 
         public const string CodeAnalysisService = "codeAnalysisService";
-        public const string CodeAnalysisService_GetDiagnostics = "CalculateDiagnosticsAsync";
+        public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
 
-        public const string AssetService_RequestAsset = "RequestAssetAsync";
+        public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
 }
