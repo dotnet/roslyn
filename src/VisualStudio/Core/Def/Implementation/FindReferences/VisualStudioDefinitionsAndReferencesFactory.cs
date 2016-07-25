@@ -39,7 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 return null;
             }
 
-            var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
+            // Add one to the line/column so they are in 1-based coordinates for the UI.
+            // But keep them 0 based in the ExternalDefinitionLocation so that navigation
+            // works properly.
+            var displayParts = GetDisplayParts(filePath, lineNumber + 1, charOffset + 1);
             var definitionLocation = new ExternalDefinitionLocation(
                 _serviceProvider, filePath, lineNumber, charOffset);
 

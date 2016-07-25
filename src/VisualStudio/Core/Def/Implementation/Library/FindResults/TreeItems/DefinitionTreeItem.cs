@@ -17,17 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         public DefinitionTreeItem(
             DefinitionItem definitionItem,
             DefinitionLocation definitionLocation,
-            ImmutableArray<SourceReferenceTreeItem> referenceItems = default(ImmutableArray<SourceReferenceTreeItem>))
+            ImmutableArray<SourceReferenceTreeItem> referenceItems)
             : base(definitionItem.Tags.GetGlyph().GetGlyphIndex())
         {
             _definitionItem = definitionItem;
             _definitionLocation = definitionLocation;
 
-            if (!referenceItems.IsDefault)
-            {
-                this.Children.AddRange(referenceItems);
-            }
-
+            this.Children.AddRange(referenceItems);
             this.DisplayText = CreateDisplayText();
         }
 
