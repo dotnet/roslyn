@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
-    internal struct DocumentLocation : IEquatable<DocumentLocation>, IComparable<DocumentLocation>
+    internal struct DocumentLocation : IEquatable<DocumentLocation>
     {
         public Document Document { get; }
         public TextSpan SourceSpan { get; }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
 
         public bool Equals(DocumentLocation obj)
         {
-            return this.CompareTo(obj) == 0;
+            return this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
         }
 
         public static bool operator ==(DocumentLocation d1, DocumentLocation d2)
@@ -44,24 +44,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public override int GetHashCode()
         {
             return Hash.Combine(
-                StringComparer.OrdinalIgnoreCase.GetHashCode(this.Document.FilePath),
+                this.Document,
                 this.SourceSpan.GetHashCode());
-        }
-
-        public int CompareTo(DocumentLocation other)
-        {
-            int compare;
-
-            var thisPath = this.Document.FilePath;
-            var otherPath = other.Document.FilePath;
-
-            if ((compare = StringComparer.OrdinalIgnoreCase.Compare(thisPath, otherPath)) != 0 ||
-                (compare = this.SourceSpan.CompareTo(other.SourceSpan)) != 0)
-            {
-                return compare;
-            }
-
-            return 0;
         }
 
         public bool CanNavigateTo()

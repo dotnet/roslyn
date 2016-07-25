@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
     /// Information about a symbol's reference that can be used for diplay and 
     /// navigation in an editor.
     /// </summary>
-    internal sealed class SourceReferenceItem : IComparable<SourceReferenceItem>
+    internal sealed class SourceReferenceItem
     {
         /// <summary>
         /// The definition this reference corresponds to.
@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             Definition = definition;
             Location = location;
-        }
-
-        public int CompareTo(SourceReferenceItem other)
-        {
-            return this == other ? 0 : this.Location.CompareTo(other.Location);
         }
     }
 }

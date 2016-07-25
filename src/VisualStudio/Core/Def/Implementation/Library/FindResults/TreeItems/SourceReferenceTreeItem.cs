@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Roslyn.Utilities;
@@ -196,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 return 1;
             }
 
-            int compare = _filePath.CompareTo(other._filePath);
+            int compare = LogicalStringComparer.Instance.Compare(_filePath, _filePath);
             compare = compare != 0 ? compare : _lineNumber.CompareTo(other._lineNumber);
             compare = compare != 0 ? compare : _offset.CompareTo(other._offset);
             compare = compare != 0 ? compare : _projectName.CompareTo(other._projectName);
