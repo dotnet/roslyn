@@ -2318,50 +2318,62 @@ a.vb
         <Fact>
         Public Sub Debug()
             Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            Assert.False(parsedArgs.EmitPdb)
             parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:FULL", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:portable", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb)
 
             parsedArgs = DefaultParse({"/debug:embedded", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded)
 
             parsedArgs = DefaultParse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
@@ -2383,6 +2395,16 @@ a.vb
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", ""))

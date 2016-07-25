@@ -51,7 +51,7 @@ namespace Microsoft.Cci
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugBuilderOpt = builder;
+                    debugBuilderOpt = new MetadataBuilder();
                     break;
 
                 default:

@@ -1676,9 +1676,17 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(peStream));
             }
 
-            if (pdbStream != null && !pdbStream.CanWrite)
+            if (pdbStream != null)
             {
-                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(pdbStream));
+                if (options?.DebugInformationFormat == DebugInformationFormat.Embedded)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.PdbStreamUnexpectedWhenEmbedding, nameof(pdbStream));
+                }
+
+                if (!pdbStream.CanWrite)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(pdbStream));
+                }
             }
 
             return Emit(
@@ -1708,6 +1716,9 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
+            bool embedPdb = options?.DebugInformationFormat == DebugInformationFormat.Embedded;
+            Debug.Assert(!embedPdb || pdbStream == null);
+
             var diagnostics = DiagnosticBag.GetInstance();
 
             var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
@@ -1726,8 +1737,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     success = CompileMethods(
                         moduleBeingBuilt,
-                        pdbStream != null,
-                        diagnostics,
+                        emittingPdb: pdbStream != null || embedPdb,
+                        diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
 
@@ -1937,8 +1948,13 @@ namespace Microsoft.CodeAnalysis
             Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
-            bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
-            string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
+            var debugFormat = moduleBeingBuilt.EmitOptions.DebugInformationFormat;
+
+            // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
+            Debug.Assert(debugFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+
+            string pdbPath = (pdbStreamProvider != null || debugFormat == DebugInformationFormat.Embedded) ? 
+                (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
             // builds that occur in different source directories.  To enable this we shave all path information from
@@ -1948,7 +1964,7 @@ namespace Microsoft.CodeAnalysis
             // tracks getting an official solution here.
             //
             // https://github.com/dotnet/roslyn/issues/9813
-            string pePdbPath = Feature("pdb-path-determinism") != null && !string.IsNullOrEmpty(pdbPath)
+            string pePdbPath = (debugFormat == DebugInformationFormat.Embedded || Feature("pdb-path-determinism") != null) && !string.IsNullOrEmpty(pdbPath)
                 ? Path.GetFileName(pdbPath)
                 : pdbPath;
 
@@ -1956,7 +1972,7 @@ namespace Microsoft.CodeAnalysis
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
-                if (!emitPortablePdb && pdbStreamProvider != null)
+                if (debugFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
@@ -1965,7 +1981,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Func<Stream> getPortablePdbStream;
-                if (emitPortablePdb && pdbStreamProvider != null)
+                if (debugFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null)
                 {
                     getPortablePdbStream = () =>
                     {

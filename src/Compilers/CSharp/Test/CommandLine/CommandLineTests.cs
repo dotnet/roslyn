@@ -741,28 +741,28 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/resource:a", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.DisplayHelp);
             resourceDescription = parsedArgs.ManifestResources.Single();
             Assert.Null(resourceDescription.FileName); // since embedded
             Assert.Equal("a", resourceDescription.ResourceName);
 
             parsedArgs = DefaultParse(new[] { "/res:b", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.DisplayHelp);
             resourceDescription = parsedArgs.ManifestResources.Single();
             Assert.Null(resourceDescription.FileName); // since embedded
             Assert.Equal("b", resourceDescription.ResourceName);
 
             parsedArgs = DefaultParse(new[] { "/linkresource:c", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.DisplayHelp);
             resourceDescription = parsedArgs.ManifestResources.Single();
             Assert.Equal("c", resourceDescription.FileName);
             Assert.Equal("c", resourceDescription.ResourceName);
 
             parsedArgs = DefaultParse(new[] { "/linkres:d", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.DisplayHelp);
             resourceDescription = parsedArgs.ManifestResources.Single();
             Assert.Equal("d", resourceDescription.FileName);
             Assert.Equal("d", resourceDescription.ResourceName);
@@ -1090,81 +1090,81 @@ d.cs
         {
             var parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "a + b" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "a + b; c" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/help" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(true, parsedArgs.DisplayHelp);
-            Assert.Equal(false, parsedArgs.SourceFiles.Any());
+            Assert.True(parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/?" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(true, parsedArgs.DisplayHelp);
-            Assert.Equal(false, parsedArgs.SourceFiles.Any());
+            Assert.True(parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c.csx  /langversion:6" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:-1", "c.csx", }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/langversion:-1'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:-1"));
 
-            Assert.Equal(false, parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.DisplayHelp);
             Assert.Equal(1, parsedArgs.SourceFiles.Length);
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c.csx  /r:s=d /r:d.dll" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "@roslyn_test_non_existing_file" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2011: Error opening response file 'D:\R0\Main\Binaries\Debug\dd'
                 Diagnostic(ErrorCode.ERR_OpenResponseFile).WithArguments(Path.Combine(_baseDirectory, @"roslyn_test_non_existing_file")));
 
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(false, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.False(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c /define:DEBUG" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "\\" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/r:d.dll", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/define:foo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/define:foo'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/define:foo"));
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "\"/r d.dll\"" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/r: d.dll", "a.cs" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.DisplayHelp);
-            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+            Assert.False(parsedArgs.DisplayHelp);
+            Assert.True(parsedArgs.SourceFiles.Any());
         }
 
         [Fact]
@@ -1303,19 +1303,19 @@ d.cs
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             Assert.Equal(0, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
-            Assert.Equal(false, parsedArgs.Errors.Any());
+            Assert.False(parsedArgs.Errors.Any());
 
             parsedArgs = DefaultParse(new[] { "/d:FOO", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
             Assert.Contains("FOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
-            Assert.Equal(false, parsedArgs.Errors.Any());
+            Assert.False(parsedArgs.Errors.Any());
 
             parsedArgs = DefaultParse(new[] { "/d:FOO;BAR,ZIP", "a.cs" }, _baseDirectory);
             Assert.Equal(3, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
             Assert.Contains("FOO", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.Contains("BAR", parsedArgs.ParseOptions.PreprocessorSymbolNames);
             Assert.Contains("ZIP", parsedArgs.ParseOptions.PreprocessorSymbolNames);
-            Assert.Equal(false, parsedArgs.Errors.Any());
+            Assert.False(parsedArgs.Errors.Any());
 
             parsedArgs = DefaultParse(new[] { "/d:FOO;4X", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.ParseOptions.PreprocessorSymbolNames.Count());
@@ -1363,87 +1363,111 @@ d.cs
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(true, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:FULL", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:portable", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:embedded", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded);
 
             parsedArgs = DefaultParse(new[] { "/debug:PDBONLY", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "/debug:pdbonly", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
-            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
-            Assert.Equal(true, parsedArgs.CompilationOptions.DebugPlusMode);
+
+            parsedArgs = DefaultParse(new[] { "/debug:embedded", "/debug-", "/debug+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat);
+
+            parsedArgs = DefaultParse(new[] { "/debug:embedded", "/debug-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.False(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
@@ -1625,19 +1649,19 @@ d.cs
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
+            Assert.False(parsedArgs.CompilationOptions.Deterministic);
 
             parsedArgs = DefaultParse(new[] { "/deterministic+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(true, parsedArgs.CompilationOptions.Deterministic);
+            Assert.True(parsedArgs.CompilationOptions.Deterministic);
 
             parsedArgs = DefaultParse(new[] { "/deterministic", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(true, parsedArgs.CompilationOptions.Deterministic);
+            Assert.True(parsedArgs.CompilationOptions.Deterministic);
 
             parsedArgs = DefaultParse(new[] { "/deterministic-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
+            Assert.False(parsedArgs.CompilationOptions.Deterministic);
         }
 
         [Fact]
@@ -6148,10 +6172,10 @@ class C {}
         public void ParseFullpaths()
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
-            Assert.Equal(false, parsedArgs.PrintFullPaths);
+            Assert.False(parsedArgs.PrintFullPaths);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/fullpaths" }, _baseDirectory);
-            Assert.Equal(true, parsedArgs.PrintFullPaths);
+            Assert.True(parsedArgs.PrintFullPaths);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/fullpaths:" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
