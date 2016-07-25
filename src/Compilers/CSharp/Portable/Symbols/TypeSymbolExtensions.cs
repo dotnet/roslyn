@@ -1426,5 +1426,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             arrayType = arrayType.WithElementType(elementType);
             return true;
         }
+
+        internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
+            this TypeSymbol type,
+            CSharpCompilation declaringCompilation,
+            Cci.ITypeReference typeRef)
+        {
+            if (type.ContainsTuple())
+            {
+                var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
+                if (attr != null)
+                {
+                    return new Cci.TypeReferenceWithAttributes(
+                        typeRef,
+                        ImmutableArray.Create<Cci.ICustomAttribute>(attr));
+                }
+            }
+
+            return new Cci.TypeReferenceWithAttributes(typeRef);
+        }
     }
 }

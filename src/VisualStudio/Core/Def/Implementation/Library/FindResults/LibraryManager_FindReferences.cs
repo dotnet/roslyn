@@ -15,42 +15,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal partial class LibraryManager
     {
-        private bool IncludeDefinition(ReferencedSymbol reference)
-        {
-            var definition = reference.Definition;
-
-            // Don't include parameters to property accessors
-            if (definition is IParameterSymbol &&
-                definition.ContainingSymbol is IMethodSymbol &&
-                ((IMethodSymbol)definition.ContainingSymbol).AssociatedSymbol is IPropertySymbol)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public void PresentReferencedSymbols(string title, Solution solution, IEnumerable<ReferencedSymbol> items)
         {
             PresentObjectList(title, new ObjectList(CreateFindReferencesItems(solution, items), this));
         }
 
         // internal for test purposes
-        internal IList<AbstractTreeItem> CreateFindReferencesItems(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        internal IList<AbstractTreeItem> CreateFindReferencesItems(
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var definitions = new List<AbstractTreeItem>();
             var uniqueLocations = new HashSet<ValueTuple<Document, TextSpan>>();
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
-            referencedSymbols = referencedSymbols.FilterUnreferencedSyntheticDefinitions().ToList();
+            var documents = referencedSymbols.SelectMany(s => s.Locations)
+                                             .Select(loc => loc.Document)
+                                             .WhereNotNull()
+                                             .ToSet();
+            var commonPathElements = CountCommonPathElements(documents);
+
+            referencedSymbols = referencedSymbols.FilterToItemsToShow().ToList();
 
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetDefinitionPrecedence))
             {
-                if (!IncludeDefinition(referencedSymbol))
-                {
-                    continue;
-                }
-
                 var definition = referencedSymbol.Definition;
                 var locations = definition.Locations;
 
@@ -75,7 +62,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     if (definitionItem != null)
                     {
                         definitions.Add(definitionItem);
-                        var referenceItems = CreateReferenceItems(solution, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location));
+
+                        var referenceItems = CreateReferenceItems(
+                            solution, uniqueLocations,
+                            referencedSymbol.Locations.Select(loc => loc.Location),
+                            commonPathElements);
                         definitionItem.Children.AddRange(referenceItems);
                         definitionItem.SetReferenceCount(referenceItems.Count);
                     }
@@ -155,7 +146,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return new SourceDefinitionTreeItem(document, sourceSpan, referencedSymbol.Definition, glyph.GetGlyphIndex());
         }
 
-        private IList<SourceReferenceTreeItem> CreateReferenceItems(Solution solution, HashSet<ValueTuple<Document, TextSpan>> uniqueLocations, IEnumerable<Location> locations)
+        private IList<SourceReferenceTreeItem> CreateReferenceItems(
+            Solution solution,
+            HashSet<ValueTuple<Document, TextSpan>> uniqueLocations,
+            IEnumerable<Location> locations,
+            int commonPathElements)
         {
             var referenceItems = new List<SourceReferenceTreeItem>();
             foreach (var location in locations)
@@ -174,7 +169,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
                 if (uniqueLocations.Add(new ValueTuple<Document, TextSpan>(document, sourceSpan)))
                 {
-                    referenceItems.Add(new SourceReferenceTreeItem(document, sourceSpan, Glyph.Reference.GetGlyphIndex()));
+                    referenceItems.Add(new SourceReferenceTreeItem(
+                        document, sourceSpan, Glyph.Reference.GetGlyphIndex(), commonPathElements));
                 }
             }
 

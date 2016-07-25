@@ -266,17 +266,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
 
-                if (node.Expression != null)
+                var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
+                if (argumentType != null &&
+                    !IsPassedToDelegateCreationExpression(node, argumentType) &&
+                    node.Expression.Kind() != SyntaxKind.DeclarationExpression)
                 {
-                    var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
-                    if (argumentType != null &&
-                        !IsPassedToDelegateCreationExpression(node, argumentType))
+                    ExpressionSyntax newArgumentExpressionWithCast;
+                    if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out newArgumentExpressionWithCast))
                     {
-                        ExpressionSyntax newArgumentExpressionWithCast;
-                        if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out newArgumentExpressionWithCast))
-                        {
-                            return newArgument.WithExpression(newArgumentExpressionWithCast);
-                        }
+                        return newArgument.WithExpression(newArgumentExpressionWithCast);
                     }
                 }
 
@@ -769,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         {
                             if (argument != null)
                             {
-                                var typeinfo = semanticModel.GetTypeInfo(argument.Expression ?? argument.Declaration.Type);
+                                var typeinfo = semanticModel.GetTypeInfo(argument.Expression);
                                 if (typeinfo.Type != null && typeinfo.Type.TypeKind == TypeKind.Dynamic)
                                 {
                                     return true;

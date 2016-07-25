@@ -210,6 +210,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.ModuleVersionId:
+                    Debug.Assert(used);
+                    EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
+                    break;
+
+                case BoundKind.ModuleVersionIdString:
+                    Debug.Assert(used);
+                    EmitModuleVersionIdStringLoad((BoundModuleVersionIdString)expression);
+                    break;
+
+                case BoundKind.InstrumentationPayloadRoot:
+                    Debug.Assert(used);
+                    EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
+                case BoundKind.MethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMethodDefIndexExpression((BoundMethodDefIndex)expression);
+                    break;
+
+                case BoundKind.MaximumMethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMaximumMethodDefIndexExpression((BoundMaximumMethodDefIndex)expression);
+                    break;
+
+                case BoundKind.SourceDocumentIndex:
+                    Debug.Assert(used);
+                    EmitSourceDocumentIndex((BoundSourceDocumentIndex)expression);
+                    break;
+
                 case BoundKind.MethodInfo:
                     if (used)
                     {
@@ -2289,6 +2319,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
+                case BoundKind.ModuleVersionId:
+                    EmitModuleVersionIdStore((BoundModuleVersionId)expression);
+                    break;
+
+                case BoundKind.InstrumentationPayloadRoot:
+                    EmitInstrumentationPayloadRootStore((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
                 case BoundKind.PreviousSubmissionReference:
                 // Script references are lowered to a this reference and a field access.
                 default:
@@ -2612,15 +2650,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitGetTypeFromHandle(BoundTypeOf boundTypeOf)
+        {
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
+            var getTypeMethod = boundTypeOf.GetTypeFromHandle;
+            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
+            EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
+        }
+
         private void EmitTypeOfExpression(BoundTypeOfOperator boundTypeOfOperator)
         {
             TypeSymbol type = boundTypeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
-            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
-            var getTypeMethod = boundTypeOfOperator.GetTypeFromHandle;
-            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
-            EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax, null);
+            EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
         private void EmitSizeOfExpression(BoundSizeOfOperator boundSizeOfOperator)
@@ -2628,6 +2671,68 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             TypeSymbol type = boundSizeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Sizeof);
             EmitSymbolToken(type, boundSizeOfOperator.SourceType.Syntax);
+        }
+
+        private void EmitMethodDefIndexExpression(BoundMethodDefIndex node)
+        {
+            Debug.Assert(node.Method.IsDefinition);
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+        }
+
+        private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitGreatestMethodToken();
+        }
+
+        private void EmitModuleVersionIdLoad(BoundModuleVersionId node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            EmitModuleVersionIdToken(node);
+        }
+
+        private void EmitModuleVersionIdStore(BoundModuleVersionId node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            EmitModuleVersionIdToken(node);
+        }
+
+        private void EmitModuleVersionIdToken(BoundModuleVersionId node)
+        {
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitModuleVersionIdStringLoad(BoundModuleVersionIdString node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldstr);
+            _builder.EmitModuleVersionIdStringToken();
+        }
+
+        private void EmitInstrumentationPayloadRootLoad(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            EmitInstrumentationPayloadRootToken(node);
+        }
+
+        private void EmitInstrumentationPayloadRootStore(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            EmitInstrumentationPayloadRootToken(node);  
+        }
+
+        private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitSourceDocumentIndexToken(node.Document);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

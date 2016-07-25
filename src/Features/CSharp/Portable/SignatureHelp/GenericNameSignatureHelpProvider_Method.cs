@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class GenericNameSignatureHelpProvider
     {
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 

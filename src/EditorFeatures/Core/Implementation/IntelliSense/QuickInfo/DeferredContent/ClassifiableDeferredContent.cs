@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     internal class ClassifiableDeferredContent : IDeferredQuickInfoContent
     {
         // Internal for testing purposes.
-        internal readonly IList<SymbolDisplayPart> ClassifiableContent;
+        internal readonly IList<TaggedText> ClassifiableContent;
         private readonly ClassificationTypeMap _typeMap;
 
         public ClassifiableDeferredContent(
-            IList<SymbolDisplayPart> content,
+            IList<TaggedText> content,
             ClassificationTypeMap typeMap)
         {
             this.ClassifiableContent = content;

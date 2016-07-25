@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             if (result != null && result.Any())
             {
-                var title = result.First().DisplayString;
+                var title = result.First().DisplayTaggedParts.JoinText();
                 foreach (var presenter in _navigableItemPresenters)
                 {
                     presenter.DisplayResult(title, result);

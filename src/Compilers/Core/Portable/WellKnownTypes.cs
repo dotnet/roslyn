@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_TupleElementNamesAttribute,
 
+        Microsoft_CodeAnalysis_Runtime_Instrumentation,
+
         NextAvailable,
     }
 
@@ -500,6 +502,7 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
+
             "System.IFormatProvider",
 
             "System.ValueTuple`1",
@@ -515,6 +518,8 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`8",
 
             "System.Runtime.CompilerServices.TupleElementNamesAttribute",
+
+            "Microsoft.CodeAnalysis.Runtime.Instrumentation"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -553,6 +558,9 @@ namespace Microsoft.CodeAnalysis
                         break;
                     case WellKnownType.ExtSentinel:
                         typeIdName = "";
+                        continue;
+                    case (WellKnownType.NextAvailable - 1):
+                        typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
                         continue;
                     default:
                         typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');

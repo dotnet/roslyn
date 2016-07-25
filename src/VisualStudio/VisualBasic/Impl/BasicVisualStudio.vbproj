@@ -143,7 +143,7 @@
     <Compile Include="Options\StyleViewModel.vb" />
     <Compile Include="Progression\VisualBasicGraphProvider.vb" />
     <Compile Include="Progression\VisualBasicProgressionLanguageService.vb" />
-    <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptions.vb" />
+    <Compile Include="ProjectSystemShim\VisualBasicProjectOptionsHelper.vb" />
     <Compile Include="ProjectSystemShim\EntryPointFinder.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbBuildStatusCallback.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbCompiler.vb" />
@@ -201,6 +201,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>

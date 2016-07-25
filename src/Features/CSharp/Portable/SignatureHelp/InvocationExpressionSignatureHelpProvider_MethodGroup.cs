@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetMethodGroupItems(
+        private IList<SignatureHelpItem> GetMethodGroupItems(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToList();
 
             return accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
@@ -112,11 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(method),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetMethodGroupPreambleParts(
+        private IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -156,9 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetMethodGroupPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetMethodGroupPostambleParts(IMethodSymbol method)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

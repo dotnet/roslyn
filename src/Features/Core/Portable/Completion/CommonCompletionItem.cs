@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
         {
-            return EncodeDescription(description.Select(d => new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray());
+            return EncodeDescription(description.ToTaggedText());
         }
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)

@@ -244,7 +244,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         boundFieldAccessExpression,
                                                         arrayCreation)
 
-            initializer.SetWasCompilerGenerated()
             boundInitializers.Add(initializer)
         End Sub
 

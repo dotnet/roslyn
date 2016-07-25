@@ -109,11 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 return moniker.Equals(Document.Key.Moniker, StringComparison.OrdinalIgnoreCase);
             }
-
-            public IReadOnlyList<string> GetFolderNames(uint documentItemID)
-            {
-                return SpecializedCollections.EmptyReadOnlyList<string>();
-            }
         }
     }
 }

@@ -4,7 +4,6 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -38,11 +37,11 @@ class $$C
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
                     TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C() ({ServicesVSResources._1_reference})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (11, 21) : var a = new C();")),
+                        TestFindResult.CreateReference("Test1.cs - (11, 21) : var a = new C();")),
                     TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C(int) ({ServicesVSResources._1_reference})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (12, 21) : var b = new C(5);")),
+                        TestFindResult.CreateReference("Test1.cs - (12, 21) : var b = new C(5);")),
                     TestFindResult.CreateDefinition($"[CSharpAssembly1] class C ({ServicesVSResources._1_reference})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (13, 17) : var c = C.z;"))
+                        TestFindResult.CreateReference("Test1.cs - (13, 17) : var c = C.z;"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
@@ -71,11 +70,11 @@ End Class"]]></Text>
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
                     TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Class C ({ServicesVSResources._1_reference})",
-                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (14, 17) : Dim d = C.z")),
+                        TestFindResult.CreateReference("Test1.vb - (14, 17) : Dim d = C.z")),
                     TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New() ({ServicesVSResources._1_reference})",
-                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (12, 21) : Dim a = New C()")),
+                        TestFindResult.CreateReference("Test1.vb - (12, 21) : Dim a = New C()")),
                     TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New(Integer) ({ServicesVSResources._1_reference})",
-                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (13, 21) : Dim b = New C(5)"))
+                        TestFindResult.CreateReference("Test1.vb - (13, 21) : Dim b = New C(5)"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.VisualBasic, expectedResults)
@@ -96,8 +95,8 @@ namespace NS
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
                     TestFindResult.CreateUnnavigable($"namespace NS ({String.Format(ServicesVSResources._0_references, 2)})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (2, 11) : namespace NS"),
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (6, 11) : namespace NS"))
+                        TestFindResult.CreateReference("Test1.cs - (2, 11) : namespace NS"),
+                        TestFindResult.CreateReference("Test1.cs - (6, 11) : namespace NS"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
@@ -113,8 +112,8 @@ using System.Threading;
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
                     TestFindResult.CreateUnnavigable($"namespace System ({String.Format(ServicesVSResources._0_references, 2)})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (2, 7) : using System;"),
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (3, 7) : using System.Threading;"))
+                        TestFindResult.CreateReference("Test1.cs - (2, 7) : using System;"),
+                        TestFindResult.CreateReference("Test1.cs - (3, 7) : using System.Threading;"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)

@@ -3186,7 +3186,6 @@ class C
                                     //-thisReference: C
                                     //-fieldAccess: dynamic
                                     //-unaryOperator: bool
-                                    //-sequencePointExpression: bool
         {
         }
     }

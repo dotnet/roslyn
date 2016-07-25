@@ -71,19 +71,19 @@ public class Cls
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
         }
 
-        private static ArgumentSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
+        private static DeclarationExpressionSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
         {
             return GetOutVarDeclarations(tree, name).Single();
         }
 
-        private static IEnumerable<ArgumentSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
+        private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
         {
-            return tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == name);
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Where(p => p.Identifier().ValueText == name);
         }
 
-        private static IEnumerable<ArgumentSyntax> GetOutVarDeclarations(SyntaxTree tree)
+        private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.Kind() != SyntaxKind.None);
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>();
         }
 
         [Fact]
@@ -131,55 +131,55 @@ public class Cls
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
 
-        private static void VerifyModelForOutVar(SemanticModel model, ArgumentSyntax decl, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForOutVar(model, decl, false, true, references);
         }
 
-        private static void VerifyModelForOutVarInNotExecutableCode(SemanticModel model, ArgumentSyntax decl, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForOutVarInNotExecutableCode(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForOutVar(model, decl, false, false, references);
         }
 
-        private static void VerifyModelForOutVar(SemanticModel model, ArgumentSyntax decl, bool isDelegateCreation, bool isExecutableCode, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, params IdentifierNameSyntax[] references)
         {
             var variableDeclaratorSyntax = GetVariableDeclarator(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
-            Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
-            Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
-            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+            Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
             var local = (SourceLocalSymbol)symbol;
 
-            if (decl.Type.IsVar && local.IsVar && local.Type.IsErrorType())
+            if (decl.Type().IsVar && local.IsVar && local.Type.IsErrorType())
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
+                Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
             }
             else
             {
-                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
+                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type()).Symbol);
             }
 
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
-                Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
-                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
                 Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
 
             VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
         }
 
-        private static void VerifyDataFlow(SemanticModel model, ArgumentSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
+        private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
         {
-            var dataFlowParent = decl.Parent.Parent as ExpressionSyntax;
+            var dataFlowParent = decl.Parent.Parent.Parent as ExpressionSyntax;
 
             if (dataFlowParent == null)
             {
-                Assert.IsAssignableFrom<ConstructorInitializerSyntax>(decl.Parent.Parent);
+                Assert.IsAssignableFrom<ConstructorInitializerSyntax>(decl.Parent.Parent.Parent);
                 return;
             }
 
@@ -213,25 +213,25 @@ public class Cls
             }
         }
 
-        private static void VerifyModelForOutVarDuplicateInSameScope(SemanticModel model, ArgumentSyntax decl)
+        private static void VerifyModelForOutVarDuplicateInSameScope(SemanticModel model, DeclarationExpressionSyntax decl)
         {
             var variableDeclaratorSyntax = GetVariableDeclarator(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
-            Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
-            Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
-            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+            Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
             var local = (SourceLocalSymbol)symbol;
 
-            if (decl.Type.IsVar && local.IsVar && local.Type.IsErrorType())
+            if (decl.Type().IsVar && local.IsVar && local.Type.IsErrorType())
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
+                Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
             }
             else
             {
-                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
+                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type()).Symbol);
             }
         }
 
@@ -271,12 +271,12 @@ public class Cls
             Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
-        private static VariableDeclaratorSyntax GetVariableDeclarator(ArgumentSyntax decl)
+        private static VariableDeclaratorSyntax GetVariableDeclarator(DeclarationExpressionSyntax decl)
         {
             return decl.Declaration.Variables.Single();
         }
 
-        private static bool FlowsIn(ExpressionSyntax dataFlowParent, ArgumentSyntax decl, IdentifierNameSyntax[] references)
+        private static bool FlowsIn(ExpressionSyntax dataFlowParent, DeclarationExpressionSyntax decl, IdentifierNameSyntax[] references)
         {
             foreach (var reference in references)
             {
@@ -343,7 +343,7 @@ public class Cls
             return false;
         }
 
-        private static bool FlowsOut(ExpressionSyntax dataFlowParent, ArgumentSyntax decl, IdentifierNameSyntax[] references)
+        private static bool FlowsOut(ExpressionSyntax dataFlowParent, DeclarationExpressionSyntax decl, IdentifierNameSyntax[] references)
         {
             ForStatementSyntax forStatement;
 
@@ -359,7 +359,7 @@ public class Cls
 
             MethodDeclarationSyntax methodDeclParent;
 
-            if (containingReturnOrThrow != null && decl.Identifier.ValueText == "x1" && 
+            if (containingReturnOrThrow != null && decl.Identifier().ValueText == "x1" && 
                 ((methodDeclParent = containingReturnOrThrow.Parent.Parent as MethodDeclarationSyntax) == null ||
                   methodDeclParent.Body.Statements.First() != containingReturnOrThrow))
             {
@@ -11396,9 +11396,9 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,14): error CS1503: Argument 1: cannot convert from 'out int' to 'out short'
+                // (6,18): error CS1503: Argument 1: cannot convert from 'out int' to 'out short'
                 //         Test(out int x1);
-                Diagnostic(ErrorCode.ERR_BadArgType, "out int x1").WithArguments("1", "out int", "out short").WithLocation(6, 14)
+                Diagnostic(ErrorCode.ERR_BadArgType, "int x1").WithArguments("1", "out int", "out short").WithLocation(6, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -11544,7 +11544,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
+            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
         }
 
         [Fact]
@@ -11661,7 +11661,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
         }
 
         [Fact]
@@ -11696,7 +11696,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
         }
 
         [Fact]
@@ -11735,7 +11735,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
 
@@ -11776,7 +11776,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
 
@@ -11807,9 +11807,9 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,21): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                // (6,25): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         Test2(Test1(out var x1), x1);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "out var x1").WithArguments("1", "ref").WithLocation(6, 21)
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var x1").WithArguments("1", "ref").WithLocation(6, 25)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -11819,7 +11819,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
 
@@ -11850,9 +11850,9 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                // (6,25): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(Test1(out var x1), x1);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "out var x1").WithArguments("1", "out").WithLocation(6, 21)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(6, 25)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -11862,7 +11862,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
         
@@ -11901,7 +11901,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
 
@@ -11965,12 +11965,12 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,33): error CS0149: Method name expected
+                // (6,37): error CS0149: Method name expected
                 //         Test2(new System.Action(out var x1), 
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "out var x1").WithLocation(6, 33),
-                // (6,33): error CS0165: Use of unassigned local variable 'x1'
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "var x1").WithLocation(6, 37),
+                // (6,37): error CS0165: Use of unassigned local variable 'x1'
                 //         Test2(new System.Action(out var x1), 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "out var x1").WithArguments("x1").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(6, 37)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -11980,7 +11980,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, true, true, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
 
@@ -12188,7 +12188,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("dynamic x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
         }
 
@@ -12266,7 +12266,7 @@ public class Cls
 
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
         }
 
         [Fact]
@@ -12626,467 +12626,6 @@ public class Cls
 
             var tree = compilation.SyntaxTrees.Single();
             Assert.False(GetOutVarDeclarations(tree, "x1").Any());
-        }
-
-        [Fact]
-        public void SyntaxModel_Factory_01()
-        {
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            VerifyArgumentException(() => SyntaxFactory.Argument((CSharpSyntaxNode)declarator), "expressionOrDeclaration");
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = SyntaxFactory.Argument((CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            // The parameter name isn't quite right, but it is fine since this factory is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => SyntaxFactory.Argument((CSharpSyntaxNode)declaration), "outKeyword");
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            VerifyArgumentException(() => SyntaxFactory.Argument((CSharpSyntaxNode)invalidDeclaration1), "outKeyword");
-            VerifyArgumentException(() => SyntaxFactory.Argument((CSharpSyntaxNode)invalidDeclaration2), "outKeyword");
-            VerifyArgumentException(() => SyntaxFactory.Argument((CSharpSyntaxNode)invalidDeclaration3), "outKeyword");
-            VerifyArgumentException(() => SyntaxFactory.Argument((CSharpSyntaxNode)invalidDeclaration4), "outKeyword");
-        }
-
-        [Fact]
-        public void SyntaxModel_Factory_02()
-        {
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), default(SyntaxToken), declarator), "expressionOrDeclaration");
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = SyntaxFactory.Argument(default(NameColonSyntax), default(SyntaxToken), (CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            argument = SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, (CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            argument = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            // The parameter name isn't quite right, but it is fine since this factory is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), default(SyntaxToken), (CSharpSyntaxNode)declaration), "outKeyword");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, (CSharpSyntaxNode)declaration), "outKeyword");
-
-            argument = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            // The parameter name isn't quite right, but it is fine since this factory is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_Factory_03()
-        {
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = SyntaxFactory.Argument(identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-        }
-        
-        [Fact]
-        public void SyntaxModel_Factory_04()
-        {
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = SyntaxFactory.Argument(default(NameColonSyntax), default(SyntaxToken), identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            argument = SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            argument = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-        }
-
-        [Fact]
-        public void SyntaxModel_Factory_05()
-        {
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(SyntaxToken), declaration), "outKeyword");
-            VerifyArgumentException(() => SyntaxFactory.Argument(refKeyword, declaration), "outKeyword");
-
-            var argument = SyntaxFactory.Argument(outKeyword, declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            // The parameter name isn't quite right, but it is fine since this factory is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => SyntaxFactory.Argument(outKeyword, invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(outKeyword, invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(outKeyword, invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(outKeyword, invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_Factory_06()
-        {
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), default(SyntaxToken), declaration), "outKeyword");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, declaration), "outKeyword");
-
-            var argument = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            // The parameter name isn't quite right, but it is fine since this factory is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_Update_01()
-        {
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), default(SyntaxToken), declarator), "expressionOrDeclaration");
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = initial.Update(default(NameColonSyntax), default(SyntaxToken), (CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            argument = initial.Update(default(NameColonSyntax), refKeyword, (CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            argument = initial.Update(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            // The parameter name isn't quite right, but it is fine since this method is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), default(SyntaxToken), (CSharpSyntaxNode)declaration), "outKeyword");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), refKeyword, (CSharpSyntaxNode)declaration), "outKeyword");
-
-            argument = initial.Update(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            // The parameter name isn't quite right, but it is fine since this method is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, (CSharpSyntaxNode)invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_Update_02()
-        {
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = initial.Update(default(NameColonSyntax), default(SyntaxToken), identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            argument = initial.Update(default(NameColonSyntax), refKeyword, identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            argument = initial.Update(default(NameColonSyntax), outKeyword, identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-        }
-
-        [Fact]
-        public void SyntaxModel_Update_03()
-        {
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), default(SyntaxToken), declaration), "outKeyword");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), refKeyword, declaration), "outKeyword");
-
-            var argument = initial.Update(default(NameColonSyntax), outKeyword, declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => initial.Update(default(NameColonSyntax), outKeyword, invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_WithExpressionOrDeclaration()
-        {
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            VerifyArgumentException(() => initial.WithExpressionOrDeclaration(declarator), "expressionOrDeclaration");
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = initial.WithExpressionOrDeclaration((CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var initialRef = SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, SyntaxFactory.IdentifierName("a"));
-            argument = initialRef.WithExpressionOrDeclaration((CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            var initialOut = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, SyntaxFactory.IdentifierName("a"));
-            argument = initialOut.WithExpressionOrDeclaration((CSharpSyntaxNode)identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            // The parameter name isn't quite right, but it is fine since this method is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => initial.WithExpressionOrDeclaration((CSharpSyntaxNode)declaration), "outKeyword");
-            VerifyArgumentException(() => initialRef.WithExpressionOrDeclaration((CSharpSyntaxNode)declaration), "outKeyword");
-
-            argument = initialOut.WithExpressionOrDeclaration((CSharpSyntaxNode)declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            // The parameter name isn't quite right, but it is fine since this method is internal.
-            // The is chosen to work well with public factories.
-            VerifyArgumentException(() => initialOut.WithExpressionOrDeclaration((CSharpSyntaxNode)invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => initialOut.WithExpressionOrDeclaration((CSharpSyntaxNode)invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => initialOut.WithExpressionOrDeclaration((CSharpSyntaxNode)invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => initialOut.WithExpressionOrDeclaration((CSharpSyntaxNode)invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_WithExpression()
-        {
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var argument = initial.WithExpression(identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var initialRef = SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, identifierName);
-            argument = initialRef.WithExpression(identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            var initialOut = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, identifierName);
-            argument = initialOut.WithExpression(identifierName);
-            Assert.Equal(identifierName.ToString(), argument.Expression.ToString());
-            Assert.Null(argument.Declaration);
-        }
-
-        [Fact]
-        public void SyntaxModel_WithrDeclaration()
-        {
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var initialRef = SyntaxFactory.Argument(default(NameColonSyntax), refKeyword, SyntaxFactory.IdentifierName("a"));
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            var initialOut = SyntaxFactory.Argument(default(NameColonSyntax), outKeyword, SyntaxFactory.IdentifierName("a"));
-
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            Assert.Throws<InvalidOperationException>(() => initial.WithDeclaration(declaration));
-            Assert.Throws<InvalidOperationException>(() => initialRef.WithDeclaration(declaration));
-
-            var argument = initialOut.WithDeclaration(declaration);
-            Assert.Equal(declaration.ToString(), argument.Declaration.ToString());
-            Assert.Null(argument.Expression);
-
-            var invalidDeclaration1 = SyntaxFactory.VariableDeclaration(identifierName);
-            var invalidDeclaration2 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] { declarator, declarator }));
-            var invalidDeclaration3 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, SyntaxFactory.BracketedArgumentList(), null) }));
-
-            var invalidDeclaration4 = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                        SyntaxFactory.SeparatedList(new[] {
-                                                                            SyntaxFactory.VariableDeclarator(declarator.Identifier, null, SyntaxFactory.EqualsValueClause(identifierName)) }));
-
-            VerifyArgumentException(() => initialOut.WithDeclaration(invalidDeclaration1), "declaration");
-            VerifyArgumentException(() => initialOut.WithDeclaration(invalidDeclaration2), "declaration");
-            VerifyArgumentException(() => initialOut.WithDeclaration(invalidDeclaration3), "declaration");
-            VerifyArgumentException(() => initialOut.WithDeclaration(invalidDeclaration4), "declaration");
-        }
-
-        [Fact]
-        public void SyntaxModel_WithRefOrOutKeyword()
-        {
-            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-            var outKeyword = SyntaxFactory.Token(SyntaxKind.OutKeyword);
-            var initial = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("a"));
-
-            var argument = initial.WithRefOrOutKeyword(refKeyword);
-            Assert.Equal(SyntaxKind.RefKeyword, argument.RefOrOutKeyword.Kind());
-
-            argument = initial.WithRefOrOutKeyword(outKeyword);
-            Assert.Equal(SyntaxKind.OutKeyword, argument.RefOrOutKeyword.Kind());
-
-            argument = argument.WithRefOrOutKeyword(default(SyntaxToken));
-            Assert.Equal(SyntaxKind.None, argument.RefOrOutKeyword.Kind());
-
-            var declarator = SyntaxFactory.VariableDeclarator("a");
-            var identifierName = SyntaxFactory.IdentifierName("type");
-            var declaration = SyntaxFactory.VariableDeclaration(identifierName,
-                                                                SyntaxFactory.SeparatedList(new[] { declarator }));
-
-            initial = initial.WithRefOrOutKeyword(outKeyword).WithDeclaration(declaration);
-            VerifyArgumentException(() => initial.WithRefOrOutKeyword(default(SyntaxToken)), "refOrOutKeyword");
-            VerifyArgumentException(() => initial.WithRefOrOutKeyword(refKeyword), "refOrOutKeyword");
-
-            argument = initial.WithRefOrOutKeyword(outKeyword);
-            Assert.Equal(SyntaxKind.OutKeyword, argument.RefOrOutKeyword.Kind());
-        }
-
-        private static void VerifyArgumentException(System.Action testCode, string paramName)
-        {
-            try
-            {
-                testCode();
-            }
-            catch (ArgumentException ex)
-            {
-                Assert.Equal(paramName, ex.Message);
-                return;
-            }
-
-            Assert.False(true, "Expected exception is not thrown.");
         }
 
         [Fact]

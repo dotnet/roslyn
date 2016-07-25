@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return CompletionDescription.Empty;
             }
 
-            var textContentBuilder = new List<SymbolDisplayPart>();
+            var textContentBuilder = new List<TaggedText>();
             textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
 
             switch (symbol.Kind)
@@ -154,13 +154,13 @@ namespace Microsoft.CodeAnalysis.Completion
             if (supportedPlatforms != null)
             {
                 textContentBuilder.AddLineBreak();
-                textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts());
+                textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
             }
 
-            return CompletionDescription.Create(textContentBuilder.Select(p => new TaggedText(SymbolDisplayPartKindTags.GetTag(p.Kind), p.ToString())).ToImmutableArray());
+            return CompletionDescription.Create(textContentBuilder.AsImmutable());
         }
 
-        private static void AddOverloadPart(List<SymbolDisplayPart> textContentBuilder, int overloadCount, bool isGeneric)
+        private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)
         {
             var text = isGeneric
                 ? overloadCount == 1
@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.Completion
             textContentBuilder.AddText(NonBreakingSpaceString + text);
         }
 
-        private static void AddDocumentationPart(List<SymbolDisplayPart> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        private static void AddDocumentationPart(
+            List<TaggedText> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
             var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
 

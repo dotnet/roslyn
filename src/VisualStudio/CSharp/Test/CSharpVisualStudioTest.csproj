@@ -153,8 +153,12 @@
     <Compile Include="Interactive\Commands\TestResetInteractive.cs" />
     <Compile Include="Interactive\TestInteractiveEvaluator.cs" />
     <Compile Include="PersistentStorage\SolutionSizeTests.cs" />
-    <Compile Include="ProjectSystemShim\CSharpReferencesTests.cs" />
-    <Compile Include="ProjectSystemShim\SourceFileHandlingTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\AnalyzersTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\CSharpCompilerOptionsTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\CSharpReferencesTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\CSharpReferencesTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\SourceFileHandlingTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\SourceFileHandlingTests.cs" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.Lines.cs" />
@@ -169,8 +173,8 @@
     <Compile Include="Options\OptionViewModelTests.cs" />
     <Compile Include="PersistentStorage\OptionServiceMock.cs" />
     <Compile Include="PersistentStorage\PersistentStorageTests.cs" />
-    <Compile Include="ProjectSystemShim\AnalyzersTests.cs" />
-    <Compile Include="ProjectSystemShim\CSharpCompilerOptionsTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\AnalyzersTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\CSharpCompilerOptionsTests.cs" />
     <Compile Include="ProjectSystemShim\CSharpHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
