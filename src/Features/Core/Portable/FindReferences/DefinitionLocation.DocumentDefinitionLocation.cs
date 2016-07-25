@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
 
             /// <summary>
             /// Show the project that this <see cref="DocumentLocation"/> is contained in as the
-            /// Origination of this <see cref="DefinitionItem"/>.
+            /// Origination of this <see cref="DefinitionLocation"/>.
             /// </summary>
             public override ImmutableArray<TaggedText> OriginationParts =>
                 ImmutableArray.Create(new TaggedText(TextTags.Text, _location.Document.Project.Name));
