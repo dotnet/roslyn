@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -218,10 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
                 var location = referenceLocation.Location;
-                if (!location.IsInSource)
-                {
-                    continue;
-                }
+                Debug.Assert(location.IsInSource);
 
                 var documentLocation = new DocumentLocation(
                     referenceLocation.Document, referenceLocation.Location.SourceSpan);
@@ -230,8 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     continue;
                 }
 
-                var referenceItem = new SourceReferenceItem(definitionItem, documentLocation);
-                references.Add(referenceItem);
+                references.Add(new SourceReferenceItem(definitionItem, documentLocation));
             }
         }
 
