@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 // Each definition item may end up as several top nodes (because of partials).
                 // Add the references to the last item actually in the list.
                 var definitionTreeItem = i == n - 1
-                    ? new DefinitionTreeItem(definitionItem, location)
-                    : new DefinitionTreeItem(definitionItem, location, referenceItems);
+                    ? new DefinitionTreeItem(definitionItem, location, referenceItems)
+                    : new DefinitionTreeItem(definitionItem, location);
 
                 result.Add(definitionTreeItem);
             }

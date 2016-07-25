@@ -45,16 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             // results that tell us about their definition location, but not any additional
             // reference.  We don't want to say '0' references in that case as that can
             // be misleading.
-            return HasOrigination()
+            var hasOrigination = _definitionLocation.OriginationParts.Length > 0;
+            return hasOrigination
                 ? $"[{_definitionLocation.OriginationParts.JoinText()}] {displayString} ({referenceCountDisplay})"
                 : referenceCount > 0
                     ? $"{displayString} ({referenceCountDisplay})"
                     : displayString;
-        }
-
-        private bool HasOrigination()
-        {
-            return _definitionLocation.OriginationParts.Length > 0;
         }
 
         public override int GoToSource()
