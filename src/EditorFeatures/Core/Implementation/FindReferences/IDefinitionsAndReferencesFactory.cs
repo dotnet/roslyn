@@ -99,6 +99,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
         }
 
+        /// <summary>
+        /// Provides an extension point that allows for other workspace layers to add additional
+        /// results to the results found by the FindReferences engine.
+        /// </summary>
         protected virtual DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, ISymbol definition)
         {
