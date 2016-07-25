@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Collections.Immutable;
 
 namespace RepoUtil
 {
@@ -16,10 +17,46 @@ namespace RepoUtil
         /// </summary>
         internal static bool NeedsTracking(string filePath)
         {
+            return GetDependencies(filePath).Length > 0;
+        }
+
+        internal static ImmutableArray<NuGetReference> GetDependencies(string filePath)
+        {
             // Need to track any file that has dependencies
             var obj = JObject.Parse(File.ReadAllText(filePath));
             var dependencies = (JObject)obj["dependencies"];
-            return dependencies != null && dependencies.Properties().Any();
+            if (dependencies == null)
+            {
+                return ImmutableArray<NuGetReference>.Empty;
+            }
+
+            var builder = ImmutableArray.CreateBuilder<NuGetReference>();
+            foreach (var dependency in dependencies.Properties())
+            {
+                builder.Add(ParseDependency(dependency));
+            }
+
+            return builder.ToImmutable();
+        }
+
+        /// <summary>
+        /// Parse out a dependency entry from the project.json file.
+        /// </summary>
+        internal static NuGetReference ParseDependency(JProperty prop)
+        {
+            var name = prop.Name;
+
+            string version;
+            if (prop.Value.Type == JTokenType.String)
+            {
+                version = (string)prop.Value;
+            }
+            else
+            {
+                version = ((JObject)prop.Value).Value<string>("version");
+            }
+
+            return new NuGetReference(name, version);
         }
 
         internal static bool VerifyTracked(string sourcesPath, IEnumerable<FileName> fileNames)
