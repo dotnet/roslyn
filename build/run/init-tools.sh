@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
-__init_tools_log=$__scriptpath/init-tools.log
+__init_tools_log=$__scriptpath/../../Binaries/Tools/init-tools.log
 __PACKAGES_DIR=$__scriptpath/../../packages
 __TOOLRUNTIME_DIR=$__scriptpath/../../Binaries/Tools
 __DOTNET_PATH=$__TOOLRUNTIME_DIR/dotnetcli

@@ -1,7 +1,7 @@
 @if "%_echo%" neq "on" echo off
 setlocal
 
-set INIT_TOOLS_LOG=%~dp0init-tools.log
+set INIT_TOOLS_LOG=%~dp0..\..\Binaries\Tools\init-tools.log
 if [%PACKAGES_DIR%]==[] set PACKAGES_DIR=%~dp0..\..\packages\
 if [%TOOLRUNTIME_DIR%]==[] set TOOLRUNTIME_DIR=%~dp0..\..\Binaries\Tools
 set DOTNET_PATH=%TOOLRUNTIME_DIR%\dotnetcli\

@@ -26,7 +26,7 @@
             },
             "defaultValues": {
                 "toolName": "terminal",
-                "Project": "./build/run/build",
+                "Project": "./build",
                 "settings": { }
             }
         },
@@ -34,7 +34,7 @@
             "alias": { },
             "defaultValues": {
                 "toolName": "terminal",
-                "Project": "./build/run/sync",
+                "Project": "./sync",
                 "settings": { }
             }
         },
@@ -69,7 +69,7 @@
             },
             "defaultValues":{
                 "toolName": "terminal",
-                "Project": "./build/run/clean",
+                "Project": "./clean",
                 "settings": { }
             }
         }      
