@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             // We don't show an origination location for a namespace because it can span over
             // both metadata assemblies and source projects.
+            //
+            // Otherwise show the assembly this symbol came from as the Origination of
+            // the DefinitionItem.
             if (symbol.Kind != SymbolKind.Namespace)
             {
                 var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
