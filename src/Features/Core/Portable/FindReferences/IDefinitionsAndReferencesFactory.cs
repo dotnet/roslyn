@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             }
 
             // Try to create an item for this definition.  If we can't,
-            // ignorei it entirely (including all its reference locations).
+            // ignore it entirely (including all its reference locations).
             var definitionItem = CreateDefinitionItem(solution, referencedSymbol);
             if (definitionItem == null)
             {
