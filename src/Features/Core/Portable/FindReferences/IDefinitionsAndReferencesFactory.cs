@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var filteredLocations = FilterDefinitionLocations(definition);
 
             // Convert the filtered set of locations to DefinitionLocation instances.
-            // If weren't any to, say because the symbol had no locations that we
+            // If weren't able to, say because the symbol had no locations that we
             // could understand (like Location.None), then we skip this item.
             var definitionLocations = ConvertLocations(solution, referencedSymbol, filteredLocations);
             var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
