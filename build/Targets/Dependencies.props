@@ -9,7 +9,7 @@
     <!-- symreader -->
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60706-02</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60723-01</MicrosoftDiaSymReaderPortablePdbVersion>
 
     <!-- CoreFX -->
     <NETStandardLibraryVersion>1.6.0</NETStandardLibraryVersion>
@@ -32,7 +32,7 @@
     <SystemReflectionVersion>4.1.0</SystemReflectionVersion>
     <SystemReflectionExtensionsVersion>4.0.1</SystemReflectionExtensionsVersion>
     <SystemReflectionPrimitivesVersion>4.0.1</SystemReflectionPrimitivesVersion>
-    <SystemReflectionMetadataVersion>1.4.1-beta-24227-04</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24322-03</SystemReflectionMetadataVersion>
     <SystemResourcesResourceManagerVersion>4.0.1</SystemResourcesResourceManagerVersion>
     <SystemRuntimeVersion>4.1.0</SystemRuntimeVersion>
     <SystemRuntimeExtensionsVersion>4.1.0</SystemRuntimeExtensionsVersion>
