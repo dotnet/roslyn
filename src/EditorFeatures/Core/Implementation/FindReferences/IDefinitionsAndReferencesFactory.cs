@@ -206,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 if (!documentLocation.CanNavigateTo())
                 {
                     continue;
-
                 }
 
                 var referenceItem = new SourceReferenceItem(definitionItem, documentLocation);

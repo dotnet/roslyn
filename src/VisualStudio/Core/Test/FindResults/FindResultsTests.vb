@@ -3,6 +3,7 @@
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -148,7 +149,10 @@ using System.Threading;
 
                 WpfTestCase.RequireWpfFact($"The {NameOf(Implementation.Library.FindResults.LibraryManager)} assumes it's on the VS UI thread and thus uses WaitAndGetResult")
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
-                Dim findReferencesTree = libraryManager.CreateFindReferencesItems(workspace.CurrentSolution, result)
+
+                Dim factory = workspace.Services.GetService(Of IDefinitionsAndReferencesFactory)
+                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(workspace.CurrentSolution, result)
+                Dim findReferencesTree = libraryManager.CreateFindReferencesItems(definitionsAndReferences)
 
                 ' We cannot control the ordering of top-level nodes in the Find Symbol References window, so do not consider ordering of these items here.
                 expectedResults = expectedResults.OrderBy(Function(n) n.DisplayText).ToList()
