@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -29,14 +24,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         internal IList<AbstractTreeItem> CreateFindReferencesItems(
             DefinitionsAndReferences definitionsAndReferences)
         {
-            var definitionItems = definitionsAndReferences.Definitions;
-            return definitionItems.SelectMany(d => CreateDefinitionItems(d, definitionsAndReferences))
-                                  .ToList();
+            var documents = definitionsAndReferences.References.Select(r => r.Location.Document)
+                                                               .WhereNotNull()
+                                                               .ToSet();
+            var commonPathElements = CountCommonPathElements(documents);
+
+            var query = from d in definitionsAndReferences.Definitions
+                        from i in CreateDefinitionItems(d, definitionsAndReferences, commonPathElements)
+                        select i;
+
+            return query.ToList();
         }
 
         private IEnumerable<AbstractTreeItem> CreateDefinitionItems(
             DefinitionItem definitionItem,
-            DefinitionsAndReferences definitionsAndReferences)
+            DefinitionsAndReferences definitionsAndReferences,
+            int commonPathElements)
         {
             // Each definition item may end up as several top nodes (because of partials).
             // Add the references to the last item actually in the list.
@@ -44,24 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (!definitionTreeItems.IsEmpty)
             {
                 var lastTreeItem = definitionTreeItems.Last();
-                var referenceItems = CreateReferenceItems(definitionItem, definitionsAndReferences);
+                var referenceItems = CreateReferenceItems(
+                    definitionItem, definitionsAndReferences, commonPathElements);
 
                 lastTreeItem.Children.AddRange(referenceItems);
                 lastTreeItem.SetReferenceCount(referenceItems.Count);
             }
 
             return definitionTreeItems;
-
-            //    // Add on any definition locations from third party language services
-            //    string filePath;
-            //    int lineNumber, charOffset;
-            //    if (symbolNavigationService.WouldNavigateToSymbol(definition, solution, out filePath, out lineNumber, out charOffset))
-            //    {
-            //        definitions.Add(new ExternalLanguageDefinitionTreeItem(filePath, lineNumber, charOffset, definition.Name, definition.GetGlyph().GetGlyphIndex(), this.ServiceProvider));
-            //    }
-            //}
-
-            //return definitions;
         }
 
         private ImmutableArray<AbstractTreeItem> ConvertToDefinitionTreeItems(
@@ -75,30 +68,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
 
             return result.ToImmutable();
-            //if (!location.IsInSource)
-            //{
-            //    return referencedSymbol.Locations.Any()
-            //        ? new MetadataDefinitionTreeItem(
-            //            solution.Workspace,
-            //            referencedSymbol.Definition,
-            //            referencedSymbol.Locations.First().Document.Project.Id,
-            //            glyph.GetGlyphIndex())
-            //        : null;
-            //}
-
-            //var document = solution.GetDocument(location.SourceTree);
-            //var sourceSpan = location.SourceSpan;
-            //if (!IsValidSourceLocation(document, sourceSpan))
-            //{
-            //    return null;
-            //}
-
-            //return new SourceDefinitionTreeItem(document, sourceSpan, referencedSymbol.Definition, glyph.GetGlyphIndex());
         }
 
         private IList<SourceReferenceTreeItem> CreateReferenceItems(
             DefinitionItem definitionItem,
-            DefinitionsAndReferences definitionsAndReferences)
+            DefinitionsAndReferences definitionsAndReferences,
+            int commonPathElements)
         {
             var result = new List<SourceReferenceTreeItem>();
 
@@ -107,9 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             {
                 var documentLocation = referenceItem.Location;
                 result.Add(new SourceReferenceTreeItem(
-                    documentLocation.Document, 
+                    documentLocation.Document,
                     documentLocation.SourceSpan,
-                    Glyph.Reference.GetGlyphIndex()));
+                    Glyph.Reference.GetGlyphIndex(),
+                    commonPathElements));
             }
 
             var linkedReferences = result.GroupBy(r => r.DisplayText.ToLowerInvariant()).Where(g => g.Count() > 1).SelectMany(g => g);

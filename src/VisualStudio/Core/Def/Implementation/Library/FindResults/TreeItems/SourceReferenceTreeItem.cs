@@ -29,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private static readonly ObjectPool<StringBuilder> s_filePathBuilderPool = new ObjectPool<StringBuilder>(() => new StringBuilder());
 
-        private SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0)
+        private SourceReferenceTreeItem(
+            Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements)
             : base(glyphIndex)
         {
             // We store the document ID, line and offset for navigation so that we
@@ -58,7 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _mappedOffset = succeeded ? spanInPrimaryBuffer.iStartIndex : _offset;
         }
 
-        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0, string displayText = null, bool includeFileLocation = false)
+        public SourceReferenceTreeItem(
+            Document document, TextSpan sourceSpan, ushort glyphIndex,
+            int commonPathElements, string displayText = null, bool includeFileLocation = false)
             : this(document, sourceSpan, glyphIndex, commonPathElements)
         {
             if (displayText != null && !includeFileLocation)
