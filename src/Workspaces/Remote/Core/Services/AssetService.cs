@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetService
     {
-        private const int CleanupInterval = 30000; // 30 seconds
-        private const int PurgeAfter = 60000; // 60 seconds
+        private const int CleanupInterval = 3; // 3 minutes
+        private const int PurgeAfter = 30; // 30 minutes
 
         // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
         private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy").Services);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 foreach (var kvp in _assets)
                 {
-                    if (DateTime.UtcNow - kvp.Value.Item1 <= TimeSpan.FromMinutes(1))
+                    if (DateTime.UtcNow - kvp.Value.Item1 <= TimeSpan.FromMinutes(PurgeAfter))
                     {
                         continue;
                     }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     _assets.TryRemove(kvp.Key, out value);
                 }
 
-                await Task.Delay(PurgeAfter).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(CleanupInterval).Milliseconds).ConfigureAwait(false);
             }
         }
 
