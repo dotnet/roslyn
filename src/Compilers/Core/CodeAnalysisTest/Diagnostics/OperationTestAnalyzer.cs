@@ -999,12 +999,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
-            ImmutableArray.Create(EventReferenceDescriptor, 
-                HandlerAddedDescriptor, 
-                HandlerRemovedDescriptor, 
-                PropertyReferenceDescriptor, 
-                FieldReferenceDescriptor, 
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(EventReferenceDescriptor,
+                HandlerAddedDescriptor,
+                HandlerRemovedDescriptor,
+                PropertyReferenceDescriptor,
+                FieldReferenceDescriptor,
                 MethodBindingDescriptor,
                 InvalidEventDescriptor);
 
@@ -1233,11 +1233,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.None);
         }
     }
-    
+
     public class AddressOfTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor AddressOfDescriptor = new DiagnosticDescriptor(
             "AddressOfOperation",
             "AddressOf operation found",
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(BinaryUserDefinedOperatorDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
                     {
                         operationContext.ReportDiagnostic(
-                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor, 
+                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor,
                                 binary.Syntax.GetLocation(),
                                 binary.BinaryOperationKind.ToString()));
                     }
@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor ForLoopConditionCrashDescriptor = new DiagnosticDescriptor(
             "ForLoopConditionCrash",
             "Ensure ForLoopCondition property doesn't crash",
@@ -2062,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterSyntaxNodeAction(
                  (syntaxContext) =>
                  {
-                     
+
                      syntaxContext.ReportDiagnostic(Diagnostic.Create(AssignmentSyntaxDescriptor, syntaxContext.Node.GetLocation()));
                  },
                  CSharp.SyntaxKind.SimpleAssignmentExpression);
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class LiteralTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor LiteralDescriptor = new DiagnosticDescriptor(
             "Literal",
             "A literal is found",
@@ -2099,19 +2099,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     // This analyzer is to test operation action registration method in AnalysisContext
-    public class IOperationFeatureFlagTestAnalyzer1 : DiagnosticAnalyzer
+    public class AnalysisContextAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
 
         public static readonly DiagnosticDescriptor OperationActionDescriptor = new DiagnosticDescriptor(
-            "OperationAction1",
+            "AnalysisContext",
             "An operation related action is invoked",
             "An {0} action is invoked in {1} context.",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(OperationActionDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
@@ -2127,12 +2127,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     // This analyzer is to test internal operation action registration method in AnalysisContext
-    public class IOperationFeatureFlagTestAnalyzer1Internal : DiagnosticAnalyzer
+    public class AnalysisContextInternalAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
 
         public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
-            "OperationAction1Internal",
+            "AnalysisContextInternal",
             "An operation related action is invoked",
             "An {0} action is invoked in {1} context.",
             ReliabilityCategory,
@@ -2155,12 +2155,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     // This analyzer is to test operation action registration method in CompilationStartAnalysisContext
-    public class IOperationFeatureFlagTestAnalyzer2 : DiagnosticAnalyzer
+    public class CompilationStartAnalysisContextAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
 
         public static readonly DiagnosticDescriptor OperationActionDescriptor = new DiagnosticDescriptor(
-            "OperationAction2",
+            "CompilationStartAnalysisContext",
             "An operation related action is invoked",
             "An {0} action is invoked in {1} context.",
             ReliabilityCategory,
@@ -2187,12 +2187,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     // This analyzer is to test internal operation action registration method in CompilationStartAnalysisContext
-    public class IOperationFeatureFlagTestAnalyzer2Internal : DiagnosticAnalyzer
+    public class CompilationStartAnalysisContextInternalAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
 
         public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
-            "OperationAction2Internal",
+            "CompilationStartAnalysisContextInternal",
             "An operation related action is invoked",
             "An {0} action is invoked in {1} context.",
             ReliabilityCategory,
@@ -2219,11 +2219,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     // This analyzer is to test GetOperation method in SemanticModel
-    public class IOperationFeatureFlagTestAnalyzer3 : DiagnosticAnalyzer
+    public class SemanticModelAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
 
-        
         public static readonly DiagnosticDescriptor GetOperationDescriptor = new DiagnosticDescriptor(
             "GetOperation",
             "An IOperation is returned by SemanticModel",
@@ -2231,7 +2230,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-        
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(GetOperationDescriptor);
@@ -2265,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     // This analyzer is to test GetOperationInternal method in SemanticModel
-    public class IOperationFeatureFlagTestAnalyzer3Internal : DiagnosticAnalyzer
+    public class SemanticModelInternalAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
 

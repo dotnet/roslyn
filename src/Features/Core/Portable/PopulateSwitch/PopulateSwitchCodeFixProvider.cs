@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var switchNode = root.FindNode(span);
             var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-            var switchStatement = (ISwitchStatement)(internalMethod.Invoke(model, new object[] { switchNode, cancellationToken }));
+            var switchStatement = (ISwitchStatement)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
             var enumType = switchStatement.Value.Type;
 
             var generator = SyntaxGenerator.GetGenerator(document);

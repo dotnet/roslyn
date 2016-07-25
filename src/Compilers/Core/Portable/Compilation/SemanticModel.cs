@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
@@ -77,16 +77,7 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
             }
 
-            try
-            {
-                return GetOperationCore(node, cancellationToken);
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-            }
-
-            return null;
+            return GetOperationInternal(node, cancellationToken);
         }
 
         internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
@@ -98,6 +89,7 @@ namespace Microsoft.CodeAnalysis
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
+                Debug.Assert(false);
             }
 
             return null;

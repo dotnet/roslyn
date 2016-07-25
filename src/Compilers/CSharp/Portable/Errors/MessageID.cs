@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureReplace = MessageBase + 12712,
         IDS_FeatureOutVar = MessageBase + 12713,
-        
+
         IDS_FeatureIOperation = MessageBase + 12714,
     }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureIOperation:
                     return "IOperation";
                 default:
-                    return null;                
+                    return null;
             }
         }
 
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureReplace:
                 case MessageID.IDS_FeatureOutVar:
                     return LanguageVersion.CSharp7;
-                    
+
                 // C# 6 features.
                 case MessageID.IDS_FeatureExceptionFilter:
                 case MessageID.IDS_FeatureAutoPropertyInitializer:

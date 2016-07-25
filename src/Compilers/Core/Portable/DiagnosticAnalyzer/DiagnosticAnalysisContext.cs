@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
-        
+
         public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
