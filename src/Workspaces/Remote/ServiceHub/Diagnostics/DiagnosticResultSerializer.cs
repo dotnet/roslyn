@@ -40,6 +40,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 writer.WriteString(kv.Key);
                 Serialize(writer, kv.Value, cancellationToken);
             }
+
+            var exceptions = result.Exceptions;
+
+            writer.WriteInt32(exceptions.Count);
+            foreach (var kv in exceptions)
+            {
+                writer.WriteString(kv.Key);
+                diagnosticSerializer.WriteTo(writer, kv.Value, cancellationToken);
+            }
         }
 
         public static DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> Deserialize(
@@ -79,7 +88,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 telemetryMap.Add(analyzer, telemetryInfo);
             }
 
-            return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable());
+            var exceptionMap = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>();
+
+            var exceptionCount = reader.ReadInt32();
+            for (var i = 0; i < exceptionCount; i++)
+            {
+                var analyzer = analyzerMap[reader.ReadString()];
+                var exceptions = diagnosticDataSerializer.ReadFrom(reader, project, cancellationToken);
+
+                exceptionMap.Add(analyzer, exceptions);
+            }
+
+            return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable(), exceptionMap.ToImmutable());
         }
 
         private static void Serialize(

@@ -28,14 +28,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         private static readonly ICompilerDiagnosticAnalyzer _inProcAnalyzer = new InProcCompilerDiagnosticAnalyzer();
 
         private readonly IDiagnosticAnalyzerService _analyzerService;
+        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         // TODO: solution snapshot tracking for current solution should be its own service
         private ChecksumScope _lastSnapshot;
 
         [ImportingConstructor]
-        public OutOfProcCompilerDiagnosticAnalyzer(IDiagnosticAnalyzerService analyzerService)
+        public OutOfProcCompilerDiagnosticAnalyzer(
+            IDiagnosticAnalyzerService analyzerService,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _analyzerService = analyzerService;
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
@@ -84,20 +88,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             // TODO: send telemetry on session
             using (var session = await client.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                var argument = new DiagnosticArguments()
-                {
-                    ReportSuppressedDiagnostics = analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
-                    LogAnalyzerExecutionTime = analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                    ProjectIdGuid = project.Id.Id,
-                    ProjectIdDebugName = project.Id.DebugName,
-                    HostAnalyzerChecksumsByteArray = hostChecksums.ToArray(),
-                    AnalyzerIds = analyzerMap.Keys.ToArray()
-                };
+                var argument = new DiagnosticArguments(
+                    analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
+                    analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
+                    project.Id, hostChecksums, analyzerMap.Keys.ToArray());
 
-                return await session.InvokeAsync(
+                var result = await session.InvokeAsync(
                     WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
                     new object[] { argument },
                     (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c)).ConfigureAwait(false);
+
+                ReportAnalyzerExceptions(project, result.Exceptions);
+
+                return result;
             }
         }
 
@@ -125,6 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             using (var reader = new ObjectReader(stream))
             {
                 return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
+            }
+        }
+
+        private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
+        {
+            foreach (var kv in exceptions)
+            {
+                var analyzer = kv.Key;
+                foreach (var diagnostic in kv.Value)
+                {
+                    _hostDiagnosticUpdateSource.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
+                }
             }
         }
 

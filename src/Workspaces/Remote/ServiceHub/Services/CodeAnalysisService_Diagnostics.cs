@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var projectId = arguments.GetProjectId();
             var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
 
-            var result = await (new DiagnosticComputer()).GetDiagnosticsAsync(
-                solution, projectId, analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
+            var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
+                analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
 
             await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
         }

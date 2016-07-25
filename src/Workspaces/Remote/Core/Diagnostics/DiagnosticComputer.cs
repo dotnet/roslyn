@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,18 +15,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal class DiagnosticComputer
     {
+        private readonly Project _project;
+        private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
+
+        public DiagnosticComputer(Project project)
+        {
+            _project = project;
+            _exceptions = new Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>>();
+        }
+
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
-            Solution solution,
-            ProjectId projectId,
             IEnumerable<AnalyzerReference> hostAnalyzers,
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
         {
-            var project = solution.GetProject(projectId);
-
-            var analyzerMap = CreateAnalyzerMap(hostAnalyzers, project);
+            var analyzerMap = CreateAnalyzerMap(hostAnalyzers, _project);
             var analyzers = GetAnalyzers(analyzerMap, analyzerIds);
 
             if (analyzers.Length == 0)
@@ -33,12 +39,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<string, DiagnosticAnalysisResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
             }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // TODO: need to figure out how to deal with analyzer exception, exception filter, logAnalyzerTime and suppressed diagnostics
+            // TODO: can we support analyzerExceptionFilter in remote host? 
+            //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: project.AnalyzerOptions,
-                    onAnalyzerException: null,
+                    options: _project.AnalyzerOptions,
+                    onAnalyzerException: OnAnalyzerException,
                     analyzerExceptionFilter: null,
                     concurrentAnalysis: true,
                     logAnalyzerExecutionTime: logAnalyzerExecutionTime,
@@ -49,10 +56,20 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
             var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
-            var builderMap = analysisResult.ToResultBuilderMap(project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
+            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                                                      analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
+                                                      analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                                                      _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+        }
+
+        private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
+        {
+            lock (_exceptions)
+            {
+                var list = _exceptions.GetOrAdd(analyzer, _ => new HashSet<DiagnosticData>());
+                list.Add(DiagnosticData.Create(_project, diagnostic));
+            }
         }
 
         private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)

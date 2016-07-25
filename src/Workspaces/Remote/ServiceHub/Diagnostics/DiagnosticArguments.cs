@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Execution;
 
@@ -18,6 +19,27 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public string ProjectIdDebugName;
         public byte[][] HostAnalyzerChecksumsByteArray;
         public string[] AnalyzerIds;
+
+        public DiagnosticArguments()
+        {
+        }
+
+        public DiagnosticArguments(
+            bool reportSuppressedDiagnostics,
+            bool logAnalyzerExecutionTime,
+            ProjectId projectId,
+            ImmutableArray<byte[]> hostAnalyzerChecksums,
+            string[] analyzerIds)
+        {
+            ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            LogAnalyzerExecutionTime = logAnalyzerExecutionTime;
+
+            ProjectIdGuid = projectId.Id;
+            ProjectIdDebugName = projectId.DebugName;
+
+            HostAnalyzerChecksumsByteArray = hostAnalyzerChecksums.ToArray();
+            AnalyzerIds = analyzerIds;
+        }
 
         public ProjectId GetProjectId() => ProjectId.CreateFromSerialized(ProjectIdGuid, ProjectIdDebugName);
         public IEnumerable<Checksum> GetHostAnalyzerChecksums() => HostAnalyzerChecksumsByteArray.Select(b => new Checksum(b));
