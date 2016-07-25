@@ -16,6 +16,22 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
+        private class RemoteTextLoader : TextLoader
+        {
+            private readonly Checksum _checksum;
+
+            public RemoteTextLoader(Checksum checksum)
+            {
+                _checksum = checksum;
+            }
+
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(_checksum, cancellationToken).ConfigureAwait(false);
+                return TextAndVersion.Create(text, VersionStamp.Create());
+            }
+        }
+
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
@@ -35,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
 
                     var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-                    var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     documents.Add(
@@ -44,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.Name,
                             documentInfo.Folders,
                             documentInfo.SourceCodeKind,
-                            TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
+                            new RemoteTextLoader(documentSnapshot.Text),
                             documentInfo.FilePath,
                             documentInfo.IsGenerated));
                 }
@@ -84,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
 
                     var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-                    var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     additionals.Add(
@@ -93,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.Name,
                             documentInfo.Folders,
                             documentInfo.SourceCodeKind,
-                            TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
+                            new RemoteTextLoader(documentSnapshot.Text),
                             documentInfo.FilePath,
                             documentInfo.IsGenerated));
                 }

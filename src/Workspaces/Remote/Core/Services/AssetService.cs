@@ -17,42 +17,73 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetService
     {
+        private const int CleanupInterval = 30000; // 30 seconds
+        private const int PurgeAfter = 60000; // 60 seconds
+
         // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
         private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy").Services);
 
         private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
             new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
 
-        private readonly ConcurrentDictionary<Checksum, object> _assets =
-            new ConcurrentDictionary<Checksum, object>(concurrencyLevel: 4, capacity: 10);
+        private readonly ConcurrentDictionary<Checksum, Tuple<DateTime, object>> _assets =
+            new ConcurrentDictionary<Checksum, Tuple<DateTime, object>>(concurrencyLevel: 4, capacity: 10);
 
-        public void Set(Checksum checksum, object @object)
+        public AssetService()
         {
-            // TODO: if checksum already exist, add some debug check to verify object is same thing
-            //       currently, asset once added never get deleted. need to do lifetime management
-            _assets.TryAdd(checksum, @object);
+            Task.Factory.StartNew(CleanAssets, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+        }
+
+        private async Task CleanAssets()
+        {
+            while (true)
+            {
+                foreach (var kvp in _assets)
+                {
+                    if (DateTime.UtcNow - kvp.Value.Item1 <= TimeSpan.FromMinutes(1))
+                    {
+                        continue;
+                    }
+
+                    Tuple<DateTime, object> value;
+                    // If it fails, we'll just leave it in the asset pool.
+                    _assets.TryRemove(kvp.Key, out value);
+                }
+
+                await Task.Delay(PurgeAfter).ConfigureAwait(false);
+            }
+        }
+
+        public void Set(Checksum checksum, object value)
+        {
+            var tuple = Tuple.Create(DateTime.UtcNow, value);
+            _assets.AddOrUpdate(checksum, tuple, (key, oldValue) =>
+            {
+                Contract.Assert(ReferenceEquals(value, oldValue.Item2));
+                return tuple;
+            });
         }
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            object @object;
-            if (_assets.TryGetValue(checksum, out @object))
+            Tuple<DateTime, object> tuple;
+            if (!_assets.TryGetValue(checksum, out tuple))
             {
-                return (T)@object;
+                // TODO: what happen if service doesn't come back. timeout?
+                await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+
+                if (!_assets.TryGetValue(checksum, out tuple))
+                {
+                    // this can happen if all asset source is released due to cancellation
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    Contract.Fail("how this can happen?");
+                }
             }
 
-            // TODO: what happen if service doesn't come back. timeout?
-            await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-
-            if (!_assets.TryGetValue(checksum, out @object))
-            {
-                // this can happen if all asset source is released due to cancellation
-                cancellationToken.ThrowIfCancellationRequested();
-
-                Contract.Fail("how this can happen?");
-            }
-
-            return (T)@object;
+            // Update timestamp
+            Set(checksum, tuple.Item2);
+            return (T)tuple.Item2;
         }
 
         public async Task RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
