@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (!_assets.TryGetValue(checksum, out @object))
             {
+                // this can happen if all asset source is released due to cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+
                 Contract.Fail("how this can happen?");
             }
 
@@ -73,8 +76,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception ex)
                 {
-                    // request is either cancelled or connection to the asset source has closed
+                    // connection to the asset source has closed.
+                    // move to next asset source
                     Contract.ThrowIfFalse(ex is OperationCanceledException || ex is IOException || ex is ObjectDisposedException);
+
+                    // cancellation could be from either caller or asset side when cancelled. we only throw cancellation if
+                    // caller side is cancelled. otherwise, we move to next asset source
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     continue;
                 }
