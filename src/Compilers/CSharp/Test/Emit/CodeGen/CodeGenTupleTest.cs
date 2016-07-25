@@ -4098,35 +4098,6 @@ class C : I
         }
 
         [Fact]
-        public void ImplementTupleInterfaceWithDifferentNames()
-        {
-            string source = @"
-public interface I
-{
-    (int i1, int i2) M((string s1, string s2) a);
-}
-
-class C : I
-{
-    static void Main()
-    {
-        I i = new C();
-        var r = i.M((""Alice"", ""Bob""));
-        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
-    }
-
-    public (int i3, int i4) M((string s3, string s4) a)
-    {
-        return (a.Item1.Length, a.Item2.Length);
-    }
-}
-";
-
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void ImplementLongTupleInterface()
         {
             string source = @"
@@ -4161,7 +4132,7 @@ class C : I
             string source = @"
 public interface I
 {
-    (int i1, int i2) M((string, string) a);
+    (int, int) M((string, string) a);
 }
 
 class C : I
@@ -4170,7 +4141,7 @@ class C : I
     {
         I i = new C();
         var r = i.M((""Alice"", ""Bob""));
-        System.Console.WriteLine($""{r.i1} {r.i2}"");
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
     }
 
     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
@@ -4182,6 +4153,31 @@ class C : I
 
             var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementTupleInterfaceWithValueTuple2()
+        {
+            string source = @"
+public interface I
+{
+    (int i1, int i2) M((string, string) a);
+}
+
+class C : I
+{
+    public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+    {
+        return (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,40): error CS8220: The tuple element names in the signature of method 'C.M((string, string))' must match the tuple element names of interface method 'I.M((string, string))'.
+                //     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((string, string))", "I.M((string, string))").WithLocation(9, 40)
+                );
         }
 
         [Fact]
@@ -8172,12 +8168,12 @@ class C : I
         System.Console.WriteLine(x);
     }
 
-    public (int, string) M((int, string) value)
+    public (int Alice, string Bob) M((int x, string y) value)
     {
         return value;
     }
 
-    public (int, string) P1 => (r: 1, s: ""hello"");
+    public (int Alice, string Bob) P1 => (r: 1, s: ""hello"");
 }
 ";
 
@@ -8211,10 +8207,11 @@ class C : I
         return value;
     }
 
-    public (int, string) P1 => (r: 1, s: ""hello"");
+    public (int Alice, string Bob) P1 => (r: 1, s: ""hello"");
 }
 ";
 
+            // TODO: should be an error on implementing I.M()
             var comp = CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, hello)
@@ -8239,11 +8236,10 @@ class C : I<(int, string), (int Alice, string Bob)>
         System.Console.WriteLine(x);
     }
 
-    public ((int Charlie, string Dylan), (int, string)) M((int Item1, string Item2) a, (int, string) b)
+    public ((int, string), (int Alice, string Bob)) M((int, string) x, (int Alice, string Bob) y)
     {
-        return (a, b);
+        return (x, y);
     }
-
 }
 ";
 
@@ -8270,11 +8266,11 @@ class C : I<(int, string, int, string, int, string, int, string), (int A, string
         System.Console.WriteLine(x);
     }
 
-    public ((int, string, int, string, int, string, int, string), (int, string, int, string, int, string, int, string)) M((int, string, int, string, int, string, int, string) a, (int, string, int, string, int, string, int, string) b)
+    public ((int, string, int, string, int, string, int, string), (int A, string B, int C, string D, int E, string F, int G, string H)) 
+        M((int, string, int, string, int, string, int, string) a, (int A, string B, int C, string D, int E, string F, int G, string H) b)
     {
         return (a, b);
     }
-
 }
 ";
 
@@ -8307,12 +8303,17 @@ class D : C, I<(int a, int b), (int c, int d)>
     }
 }
 ";
-            // TODO: there should be an error on C.M()
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (17,54): error CS8218: 'D.M(((int a, int b), (int b, int a)))': cannot change tuple element names when overriding inherited member 'C.M(((int, int), (int, int)))'
                 //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "C.M(((int, int), (int, int)))").WithLocation(17, 54)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "C.M(((int, int), (int, int)))").WithLocation(17, 54),
+                // (17,54): error CS8220: The tuple element names in the signature of method 'D.M(((int a, int b), (int b, int a)))' must match the tuple element names of interface method 'I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))'.
+                //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))").WithLocation(17, 54),
+                // (9,49): error CS8220: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))'.
+                //     public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M(((int, int), (int, int)))", "I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))").WithLocation(9, 49)
                 );
         }
 
@@ -15520,7 +15521,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void NamesDontMatterInInterfaceImplementation()
+        public void NamesMatterInExplicitInterfaceImplementation()
         {
             var source = @"
 public interface I0
@@ -15532,14 +15533,44 @@ public interface I0
 }
 public class C : I0
 {
-    public void M1((int a, int b) z) { }
-    public void M2((int notA, int notB) z) { }
-    public (int a, int b) MR1() { return (1, 2); }
-    public (int notA, int notB) MR2() { return (1, 2); }
+    void I0.M1((int a, int b) z) { }
+    void I0.M2((int notA, int notB) z) { }
+    (int a, int b) I0.MR1() { return (1, 2); }
+    (int notA, int notB) I0.MR2() { return (1, 2); }
 }
 ";
+
+            // TODO: expect errors
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NamesDontMatterInInterfaceHiddingAnotherInterface()
+        {
+            var source = @"
+public interface I0
+{
+    void M2((int a, int b) x);
+    (int a, int b) MR2();
+}
+public interface I1 : I0
+{
+    void M2((int notA, int notB) z);
+    (int notA, int notB) MR2();
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,26): warning CS0108: 'I1.MR2()' hides inherited member 'I0.MR2()'. Use the new keyword if hiding was intended.
+                //     (int notA, int notB) MR2();
+                Diagnostic(ErrorCode.WRN_NewRequired, "MR2").WithArguments("I1.MR2()", "I0.MR2()").WithLocation(10, 26),
+                // (9,10): warning CS0108: 'I1.M2((int notA, int notB))' hides inherited member 'I0.M2((int a, int b))'. Use the new keyword if hiding was intended.
+                //     void M2((int notA, int notB) z);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("I1.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(9, 10)
+                );
         }
 
         [Fact]
@@ -15598,6 +15629,32 @@ public class D : I0<int>, I0<int> { }
                 // (3,38): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names
                 // public class C : I0<(int a, int b)>, I0<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "I0<(int notA, int notB)>").WithArguments("I0<(int notA, int notB)>").WithLocation(3, 38)
+                );
+        }
+
+        [Fact]
+        public void NamesMatterInImplicitInterfaceImplementation2()
+        {
+            var source = @"
+public interface I0<T>
+{
+    T get();
+    void set(T x);
+}
+public class C : I0<(int a, int b)>
+{
+    public (int notA, int notB) get() { return (1, 2); }
+    public void set((int notA, int notB) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,17): error CS8220: The tuple element names in the signature of method 'C.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
+                //     public void set((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("C.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(10, 17),
+                // (9,33): error CS8220: The tuple element names in the signature of method 'C.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()'.
+                //     public (int notA, int notB) get() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("C.get()", "I0<(int a, int b)>.get()").WithLocation(9, 33)
                 );
         }
     }

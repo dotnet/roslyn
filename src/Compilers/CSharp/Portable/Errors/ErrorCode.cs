@@ -1378,6 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitTupleElementNames = 8217,
         ERR_CantChangeTupleNamesOnOverride = 8218,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8219,
+        ERR_ImplBadTupleNames = 8220,
 
         #endregion tuple diagnostics introduced in C# 7
 

@@ -1224,6 +1224,9 @@
   <data name="ERR_ImplBadConstraints" xml:space="preserve">
     <value>The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</value>
   </data>
+  <data name="ERR_ImplBadTupleNames" xml:space="preserve">
+    <value>The tuple element names in the signature of method '{0}' must match the tuple element names of interface method '{1}'.</value>
+  </data>
   <data name="ERR_DottedTypeNameNotFoundInAgg" xml:space="preserve">
     <value>The type name '{0}' does not exist in the type '{1}'</value>
   </data>

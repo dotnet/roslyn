@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantChangeAccessOnOverride, overridingMemberLocation, overridingMember, accessibility, overriddenMember);
                         suppressAccessors = true;
                     }
-                    else if (!OverriddenOrHiddenMembersHelpers.IsOverrideMatchingInTupleNames(overridingMember, overriddenMember))
+                    else if (!MemberSignatureComparer.TupleNamesMatch(overridingMember, overriddenMember))
                     {
                         diagnostics.Add(ErrorCode.ERR_CantChangeTupleNamesOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                     }
