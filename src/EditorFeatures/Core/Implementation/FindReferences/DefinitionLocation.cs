@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         public abstract bool CanNavigateTo();
         public abstract bool TryNavigateTo();
 
-        public static DefinitionLocation CreateDocumentLocation(DocumentLocation location)
+        public static DefinitionLocation CreateDocumentLocation(
+            DocumentLocation location, ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>))
         {
-            return new DocumentDefinitionLocation(location);
+            return new DocumentDefinitionLocation(location, originationParts);
         }
 
         public static DefinitionLocation CreateSymbolLocation(ISymbol symbol, Project referencingProject)
@@ -47,10 +48,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
         internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
         {
-            var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            return string.IsNullOrWhiteSpace(assemblyName)
-                ? ImmutableArray<TaggedText>.Empty
-                : ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
+            // We don't show an origination location for a namespace because it can span over
+            // both metadata assemblies and source projects.
+            if (symbol.Kind != SymbolKind.Namespace)
+            {
+                var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                if (!string.IsNullOrWhiteSpace(assemblyName))
+                {
+                    return ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
+                }
+            }
+
+            return ImmutableArray<TaggedText>.Empty;
         }
     }
 }

@@ -176,7 +176,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         var documentLocation = new DocumentLocation(document, location.SourceSpan);
                         if (documentLocation.CanNavigateTo())
                         {
-                            result.Add(DefinitionLocation.CreateDocumentLocation(documentLocation));
+                            // If it's a namespace, don't show any origination.  Namespaces
+                            // come from many different sources, so we don't show anything.
+                            // If it's not a namespace, then use the default origination parts.
+                            var definitionLocation = definition.Kind == SymbolKind.Namespace
+                                ? DefinitionLocation.CreateDocumentLocation(documentLocation, ImmutableArray<TaggedText>.Empty)
+                                : DefinitionLocation.CreateDocumentLocation(documentLocation);
+                            result.Add(definitionLocation);
                         }
                     }
                 }
