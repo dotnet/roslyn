@@ -10,6 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal partial class DefinitionLocation
     {
+        /// <summary>
+        /// Implementation of a <see cref="DefinitionLocation"/> that sits on top of an
+        /// <see cref="ISymbol"/>.  In order to not keep anything alive too long, we only
+        /// hold onto IDs and Keys.  When the user tries to navigate to an item we will 
+        /// attempt to find the symbol again in the current solution snapshot and 
+        /// navigate to it there.
+        /// </summary>
         private sealed class SymbolDefinitionLocation : DefinitionLocation
         {
             private readonly Workspace _workspace;

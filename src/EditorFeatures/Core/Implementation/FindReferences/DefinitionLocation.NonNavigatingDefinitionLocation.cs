@@ -6,6 +6,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal partial class DefinitionLocation
     {
+        /// <summary>
+        /// Implementation of a <see cref="DefinitionLocation"/> used for definitions
+        /// that cannot be navigated to.  For example, C# and VB namespaces cannot be
+        /// navigated to.
+        /// </summary>
         private sealed class NonNavigatingDefinitionLocation : DefinitionLocation
         {
             private readonly ImmutableArray<TaggedText> _originationParts;
