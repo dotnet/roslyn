@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler :
         ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IFindReferencesPresenter> _presenters;
+        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _presenters;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IFindReferencesPresenter> presenters)
+            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> presenters)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(presenters);

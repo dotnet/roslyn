@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C() { new C(); } }"))
             {
-                var findReferencesPresenter = new MockReferencedSymbolsPresenter();
+                var findReferencesPresenter = new DefinitionsAndReferencesPresenter();
 
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,

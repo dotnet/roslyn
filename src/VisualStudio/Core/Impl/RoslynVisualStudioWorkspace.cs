@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
-        private readonly IEnumerable<Lazy<IFindReferencesPresenter>> _referencedSymbolsPresenters;
+        private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
         private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
-            [ImportMany] IEnumerable<Lazy<IFindReferencesPresenter>> referencedSymbolsPresenters,
+            [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
             : base(
                 serviceProvider,

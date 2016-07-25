@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal abstract partial class AbstractFindReferencesService : IFindReferencesService
     {
-        private readonly IEnumerable<IFindReferencesPresenter> _referenceSymbolPresenters;
+        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
         private readonly IEnumerable<IFindReferencesResultProvider> _externalReferencesProviders;
 
         protected AbstractFindReferencesService(
-            IEnumerable<IFindReferencesPresenter> referenceSymbolPresenters,
+            IEnumerable<IDefinitionsAndReferencesPresenter> referenceSymbolPresenters,
             IEnumerable<INavigableItemsPresenter> navigableItemPresenters,
             IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
         {

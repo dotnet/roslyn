@@ -10,14 +10,14 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
-    [Export(typeof(IFindReferencesPresenter))]
-    internal sealed class FindReferencesPresenter : ForegroundThreadAffinitizedObject, IFindReferencesPresenter
+    [Export(typeof(IDefinitionsAndReferencesPresenter))]
+    internal sealed class DefinitionsAndReferencesPresenter : ForegroundThreadAffinitizedObject, IDefinitionsAndReferencesPresenter
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly LibraryManager _manager;
 
         [ImportingConstructor]
-        private FindReferencesPresenter(SVsServiceProvider serviceProvider) :
+        private DefinitionsAndReferencesPresenter(SVsServiceProvider serviceProvider) :
             base(assertIsForeground: true)
         {
             _serviceProvider = serviceProvider;

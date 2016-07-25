@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 {
-    internal class MockReferencedSymbolsPresenter : IFindReferencesPresenter
+    internal class DefinitionsAndReferencesPresenter : IDefinitionsAndReferencesPresenter
     {
         public DefinitionsAndReferences DefinitionsAndReferences;
 

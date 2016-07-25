@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FindReferences
     {
         [ImportingConstructor]
         public CSharpFindReferencesService(
-            [ImportMany] IEnumerable<IFindReferencesPresenter> referencedSymbolsPresenters,
+            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<INavigableItemsPresenter> navigableItemsPresenters,
             [ImportMany] IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
             : base(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
