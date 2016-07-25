@@ -154,8 +154,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New BoundCall(
                     syntax:=syntax,
                     method:=DirectCast(marshalMethod, MethodSymbol),
-                    methodGroup:=Nothing,
-                    receiver:=Nothing,
+                    methodGroupOpt:=Nothing,
+                    receiverOpt:=Nothing,
                     arguments:=marshalArguments,
                     constantValueOpt:=Nothing,
                     suppressObjectClone:=True,

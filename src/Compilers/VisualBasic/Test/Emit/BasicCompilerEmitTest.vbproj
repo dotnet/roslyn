@@ -108,6 +108,7 @@
     <Compile Include="CodeGen\CodeGenNullable.vb" />
     <Compile Include="CodeGen\CodeGenObjectInitializer.vb" />
     <Compile Include="CodeGen\CodeGenOverridingAndHiding.vb" />
+    <Compile Include="CodeGen\CodeGenRefReturnTests.vb" />
     <Compile Include="CodeGen\CodeGenSelectCase.vb" />
     <Compile Include="CodeGen\CodeGenSingleLineIf.vb" />
     <Compile Include="CodeGen\CodeGenStaticLocals.vb" />

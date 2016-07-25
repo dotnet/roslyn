@@ -1688,6 +1688,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_OptionMustBeAbsolutePath = 37257
         ERR_SourceLinkRequiresPortablePdb = 37258
 
+        ERR_RefReturningCallInExpressionTree = 37259
+
         ERR_LastPlusOne
 
 

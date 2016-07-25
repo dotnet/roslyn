@@ -110,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         goto default;
                     }
 
-                    EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(assignment.RefKind);
 
                 default:
                     Debug.Assert(!HasHome(expression));

@@ -84,7 +84,7 @@
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
-  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase" HasValidate="true">
+  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
   <!-- only used by codegen -->
@@ -1168,7 +1168,7 @@
         Otherwise, ReferenceTypeReceiver should be used.  
         This kind of receiver is created only by Async rewriter. 
   -->
-  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression" HasValidate="true">
+  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
     <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
