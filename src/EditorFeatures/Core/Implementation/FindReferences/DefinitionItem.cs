@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
@@ -10,8 +11,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     /// </summary>
     internal sealed class DefinitionItem
     {
+        /// <summary>
+        /// Descriptive tags from <see cref="CompletionTags"/>.
+        /// These tags may influence how the item is displayed.
+        /// </summary>
         public ImmutableArray<string> Tags { get; }
 
+        /// <summary>
+        /// The display text that should be displayed to the user.
+        /// </summary>
         public ImmutableArray<TaggedText> DisplayParts { get; }
 
         /// <summary>
