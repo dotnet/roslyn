@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // If more than one filter was provided, then present it to the user.
             if (_showFilters && Filters == null && completionItemFilters.Length > 1)
             {
-                Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
+                Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f))
                                                .ToArray();
             }
         }
