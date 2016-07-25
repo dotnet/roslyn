@@ -53,13 +53,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
             // TODO: later, make sure we can run all analyzer on remote host. 
             //       for now, we will check whether built in analyzer can run on remote host and only those run on remote host.
-            var inProcResult = await AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProc()), project, cancellationToken).ConfigureAwait(false);
-            var outOfProcResult = await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProc()), project, cancellationToken);
+            var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
+
+            // run them concurrently in vs and remote host
+            await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
+
+            // make sure things are not cancelled
+            cancellationToken.ThrowIfCancellationRequested();
 
             // merge 2 results
             return DiagnosticAnalysisResultMap.Create(
-                inProcResult.AnalysisResult.AddRange(outOfProcResult.AnalysisResult),
-                inProcResult.TelemetryInfo.AddRange(outOfProcResult.TelemetryInfo));
+                inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
+                inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
         }
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _source = new ServiceHubAssetSource(Rpc, Logger, CancellationToken);
         }
 
-        public void Done()
+        protected override void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             _source.Done();
         }
@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override async Task RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken callerCancellationToken)
             {
                 // it should succeed as long as matching VS is alive
-                // TODO: remove stop watch and use logger
-                var stopWatch = Stopwatch.StartNew();
+                // TODO: add logging mechanism using Logger
 
                 // this can be called in two ways. 
                 // 1. Connection to get asset is closed (the asset source we were using is disconnected - _assetChannelCancellationToken)
@@ -61,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     await _rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                         new object[] { serviceId, checksum.ToArray() },
-                        (s, c) => ReadAssetAsync(s, _logger, stopWatch, serviceId, checksum, c), mergedCancellationToken.Token).ConfigureAwait(false);
+                        (s, c) => ReadAssetAsync(s, _logger, serviceId, checksum, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
 
             private static Task ReadAssetAsync(
-                Stream stream, TraceSource logger, Stopwatch stopWatch, int serviceId, Checksum checksum, CancellationToken cancellationToken)
+                Stream stream, TraceSource logger, int serviceId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using (var reader = new ObjectReader(stream))
                 {
@@ -80,8 +79,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // in service hub, cancellation means simply closed stream
                     var @object = RoslynServices.AssetService.Deserialize<object>(kind, reader, cancellationToken);
-
-                    logger.TraceInformation($"({stopWatch.Elapsed}) {kind}");
 
                     RoslynServices.AssetService.Set(checksum, @object);
 

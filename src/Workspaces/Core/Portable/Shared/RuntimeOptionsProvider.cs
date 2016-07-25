@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
             RuntimeOptions.FullSolutionAnalysis,
-            RuntimeOptions.FullSolutionAnalysisInfoBarShown,
-            RuntimeOptions.RemoteHostAvailable);
+            RuntimeOptions.FullSolutionAnalysisInfoBarShown);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }

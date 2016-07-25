@@ -56,16 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
         {
             OnConnected();
 
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.RemoteHostAvailable, true);
-
             OnConnectionChanged(true);
         }
 
         protected void Disconnected()
         {
             OnDisconnected();
-
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.RemoteHostAvailable, false);
 
             OnConnectionChanged(false);
         }

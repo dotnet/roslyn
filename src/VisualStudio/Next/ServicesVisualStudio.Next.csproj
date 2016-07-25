@@ -84,6 +84,7 @@
     <Compile Include="Diagnostics\OutOfProcCompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Remote\RemoteHostClientService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
+    <Compile Include="Remote\RemoteHostOptions.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
   </ItemGroup>

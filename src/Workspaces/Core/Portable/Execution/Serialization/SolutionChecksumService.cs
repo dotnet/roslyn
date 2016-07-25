@@ -49,14 +49,11 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public async Task<ChecksumScope> CreateChecksumAsync(Solution solution, CancellationToken cancellationToken)
             {
-                // TODO: remove stop watch and use logger
-                var stopWatch = Stopwatch.StartNew();
+                // TODO: add logging mechanism
                 var snapshotStorage = _storages.CreateSnapshotStorage(solution);
 
                 var builder = new SnapshotBuilder(snapshotStorage);
                 var snapshot = new ChecksumScope(_storages, snapshotStorage, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
-
-                Debug.WriteLine(stopWatch.Elapsed);
 
                 return snapshot;
             }

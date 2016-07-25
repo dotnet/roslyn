@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
@@ -20,15 +22,29 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, byte[] solutionChecksum, string streamName)
         {
-            // entry point for diagnostic service
-            var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
-            var projectId = arguments.GetProjectId();
-            var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
+            try
+            {
+                // entry point for diagnostic service
+                var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                var projectId = arguments.GetProjectId();
+                var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
 
-            var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
+                var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
+                    analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
 
-            await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
+                await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
+            }
+            catch (IOException)
+            {
+                // stream to send over result has closed before we
+                // had chance to check cancellation
+            }
+            catch (OperationCanceledException)
+            {
+                // rpc connection has closed.
+                // this can happen if client side cancelled the
+                // operation
+            }
         }
 
         private async Task<List<AnalyzerReference>> GetHostAnalyzerReferences(IEnumerable<Checksum> checksums)

@@ -73,12 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
                 this.Workspace.StartSolutionCrawler();
-            }
 
-            // start remote host if enabled
-            if (this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.RemoteHost))
-            {
-                Workspace.Services.GetService<IRemoteHostClientService>()?.Enable();
+                // start remote host
+                this.Workspace.Services.GetService<IRemoteHostClientService>()?.Enable();
             }
 
             // Ensure services that must be created on the UI thread have been.
@@ -141,11 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (this.Workspace != null)
             {
                 this.Workspace.StopSolutionCrawler();
-
-                if (this.Workspace.Options.GetOption(InternalFeatureOnOffOptions.RemoteHost))
-                {
-                    Workspace.Services.GetService<IRemoteHostClientService>()?.Disable();
-                }
+                this.Workspace.Services.GetService<IRemoteHostClientService>()?.Disable();
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.

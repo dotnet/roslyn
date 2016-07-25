@@ -91,29 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // dispose cancellation registration
                 _cancellationRegistration.Dispose();
 
-                _snapshotClient.RaiseCancellation();
-
-                // dispose service channel first
+                // dispose service and snapshot channels
                 _serviceClient.Dispose();
-
-                // we don't care about when this actually run.
-                // make sure we send "done", and close the stream in normal case
-                _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubSnapshotService_Done)
-                    .SafeContinueWith(p =>
-                    {
-                        // only crash if exception is not something we expect.
-                        // disposed/ioexception can happen if connection is already closed which
-                        // can happen if remote side is cancelled
-                        try
-                        {
-                            // eat up previous exception
-                            var unused = p.Exception;
-                            _snapshotClient.Dispose();
-                        }
-                        catch (ObjectDisposedException) { }
-                        catch (IOException) { }
-
-                    }, TaskScheduler.Default);
+                _snapshotClient.Dispose();
             }
 
             private class ServiceJsonRpcClient : JsonRpcClient
@@ -149,8 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     try
                     {
                         // this is callback from remote host side to get asset associated with checksum from VS.
-                        var stopWatch = Stopwatch.StartNew();
-
                         var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
 
                         using (var stream = new ClientDirectStream(streamName))
@@ -176,28 +154,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                             // wait for the other side to finish reading data I sent over
                             stream.WaitForServer();
                         }
-
-                        Debug.WriteLine(stopWatch.Elapsed);
                     }
                     catch (IOException)
                     {
-                        // remote host side is cancelled
+                        // remote host side is cancelled (client stream connection is closed)
+                        // can happen if pinned solution scope is disposed
                     }
                     catch (OperationCanceledException)
                     {
-                        // connection is closed. 
+                        // rpc connection is closed. 
                         // can happen if pinned solution scope is disposed
                     }
                 }
 
-                public void RaiseCancellation()
-                {
-                    _source.Cancel();
-                }
-
                 protected override void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
                 {
-                    RaiseCancellation();
+                    _source.Cancel();
                 }
             }
         }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
@@ -35,26 +36,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
 
-            private readonly SemaphoreSlim _lock;
+            private readonly object _gate;
 
             private CancellationTokenSource _shutdown;
             private Task<RemoteHostClient> _instance;
 
             public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService)
             {
+                _gate = new object();
+
                 _workspace = workspace;
                 _analyzerService = analyzerService;
-
-                _lock = new SemaphoreSlim(initialCount: 1);
             }
 
             public void Enable()
             {
-                using (_lock.DisposableWait())
+                lock (_gate)
                 {
                     if (_instance != null)
                     {
                         // already enabled
+                        return;
+                    }
+
+                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    {
+                        // not turned on
                         return;
                     }
 
@@ -68,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public void Disable()
             {
-                using (_lock.DisposableWait())
+                lock (_gate)
                 {
                     if (_instance == null)
                     {
@@ -96,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public async Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
+                // copy instance to local variable so that we don't need lock here
                 var instance = _instance;
                 if (instance == null)
                 {
@@ -152,12 +160,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 if (!connection)
                 {
-                    // TODO: make this logic better by making sure we don't endlessly retry to
-                    //       get out of proc connection and make sure when we failed to make connection,
-                    //       we change operation to use in proc implementation
+                    // if remote host gets disconnected. tell users that remote host is gone and whether they want to recover remote host.
+                    var reportingService = _workspace.Services.GetService<IErrorReportingService>();
+                    lock (_gate)
+                    {
+                        if (_shutdown.IsCancellationRequested)
+                        {
+                            // we are shutting down.
+                            return;
+                        }
 
-                    // re-start remote host
-                    _instance = StartInternalAsync(_shutdown.Token);
+                        _instance = null;
+                    }
+
+                    _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(
+                        ServicesVSResources.Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start_working_in_proc_do_you_want_to_recover_remote_host,
+                        new ErrorReportingUI(ServicesVSResources.Re_enable, ErrorReportingUI.UIKind.Button, () =>
+                        {
+                            lock (_gate)
+                            {
+                                if (_shutdown.IsCancellationRequested)
+                                {
+                                    // we are shutting down
+                                    return;
+                                }
+
+                                _instance = StartInternalAsync(_shutdown.Token);
+                            }
+                        }));
                 }
             }
         }
