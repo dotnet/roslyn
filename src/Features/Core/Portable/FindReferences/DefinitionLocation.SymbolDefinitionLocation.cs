@@ -6,7 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     internal partial class DefinitionLocation
     {

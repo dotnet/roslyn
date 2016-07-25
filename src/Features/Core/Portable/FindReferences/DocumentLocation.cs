@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.

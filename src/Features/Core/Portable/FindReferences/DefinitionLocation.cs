@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     /// <summary>
     /// Represent the location of a symbol definition that can be presented in 

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;

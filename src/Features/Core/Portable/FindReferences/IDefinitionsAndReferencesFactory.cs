@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {

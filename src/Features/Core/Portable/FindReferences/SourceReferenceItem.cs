@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     /// <summary>
     /// Information about a symbol's reference that can be used for diplay and 

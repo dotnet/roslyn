@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;

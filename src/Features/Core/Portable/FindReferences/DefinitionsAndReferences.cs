@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     /// <summary>
     /// A collection of <see cref="DefinitionItem"/>s and <see cref="SourceReferenceItem"/>s

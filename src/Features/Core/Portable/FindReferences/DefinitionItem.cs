@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     /// <summary>
     /// Information about a symbol's definition that can be displayed in an editor

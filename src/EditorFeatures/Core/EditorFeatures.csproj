@@ -266,15 +266,6 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionItem.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionLocation.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionLocation.NonNavigatingDefinitionLocation.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionLocation.SymbolDefinitionLocation.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionsAndReferences.cs" />
-    <Compile Include="Implementation\FindReferences\DocumentLocation.cs" />
-    <Compile Include="Implementation\FindReferences\DefinitionLocation.DocumentDefinitionLocation.cs" />
-    <Compile Include="Implementation\FindReferences\SourceReferenceItem.cs" />
-    <Compile Include="Implementation\FindReferences\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
     <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
