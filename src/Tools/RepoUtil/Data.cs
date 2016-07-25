@@ -89,5 +89,10 @@ namespace RepoUtil
 
         internal static readonly ImmutableArray<string> FloatingList = ImmutableArray.Create(s_floatingList);
         internal static readonly ImmutableArray<string> StaticList = ImmutableArray.Create(s_staticList);
+
+        internal static ImmutableArray<FileName> GetFloatingFileNames(string sourcesPath)
+        {
+            return s_floatingList.Select(x => new FileName(sourcesPath, x)).ToImmutableArray();
+        }
     }
 }

@@ -13,7 +13,8 @@ namespace RepoUtil
         private enum Mode
         {
             Usage,
-            Verify
+            Verify,
+            Consumes,
         }
 
         internal static readonly string[] ProjectJsonFileRelativeNames = Array.Empty<string>();
@@ -39,11 +40,18 @@ namespace RepoUtil
                     return true;
                 case Mode.Verify:
                     return Verify(sourcesPath);
+                case Mode.Consumes:
+                    return Consumes(sourcesPath);
                 default:
                     throw new Exception("Unrecognized mode");
             }
         }
 
+        /// <summary>
+        /// Verify our repo is consistent and this tool has enough information to make changes to the state.
+        ///
+        /// TOOD: should this run before every command?
+        /// </summary>
         private static bool Verify(string sourcesPath)
         {
             var fileNames = Data
@@ -68,10 +76,30 @@ namespace RepoUtil
             return ProjectJsonUtil.VerifyTracked(sourcesPath, fileNames);
         }
 
+        private static bool Consumes(string sourcesPath)
+        {
+            var map = new Dictionary<string, NuGetReference>(StringComparer.Ordinal);
+            foreach (var fileName in Data.GetFloatingFileNames(sourcesPath))
+            {
+                foreach (var nugetRef in ProjectJsonUtil.GetDependencies(fileName.FullPath))
+                {
+                    map[nugetRef.Name] = nugetRef;
+                }
+            }
+
+            foreach (var nugetRef in map.Values.OrderBy(x => x.Name))
+            {
+                Console.WriteLine($@"""{nugetRef.Name}"" : ""{nugetRef.Version}""");
+            }
+
+            return true;
+        }
+
         private static void Usage()
         {
             var text = @"
   -verify: check the state of the repo
+  -consumes: output the conent consumed by this repo
 ";
             Console.Write(text);
         }
@@ -91,6 +119,10 @@ namespace RepoUtil
                 {
                     case "-verify":
                         mode = Mode.Verify;
+                        index++;
+                        break;
+                    case "-consumes":
+                        mode = Mode.Consumes;
                         index++;
                         break;
                     default:
