@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Command line options have changed, so update options with new parsed CommandLineArguments.
                 var splitArguments = CommandLineParser.SplitCommandLineIntoArguments(commandlineForOptions, removeHashComments: false);
-                _lastParsedCommandLineArguments = CommandLineParserService.Parse(splitArguments, this.ContainingDirectoryPathOpt, isInteractive: false, sdkDirectory: null);
+                _lastParsedCommandLineArguments = CommandLineParserService?.Parse(splitArguments, this.ContainingDirectoryPathOpt, isInteractive: false, sdkDirectory: null);
                 _lastParsedCompilerOptions = commandlineForOptions;
             }
 

@@ -24,6 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
     internal abstract partial class AbstractProject : IVisualStudioHostProject
     {
         internal static object RuleSetErrorId = new object();
@@ -85,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
+            ICommandLineParserService commandLineParserServiceOpt = null)
         {
             Contract.ThrowIfNull(projectSystemName);
 
