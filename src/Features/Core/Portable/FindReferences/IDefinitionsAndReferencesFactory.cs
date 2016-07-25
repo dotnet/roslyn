@@ -132,16 +132,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             var definition = referencedSymbol.Definition;
 
-            // First, determine the set of locations for this symbol that we'll
-            // want to present to the user.  Some symbols (like namespace) may
-            // have many locations, but we'll only want to show the user a single
-            // one.
-            var filteredLocations = FilterDefinitionLocations(definition);
-
-            // Convert the filtered set of locations to DefinitionLocation instances.
-            // If weren't able to, say because the symbol had no locations that we
-            // could understand (like Location.None), then we skip this item.
-            var definitionLocations = ConvertLocations(solution, referencedSymbol, filteredLocations);
+            var definitionLocations = ConvertLocations(solution, referencedSymbol);
             var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
 
             return new DefinitionItem(
@@ -152,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         }
 
         private static ImmutableArray<DefinitionLocation> ConvertLocations(
-            Solution solution, ReferencedSymbol referencedSymbol, ImmutableArray<Location> locations)
+            Solution solution, ReferencedSymbol referencedSymbol)
         {
             var definition = referencedSymbol.Definition;
             var result = ImmutableArray.CreateBuilder<DefinitionLocation>();
@@ -162,7 +153,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             // root definition node for it.  That node won't be navigable.
             if (definition.Kind != SymbolKind.Namespace)
             {
-                foreach (var location in locations)
+                foreach (var location in definition.Locations)
                 {
                     if (location.IsInMetadata)
                     {
@@ -197,29 +188,6 @@ namespace Microsoft.CodeAnalysis.FindReferences
             }
 
             return result.ToImmutable();
-        }
-
-        private static ImmutableArray<Location> FilterDefinitionLocations(ISymbol definition)
-        {
-            // When finding references of a namespace, the data provided by the ReferenceFinder
-            // will include one definition location for each of its exact namespace
-            // declarations and each declaration of its children namespaces that mention
-            // its name (e.g. definitions of A.B will include "namespace A.B.C"). The list of
-            // reference locations includes both these namespace declarations and their
-            // references in usings or fully qualified names. Instead of showing many top-level
-            // declaration nodes (one of which will contain the full list of references
-            // including declarations, the rest of which will say "0 references" due to
-            // reference deduplication and there being no meaningful way to partition them),
-            // we pick a single declaration to use as the top-level definition and nest all of
-            // the declarations & references underneath.
-            if (definition.IsKind(SymbolKind.Namespace))
-            {
-                // Prefer source location over metadata.
-                var firstLocation = definition.Locations.FirstOrDefault(loc => loc.IsInSource) ?? definition.Locations.First();
-                return ImmutableArray.Create(firstLocation);
-            }
-
-            return definition.Locations;
         }
 
         private static void CreateReferences(
