@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GoToDefinition
             _manager = (LibraryManager)serviceProvider.GetService(typeof(LibraryManager));
         }
 
-        public void DisplayResult(string title, IEnumerable<INavigableItem> items)
+        public void DisplayResult(string title, ImmutableArray<INavigableItem> items)
         {
             if (title == null)
             {

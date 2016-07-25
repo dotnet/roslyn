@@ -1,21 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 {
-    internal class MockReferencedSymbolsPresenter : IReferencedSymbolsPresenter
+    internal class MockNavigableItemsPresenter : INavigableItemsPresenter
     {
-        public Solution Solution { get; private set; }
-        public IEnumerable<ReferencedSymbol> Result { get; private set; }
+        public ImmutableArray<INavigableItem> Items { get; private set; }
 
-        public void DisplayResult(Solution solution, IEnumerable<ReferencedSymbol> result)
+        public void DisplayResult(string title, ImmutableArray<INavigableItem> items)
         {
-            this.Solution = solution;
-            this.Result = result;
+            this.Items = items;
         }
     }
 }

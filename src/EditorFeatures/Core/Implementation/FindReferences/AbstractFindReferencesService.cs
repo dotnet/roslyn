@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal abstract partial class AbstractFindReferencesService : IFindReferencesService
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _referenceSymbolPresenters;
-        private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
         private readonly IEnumerable<IFindReferencesResultProvider> _externalReferencesProviders;
 
         protected AbstractFindReferencesService(
-            IEnumerable<IReferencedSymbolsPresenter> referenceSymbolPresenters,
-            IEnumerable<INavigableItemsPresenter> navigableItemPresenters,
             IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
         {
-            _referenceSymbolPresenters = referenceSymbolPresenters;
-            _navigableItemPresenters = navigableItemPresenters;
             _externalReferencesProviders = externalReferencesProviders;
         }
 
@@ -69,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
         }
 
-        private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(
+        private async Task<ImmutableArray<INavigableItem>> FindReferencedSymbolsAsync(
             Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndSolution == null)
             {
-                return null;
+                return ImmutableArray<INavigableItem>.Empty;
             }
 
             var symbol = symbolAndSolution.Item1;
@@ -90,34 +85,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
-            return Tuple.Create(result, solution);
+            return result.ConvertToNavigableItems();
         }
 
-        public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
+        public async Task<ImmutableArray<INavigableItem>> FindReferencesAsync(
+            Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
             var workspace = document.Project.Solution.Workspace;
 
             // First see if we have any external navigable item references.
             // If so, we display the results as navigable items.
-            var succeeded = TryFindAndDisplayNavigableItemsReferencesAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
-            if (succeeded)
+            var items = await FindExternalNavigableItemsReferencesAsync(document, position, waitContext).ConfigureAwait(false);
+            if (items.Length > 0)
             {
-                return true;
+                return items;
             }
 
             // Otherwise, fall back to displaying SymbolFinder based references.
-            var result = this.FindReferencedSymbolsAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
-            return TryDisplayReferences(result);
+            var result = await this.FindReferencedSymbolsAsync(document, position, waitContext).ConfigureAwait(false);
+            return result;
         }
 
         /// <summary>
         /// Attempts to find and display navigable item references, including the references provided by external providers.
         /// </summary>
         /// <returns>False if there are no external references or display was not successful.</returns>
-        private async Task<bool> TryFindAndDisplayNavigableItemsReferencesAsync(Document document, int position, IWaitContext waitContext)
+        private async Task<ImmutableArray<INavigableItem>> FindExternalNavigableItemsReferencesAsync(
+            Document document, int position, IWaitContext waitContext)
         {
-            var foundReferences = false;
             if (_externalReferencesProviders.Any())
             {
                 var cancellationToken = waitContext.CancellationToken;
@@ -126,45 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
                 // TODO: Merging references from SymbolFinder and external providers might lead to duplicate or counter-intuitive results.
                 // TODO: For now, we avoid merging and just display the results either from SymbolFinder or the external result providers but not both.
-                if (builder.Count > 0 && TryDisplayReferences(builder))
-                {
-                    foundReferences = true;
-                }
 
-                builder.Free();
+                return builder.ToImmutableAndFree();
             }
 
-            return foundReferences;
-        }
-
-        private bool TryDisplayReferences(IEnumerable<INavigableItem> result)
-        {
-            if (result != null && result.Any())
-            {
-                var title = result.First().DisplayTaggedParts.JoinText();
-                foreach (var presenter in _navigableItemPresenters)
-                {
-                    presenter.DisplayResult(title, result);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool TryDisplayReferences(Tuple<IEnumerable<ReferencedSymbol>, Solution> result)
-        {
-            if (result != null && result.Item1 != null)
-            {
-                var searchSolution = result.Item2;
-                foreach (var presenter in _referenceSymbolPresenters)
-                {
-                    presenter.DisplayResult(searchSolution, result.Item1);
-                    return true;
-                }
-            }
-
-            return false;
+            return ImmutableArray<INavigableItem>.Empty;
         }
     }
 }

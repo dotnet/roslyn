@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
@@ -8,10 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C() { new C(); } }"))
             {
-                var findReferencesPresenter = new MockReferencedSymbolsPresenter();
+                var findReferencesPresenter = new MockNavigableItemsPresenter();
 
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
@@ -37,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     textView,
                     textView.TextBuffer), () => { });
 
-                AssertResult(findReferencesPresenter.Result, "C", ".ctor");
+                AssertResult(findReferencesPresenter.Items, "C", ".ctor");
             }
         }
 
-        private bool AssertResult(IEnumerable<ReferencedSymbol> result, params string[] definitions)
+        private bool AssertResult(ImmutableArray<INavigableItem> result, params string[] definitions)
         {
-            return result.Select(r => r.Definition.Name).SetEquals(definitions);
+            return result.Select(r => r.DisplayTaggedParts.JoinText()).SetEquals(definitions);
         }
     }
 }

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             {
                 // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
                 var navigableItems = implementations.SelectMany(
-                    implementation => CreateItemsForImplementation(implementation, mapping.Solution));
+                    implementation => CreateItemsForImplementation(implementation, mapping.Solution)).ToImmutableArrayOrEmpty();
 
                 var presenter = _navigableItemPresenters.First();
 
