@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 ? ServicesVSResources._1_reference
                 : string.Format(ServicesVSResources._0_references, referenceCount);
 
-            this.DisplayText = CreateDisplayText() + $" ({referenceCount})";
+            this.DisplayText = CreateDisplayText() + $" ({referenceCountDisplay})";
         }
     }
 }
