@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     solution, referencedSymbol, definitions, references, uniqueLocations);
             }
 
+            // Ensure the references are in sorted order.
+            references.Sort();
             return new DefinitionsAndReferences(definitions.ToImmutable(), references.ToImmutable());
         }
 
