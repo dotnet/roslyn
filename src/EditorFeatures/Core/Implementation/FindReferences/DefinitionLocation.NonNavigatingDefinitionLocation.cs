@@ -22,15 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public override ImmutableArray<TaggedText> OriginationParts => _originationParts;
 
-            public override bool CanNavigateTo()
-            {
-                return false;
-            }
-
-            public override bool TryNavigateTo()
-            {
-                return false;
-            }
+            public override bool CanNavigateTo() => false;
+            public override bool TryNavigateTo() => false;
         }
     }
 }
