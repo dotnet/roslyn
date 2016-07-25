@@ -307,7 +307,7 @@
     <Compile Include="Host\IPreviewPaneService.cs" />
     <Compile Include="Host\INavigableItemsPresenter.cs" />
     <Compile Include="Host\IPreviewDialogService.cs" />
-    <Compile Include="Host\IReferencedSymbolsPresenter.cs" />
+    <Compile Include="Host\IDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Host\IWaitContext.cs" />
     <Compile Include="Host\IWaitIndicator.cs" />
     <Compile Include="IBraceMatchingService.cs" />

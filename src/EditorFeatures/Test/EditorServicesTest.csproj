@@ -257,7 +257,7 @@
     <Compile Include="ExtractInterface\ExtractInterfaceTestState.cs" />
     <Compile Include="ExtractInterface\TestExtractInterfaceOptions.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandlerTests.cs" />
-    <Compile Include="FindReferences\MockReferencedSymbolsPresenter.cs" />
+    <Compile Include="FindReferences\MockDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="KeywordHighlighting\AbstractKeywordHighlighterTests.cs" />
     <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
     <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />

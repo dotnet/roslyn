@@ -393,7 +393,7 @@
     <Compile Include="Implementation\ExtractInterface\VisualStudioExtractInterfaceOptionsService.cs" />
     <Compile Include="Implementation\F1Help\AbstractHelpContextService.cs" />
     <Compile Include="Implementation\F1Help\IHelpContextService.cs" />
-    <Compile Include="Implementation\FindReferences\ReferencedSymbolsPresenter.cs" />
+    <Compile Include="Implementation\FindReferences\DefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Implementation\GCManager.cs" />
     <Compile Include="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
       <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
