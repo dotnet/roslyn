@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifyAssetAsync(ISolutionChecksumService service, Solution solution, SolutionChecksumObject solutionId)
         {
             await VerifyAssetSerializationAsync<SolutionChecksumObjectInfo>(
-                service, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo,
+                service, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo,
                 (v, k, s) => new Asset<SolutionChecksumObjectInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             foreach (var checksum in solutionId.Projects.Objects)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ProjectChecksumObject projectId)
         {
             var info = await VerifyAssetSerializationAsync<ProjectChecksumObjectInfo>(
-                service, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo,
+                service, projectId.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo,
                 (v, k, s) => new Asset<ProjectChecksumObjectInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             var project = solution.GetProject(info.Id);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DocumentChecksumObject documentId)
         {
             var info = await VerifyAssetSerializationAsync<DocumentChecksumObjectInfo>(
-                service, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo,
+                service, documentId.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo,
                 (v, k, s) => new Asset<DocumentChecksumObjectInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int expectedAdditionalDocumentCount)
         {
             VerifyChecksumObjectInService(snapshotService, projectId);
-            VerifyChecksumInService(snapshotService, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo);
+            VerifyChecksumInService(snapshotService, projectId.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo);
             VerifyChecksumInService(snapshotService, projectId.CompilationOptions, WellKnownChecksumObjects.CompilationOptions);
             VerifyChecksumInService(snapshotService, projectId.ParseOptions, WellKnownChecksumObjects.ParseOptions);
 
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static void VerifySnapshotInService(ISolutionChecksumService snapshotService, DocumentChecksumObject documentId)
         {
             VerifyChecksumObjectInService(snapshotService, documentId);
-            VerifyChecksumInService(snapshotService, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo);
+            VerifyChecksumInService(snapshotService, documentId.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo);
             VerifyChecksumInService(snapshotService, documentId.Text, WellKnownChecksumObjects.SourceText);
         }
 

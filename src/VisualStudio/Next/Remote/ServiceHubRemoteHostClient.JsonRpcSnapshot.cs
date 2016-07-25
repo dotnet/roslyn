@@ -143,8 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                                 var checksumObject = service.GetChecksumObject(new Checksum(checksum), _source.Token);
                                 writer.WriteString(checksumObject.Kind);
 
-                                Debug.WriteLine(checksumObject.Kind);
-
                                 await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
                             }
 

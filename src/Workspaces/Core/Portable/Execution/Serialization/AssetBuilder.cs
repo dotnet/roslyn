@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Task<Asset> BuildAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionSnapshotInfo, CreateSolutionSnapshotInfoAsync, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionChecksumObjectInfo, CreateSolutionChecksumObjectInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectSnapshotInfo, CreateProjectSnapshotInfoAsync, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectChecksumObjectInfo, CreateProjectChecksumObjectInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(document.State, GetInfo(document), WellKnownChecksumObjects.DocumentSnapshotInfo, CreateDocumentSnapshotInfoAsync, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(document.State, GetInfo(document), WellKnownChecksumObjects.DocumentChecksumObjectInfo, CreateDocumentChecksumObjectInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CompilationOptions compilationOptions, CancellationToken cancellationToken)
@@ -71,19 +71,19 @@ namespace Microsoft.CodeAnalysis.Execution
             return _storage.GetOrCreateAssetAsync(state, state, WellKnownChecksumObjects.SourceText, CreateSourceTextAsync, cancellationToken);
         }
 
-        private Task<Asset> CreateSolutionSnapshotInfoAsync(SolutionChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateSolutionChecksumObjectInfoAsync(SolutionChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult<Asset>(new Asset<SolutionChecksumObjectInfo>(info, kind, _serializer.Serialize));
         }
 
-        private Task<Asset> CreateProjectSnapshotInfoAsync(ProjectChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateProjectChecksumObjectInfoAsync(ProjectChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult<Asset>(new Asset<ProjectChecksumObjectInfo>(info, kind, _serializer.Serialize));
         }
 
-        private Task<Asset> CreateDocumentSnapshotInfoAsync(DocumentChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateDocumentChecksumObjectInfoAsync(DocumentChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult<Asset>(new Asset<DocumentChecksumObjectInfo>(info, kind, _serializer.Serialize));

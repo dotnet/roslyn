@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var solutionId = snapshot.SolutionChecksum;
                 VerifyChecksumObjectInService(snapshotService, solutionId);
-                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 0);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var solutionId = snapshot.SolutionChecksum;
                 VerifyChecksumObjectInService(snapshotService, solutionId);
-                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 1);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var solutionId = snapshot.SolutionChecksum;
                 VerifyChecksumObjectInService(snapshotService, solutionId);
-                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 1);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var solutionId = snapshot.SolutionChecksum;
 
                 VerifyChecksumObjectInService(snapshotService, solutionId);
-                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 2);
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var solutionId = snapshot.SolutionChecksum;
 
                 VerifyChecksumObjectInService(snapshotService, solutionId);
-                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
                 Assert.Equal(solutionId.Projects.Objects.Length, 2);
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var solutionId1 = snapshot1.SolutionChecksum;
                 {
                     VerifyChecksumObjectInService(snapshotService, solutionId1);
-                    VerifyChecksumInService(snapshotService, solutionId1.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                    VerifyChecksumInService(snapshotService, solutionId1.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                     VerifyChecksumObjectInService(snapshotService, solutionId1.Projects);
 
                     Assert.Equal(solutionId1.Projects.Objects.Length, 2);
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     var solutionId2 = snapshot2.SolutionChecksum;
                     {
                         VerifyChecksumObjectInService(snapshotService, solutionId2);
-                        VerifyChecksumInService(snapshotService, solutionId2.Info, WellKnownChecksumObjects.SolutionSnapshotInfo);
+                        VerifyChecksumInService(snapshotService, solutionId2.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                         VerifyChecksumObjectInService(snapshotService, solutionId2.Projects);
 
                         Assert.Equal(solutionId2.Projects.Objects.Length, 2);
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var workspace = new AdhocWorkspace();
 
-            var solutionInfo = await GetValueAsync<SolutionChecksumObjectInfo>(service, snapshot.SolutionChecksum.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
+            var solutionInfo = await GetValueAsync<SolutionChecksumObjectInfo>(service, snapshot.SolutionChecksum.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectSnapshot in snapshot.SolutionChecksum.Projects.ToProjectObjects(service).Objects)
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var documents = new List<DocumentInfo>();
                 foreach (var documentSnapshot in projectSnapshot.Documents.ToDocumentObjects(service).Objects)
                 {
-                    var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
+                    var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo).ConfigureAwait(false);
                     var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
 
                     // TODO: do we need version?
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var additionals = new List<DocumentInfo>();
                 foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.ToDocumentObjects(service).Objects)
                 {
-                    var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
+                    var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo).ConfigureAwait(false);
                     var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
 
                     // TODO: do we need version?
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectSnapshotInfo).ConfigureAwait(false);
+                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo).ConfigureAwait(false);
                 var compilationOptions = await GetValueAsync<CompilationOptions>(service, projectSnapshot.CompilationOptions, WellKnownChecksumObjects.CompilationOptions).ConfigureAwait(false);
                 var parseOptions = await GetValueAsync<ParseOptions>(service, projectSnapshot.ParseOptions, WellKnownChecksumObjects.ParseOptions).ConfigureAwait(false);
 

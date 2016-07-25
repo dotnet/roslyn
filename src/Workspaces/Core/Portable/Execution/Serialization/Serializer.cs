@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.Execution
                 case WellKnownChecksumObjects.AnalyzerReferences:
                     return (T)(object)DeserializeChecksumCollection(reader, cancellationToken);
 
-                case WellKnownChecksumObjects.SolutionSnapshotInfo:
+                case WellKnownChecksumObjects.SolutionChecksumObjectInfo:
                     return (T)(object)DeserializeSolutionSnapshotInfo(reader, cancellationToken);
-                case WellKnownChecksumObjects.ProjectSnapshotInfo:
+                case WellKnownChecksumObjects.ProjectChecksumObjectInfo:
                     return (T)(object)DeserializeProjectSnapshotInfo(reader, cancellationToken);
-                case WellKnownChecksumObjects.DocumentSnapshotInfo:
+                case WellKnownChecksumObjects.DocumentChecksumObjectInfo:
                     return (T)(object)DeserializeDocumentSnapshotInfo(reader, cancellationToken);
                 case WellKnownChecksumObjects.CompilationOptions:
                     return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);

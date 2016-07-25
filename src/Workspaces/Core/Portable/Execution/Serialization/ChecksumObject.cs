@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Execution
         public const string MetadataReferences = nameof(MetadataReferences);
         public const string AnalyzerReferences = nameof(AnalyzerReferences);
 
-        public const string SolutionSnapshotInfo = nameof(SolutionSnapshotInfo);
-        public const string ProjectSnapshotInfo = nameof(ProjectSnapshotInfo);
-        public const string DocumentSnapshotInfo = nameof(DocumentSnapshotInfo);
+        public const string SolutionChecksumObjectInfo = nameof(SolutionChecksumObjectInfo);
+        public const string ProjectChecksumObjectInfo = nameof(ProjectChecksumObjectInfo);
+        public const string DocumentChecksumObjectInfo = nameof(DocumentChecksumObjectInfo);
         public const string CompilationOptions = nameof(CompilationOptions);
         public const string ParseOptions = nameof(ParseOptions);
         public const string ProjectReference = nameof(ProjectReference);
