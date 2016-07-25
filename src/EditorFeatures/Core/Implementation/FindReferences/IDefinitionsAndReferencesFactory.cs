@@ -168,11 +168,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 {
                     if (location.IsInMetadata)
                     {
-                        var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrDefault();
+                        var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrNullable();
                         if (firstSourceReferenceLocation != null)
                         {
                             result.Add(DefinitionLocation.CreateSymbolLocation(
-                                definition, firstSourceReferenceLocation.Document.Project));
+                                definition, firstSourceReferenceLocation.Value.Document.Project));
                         }
                     }
                     else if (location.IsInSource)
