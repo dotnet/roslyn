@@ -107,7 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             {
                 var childItems = CreateNavigableItemTreeItems(item.ChildItems, commonPathElements);
                 result.Children.AddRange(childItems);
-                result.SetReferenceCount(childItems.Count);
             }
 
             return result;

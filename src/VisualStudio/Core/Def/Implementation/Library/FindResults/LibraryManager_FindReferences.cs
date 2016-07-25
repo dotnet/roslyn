@@ -31,51 +31,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
             var query = from d in definitionsAndReferences.Definitions
                         from i in CreateDefinitionItems(d, definitionsAndReferences, commonPathElements)
-                        select i;
+                        select (AbstractTreeItem)i;
 
             return query.ToList();
         }
 
-        private IEnumerable<AbstractTreeItem> CreateDefinitionItems(
+        private ImmutableArray<DefinitionTreeItem> CreateDefinitionItems(
             DefinitionItem definitionItem,
             DefinitionsAndReferences definitionsAndReferences,
             int commonPathElements)
         {
-            // Each definition item may end up as several top nodes (because of partials).
-            // Add the references to the last item actually in the list.
-            var definitionTreeItems = ConvertToDefinitionTreeItems(definitionItem);
-            if (!definitionTreeItems.IsEmpty)
-            {
-                var lastTreeItem = definitionTreeItems.Last();
-                var referenceItems = CreateReferenceItems(
-                    definitionItem, definitionsAndReferences, commonPathElements);
+            var referenceItems = CreateReferenceItems(
+                definitionItem, definitionsAndReferences, commonPathElements);
 
-                lastTreeItem.Children.AddRange(referenceItems);
-                lastTreeItem.SetReferenceCount(referenceItems.Count);
-            }
-
-            return definitionTreeItems;
+            return ConvertToDefinitionTreeItems(definitionItem, referenceItems);
         }
 
-        private ImmutableArray<AbstractTreeItem> ConvertToDefinitionTreeItems(
-            DefinitionItem definitionItem)
+        private ImmutableArray<DefinitionTreeItem> ConvertToDefinitionTreeItems(
+            DefinitionItem definitionItem,
+            ImmutableArray<SourceReferenceTreeItem> referenceItems)
         {
-            var result = ImmutableArray.CreateBuilder<AbstractTreeItem>();
+            var result = ImmutableArray.CreateBuilder<DefinitionTreeItem>();
 
-            foreach (var location in definitionItem.Locations)
+            for (int i = 0, n = definitionItem.Locations.Length; i < n; i++)
             {
-                result.Add(new DefinitionTreeItem(definitionItem, location));
+                var location = definitionItem.Locations[i];
+
+                // Each definition item may end up as several top nodes (because of partials).
+                // Add the references to the last item actually in the list.
+                var definitionTreeItem = i == n - 1
+                    ? new DefinitionTreeItem(definitionItem, location)
+                    : new DefinitionTreeItem(definitionItem, location, referenceItems);
+
+                result.Add(definitionTreeItem);
             }
 
             return result.ToImmutable();
         }
 
-        private IList<SourceReferenceTreeItem> CreateReferenceItems(
+        private ImmutableArray<SourceReferenceTreeItem> CreateReferenceItems(
             DefinitionItem definitionItem,
             DefinitionsAndReferences definitionsAndReferences,
             int commonPathElements)
         {
-            var result = new List<SourceReferenceTreeItem>();
+            var result = ImmutableArray.CreateBuilder<SourceReferenceTreeItem>();
 
             var referenceItems = definitionsAndReferences.References.Where(r => r.Definition == definitionItem);
             foreach (var referenceItem in referenceItems)
@@ -95,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
 
             result.Sort();
-            return result;
+            return result.ToImmutable();
         }
     }
 }

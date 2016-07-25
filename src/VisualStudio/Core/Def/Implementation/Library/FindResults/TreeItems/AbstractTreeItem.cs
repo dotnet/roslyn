@@ -39,9 +39,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         {
             return false;
         }
-
-        internal virtual void SetReferenceCount(int referenceCount)
-        {
-        }
     }
 }
