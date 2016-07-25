@@ -21,26 +21,24 @@ namespace SignRoslyn
                 Environment.Exit(1);
             }
 
-            var signTool = test
-                ? (SignTool)new TestSignTool(AppContext.BaseDirectory, binariesPath, sourcePath)
-                : new RealSignTool(AppContext.BaseDirectory, binariesPath, sourcePath);
-            var signData = ReadSignData(binariesPath);
-            var util = new RunSignUtil(signTool, signData);
+            var signTool = SignToolFactory.Create(AppContext.BaseDirectory, binariesPath, sourcePath, test);
+            var batchData = ReadBatchSignInput(binariesPath);
+            var util = new BatchSignUtil(signTool, batchData);
             util.Go();
         }
 
-        internal static SignData ReadSignData(string rootBinaryPath)
+        internal static BatchSignInput ReadBatchSignInput(string rootBinaryPath)
         {
-            var filePath = Path.Combine(AppContext.BaseDirectory, "BinaryData.json");
+            var filePath = Path.Combine(AppContext.BaseDirectory, "BatchSignData.json");
             using (var file = File.OpenText(filePath))
             {
                 var serializer = new JsonSerializer();
                 var fileJson = (Json.FileJson)serializer.Deserialize(file, typeof(Json.FileJson));
-                var map = new Dictionary<string, FileSignData>();
+                var map = new Dictionary<string, SignInfo>();
                 var allGood = true;
                 foreach (var item in fileJson.SignList)
                 {
-                    var data = new FileSignData(certificate: item.Certificate, strongName: item.StrongName);
+                    var data = new SignInfo(certificate: item.Certificate, strongName: item.StrongName);
                     foreach (var name in item.FileList)
                     {
                         if (map.ContainsKey(name))
@@ -60,7 +58,7 @@ namespace SignRoslyn
                     Environment.Exit(1);
                 }
 
-                return new SignData(rootBinaryPath, map, fileJson.ExcludeList);
+                return new BatchSignInput(rootBinaryPath, map, fileJson.ExcludeList);
             }
         }
 

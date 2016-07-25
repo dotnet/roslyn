@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEvent
     Public Class GenerateEventTests

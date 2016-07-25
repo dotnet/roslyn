@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -32,10 +31,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return CreateNavigableItemTreeItems(itemsList, commonPathElements);
         }
 
-        private int CountCommonPathElements(HashSet<Document> documents)
+        private int CountCommonPathElements(ISet<Document> documents)
         {
-            Debug.Assert(documents.Count > 0);
+            if (documents.Count == 0)
+            {
+                return 0;
+            }
+
             var commonPathElements = 0;
+
             for (var index = 0; ; index++)
             {
                 var pathPortion = GetPathPortion(documents.First(), index);
@@ -94,7 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private AbstractTreeItem CreateTreeItem(INavigableItem item, int commonPathElements)
         {
-            var result = new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex(), commonPathElements, displayText: item.DisplayString, includeFileLocation: item.DisplayFileLocation);
+            var result = new SourceReferenceTreeItem(
+                item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex(), commonPathElements,
+                displayText: item.DisplayTaggedParts.JoinText(),
+                includeFileLocation: item.DisplayFileLocation);
 
             if (!item.ChildItems.IsEmpty)
             {

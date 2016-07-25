@@ -12,7 +12,7 @@ namespace SignRoslyn
         /// <summary>
         /// Name of the VSIX
         /// </summary>
-        internal BinaryName Name { get; }
+        internal FileName Name { get; }
 
         /// <summary>
         /// The set of binaries nested inside this VSIX.
@@ -24,7 +24,7 @@ namespace SignRoslyn
         /// </summary>
         internal ImmutableArray<string> NestedExternalNames { get; }
 
-        internal VsixData(BinaryName name, ImmutableArray<VsixPart> nestedBinaryParts, ImmutableArray<string> nestedExternalNames)
+        internal VsixData(FileName name, ImmutableArray<VsixPart> nestedBinaryParts, ImmutableArray<string> nestedExternalNames)
         {
             Name = name;
             NestedBinaryParts = nestedBinaryParts;
@@ -48,9 +48,9 @@ namespace SignRoslyn
     internal struct VsixPart
     {
         internal string RelativeName { get; }
-        internal BinaryName BinaryName { get; }
+        internal FileName BinaryName { get; }
 
-        internal VsixPart(string relativeName, BinaryName binaryName)
+        internal VsixPart(string relativeName, FileName binaryName)
         {
             RelativeName = relativeName;
             BinaryName = binaryName;

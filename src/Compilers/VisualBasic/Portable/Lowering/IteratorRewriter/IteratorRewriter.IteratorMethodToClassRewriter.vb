@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 F.CloseMethod(
                     F.Block(
                         ImmutableArray.Create(Me._methodValue, Me.CachedState),
-                        F.HiddenSequencePoint(),
+                        SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         F.Assignment(Me.F.Local(Me.CachedState, True), F.Field(F.Me, Me.StateField, False)),
                         Dispatch(),
                         GenerateReturn(finished:=True),
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' exitlabel:
                     '  Return _methodValue
                     Return F.Block(
-                            F.HiddenSequencePoint(),
+                            SyntheticBoundNodeFactory.HiddenSequencePoint(),
                             F.Assignment(F.Local(Me._methodValue, True), F.Literal(True)),
                             F.Label(Me._exitLabel),
                             F.Return(Me.F.Local(Me._methodValue, False))

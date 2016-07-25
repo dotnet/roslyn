@@ -105,6 +105,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.ChecksumAlgorithm = "";
             Assert.Equal("/optionstrict:custom /out:test.exe /checksumalgorithm: test.vb", vbc.GenerateResponseFileContents());
         }
+        
+        [Fact]
+        public void InstrumentTestNamesFlag()
+        {
+            var vbc = new Vbc();
+            vbc.Instrument = "Instrument.This.Flag";
+            Assert.Equal("/optionstrict:custom /instrument:Instrument.This.Flag", vbc.GenerateResponseFileContents());
+        }
 
         [Fact]
         public void TargetTypeDll()

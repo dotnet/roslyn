@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.AddBraces,
+                    FeaturesResources.Add_braces,
                     c => AddBracesAsync(context, c)),
                 context.Diagnostics);
 

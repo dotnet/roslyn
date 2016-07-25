@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                         await Task.Delay(workerBackOffTimeSpanInMS, _source.Token).ConfigureAwait(false);
 
                         // do actual analysis
-                        await diagnosticAnalyzer.AnalyzeSyntaxAsync(document, _source.Token).ConfigureAwait(false);
-                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, cancellationToken: _source.Token).ConfigureAwait(false);
+                        await diagnosticAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
+                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
 
                         // don't call project one.
                     }

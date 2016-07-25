@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// effectively methods that just QI from one interface to another), are implemented here.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    internal abstract partial class CSharpProjectShim : AbstractRoslynProject
+    internal abstract partial class CSharpProjectShim : AbstractLegacyProject
     {
         /// <summary>
         /// This member is used to store a raw array of warning numbers, which is needed to properly implement
@@ -63,21 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             _projectRoot = projectRoot;
             _warningNumberArrayPointer = Marshal.AllocHGlobal(0);
 
-            InitializeOptions();
-
-            projectTracker.AddProject(this);
-        }
-
-        private void InitializeOptions()
-        {
             // Ensure the default options are set up
             ResetAllOptions();
             UpdateOptions();
-        }
 
-        protected override void UpdateOptions()
-        {
-            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
+            projectTracker.AddProject(this);
         }
 
         public override void Disconnect()
@@ -92,24 +83,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return "CS" + errorCode.ToString("0000");
         }
 
-        protected CSharpCompilationOptions CreateCompilationOptions()
+        protected override CompilationOptions CreateCompilationOptions(CommandLineArguments commandLineArguments, ParseOptions newParseOptions)
         {
+            // Get the base options from command line arguments + common workspace defaults.
+            var options = (CSharpCompilationOptions)base.CreateCompilationOptions(commandLineArguments, newParseOptions);
+
+            // Now override these with the options from our state.
             IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;
 
             // Get options from the ruleset file, if any, first. That way project-specific
             // options can override them.
             ReportDiagnostic? ruleSetGeneralDiagnosticOption = null;
-            if (this.ruleSet != null)
+            if (this.RuleSetFile != null)
             {
-                ruleSetGeneralDiagnosticOption = this.ruleSet.GetGeneralDiagnosticOption();
-                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.ruleSet.GetSpecificDiagnosticOptions());
+                ruleSetGeneralDiagnosticOption = this.RuleSetFile.GetGeneralDiagnosticOption();
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.RuleSetFile.GetSpecificDiagnosticOptions());
             }
             else
             {
                 ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             }
 
-            UpdateRuleSetError(ruleSet);
+            UpdateRuleSetError(this.RuleSetFile);
 
             ReportDiagnostic generalDiagnosticOption;
             var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);
@@ -179,50 +174,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 warningLevel = 4;
             }
 
-            string projectDirectory = this.ContainingDirectoryPathOpt;
-
-            // TODO: #r support, should it include bin path?
-            var referenceSearchPaths = ImmutableArray<string>.Empty;
-
-            // TODO: #load support
-            var sourceSearchPaths = ImmutableArray<string>.Empty;
-
-            MetadataReferenceResolver referenceResolver;
-            if (Workspace != null)
-            {
-                referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    Workspace.CurrentSolution.Services.MetadataService,
-                    new RelativePathResolver(referenceSearchPaths, projectDirectory));
-            }
-            else
-            {
-                // can only happen in tests
-                referenceResolver = null;
-            }
-
             // TODO: appConfigPath: GetFilePathOption(CompilerOptions.OPTID_FUSIONCONFIG), bug #869604
-            return new CSharpCompilationOptions(
-                allowUnsafe: GetBooleanOption(CompilerOptions.OPTID_UNSAFE),
-                checkOverflow: GetBooleanOption(CompilerOptions.OPTID_CHECKED),
-                concurrentBuild: false,
-                cryptoKeyContainer: GetStringOption(CompilerOptions.OPTID_KEYNAME, defaultValue: null),
-                cryptoKeyFile: GetFilePathRelativeOption(CompilerOptions.OPTID_KEYFILE),
-                delaySign: GetNullableBooleanOption(CompilerOptions.OPTID_DELAYSIGN),
-                generalDiagnosticOption: generalDiagnosticOption,
-                mainTypeName: _mainTypeName,
-                moduleName: GetStringOption(CompilerOptions.OPTID_MODULEASSEMBLY, defaultValue: null),
-                optimizationLevel: GetBooleanOption(CompilerOptions.OPTID_OPTIMIZATIONS) ? OptimizationLevel.Release : OptimizationLevel.Debug,
-                outputKind: _outputKind,
-                platform: platform,
-                specificDiagnosticOptions: diagnosticOptions,
-                warningLevel: warningLevel,
-                xmlReferenceResolver: new XmlFileResolver(projectDirectory),
-                sourceReferenceResolver: new SourceFileResolver(sourceSearchPaths, projectDirectory),
-                metadataReferenceResolver: referenceResolver,
-                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                strongNameProvider: new DesktopStrongNameProvider(GetStrongNameKeyPaths()),
-                deterministic: GetParsedCommandLineArguments().CompilationOptions.Deterministic,
-                publicSign: GetParsedCommandLineArguments().CompilationOptions.PublicSign);
+
+            return options.WithAllowUnsafe(GetBooleanOption(CompilerOptions.OPTID_UNSAFE))
+                .WithOverflowChecks(GetBooleanOption(CompilerOptions.OPTID_CHECKED))
+                .WithCryptoKeyContainer(GetStringOption(CompilerOptions.OPTID_KEYNAME, defaultValue: null))
+                .WithCryptoKeyFile(GetFilePathRelativeOption(CompilerOptions.OPTID_KEYFILE))
+                .WithDelaySign(GetNullableBooleanOption(CompilerOptions.OPTID_DELAYSIGN))
+                .WithGeneralDiagnosticOption(generalDiagnosticOption)
+                .WithMainTypeName(_mainTypeName)
+                .WithModuleName(GetStringOption(CompilerOptions.OPTID_MODULEASSEMBLY, defaultValue: null))
+                .WithOptimizationLevel(GetBooleanOption(CompilerOptions.OPTID_OPTIMIZATIONS) ? OptimizationLevel.Release : OptimizationLevel.Debug)
+                .WithOutputKind(_outputKind)
+                .WithPlatform(platform)
+                .WithSpecificDiagnosticOptions(diagnosticOptions)
+                .WithWarningLevel(warningLevel);
         }
 
         protected override CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments)
@@ -289,8 +255,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
         }
 
-        protected CSharpParseOptions CreateParseOptions()
+        protected override ParseOptions CreateParseOptions(CommandLineArguments commandLineArguments)
         {
+            // Get the base parse options and override the defaults with the options from state.
+            var options = (CSharpParseOptions)base.CreateParseOptions(commandLineArguments);
             var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             DocumentationMode documentationMode = DocumentationMode.Parse;
@@ -302,12 +270,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             var languageVersion = CompilationOptionsConversion.GetLanguageVersion(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""))
                                   ?? CSharpParseOptions.Default.LanguageVersion;
 
-            return new CSharpParseOptions(
-                kind: SourceCodeKind.Regular,
-                languageVersion: languageVersion,
-                preprocessorSymbols: symbols.AsImmutable(),
-                documentationMode: documentationMode)
-                .WithFeatures(GetParsedCommandLineArguments().ParseOptions.Features);
+            return options.WithKind(SourceCodeKind.Regular)
+                .WithLanguageVersion(languageVersion)
+                .WithPreprocessorSymbols(symbols.AsImmutable())
+                .WithDocumentationMode(documentationMode);
         }
 
         ~CSharpProjectShim()

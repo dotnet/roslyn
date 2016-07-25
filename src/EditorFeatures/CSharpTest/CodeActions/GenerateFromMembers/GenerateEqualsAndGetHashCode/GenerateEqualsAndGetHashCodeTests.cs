@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode;
+using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -157,7 +157,7 @@ index: 1);
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-FeaturesResources.GenerateEqualsObject);
+FeaturesResources.Generate_Equals_object);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -165,7 +165,7 @@ FeaturesResources.GenerateEqualsObject);
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-FeaturesResources.GenerateGetHashCode,
+FeaturesResources.Generate_GetHashCode,
 index: 1);
         }
 
@@ -174,7 +174,7 @@ index: 1);
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-FeaturesResources.GenerateBoth,
+FeaturesResources.Generate_Both,
 index: 2);
         }
 

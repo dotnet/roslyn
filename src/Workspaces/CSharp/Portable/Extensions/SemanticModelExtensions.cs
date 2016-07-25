@@ -182,11 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return argument.NameColon.Name.Identifier.ValueText;
             }
 
-            if (argument.Declaration != null)
-            {
-                return argument.Declaration.Variables.First().Identifier.ValueText.ToCamelCase();
-            }
-
             return semanticModel.GenerateNameForExpression(argument.Expression);
         }
 
@@ -236,6 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (current is CastExpressionSyntax)
                 {
                     current = ((CastExpressionSyntax)current).Expression;
+                }
+                else if (current is DeclarationExpressionSyntax)
+                {
+                    return ((DeclarationExpressionSyntax)current).Declaration.Variables[0].Identifier.ValueText.ToCamelCase();
                 }
                 else
                 {

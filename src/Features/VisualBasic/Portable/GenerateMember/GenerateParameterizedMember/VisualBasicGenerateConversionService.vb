@@ -1,15 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 
@@ -157,11 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
         End Function
 
         Protected Overrides Function GetExplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
-            Return String.Format(VBFeaturesResources.ExplicitConversionDisplayText, state.TypeToGenerateIn.Name)
+            Return String.Format(VBFeaturesResources.Generate_narrowing_conversion_in_0, state.TypeToGenerateIn.Name)
         End Function
 
         Protected Overrides Function GetImplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
-            Return String.Format(VBFeaturesResources.ImplicitConversionDisplayText, state.TypeToGenerateIn.Name)
+            Return String.Format(VBFeaturesResources.Generate_widening_conversion_in_0, state.TypeToGenerateIn.Name)
         End Function
     End Class
 End Namespace

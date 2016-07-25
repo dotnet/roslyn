@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (declaredSymbol != null)
                 {
                     var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
-                    var items = symbols?.Select(symbol => CreateCompletionItem(symbol, completionContext.CompletionListSpan, position, syntaxContext));
+                    var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 
                     if (items != null)
                     {
@@ -47,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private CompletionItem CreateCompletionItem(INamedTypeSymbol symbol, TextSpan textSpan, int position, AbstractSyntaxContext context)
+        private CompletionItem CreateCompletionItem(
+            INamedTypeSymbol symbol, SyntaxContext context)
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
@@ -56,11 +58,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
                 contextPosition: context.Position,
-                descriptionPosition: position,
+                properties: GetProperties(symbol, context),
                 rules: CompletionItemRules.Default);
         }
 
-        protected abstract Task<AbstractSyntaxContext> CreateSyntaxContextAsync(
+        protected abstract ImmutableDictionary<string, string> GetProperties(
+            INamedTypeSymbol symbol, SyntaxContext context);
+
+        protected abstract Task<SyntaxContext> CreateSyntaxContextAsync(
             Document document,
             SemanticModel semanticModel,
             int position,
@@ -68,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, AbstractSyntaxContext context);
+        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
 
-        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(AbstractSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             if (declaredSymbol == null)
             {
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
         }
 
-        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, AbstractSyntaxContext context)
+        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(reference => reference.GetSyntax())

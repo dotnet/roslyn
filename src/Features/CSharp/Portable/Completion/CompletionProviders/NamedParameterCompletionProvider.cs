@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     displayText: escapedName + ColonString,
                     insertionText: null,
                     symbol: parameter,
-                    descriptionPosition: token.SpanStart,
+                    contextPosition: token.SpanStart,
                     filterText: escapedName,
                     rules: CompletionItemRules.Default,
                     matchPriority: SymbolMatchPriority.PreferNamedArgument));

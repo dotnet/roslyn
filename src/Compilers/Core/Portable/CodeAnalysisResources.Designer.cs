@@ -1154,11 +1154,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be the same number of names and elements..
+        ///   Looks up a localized string similar to If tuple element names are specified, the number of element names must match the cardinality of the tuple..
         /// </summary>
-        internal static string TupleNamesAllOrNone {
+        internal static string TupleElementNameCountMismatch {
             get {
-                return ResourceManager.GetString("TupleNamesAllOrNone", resourceCulture);
+                return ResourceManager.GetString("TupleElementNameCountMismatch", resourceCulture);
             }
         }
         

@@ -34,18 +34,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 switch (_fixAllState.Scope)
                 {
                     case FixAllScope.Document:
-                        return FeaturesResources.FixAllTitle_Document;
+                        return FeaturesResources.Document;
                     case FixAllScope.Project:
-                        return FeaturesResources.FixAllTitle_Project;
+                        return FeaturesResources.Project;
                     case FixAllScope.Solution:
-                        return FeaturesResources.FixAllTitle_Solution;
+                        return FeaturesResources.Solution;
                     default:
                         throw new NotSupportedException();
                 }
             }
         }
 
-        internal override string Message => FeaturesResources.ComputingFixAllOccurrences;
+        internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
 
         public FixAllState FixAllState => _fixAllState;
 

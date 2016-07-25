@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis
             Event = 'V',
             ReducedExtensionMethod = 'X',
             TypeParameter = 'Y',
+            AnonymousType = 'Z',
 
             // Not to be confused with ArrayType.  This indicates an array of elements in the stream.
             Array = '%',
@@ -190,9 +191,16 @@ namespace Microsoft.CodeAnalysis
             {
                 // Strings are quoted, with all embedded quotes being doubled to escape them.
                 WriteSpace();
-                _stringBuilder.Append('"');
-                _stringBuilder.Append(value.Replace("\"", "\"\""));
-                _stringBuilder.Append('"');
+                if (value == null)
+                {
+                    WriteType(SymbolKeyType.Null);
+                }
+                else
+                {
+                    _stringBuilder.Append('"');
+                    _stringBuilder.Append(value.Replace("\"", "\"\""));
+                    _stringBuilder.Append('"');
+                }
             }
 
             internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
@@ -333,6 +341,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     WriteType(SymbolKeyType.TupleType);
                     TupleTypeSymbolKey.Create(namedTypeSymbol, this);
+                }
+                else if (namedTypeSymbol.IsAnonymousType)
+                {
+                    WriteType(SymbolKeyType.AnonymousType);
+                    AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
                 else
                 {

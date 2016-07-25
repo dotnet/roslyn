@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var symbol = await FindSymbolAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
-            var items = symbol != null ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol) : null;
+            var items = symbol != null
+                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null)
+                : null;
             if (items == null || items.IsEmpty())
             {
                 // Fallback to asking the navigation definition providers for navigable definition locations.

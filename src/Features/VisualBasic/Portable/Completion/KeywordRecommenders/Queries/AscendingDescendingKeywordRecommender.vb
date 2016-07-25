@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.SyntaxTree.IsFollowingCompleteExpression(Of OrderingSyntax)(
                     context.Position, context.TargetToken, Function(orderingSyntax) orderingSyntax.Expression, cancellationToken) Then
-                Return {New RecommendedKeyword("Ascending", VBFeaturesResources.AscendingQueryKeywordToolTip),
-                        New RecommendedKeyword("Descending", VBFeaturesResources.DescendingQueryKeywordToolTip)}
+                Return {New RecommendedKeyword("Ascending", VBFeaturesResources.Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first),
+                        New RecommendedKeyword("Descending", VBFeaturesResources.Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_will_appear_first)}
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
