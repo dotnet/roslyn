@@ -723,16 +723,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Does the overridenMember match the member in terms of tuple names (both in their return type and parameters)?
         ///
         /// We'll look at the result of equality without tuple names (1) and with tuple names (2).
-        /// The question is whether there is a change in tuple element names only (3). Those are overridenMembers that we'll want to keep.
+        /// The question is whether there is a change in tuple element names only (3).
         ///
-        ///                                                        | (1) | (2) |  (3)   |
-        /// `(int a, int b) M()`     vs. `(int a, int b) M()`      | yes | yes |  keep  |
-        /// `(int a, int b) M()`     vs. `(int x, int y) M()`      | yes | no  | remove |
-        /// `void M((int a, int b))` vs. `void M((int x, int y))`  | yes | no  | remove |
-        /// `int M()`                vs. `string M()`              | no  | no  |  keep  |
+        /// member                   vs. overriddenMember          | (1) | (2) |   (3)   |
+        /// `(int a, int b) M()`     vs. `(int a, int b) M()`      | yes | yes |  match  |
+        /// `(int a, int b) M()`     vs. `(int x, int y) M()`      | yes | no  | changed |
+        /// `void M((int a, int b))` vs. `void M((int x, int y))`  | yes | no  | changed |
+        /// `int M()`                vs. `string M()`              | no  | no  |  match  |
         ///
         /// </summary>
-        internal static bool TupleNamesMatch(Symbol member, Symbol overriddenMember)
+        internal static bool TupleNamesMatchIgnoringOtherDifferences(Symbol member, Symbol overriddenMember)
         {
             return !MemberSignatureComparer.CSharpWithoutTupleNamesComparer.Equals(overriddenMember, member) ||
                     MemberSignatureComparer.CSharpWithTupleNamesComparer.Equals(overriddenMember, member);

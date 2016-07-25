@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = ArrayBuilder<Symbol>.GetInstance(overriddenMembers.Length);
             foreach (var overriddenMember in overriddenMembers)
             {
-                if (MemberSignatureComparer.TupleNamesMatch(member, overriddenMember))
+                if (MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(member, overriddenMember))
                 {
                     result.Add(overriddenMember);
                 }

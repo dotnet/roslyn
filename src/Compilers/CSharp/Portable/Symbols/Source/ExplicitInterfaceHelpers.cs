@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
             }
 
-            if (!MemberSignatureComparer.TupleNamesMatch(implementingMember, implementedMember))
+            if (!MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(implementingMember, implementedMember))
             {
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
                 return null;
