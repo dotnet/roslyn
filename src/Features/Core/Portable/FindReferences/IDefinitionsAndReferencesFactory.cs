@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
             var references = ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
-            var uniqueLocations = new HashSet<ValueTuple<Document, TextSpan>>();
+            var uniqueLocations = new HashSet<DocumentLocation>();
 
             // Order the symbols by precedence, then create the appropriate
             // definition item per symbol and all refernece items for its
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ReferencedSymbol referencedSymbol,
             ImmutableArray<DefinitionItem>.Builder definitions,
             ImmutableArray<SourceReferenceItem>.Builder references,
-            HashSet<ValueTuple<Document, TextSpan>> uniqueLocations)
+            HashSet<DocumentLocation> uniqueLocations)
         {
             // See if this is a symbol we even want to present to the user.  If not,
             // ignore it entirely (including all its reference locations).
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ReferencedSymbol referencedSymbol,
             ImmutableArray<SourceReferenceItem>.Builder references,
             DefinitionItem definitionItem,
-            HashSet<ValueTuple<Document, TextSpan>> uniqueLocations)
+            HashSet<DocumentLocation> uniqueLocations)
         {
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
@@ -204,14 +204,14 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 var document = referenceLocation.Document;
                 var sourceSpan = location.SourceSpan;
 
-                if (uniqueLocations.Add(ValueTuple.Create(document, sourceSpan)))
+                var documentLocation = new DocumentLocation(document, sourceSpan);
+                if (!documentLocation.CanNavigateTo())
                 {
-                    var documentLocation = new DocumentLocation(document, sourceSpan);
-                    if (!documentLocation.CanNavigateTo())
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
+                if (uniqueLocations.Add(documentLocation))
+                {
                     references.Add(new SourceReferenceItem(definitionItem, documentLocation));
                 }
             }
