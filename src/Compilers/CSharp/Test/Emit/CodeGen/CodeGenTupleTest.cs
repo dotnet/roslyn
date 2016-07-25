@@ -8202,7 +8202,7 @@ class C : I
         System.Console.WriteLine(x.Alice);
     }
 
-    (int, string) I.M((int, string) value)
+    (int Alice, string Bob) I.M((int x, string y) value)
     {
         return value;
     }
@@ -8211,7 +8211,6 @@ class C : I
 }
 ";
 
-            // TODO: should be an error on implementing I.M()
             var comp = CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, hello)
@@ -15282,7 +15281,7 @@ class Derived : Base
         }
 
         [Fact]
-        public void NamesMatterInOverridenMethodReturn()
+        public void OverridenMethodWithDifferentTupleNamesInReturn()
         {
             var source = @"
 public class Base
@@ -15318,7 +15317,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void NamesMatterInOverridenMethodParameters()
+        public void OverridenMethodWithDifferenTupleNamesInParameters()
         {
             var source = @"
 public class Base
@@ -15354,7 +15353,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void NamesMatterInOverridenProperties()
+        public void OverridenPropertiesWithDifferentTupleNames()
         {
             var source = @"
 public class Base
@@ -15408,7 +15407,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void ReturnTypeOrNamesDontMatterInHiddenDetection()
+        public void HiddenMethodsWithDifferentTupleNames()
         {
             var source = @"
 public class Base
@@ -15449,7 +15448,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void NamesDontMatterInDuplicateMethodDetection()
+        public void DuplicateMethodDetectionWithDifferentTupleNames()
         {
             var source = @"
 public class C
@@ -15485,7 +15484,7 @@ public class C
         }
 
         [Fact]
-        public void NamesDontMatterInHiddenMethodParameters()
+        public void HiddenMethodParametersWithDifferentTupleNames()
         {
             var source = @"
 public class Base
@@ -15521,33 +15520,56 @@ public class Derived : Base
         }
 
         [Fact]
-        public void NamesMatterInExplicitInterfaceImplementation()
+        public void ExplicitInterfaceImplementationWithDifferentTupleNames()
         {
             var source = @"
 public interface I0
 {
-    void M1((int a, int b) x);
+    void M1((int, int b) x);
     void M2((int a, int b) x);
-    (int a, int b) MR1();
+    (int, int b) MR1();
     (int a, int b) MR2();
 }
 public class C : I0
 {
-    void I0.M1((int a, int b) z) { }
+    void I0.M1((int notMissing, int b) z) { }
     void I0.M2((int notA, int notB) z) { }
-    (int a, int b) I0.MR1() { return (1, 2); }
+    (int notMissing, int b) I0.MR1() { return (1, 2); }
     (int notA, int notB) I0.MR2() { return (1, 2); }
 }
 ";
 
-            // TODO: expect errors
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (12,13): error CS8220: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))'.
+                //     void I0.M2((int notA, int notB) z) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M2").WithArguments("C.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(12, 13),
+                // (13,32): error CS8220: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()'.
+                //     (int notMissing, int b) I0.MR1() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR1").WithArguments("C.MR1()", "I0.MR1()").WithLocation(13, 32),
+                // (14,29): error CS8220: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()'.
+                //     (int notA, int notB) I0.MR2() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR2").WithArguments("C.MR2()", "I0.MR2()").WithLocation(14, 29),
+                // (11,13): error CS8220: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))'.
+                //     void I0.M1((int notMissing, int b) z) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M1").WithArguments("C.M1((int notMissing, int b))", "I0.M1((int, int b))").WithLocation(11, 13),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR2()'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.MR2()").WithLocation(9, 18),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.M2((int a, int b))'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.M2((int a, int b))").WithLocation(9, 18),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR1()'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.MR1()").WithLocation(9, 18),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.M1((int, int b))'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.M1((int, int b))").WithLocation(9, 18)
                 );
         }
 
         [Fact]
-        public void NamesDontMatterInInterfaceHiddingAnotherInterface()
+        public void InterfaceHiddingAnotherInterfaceWithDifferentTupleNames()
         {
             var source = @"
 public interface I0
@@ -15574,7 +15596,7 @@ public interface I1 : I0
         }
 
         [Fact]
-        public void NamesDontMatterInHiddingInterfaceMethods()
+        public void HiddingInterfaceMethodsWithDifferentTupleNames()
         {
             var source = @"
 public interface I0
@@ -15614,7 +15636,7 @@ public interface I1 : I0
         }
 
         [Fact]
-        public void NamesDontMatterInDuplicateInterfaceDetection()
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames()
         {
             var source = @"
 public interface I0<T> { }
@@ -15633,7 +15655,7 @@ public class D : I0<int>, I0<int> { }
         }
 
         [Fact]
-        public void NamesMatterInImplicitInterfaceImplementation2()
+        public void ImplicitInterfaceImplementationWithDifferentTupleNames()
         {
             var source = @"
 public interface I0<T>
