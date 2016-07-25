@@ -23,8 +23,9 @@ goto :DoneParsing
 :DoneParsing
 
 if "%ClearBinaries%" == "true" (
-    echo Clearing the binaries directory
-    rd /s /q "%RoslynRoot%/Binaries/" 
+    echo Clearing the Binaries/Release and Binaries/Debug directories
+    rd /s /q "%RoslynRoot%/Binaries/Release"
+    rd /s /q "%RoslynRoot%/Binaries/Debug"
 )
 
 if "%ClearLocalPackages%" == "true" (

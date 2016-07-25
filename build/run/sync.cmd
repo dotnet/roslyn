@@ -69,5 +69,5 @@ echo Error loading NuGet.exe information %ERRORLEVEL%
 exit /b 1
 
 :Usage
-@echo Usage: cync.cmd /clean [Solution File]
+@echo Usage: sync.cmd /clean [Solution File]
 exit /b 1

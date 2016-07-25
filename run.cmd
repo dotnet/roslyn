@@ -22,11 +22,11 @@ if NOT [%ERRORLEVEL%]==[0] (
   exit /b 1
 )
 
-set _toolRuntime=%~dp0Tools
+set _toolRuntime=%~dp0Binaries\Tools
 set _dotnet=%_toolRuntime%\dotnetcli\dotnet.exe
 
-echo Running: %_dotnet% %_toolRuntime%\run.exe %*
-call %_dotnet% %_toolRuntime%\run.exe %*
+echo Running: %_dotnet% %_toolRuntime%\run.exe %~dp0build\run\config.json %*
+call %_dotnet% %_toolRuntime%\run.exe %~dp0build\run\config.json %*
 if NOT [%ERRORLEVEL%]==[0] (
   exit /b 1
 )

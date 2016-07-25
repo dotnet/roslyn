@@ -3,7 +3,7 @@
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __init_tools_log=$__scriptpath/init-tools.log
 __PACKAGES_DIR=$__scriptpath/../../packages
-__TOOLRUNTIME_DIR=$__scriptpath/../../Tools
+__TOOLRUNTIME_DIR=$__scriptpath/../../Binaries/Tools
 __DOTNET_PATH=$__TOOLRUNTIME_DIR/dotnetcli
 __DOTNET_CMD=$__DOTNET_PATH/dotnet
 if [ -z "$__BUILDTOOLS_SOURCE" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi

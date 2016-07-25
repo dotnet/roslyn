@@ -48,8 +48,9 @@ done
 
 if [[ $DeleteOutput = true ]]
 then
-    echo "removing binaries directory"
-    rm -rf "$RoslynDir/Binaries/" || true
+    echo "removing Binaries/Release and Binaries/Debug directories"
+    rm -rf "$RoslynDir/Binaries/Debug" || true
+    rm -rf "$RoslynDir/Binaries/Release" || true
 fi
 
 if [[ $DeleteLocalPackage = true ]]
