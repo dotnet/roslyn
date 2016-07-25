@@ -9,20 +9,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         private sealed class DocumentDefinitionLocation : DefinitionLocation
         {
             private readonly DocumentLocation _location;
-            private readonly ImmutableArray<TaggedText> _originationParts;
 
-            public DocumentDefinitionLocation(
-                DocumentLocation location, 
-                ImmutableArray<TaggedText> originationParts)
+            public DocumentDefinitionLocation(DocumentLocation location)
             {
                 _location = location;
-
-                _originationParts = originationParts.IsDefault
-                    ? ImmutableArray.Create(new TaggedText(TextTags.Text, _location.Document.Project.Name))
-                    : originationParts;
             }
 
-            public override ImmutableArray<TaggedText> OriginationParts => _originationParts;
+            public override ImmutableArray<TaggedText> OriginationParts =>
+                ImmutableArray.Create(new TaggedText(TextTags.Text, _location.Document.Project.Name));
 
             public override bool CanNavigateTo()
             {

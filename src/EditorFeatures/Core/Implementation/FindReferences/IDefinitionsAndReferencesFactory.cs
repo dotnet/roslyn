@@ -157,32 +157,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var definition = referencedSymbol.Definition;
             var result = ImmutableArray.CreateBuilder<DefinitionLocation>();
 
-            foreach (var location in locations)
+            // If it's a namespace, don't create any normal lcoation.  Namespaces
+            // come from many different sources, but we'll only show a single 
+            // root definition node for it.  That node won't be navigable.
+            if (definition.Kind != SymbolKind.Namespace)
             {
-                if (location.IsInMetadata)
+                foreach (var location in locations)
                 {
-                    var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrDefault();
-                    if (firstSourceReferenceLocation != null)
+                    if (location.IsInMetadata)
                     {
-                        result.Add(DefinitionLocation.CreateSymbolLocation(
-                            definition, firstSourceReferenceLocation.Document.Project));
-                    }
-                }
-                else if (location.IsInSource)
-                {
-                    var document = solution.GetDocument(location.SourceTree);
-                    if (document != null)
-                    {
-                        var documentLocation = new DocumentLocation(document, location.SourceSpan);
-                        if (documentLocation.CanNavigateTo())
+                        var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrDefault();
+                        if (firstSourceReferenceLocation != null)
                         {
-                            // If it's a namespace, don't show any origination.  Namespaces
-                            // come from many different sources, so we don't show anything.
-                            // If it's not a namespace, then use the default origination parts.
-                            var definitionLocation = definition.Kind == SymbolKind.Namespace
-                                ? DefinitionLocation.CreateDocumentLocation(documentLocation, ImmutableArray<TaggedText>.Empty)
-                                : DefinitionLocation.CreateDocumentLocation(documentLocation);
-                            result.Add(definitionLocation);
+                            result.Add(DefinitionLocation.CreateSymbolLocation(
+                                definition, firstSourceReferenceLocation.Document.Project));
+                        }
+                    }
+                    else if (location.IsInSource)
+                    {
+                        var document = solution.GetDocument(location.SourceTree);
+                        if (document != null)
+                        {
+                            var documentLocation = new DocumentLocation(document, location.SourceSpan);
+                            if (documentLocation.CanNavigateTo())
+                            {
+                                result.Add(DefinitionLocation.CreateDocumentLocation(documentLocation));
+                            }
                         }
                     }
                 }

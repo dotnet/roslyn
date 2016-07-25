@@ -29,10 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         public abstract bool CanNavigateTo();
         public abstract bool TryNavigateTo();
 
-        public static DefinitionLocation CreateDocumentLocation(
-            DocumentLocation location, ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>))
+        public static DefinitionLocation CreateDocumentLocation(DocumentLocation location)
         {
-            return new DocumentDefinitionLocation(location, originationParts);
+            return new DocumentDefinitionLocation(location);
         }
 
         public static DefinitionLocation CreateSymbolLocation(ISymbol symbol, Project referencingProject)
