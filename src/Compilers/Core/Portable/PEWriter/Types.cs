@@ -125,7 +125,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of classes or interfaces. All type arguments matching this parameter must be derived from all of the classes and implement all of the interfaces.
         /// </summary>
-        IEnumerable<ITypeReference> GetConstraints(EmitContext context);
+        IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context);
 
         /// <summary>
         /// True if all type arguments matching this parameter are constrained to be reference types.
@@ -397,24 +397,39 @@ namespace Microsoft.Cci
         ITypeReference GetTargetType(EmitContext context);
     }
 
-    internal struct InterfaceImplementation
+    /// <summary>
+    /// A type ref with attributes attached directly to the type reference
+    /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
+    /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
+    /// for the "pointed at" declaration, and all attributes will be emitted
+    /// directly on the type ref, rather than the declaration.
+    /// </summary>
+    // TODO(https://github.com/dotnet/roslyn/issues/12677):
+    // Consider: This is basically just a work-around for our overly loose
+    // interpretation of IReference and IDefinition. This type would probably
+    // be unnecessary if we added a GetAttributes method onto IDefinition and
+    // properly segregated attributes that are on type references and attributes
+    // that are on underlying type definitions.
+    internal struct TypeReferenceWithAttributes
     {
         /// <summary>
-        /// The interface being implemented.
+        /// The type reference.
         /// </summary>
-        public ITypeReference Interface { get; }
+        public ITypeReference TypeRef { get; }
 
         /// <summary>
-        /// The attributes on the interface implementation itself.
+        /// The attributes on the type reference itself.
         /// </summary>
         public ImmutableArray<ICustomAttribute> Attributes { get; }
 
-        public InterfaceImplementation(
-            ITypeReference iface,
-            ImmutableArray<ICustomAttribute> attributes)
+        public TypeReferenceWithAttributes(
+            ITypeReference typeRef,
+            ImmutableArray<ICustomAttribute> attributes = default(ImmutableArray<ICustomAttribute>))
         {
-            Interface = iface;
-            Attributes = attributes;
+            TypeRef = typeRef;
+            Attributes = attributes.IsDefault
+                ? ImmutableArray<ICustomAttribute>.Empty
+                : attributes;
         }
     }
 
@@ -476,7 +491,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more interfaces implemented by this type.
         /// </summary>
-        IEnumerable<InterfaceImplementation> Interfaces(EmitContext context);
+        IEnumerable<TypeReferenceWithAttributes> Interfaces(EmitContext context);
 
         /// <summary>
         /// True if the type may not be instantiated.

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class NamedTypeSymbol
+    Partial Friend Class NamedTypeSymbol
         Implements ITypeReference
         Implements ITypeDefinition
         Implements INamedTypeReference
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Debug.Assert(Not Me.IsAnonymousType)
-                Return Me.TypeKind = TYPEKIND.Enum
+                Return Me.TypeKind = TypeKind.Enum
             End Get
         End Property
 
@@ -392,7 +392,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of Cci.InterfaceImplementation) Implements ITypeDefinition.Interfaces
+        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) _
+            As IEnumerable(Of Cci.TypeReferenceWithAttributes) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
@@ -404,8 +405,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                             fromImplements:=True)
 
                 ' TODO(https://github.com/dotnet/roslyn/issues/12592):
-                ' Add support for tuple attributes on interface implementations
-                Yield New Cci.InterfaceImplementation(translated, ImmutableArray(Of Cci.ICustomAttribute).Empty)
+                ' TODO: Add support for tuple attributes on interface implementations
+                Yield New Cci.TypeReferenceWithAttributes(translated)
             Next
         End Function
 
