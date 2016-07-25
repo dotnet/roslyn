@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
             var references = ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
+            // Order the symbols by precedence, then create the appropriate
+            // definition item per symbol and all refernece items for its
+            // reference locations.
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
                 ProcessReferencedSymbol(solution, referencedSymbol, definitions, references);
@@ -78,11 +81,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             ImmutableArray<DefinitionItem>.Builder definitions,
             ImmutableArray<SourceReferenceItem>.Builder references)
         {
+            // See if this is a symbol we even want to present to the user.  If not,
+            // ignore it entirely (including all its reference locations).
             if (!referencedSymbol.ShouldShow())
             {
                 return;
             }
 
+            // Try to create an item for this definition.  If we can't,
+            // ignorei it entirely (including all its reference locations).
             var definitionItem = CreateDefinitionItem(solution, referencedSymbol);
             if (definitionItem == null)
             {
@@ -90,8 +97,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
 
             definitions.Add(definitionItem);
+
+            // Now, create the SourceReferenceItems for all the reference locations
+            // for this definition.
             CreateReferences(referencedSymbol, references, definitionItem);
 
+            // Finally, see if there are any third parties that want to add their
+            // own result to our collection.
             var thirdPartyItem = GetThirdPartyDefinitionItem(solution, referencedSymbol.Definition);
             if (thirdPartyItem != null)
             {
@@ -114,13 +126,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             var definition = referencedSymbol.Definition;
 
-            var locations = FilterDefinitionLocations(definition);
-            var definitionLocations = ConvertLocations(solution, referencedSymbol, locations);
-            if (definitionLocations.IsEmpty)
-            {
-                return null;
-            }
+            // First, determine the set of locations for this symbol that we'll
+            // want to present to the user.  Some symbols (like namespace) may
+            // have many locations, but we'll only want to show the user a single
+            // one.
+            var filteredLocations = FilterDefinitionLocations(definition);
 
+            // Convert the filtered set of locations to DefinitionLocation instances.
+            // If weren't any to, say because the symbol had no locations that we
+            // could understand (like Location.None), then we skip this item.
+            var definitionLocations = ConvertLocations(solution, referencedSymbol, filteredLocations);
             var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
 
             return new DefinitionItem(
@@ -146,11 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         result.Add(DefinitionLocation.CreateSymbolLocation(
                             definition, firstSourceReferenceLocation.Document.Project));
                     }
-                    else
-                    {
-                        result.Add(DefinitionLocation.CreateNonNavigatingLocation(
-                            DefinitionLocation.GetOriginationParts(definition)));
-                    }
                 }
                 else if (location.IsInSource)
                 {
@@ -164,6 +174,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                         }
                     }
                 }
+            }
+
+            if (result.Count == 0)
+            {
+                // If we got no definition locations, then create a sentinel one
+                // that we can display but which will not allow navigation.
+                result.Add(DefinitionLocation.CreateNonNavigatingLocation(
+                    DefinitionLocation.GetOriginationParts(definition)));
             }
 
             return result.ToImmutable();

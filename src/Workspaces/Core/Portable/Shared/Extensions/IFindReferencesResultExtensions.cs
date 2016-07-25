@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool ShouldShow(this ReferencedSymbol referencedSymbol)
         {
             // If the reference has any locations then we will present it.
-            if (referencedSymbol.Locations.Any(loc => loc.Location.IsInSource))
+            if (referencedSymbol.Locations.Any())
             {
                 return true;
             }
