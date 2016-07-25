@@ -39,10 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 return null;
             }
 
-            // Add one to the line/column so they are in 1-based coordinates for the UI.
-            // But keep them 0 based in the ExternalDefinitionLocation so that navigation
-            // works properly.
-            var displayParts = GetDisplayParts(filePath, lineNumber + 1, charOffset + 1);
+            var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             var definitionLocation = new ExternalDefinitionLocation(
                 _serviceProvider, filePath, lineNumber, charOffset);
 
@@ -59,7 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             var builder = ImmutableArray.CreateBuilder<TaggedText>();
 
             var sourceLine = GetSourceLine(filePath, lineNumber).Trim(' ', '\t');
-            var formatted = $"{filePath} - ({lineNumber}, {charOffset}) : {sourceLine}";
+
+            // Put the line in 1-based for the presentation of this item.
+            var formatted = $"{filePath} - ({lineNumber + 1}, {charOffset + 1}) : {sourceLine}";
 
             return ImmutableArray.Create(new TaggedText(TextTags.Text, formatted));
         }
