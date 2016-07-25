@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindReferences
 {
@@ -29,6 +31,18 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ImmutableArray<DefinitionItem> definitions,
             ImmutableArray<SourceReferenceItem> references)
         {
+            var definitionSet = definitions.ToSet();
+            for (int i = 0, n = references.Length; i < n; i++)
+            {
+                var reference = references[i];
+
+                if (!definitionSet.Contains(reference.Definition))
+                {
+                    throw new ArgumentException(
+                        $"{nameof(references)}[{i}].{nameof(reference.Definition)} not found in '{nameof(definitions)}'");
+                }
+            }
+
             Definitions = definitions;
             References = references;
         }
