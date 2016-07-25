@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     return false;
                 }
 
+                if (symbol.Kind == SymbolKind.Namespace)
+                {
+                    return false;
+                }
+
                 var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
                 return action(symbol, referencingProject, navigationService);
             }
