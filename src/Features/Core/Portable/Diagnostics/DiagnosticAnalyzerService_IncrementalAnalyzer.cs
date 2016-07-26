@@ -80,19 +80,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             #region IIncrementalAnalyzer
-            public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
+                return Analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken);
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Analyzer.AnalyzeDocumentAsync(document, bodyOpt, cancellationToken);
+                return Analyzer.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken);
             }
 
-            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Analyzer.AnalyzeProjectAsync(project, semanticsChanged, cancellationToken);
+                return Analyzer.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken);
             }
 
             public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)

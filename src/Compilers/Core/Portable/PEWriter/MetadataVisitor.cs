@@ -542,6 +542,15 @@ namespace Microsoft.Cci
             }
         }
 
+        public void Visit(IEnumerable<TypeReferenceWithAttributes> typeRefsWithAttributes)
+        {
+            foreach (var typeRefWithAttributes in typeRefsWithAttributes)
+            {
+                this.Visit(typeRefWithAttributes.TypeRef);
+                this.Visit(typeRefWithAttributes.Attributes);
+            }
+        }
+
         public virtual void Visit(ITypeReference typeReference)
         {
             this.DispatchAsReference(typeReference);

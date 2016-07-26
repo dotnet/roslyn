@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SymbolDisplayPart> ToSymbolDisplayParts(this string text)
         {
-            return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text));
+            return ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text));
         }
 
         public static int GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(this string line, int tabSize)

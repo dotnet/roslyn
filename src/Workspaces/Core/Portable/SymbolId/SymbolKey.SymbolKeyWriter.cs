@@ -191,9 +191,16 @@ namespace Microsoft.CodeAnalysis
             {
                 // Strings are quoted, with all embedded quotes being doubled to escape them.
                 WriteSpace();
-                _stringBuilder.Append('"');
-                _stringBuilder.Append(value.Replace("\"", "\"\""));
-                _stringBuilder.Append('"');
+                if (value == null)
+                {
+                    WriteType(SymbolKeyType.Null);
+                }
+                else
+                {
+                    _stringBuilder.Append('"');
+                    _stringBuilder.Append(value.Replace("\"", "\"\""));
+                    _stringBuilder.Append('"');
+                }
             }
 
             internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)

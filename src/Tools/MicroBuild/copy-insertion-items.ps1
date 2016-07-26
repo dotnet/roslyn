@@ -9,7 +9,6 @@ try
 {
     $items = @(
         "ExpressionEvaluatorPackage.vsix",
-        "Microsoft.VisualStudio.LanguageServices.Telemetry.vsix",
         "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
         "Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Roslyn.VisualStudio.Setup.Interactive.vsix",
@@ -19,7 +18,6 @@ try
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
-        "Microsoft.CodeAnalysis.VisualStudio.Telemetry.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveWindow.json",
         "Microsoft.CodeAnalysis.LanguageServices.vsman",

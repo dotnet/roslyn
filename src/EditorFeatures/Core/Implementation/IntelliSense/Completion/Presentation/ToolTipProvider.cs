@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public ToolTipProvider(ClassificationTypeMap typeMap)
         {
             _typeMap = typeMap;
-            _defaultTextBlock = SymbolDisplayPartExtensions.ToTextBlock(
-                new[] { new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol: null, text: "...") },
-                typeMap);
+            _defaultTextBlock = new TaggedText(TextTags.Text, "...").ToTextBlock(typeMap);
         }
 
         public UIElement GetUIElement(VSCompletion itemToRender, ICompletionSession context, UIElementType elementType)

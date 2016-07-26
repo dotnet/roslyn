@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Select
         End Function
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "AddHandler"),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " ")}

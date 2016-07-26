@@ -26,7 +26,7 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
       <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
@@ -44,7 +44,7 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\SharedCollections\ObjectPool`1.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">

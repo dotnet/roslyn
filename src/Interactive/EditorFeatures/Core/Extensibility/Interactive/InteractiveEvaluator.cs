@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _contentType = contentType;
             _responseFilePath = responseFilePath;
-            _workspace = new InteractiveWorkspace(this, hostServices);
+            _workspace = new InteractiveWorkspace(hostServices);
             _contentTypeChangedHandler = new EventHandler<ContentTypeChangedEventArgs>(LanguageBufferContentTypeChanged);
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 }
 
                 _currentWindow = value;
+                _workspace.Window = value;
 
                 _interactiveHost.Output = _currentWindow.OutputWriter;
                 _interactiveHost.ErrorOutput = _currentWindow.ErrorOutputWriter;

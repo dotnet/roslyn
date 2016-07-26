@@ -43,9 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Select
         End Function
 
-        Public Overrides Function GetParameterDisplayParts(index As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
             If index = 2 Then
-                Return SpecializedCollections.SingletonEnumerable(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, "[" + GetParameterName(2) + "]"))
+                Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, "[" + GetParameterName(2) + "]")}
             Else
                 Return MyBase.GetParameterDisplayParts(index)
             End If
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public Overrides Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As IList(Of SymbolDisplayPart)
             Return {
                 New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, ")"),
                 New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             }
         End Function
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "Mid"),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}

@@ -357,6 +357,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Block(locals, ImmutableArray.Create(Of BoundStatement)(statements))
         End Function
 
+        Public Function StatementList(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
+            Dim boundNode As New BoundStatementList(Syntax, statements)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        Public Function StatementList(first As BoundStatement, second As BoundStatement) As BoundStatementList
+            Dim boundNode As New BoundStatementList(Syntax, ImmutableArray.Create(first, second))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function [Return](Optional expression As BoundExpression = Nothing) As BoundReturnStatement
             If expression IsNot Nothing Then
                 ' If necessary, add a conversion on the return expression.
@@ -795,8 +807,8 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function HiddenSequencePoint() As BoundStatement
-            Return New BoundSequencePoint(Nothing, Nothing).MakeCompilerGenerated
+        Public Shared Function HiddenSequencePoint(Optional statementOpt As BoundStatement = Nothing) As BoundStatement
+            Return New BoundSequencePoint(Nothing, statementOpt).MakeCompilerGenerated
         End Function
 
         Public Function Null() As BoundExpression
@@ -910,6 +922,62 @@ nextm:
             Return boundNode
         End Function
 
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the index portion of a method's metadata token.
+        ''' </summary>
+        Public Function MethodDefIndex(method As MethodSymbol) As BoundExpression
+            Dim boundNode As New BoundMethodDefIndex(Syntax, method, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the maximum value of the index portions of all method definition metadata tokens in current module.
+        ''' </summary>
+        Public Function MaximumMethodDefIndex() As BoundExpression
+            Dim boundNode As New BoundMaximumMethodDefIndex(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the current module's MVID.
+        ''' </summary>
+        Public Function ModuleVersionId(isLValue As Boolean) As BoundExpression
+            Dim boundNode As New BoundModuleVersionId(Syntax, isLValue, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to a text representation of the current module/s MVID.
+        ''' </summary>
+        Public Function ModuleVersionIdString() As BoundExpression
+            Dim boundNode As New BoundModuleVersionIdString(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the root of the dynamic analysis payloads for a particular kind of dynamic analysis.
+        ''' </summary>
+        ''' <param name="analysisKind">Uniquely identifies the kind of dynamic analysis.</param>
+        ''' <param name="payloadType">Type of an analysis payload cell for the particular analysis kind.</param>
+        Public Function InstrumentationPayloadRoot(analysisKind As Integer, payloadType As TypeSymbol, isLValue As Boolean) As BoundExpression
+            Dim boundNode As New BoundInstrumentationPayloadRoot(Syntax, analysisKind, isLValue, payloadType)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the index of a source document in the table of debug source documents.
+        ''' </summary>
+        Public Function SourceDocumentIndex(document As Cci.DebugSourceDocument) As BoundExpression
+            Dim boundNode As New BoundSourceDocumentIndex(Syntax, document, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function Convert(type As TypeSymbol, arg As BoundExpression, Optional isChecked As Boolean = False) As BoundConversion
             If arg.IsNothingLiteral() Then
                 Return Convert(type, arg, ConversionKind.WideningNothingLiteral, isChecked)
@@ -936,6 +1004,15 @@ nextm:
             Dim boundArrayInit = New BoundArrayInitialization(_syntax, elements, arrayType)
             boundArrayInit.SetWasCompilerGenerated()
             Return New BoundArrayCreation(_syntax, ImmutableArray.Create(Of BoundExpression)(Literal(elements.Length)), boundArrayInit, arrayType)
+        End Function
+
+        Public Function Array(elementType As TypeSymbol, bounds As ImmutableArray(Of BoundExpression), elements As ImmutableArray(Of BoundExpression)) As BoundExpression
+            Dim arrayType = Me.Compilation.CreateArrayTypeSymbol(elementType)
+            Dim arrayInitialization As BoundArrayInitialization = If(Not elements.IsDefaultOrEmpty, New BoundArrayInitialization(_syntax, elements, arrayType), Nothing)
+            arrayInitialization?.SetWasCompilerGenerated()
+            Dim arrayCreation As New BoundArrayCreation(_syntax, bounds, arrayInitialization, arrayType)
+            arrayCreation.SetWasCompilerGenerated()
+            Return arrayCreation
         End Function
 
         Public Function Conditional(condition As BoundExpression, consequence As BoundExpression, alternative As BoundExpression, type As TypeSymbol) As BoundTernaryConditionalExpression

@@ -66,6 +66,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Return the type syntax of an out declaration argument expression.
+        /// </summary>
+        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
+        {
+            return self.Declaration.Type;
+        }
+
+        /// <summary>
+        /// Return the identifier of an out declaration argument expression.
+        /// </summary>
+        internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
+        {
+            return self.Declaration.Variables[0].Identifier;
+        }
+
+        /// <summary>
         /// Creates a new syntax token with all whitespace and end of line trivia replaced with
         /// regularly formatted trivia.
         /// </summary>
@@ -399,5 +415,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
         }
+
+        internal static bool IsIdentifierOfOutVariableDeclaration(this SyntaxToken identifier, out DeclarationExpressionSyntax declarationExpression)
+        {
+            Debug.Assert(identifier.Kind() == SyntaxKind.IdentifierToken || identifier.Kind() == SyntaxKind.None);
+
+            SyntaxNode parent;
+            if ((parent = identifier.Parent)?.Kind() == SyntaxKind.VariableDeclarator &&
+                (parent = parent.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+                (parent = parent.Parent)?.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                declarationExpression = (DeclarationExpressionSyntax)parent;
+                if (declarationExpression.Identifier() == identifier && declarationExpression.Parent.Kind() == SyntaxKind.Argument)
+                {
+                    return true;
+                }
+            }
+
+            declarationExpression = null;
+            return false;
+        }
+
     }
 }

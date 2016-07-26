@@ -4,7 +4,6 @@ Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEnumMember
     Public Class GenerateEnumMemberTests

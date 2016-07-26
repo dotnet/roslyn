@@ -270,6 +270,7 @@ namespace Microsoft.Cci
             }
 
             this.VisitTypeReferencesThatNeedTokens(typeDefinition.Interfaces(Context));
+
             if (typeDefinition.IsGeneric)
             {
                 this.Visit(typeDefinition.GenericParameters);
@@ -287,13 +288,15 @@ namespace Microsoft.Cci
             this.Visit(typeDefinition.GetProperties(Context));
         }
 
-        public void VisitTypeReferencesThatNeedTokens(IEnumerable<ITypeReference> typeReferences)
+        public void VisitTypeReferencesThatNeedTokens(IEnumerable<TypeReferenceWithAttributes> refsWithAttributes)
         {
-            foreach (ITypeReference typeReference in typeReferences)
+            foreach (var refWithAttributes in refsWithAttributes)
             {
-                VisitTypeReferencesThatNeedTokens(typeReference);
+                this.Visit(refWithAttributes.Attributes);
+                VisitTypeReferencesThatNeedTokens(refWithAttributes.TypeRef);
             }
         }
+
 
         private void VisitTypeReferencesThatNeedTokens(ITypeReference typeReference)
         {

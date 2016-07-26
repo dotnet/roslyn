@@ -21,7 +21,6 @@
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioSetupInteractive\Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioSetupNext\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.swixproj" Targets="Build" />
-    <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioTelemetry\Microsoft.CodeAnalysis.VisualStudio.Telemetry.swixproj" Targets="Build" />
   </Target>
 
   <ItemGroup>
@@ -31,6 +30,5 @@
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Telemetry.json" />
   </ItemGroup>
 </Project>

@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckOutVarDeclaration(BoundLocal node)
         {
             if (IsInside &&
-                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.Argument &&
-                ((ArgumentSyntax)node.Syntax).Identifier == node.LocalSymbol.IdentifierToken)
+                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
+                ((DeclarationExpressionSyntax)node.Syntax).Identifier() == node.LocalSymbol.IdentifierToken)
             {
                 _variablesDeclared.Add(node.LocalSymbol);
             }

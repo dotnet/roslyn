@@ -93,7 +93,6 @@ Public Module BuildDevDivInsertionFiles
 
         Private ReadOnly VsixesToInstall As String() = {
             "Roslyn.VisualStudio.Setup.vsix",
-            "Microsoft.VisualStudio.LanguageServices.Telemetry.vsix",
             "ExpressionEvaluatorPackage.vsix",
             "Roslyn.VisualStudio.InteractiveComponents.vsix",
             "Microsoft.VisualStudio.VsInteractiveWindow.vsix",

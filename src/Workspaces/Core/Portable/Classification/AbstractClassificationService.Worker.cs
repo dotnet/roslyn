@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

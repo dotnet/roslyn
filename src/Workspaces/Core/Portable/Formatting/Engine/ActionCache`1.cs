@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {

@@ -113,17 +113,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
     <Reference Include="System" />
@@ -132,6 +125,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModel\AbstractFileCodeElementTests.cs" />
@@ -159,8 +153,12 @@
     <Compile Include="Interactive\Commands\TestResetInteractive.cs" />
     <Compile Include="Interactive\TestInteractiveEvaluator.cs" />
     <Compile Include="PersistentStorage\SolutionSizeTests.cs" />
-    <Compile Include="ProjectSystemShim\CSharpReferencesTests.cs" />
-    <Compile Include="ProjectSystemShim\SourceFileHandlingTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\AnalyzersTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\CSharpCompilerOptionsTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\CSharpReferencesTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\CSharpReferencesTests.cs" />
+    <Compile Include="ProjectSystemShim\CPS\SourceFileHandlingTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\SourceFileHandlingTests.cs" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.Lines.cs" />
@@ -175,8 +173,8 @@
     <Compile Include="Options\OptionViewModelTests.cs" />
     <Compile Include="PersistentStorage\OptionServiceMock.cs" />
     <Compile Include="PersistentStorage\PersistentStorageTests.cs" />
-    <Compile Include="ProjectSystemShim\AnalyzersTests.cs" />
-    <Compile Include="ProjectSystemShim\CSharpCompilerOptionsTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\AnalyzersTests.cs" />
+    <Compile Include="ProjectSystemShim\LegacyProject\CSharpCompilerOptionsTests.cs" />
     <Compile Include="ProjectSystemShim\CSharpHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
