@@ -77,8 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
             protected readonly ChecksumScope ChecksumScope;
             protected readonly CancellationToken CancellationToken;
 
+            private bool _disposed;
+
             protected Session(ChecksumScope scope, CancellationToken cancellationToken)
             {
+                _disposed = false;
+
                 ChecksumScope = scope;
                 CancellationToken = cancellationToken;
             }
@@ -88,7 +92,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
-            public abstract void Dispose();
+            protected virtual void OnDisposed()
+            {
+                // do nothing
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+
+                OnDisposed();
+
+                ChecksumScope.Dispose();
+            }
         }
     }
 }

@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // close connection when cancellation has raised
             private readonly CancellationTokenRegistration _cancellationRegistration;
 
-            private bool _disposed;
-
             public JsonRpcSession(
                 ChecksumScope snapshot,
                 Stream snapshotStream,
@@ -37,8 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 CancellationToken cancellationToken) :
                 base(snapshot, cancellationToken)
             {
-                _disposed = false;
-
                 _snapshotClient = new SnapshotJsonRpcClient(this, snapshotStream);
                 _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget);
 
@@ -74,20 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
             }
 
-            public override void Dispose()
+            protected override void OnDisposed()
             {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                OnDispose();
-            }
-
-            private void OnDispose()
-            {
-                _disposed = true;
-
                 // dispose cancellation registration
                 _cancellationRegistration.Dispose();
 
