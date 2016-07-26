@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = new Checksum(text.GetChecksum(useDefaultEncodingIfNull: true));
+            var checksum = new Checksum(text.GetChecksum());
 
             return new SourceTextAsset(_serializer, state, checksum, kind);
         }

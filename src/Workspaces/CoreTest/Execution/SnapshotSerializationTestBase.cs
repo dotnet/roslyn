@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             await VerifyAssetSerializationAsync<SourceText>(
                 service, documentId.Text, WellKnownChecksumObjects.SourceText,
-                (v, k, s) => new SourceTextAsset(s, CreateTextState(solution, v), new Checksum(v.GetChecksum(useDefaultEncodingIfNull: true)), k));
+                (v, k, s) => new SourceTextAsset(s, CreateTextState(solution, v), new Checksum(v.GetChecksum()), k));
         }
 
         private static TextDocumentState CreateTextState(Solution solution, SourceText text)
