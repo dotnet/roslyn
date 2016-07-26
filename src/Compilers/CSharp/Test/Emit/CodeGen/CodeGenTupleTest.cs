@@ -15759,6 +15759,53 @@ public class D : I0<(int a, int b)>
         }
 
         [Fact]
+        public void ImplicitAndExplicitInterfaceImplementationWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0<T>
+{
+    T get();
+    void set(T x);
+}
+public class C1 : I0<(int a, int b)>
+{
+    public (int a, int b) get() { return (1, 2); }
+    public void set((int a, int b) y) { }
+}
+public class C2 : C1, I0<(int a, int b)>
+{
+    (int a, int b) I0<(int a, int b)>.get() { return (1, 2); }
+    void I0<(int a, int b)>.set((int a, int b) y) { }
+}
+public class D1 : I0<(int a, int b)>
+{
+    public (int notA, int notB) get() { return (1, 2); }
+    public void set((int notA, int notB) y) { }
+}
+public class D2 : D1, I0<(int notA, int notB)>
+{
+    (int a, int b) I0<(int a, int b)>.get() { return (1, 2); }
+    void I0<(int a, int b)>.set((int a, int b) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (20,17): error CS8220: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
+                //     public void set((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("D1.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(20, 17),
+                // (19,33): error CS8220: The tuple element names in the signature of method 'D1.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()'.
+                //     public (int notA, int notB) get() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("D1.get()", "I0<(int a, int b)>.get()").WithLocation(19, 33),
+                // (25,10): error CS0540: 'D2.I0<(int a, int b)>.set((int a, int b))': containing type does not implement interface 'I0<(int a, int b)>'
+                //     void I0<(int a, int b)>.set((int a, int b) y) { }
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I0<(int a, int b)>").WithArguments("D2.I0<(int a, int b)>.set((int a, int b))", "I0<(int a, int b)>").WithLocation(25, 10),
+                // (24,20): error CS0540: 'D2.I0<(int a, int b)>.get()': containing type does not implement interface 'I0<(int a, int b)>'
+                //     (int a, int b) I0<(int a, int b)>.get() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I0<(int a, int b)>").WithArguments("D2.I0<(int a, int b)>.get()", "I0<(int a, int b)>").WithLocation(24, 20)
+                );
+        }
+
+        [Fact]
         public void PartialMethodsWithDifferentTupleNames()
         {
             var source = @"
