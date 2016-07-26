@@ -513,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static class TupleNamesEncoder
         {
-            // TODO: can this be factored more?
             public static ImmutableArray<string> Encode(TypeSymbol type)
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();

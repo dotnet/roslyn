@@ -15800,12 +15800,12 @@ public partial class D : I0<(int a, int b)> { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C'.
-                // public partial class C : I0<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "C").WithLocation(4, 22),
-                // (5,22): error CS8219: 'I0<(int, int)>' is already listed in interface list with different tuple element names, on type 'C'.
-                // public partial class C : I0<(int, int)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "C").WithLocation(5, 22)
+                // (3,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // public partial class C : I0<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "C").WithLocation(3, 22),
+                // (3,22): error CS8219: 'I0<(int, int)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // public partial class C : I0<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "C").WithLocation(3, 22)
                 );
         }
 
@@ -15846,14 +15846,15 @@ public class D : I1, I3 { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // TODO: should be error
+                // (7,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // public class C : I1, I2 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "C").WithLocation(7, 14)
                 );
         }
 
         [Fact]
         public void InheritFromMetadataWithDifferentNames()
         {
-
             const string ilSource = @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple

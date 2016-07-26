@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             considerRefOutDifference: true,
-            considerCustomModifiers: false,
-            ignoreTupleNames: true);
+            considerCustomModifiers: false);
 
         /// <summary>
         /// This instance is used as a fallback when it is determined that one member does not implicitly implement
@@ -112,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCustomModifiers: false);
 
         /// <summary>
-        /// This instance checks whether two signatures match including tuples names in both return type and parameters.
+        /// This instance checks whether two signatures match including tuples names, in both return type and parameters.
+        /// It is used to detect tuple-name-only differences.
         /// </summary>
         public static readonly MemberSignatureComparer CSharpWithTupleNamesComparer = new MemberSignatureComparer(
             considerName: true,
@@ -125,6 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ignoreDynamic: true,
             ignoreTupleNames: false);
 
+        /// <summary>
+        /// This instance checks whether two signatures match excluding tuples names, in both return type and parameters.
+        /// It is used to detect tuple-name-only differences.
+        /// </summary>
         public static readonly MemberSignatureComparer CSharpWithoutTupleNamesComparer = new MemberSignatureComparer(
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
@@ -720,22 +724,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Does the overridenMember match the member in terms of tuple names (both in their return type and parameters)?
+        /// Does the members match in terms of tuple names (both in their return type and parameters)?
         ///
         /// We'll look at the result of equality without tuple names (1) and with tuple names (2).
         /// The question is whether there is a change in tuple element names only (3).
         ///
-        /// member                   vs. overriddenMember          | (1) | (2) |   (3)   |
-        /// `(int a, int b) M()`     vs. `(int a, int b) M()`      | yes | yes |  match  |
-        /// `(int a, int b) M()`     vs. `(int x, int y) M()`      | yes | no  | changed |
-        /// `void M((int a, int b))` vs. `void M((int x, int y))`  | yes | no  | changed |
-        /// `int M()`                vs. `string M()`              | no  | no  |  match  |
+        /// member1                  vs. member2                   | (1) | (2) |    (3)    |
+        /// `(int a, int b) M()`     vs. `(int a, int b) M()`      | yes | yes |   match   |
+        /// `(int a, int b) M()`     vs. `(int x, int y) M()`      | yes | no  | different |
+        /// `void M((int a, int b))` vs. `void M((int x, int y))`  | yes | no  | different |
+        /// `int M()`                vs. `string M()`              | no  | no  |   match   |
         ///
         /// </summary>
-        internal static bool TupleNamesMatchIgnoringOtherDifferences(Symbol member, Symbol overriddenMember)
+        internal static bool TupleNamesMatchIgnoringOtherDifferences(Symbol member1, Symbol member2)
         {
-            return !MemberSignatureComparer.CSharpWithoutTupleNamesComparer.Equals(overriddenMember, member) ||
-                    MemberSignatureComparer.CSharpWithTupleNamesComparer.Equals(overriddenMember, member);
+            return MemberSignatureComparer.CSharpWithTupleNamesComparer.Equals(member1, member2) ||
+                !MemberSignatureComparer.CSharpWithoutTupleNamesComparer.Equals(member1, member2);
         }
     }
 }
