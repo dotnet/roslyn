@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (ushort)this.Arity; }
         }
 
-        IEnumerable<Cci.InterfaceImplementation> Cci.ITypeDefinition.Interfaces(EmitContext context)
+        IEnumerable<Cci.TypeReferenceWithAttributes> Cci.ITypeDefinition.Interfaces(EmitContext context)
         {
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
 
@@ -440,26 +440,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (NamedTypeSymbol @interface in this.GetInterfacesToEmit())
             {
-                var translated = moduleBeingBuilt.Translate(
+                var typeRef = moduleBeingBuilt.Translate(
                     @interface,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                ImmutableArray<Cci.ICustomAttribute> attrs;
-                if (@interface.ContainsTuple())
-                {
-                    var attr = DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(@interface);
-                    attrs = attr == null
-                        ? ImmutableArray<Cci.ICustomAttribute>.Empty
-                        : ImmutableArray.Create<ICustomAttribute>(attr);
-                }
-                else
-                {
-                    attrs = ImmutableArray<Cci.ICustomAttribute>.Empty;
-                }
-
-                yield return new Cci.InterfaceImplementation(translated, attrs);
+                yield return @interface.GetTypeRefWithAttributes(this.DeclaringCompilation,
+                                                                 typeRef);
             }
         }
 

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingNamedType.GetPropertiesToEmit();
         }
 
-        protected override IEnumerable<Cci.InterfaceImplementation> GetInterfaces(EmitContext context)
+        protected override IEnumerable<Cci.TypeReferenceWithAttributes> GetInterfaces(EmitContext context)
         {
             Debug.Assert((object)TypeManager.ModuleBeingBuilt == context.Module);
 
@@ -99,25 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             foreach (NamedTypeSymbol @interface in UnderlyingNamedType.GetInterfacesToEmit())
             {
-                var translated = moduleBeingBuilt.Translate(
+                var typeRef = moduleBeingBuilt.Translate(
                     @interface,
                     (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     context.Diagnostics);
 
-                ImmutableArray<Cci.ICustomAttribute> attrs;
-                if (@interface.ContainsTuple())
-                {
-                    var attr = UnderlyingNamedType.DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(@interface);
-                    attrs = attr == null
-                        ? ImmutableArray<Cci.ICustomAttribute>.Empty
-                        : ImmutableArray.Create<Cci.ICustomAttribute>(attr);
-                }
-                else
-                {
-                    attrs = ImmutableArray<Cci.ICustomAttribute>.Empty;
-                }
-
-                yield return new Cci.InterfaceImplementation(translated, attrs);
+                yield return @interface.GetTypeRefWithAttributes(
+                    UnderlyingNamedType.DeclaringCompilation,
+                    typeRef);
             }
         }
 

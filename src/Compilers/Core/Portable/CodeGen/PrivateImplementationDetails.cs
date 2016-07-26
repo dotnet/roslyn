@@ -485,8 +485,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool HasDeclarativeSecurity => false;
 
-        public IEnumerable<Cci.InterfaceImplementation> Interfaces(EmitContext context)
-            => SpecializedCollections.EmptyEnumerable<Cci.InterfaceImplementation>();
+        public IEnumerable<Cci.TypeReferenceWithAttributes> Interfaces(EmitContext context)
+            => SpecializedCollections.EmptyEnumerable<Cci.TypeReferenceWithAttributes>();
 
         public bool IsAbstract => false;
 

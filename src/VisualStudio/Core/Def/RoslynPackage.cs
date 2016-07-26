@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
-            this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();
+            this.ComponentModel.GetExtensions<IDefinitionsAndReferencesPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
             this.ComponentModel.GetService<VirtualMemoryNotificationListener>();

@@ -7,10 +7,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _synchronousPresenters;
+        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
         private readonly IEnumerable<IStreamingFindReferencesPresenter> _streamingPresenters;
 
         private readonly IWaitIndicator _waitIndicator;
@@ -27,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> synchronousPresenters,
+            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
             [ImportMany] IEnumerable<IStreamingFindReferencesPresenter> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            Contract.ThrowIfNull(waitIndicator);
-            Contract.ThrowIfNull(synchronousPresenters);
+            Contract.ThrowIfNull(_synchronousPresenters);
             Contract.ThrowIfNull(streamingPresenters);
+            Contract.ThrowIfNull(asyncListeners);
 
             _waitIndicator = waitIndicator;
             _synchronousPresenters = synchronousPresenters;
@@ -112,9 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                             // The service failed, so just present an empty list of references
                             foreach (var presenter in _synchronousPresenters)
                             {
-                                presenter.DisplayResult(
-                                    document.Project.Solution,
-                                    SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
+                                presenter.DisplayResult(DefinitionsAndReferences.Empty);
                                 return;
                             }
                         }

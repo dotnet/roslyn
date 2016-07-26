@@ -1552,7 +1552,7 @@ class C : I2 { }
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag());
             var cciInterfaces = typeDef.Interfaces(context)
-                .Select(impl => impl.Interface).Cast<NamedTypeSymbol>().AsImmutable();
+                .Select(impl => impl.TypeRef).Cast<NamedTypeSymbol>().AsImmutable();
             Assert.True(cciInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
             context.Diagnostics.Verify();
         }

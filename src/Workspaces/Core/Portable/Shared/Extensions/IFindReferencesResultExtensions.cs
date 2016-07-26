@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result.Where(ShouldShow);
         }
 
-        private static bool ShouldShow(ReferencedSymbol referencedSymbol)
+        public static bool ShouldShow(this ReferencedSymbol referencedSymbol)
         {
             // If the reference has any locations then we will present it.
             if (referencedSymbol.Locations.Any())
@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Otherwise we still show the item even if there are no references to it.
-            return true;
+            // And it's at least a source/metadata definition.
+            return definition.Locations.Any(loc => loc.IsInSource || loc.IsInMetadata);
         }
 
         public static IEnumerable<ReferencedSymbol> FilterToAliasMatches(

@@ -65,6 +65,7 @@
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\FindReferences\VisualStudioDefinitionsAndReferencesFactory.cs" />
     <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
@@ -73,9 +74,7 @@
     <Compile Include="Implementation\LanguageService\AbstractPackage.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\ClassView\AbstractSyncClassViewCommandHandler.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\DefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\ILibraryService.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectBrowserTaskExtensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
@@ -395,7 +394,7 @@
     <Compile Include="Implementation\ExtractInterface\VisualStudioExtractInterfaceOptionsService.cs" />
     <Compile Include="Implementation\F1Help\AbstractHelpContextService.cs" />
     <Compile Include="Implementation\F1Help\IHelpContextService.cs" />
-    <Compile Include="Implementation\FindReferences\ReferencedSymbolsPresenter.cs" />
+    <Compile Include="Implementation\FindReferences\DefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Implementation\GCManager.cs" />
     <Compile Include="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
       <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
@@ -456,7 +455,6 @@
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsSimpleLibrary2.cs" />
     <Compile Include="Implementation\Library\AbstractObjectList.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\ExternalLanguageDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_FindReferences.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_GoToDefinition.cs" />
