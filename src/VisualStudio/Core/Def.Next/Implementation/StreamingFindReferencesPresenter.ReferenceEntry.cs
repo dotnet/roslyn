@@ -81,9 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case StandardTableKeyNames2.TextInlines:
                     return _taggedParts.ToTextBlock(_presenter._typeMap).Inlines;
 
-                //case StandardTableKeyNames2.DefinitionIcon:
-                //    return  _displayGlyph ? (object)_item.Glyph.GetImageMoniker() : null;
-
                 case StandardTableKeyNames2.Definition:
                     return _definitionBucket;
                 }
