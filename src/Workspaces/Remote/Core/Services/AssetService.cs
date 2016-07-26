@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
             new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
 
-        private readonly ConcurrentDictionary<Checksum, Tuple<DateTime, object>> _assets =
-            new ConcurrentDictionary<Checksum, Tuple<DateTime, object>>(concurrencyLevel: 4, capacity: 10);
+        private readonly ConcurrentDictionary<Checksum, Entry> _assets =
+            new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
         public AssetService()
         {
@@ -36,43 +36,43 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task CleanAssets()
         {
+            var purgeAfterTimeSpan = TimeSpan.FromMinutes(PurgeAfter);
+            var cleanupIntervalTimeSpan = TimeSpan.FromMinutes(CleanupInterval);
+
             while (true)
             {
-                foreach (var kvp in _assets)
+                var current = DateTime.UtcNow;
+
+                foreach (var kvp in _assets.ToArray())
                 {
-                    if (DateTime.UtcNow - kvp.Value.Item1 <= TimeSpan.FromMinutes(PurgeAfter))
+                    if (current - kvp.Value.LastAccessed <= purgeAfterTimeSpan)
                     {
                         continue;
                     }
 
-                    Tuple<DateTime, object> value;
                     // If it fails, we'll just leave it in the asset pool.
-                    _assets.TryRemove(kvp.Key, out value);
+                    Entry entry;
+                    _assets.TryRemove(kvp.Key, out entry);
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(CleanupInterval).Milliseconds).ConfigureAwait(false);
+                await Task.Delay(cleanupIntervalTimeSpan).ConfigureAwait(false);
             }
         }
 
         public void Set(Checksum checksum, object value)
         {
-            var tuple = Tuple.Create(DateTime.UtcNow, value);
-            _assets.AddOrUpdate(checksum, tuple, (key, oldValue) =>
-            {
-                Contract.Assert(ReferenceEquals(value, oldValue.Item2));
-                return tuple;
-            });
+            _assets.TryAdd(checksum, new Entry(value));
         }
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            Tuple<DateTime, object> tuple;
-            if (!_assets.TryGetValue(checksum, out tuple))
+            Entry entry;
+            if (!_assets.TryGetValue(checksum, out entry))
             {
                 // TODO: what happen if service doesn't come back. timeout?
                 await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                if (!_assets.TryGetValue(checksum, out tuple))
+                if (!_assets.TryGetValue(checksum, out entry))
                 {
                     // this can happen if all asset source is released due to cancellation
                     cancellationToken.ThrowIfCancellationRequested();
@@ -82,8 +82,16 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // Update timestamp
-            Set(checksum, tuple.Item2);
-            return (T)tuple.Item2;
+            Update(checksum, entry);
+
+            return (T)entry.Object;
+        }
+
+        private void Update(Checksum checksum, Entry entry)
+        {
+            // entry is reference type. we update it directly. 
+            // we don't care about race.
+            entry.LastAccessed = DateTime.UtcNow;
         }
 
         public async Task RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
@@ -136,6 +144,21 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             AssetSource dummy;
             _assetSources.TryRemove(serviceId, out dummy);
+        }
+
+        private class Entry
+        {
+            // mutable field
+            public DateTime LastAccessed;
+
+            // this can't change for same checksum
+            public readonly object Object;
+
+            public Entry(object @object)
+            {
+                LastAccessed = DateTime.UtcNow;
+                Object = @object;
+            }
         }
     }
 }

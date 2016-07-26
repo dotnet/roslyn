@@ -62,11 +62,6 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 return _storages.GetChecksumObject(checksum, cancellationToken);
             }
-
-            internal void TestOnly_ClearCache()
-            {
-                _storages.TestOnly_ClearCache();
-            }
         }
     }
 }

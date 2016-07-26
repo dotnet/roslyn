@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -197,7 +198,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 solutionId2 = snapshot2.SolutionChecksum;
             }
 
-            SnapshotEqual(snapshotService, solutionId1, solutionId2);
+            // once pinned snapshot scope is released, there is no way to get back to asset.
+            // catch Exception because it will throw 2 different exception based on release or debug (ExceptionUtilities.UnexpectedValue)
+            Assert.ThrowsAny<Exception>(() => SnapshotEqual(snapshotService, solutionId1, solutionId2));
         }
 
         [Fact]
@@ -213,33 +216,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var solutionId2 = snapshot2.SolutionChecksum;
 
                 Assert.True(object.ReferenceEquals(solutionId1, solutionId2));
-            }
-        }
-
-        [Fact]
-        public async Task CreateSolutionSnapshotId_Rebuild()
-        {
-            var solution = CreateFullSolution();
-
-            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as SolutionChecksumServiceFactory.Service;
-
-            // builds snapshot graph
-            using (var snapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false))
-            {
-                snapshotService.TestOnly_ClearCache();
-
-                // now test whether we are rebuilding assets correctly.
-                var solutionId = snapshot.SolutionChecksum;
-
-                VerifyChecksumObjectInService(snapshotService, solutionId);
-                VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
-                VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
-
-                Assert.Equal(solutionId.Projects.Objects.Length, 2);
-
-                var projects = solutionId.Projects.ToProjectObjects(snapshotService);
-                VerifySnapshotInService(snapshotService, projects.Objects[0], 1, 1, 1, 1, 1);
-                VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
             }
         }
 

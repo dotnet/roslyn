@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if cancelled due to us, throw cancellation exception.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // if canclled due to invocation is failed, throw aggregated exception for the failed task
-                throw new AggregateException(task.Exception);
+                // if canclled due to invocation is failed, rethrow merged cancellation
+                throw;
             }
         }
 
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if cancelled due to us, throw cancellation exception.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // if canclled due to invocation is failed, throw aggregated exception for the failed task
-                throw new AggregateException(task.Exception);
+                // if canclled due to invocation is failed, rethrow merged cancellation
+                throw;
             }
         }
 

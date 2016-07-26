@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -16,23 +17,21 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
-        private class RemoteTextLoader : TextLoader
-        {
-            private readonly Checksum _checksum;
-
-            public RemoteTextLoader(Checksum checksum)
-            {
-                _checksum = checksum;
-            }
-
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            {
-                var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(_checksum, cancellationToken).ConfigureAwait(false);
-                return TextAndVersion.Create(text, VersionStamp.Create());
-            }
-        }
+        // TODO: make this simple cache better
+        // this simple cache hold onto the last solution created
+        private ValueTuple<Checksum, Solution> _lastSolution;
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        {
+            if (_lastSolution.Item1 == solutionChecksum)
+            {
+                return _lastSolution.Item2;
+            }
+
+            return await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
@@ -125,6 +124,22 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
+        }
+
+        private class RemoteTextLoader : TextLoader
+        {
+            private readonly Checksum _checksum;
+
+            public RemoteTextLoader(Checksum checksum)
+            {
+                _checksum = checksum;
+            }
+
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(_checksum, cancellationToken).ConfigureAwait(false);
+                return TextAndVersion.Create(text, VersionStamp.Create());
+            }
         }
     }
 }
