@@ -1,36 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientService)), Shared]
-    internal partial class RemoteHostClientServiceFactory : IWorkspaceServiceFactory
+    internal partial class RemoteHostClientServiceFactory
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
-
-        [ImportingConstructor]
-        public RemoteHostClientServiceFactory(IDiagnosticAnalyzerService analyzerService)
-        {
-            _analyzerService = analyzerService;
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new RemoteHostClientService(workspaceServices.Workspace, _analyzerService);
-        }
-
         private class RemoteHostClientService : IRemoteHostClientService
         {
             private readonly Workspace _workspace;
@@ -107,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var instance = _instance;
                 if (instance == null)
                 {
-                    // service is in shutdown mode
+                    // service is in shutdown mode or not enabled
                     return null;
                 }
 
@@ -158,37 +140,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // use local token and lock on instance
             private void OnConnectionChanged(object sender, bool connection)
             {
-                if (!connection)
+                if (connection)
                 {
-                    // if remote host gets disconnected. tell users that remote host is gone and whether they want to recover remote host.
-                    var reportingService = _workspace.Services.GetService<IErrorReportingService>();
-                    lock (_gate)
-                    {
-                        if (_shutdown.IsCancellationRequested)
-                        {
-                            // we are shutting down.
-                            return;
-                        }
+                    return;
+                }
 
-                        _instance = null;
+                // if remote host gets disconnected. tell users that remote host is gone and whether they want to recover remote host.
+                lock (_gate)
+                {
+                    if (_shutdown.IsCancellationRequested)
+                    {
+                        // we are shutting down.
+                        return;
                     }
 
-                    _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(
-                        ServicesVSResources.Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start_working_in_proc_do_you_want_to_recover_remote_host,
-                        new ErrorReportingUI(ServicesVSResources.Re_enable, ErrorReportingUI.UIKind.Button, () =>
-                        {
-                            lock (_gate)
-                            {
-                                if (_shutdown.IsCancellationRequested)
-                                {
-                                    // we are shutting down
-                                    return;
-                                }
-
-                                _instance = StartInternalAsync(_shutdown.Token);
-                            }
-                        }));
+                    _instance = null;
                 }
+
+                _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(
+                    ServicesVSResources.Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start_working_in_proc_do_you_want_to_recover_remote_host,
+                    new ErrorReportingUI(ServicesVSResources.Re_enable, ErrorReportingUI.UIKind.Button, () =>
+                    {
+                        lock (_gate)
+                        {
+                            if (_shutdown.IsCancellationRequested)
+                            {
+                                // we are shutting down
+                                return;
+                            }
+
+                            _instance = StartInternalAsync(_shutdown.Token);
+                        }
+                    }));
             }
         }
     }

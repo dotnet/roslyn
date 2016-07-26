@@ -7,19 +7,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
 {
     /// <summary>
-    /// This let users to create a session to communicate with remote host (ex, ServiceHub)
+    /// This lets users create a session to communicate with remote host (i.e. ServiceHub)
     /// </summary>
     internal abstract class RemoteHostClient
     {
         private readonly Workspace _workspace;
 
-        public RemoteHostClient(Workspace workspace)
+        protected RemoteHostClient(Workspace workspace)
         {
             _workspace = workspace;
         }
@@ -42,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
         }
 
         protected abstract void OnConnected();
+
         protected abstract void OnDisconnected();
 
         protected abstract Task<Session> CreateCodeAnalysisServiceSessionAsync(ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken);
@@ -88,8 +88,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
             }
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
-            public abstract Task<Result> InvokeAsync<Result>(string targetName, params object[] arguments);
+
+            public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
+
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
+
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
             protected virtual void OnDisposed()
