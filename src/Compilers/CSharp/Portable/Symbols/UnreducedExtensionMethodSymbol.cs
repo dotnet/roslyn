@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            return _unreducedFrom.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
 
         public override bool Equals(object obj)

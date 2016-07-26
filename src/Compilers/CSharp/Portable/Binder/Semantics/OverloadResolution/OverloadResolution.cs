@@ -219,10 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: method group (possibly including a type-argument-list), and A is an optional 
             // SPEC: argument-list, consists of the following steps:
 
+            var didUnreduce = false;
             if (arguments.IsExtensionMethodInvocation)
             {
                 Debug.Assert((object)receiverOpt != null);
-                members = UnreduceExtensionMembers(members, arguments, receiverOpt);
+                members = UnreduceExtensionMembers(members, arguments, receiverOpt, out didUnreduce);
             }
 
             // NOTE: We use a quadratic algorithm to determine which members override/hide
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arguments.IsExtensionMethodInvocation)
                 {
-                    ReduceExtensionMembers(results, arguments);
+                    ReduceExtensionMembers(results, arguments, didUnreduce);
                 }
                 return;
             }
@@ -282,15 +283,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (arguments.IsExtensionMethodInvocation)
             {
-                ReduceExtensionMembers(results, arguments);
+                ReduceExtensionMembers(results, arguments, didUnreduce);
             }
 
             // Note, the caller is responsible for "final validation",
             // as that is not part of overload resolution.
         }
 
-        private static ArrayBuilder<TMember> UnreduceExtensionMembers<TMember>(ArrayBuilder<TMember> members, AnalyzedArguments arguments, BoundExpression receiver) where TMember : Symbol
+        private static ArrayBuilder<TMember> UnreduceExtensionMembers<TMember>(ArrayBuilder<TMember> members, AnalyzedArguments arguments, BoundExpression receiver, out bool didUnreduce) where TMember : Symbol
         {
+            foreach (var member in members)
+            {
+                // PROTOTYPE: Figure out what to do in the case of mixed static and instance (Color Color?)
+                if (member.IsStatic)
+                {
+                    didUnreduce = false;
+                    return members;
+                }
+            }
+            didUnreduce = true;
             var result = ArrayBuilder<TMember>.GetInstance(members.Count);
             foreach (var member in members)
             {
@@ -311,8 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static void ReduceExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments) where TMember : Symbol
+        private static void ReduceExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, bool didUnreduce) where TMember : Symbol
         {
+            if (!didUnreduce)
+            {
+                return;
+            }
             for (int i = 0; i < results.Count; i++)
             {
                 var result = results[i];
@@ -353,15 +368,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TMember ReduceExtensionMember<TMember>(TMember member) where TMember : Symbol
         {
+            TMember result;
             switch (member.Kind)
             {
                 case SymbolKind.Method:
-                    return (TMember)(Symbol)((MethodSymbol)(Symbol)member).ReduceExtensionMethod();
+                    result = (TMember)(Symbol)((MethodSymbol)(Symbol)member).ReduceExtensionMethod();
+                    break;
                 case SymbolKind.Property:
-                    return (TMember)(Symbol)((PropertySymbol)(Symbol)member).ReduceExtensionProperty();
+                    result = (TMember)(Symbol)((PropertySymbol)(Symbol)member).ReduceExtensionProperty();
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
+            Debug.Assert((object)result != null);
+            return result;
         }
 
         private static Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> PartitionMembersByContainingType<TMember>(ArrayBuilder<TMember> members) where TMember : Symbol
