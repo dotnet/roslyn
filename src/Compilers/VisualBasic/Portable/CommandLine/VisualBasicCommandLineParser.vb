@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If value IsNot Nothing Then
                                 Select Case value.ToLower()
                                     Case "full", "pdbonly"
-                                        debugInformationFormat = DebugInformationFormat.Pdb
+                                        debugInformationFormat = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
                                     Case "portable"
                                         debugInformationFormat = DebugInformationFormat.PortablePdb
                                     Case "embedded"

@@ -2317,6 +2317,8 @@ a.vb
 
         <Fact>
         Public Sub Debug()
+            Dim platformPdbKind = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
+
             Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             Assert.False(parsedArgs.EmitPdb)
             parsedArgs.Errors.Verify()
@@ -2324,37 +2326,37 @@ a.vb
             parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:FULL", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:portable", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -2369,32 +2371,32 @@ a.vb
             parsedArgs = DefaultParse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()

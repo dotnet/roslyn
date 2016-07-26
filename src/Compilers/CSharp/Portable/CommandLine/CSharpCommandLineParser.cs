@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     case "full":
                                     case "pdbonly":
-                                        debugInformationFormat = DebugInformationFormat.Pdb;
+                                        debugInformationFormat = PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb;
                                         break;
                                     case "portable":
                                         debugInformationFormat = DebugInformationFormat.PortablePdb;
