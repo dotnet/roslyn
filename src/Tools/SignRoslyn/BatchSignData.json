@@ -90,7 +90,6 @@
             "values": [
                 "ExpressionEvaluatorPackage.vsix",
                 "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
-                "Newtonsoft.Json.dll",
                 "Roslyn.Compilers.Extension.vsix",
                 "Roslyn.Deployment.Full.vsix",
                 "Roslyn.Deployment.Full.Next.vsix",
@@ -100,8 +99,7 @@
                 "Roslyn.VisualStudio.Setup.Next.vsix",
                 "Roslyn.VisualStudio.Setup.vsix",
                 "RoslynDeployment.vsix",
-                "SDK\\Roslyn Templates\\Release\\Roslyn SDK.vsix",
-                "StreamJsonRpc.resources.dll"
+                "SDK\\Roslyn Templates\\Release\\Roslyn SDK.vsix"
             ]
         }
     ],
@@ -113,6 +111,8 @@
         "Microsoft.DiaSymReader.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
+        "Newtonsoft.Json.dll",
+        "StreamJsonRpc.resources.dll",
         "System.Reflection.Metadata.dll",
         "System.Collections.Immutable.dll",
         "System.Diagnostics.StackTrace.dll",
