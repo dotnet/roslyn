@@ -5,12 +5,13 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioProjectTracker
     {
-        internal sealed class WorkspaceHostState
+        internal sealed class WorkspaceHostState : ForegroundThreadAffinitizedObject
         {
             private readonly IVisualStudioWorkspaceHost _workspaceHost;
             private readonly VisualStudioProjectTracker _tracker;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private bool _solutionAdded;
 
             public WorkspaceHostState(VisualStudioProjectTracker tracker, IVisualStudioWorkspaceHost workspaceHost)
+                : base(assertIsForeground: true)
             {
                 _tracker = tracker;
                 _workspaceHost = workspaceHost;
@@ -32,7 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _solutionAdded = false;
             }
 
-            public IVisualStudioWorkspaceHost Host { get { return _workspaceHost; } }
+            public IVisualStudioWorkspaceHost Host
+            {
+                get
+                {
+                    AssertIsForeground();
+                    return _workspaceHost;
+                }
+            }
 
             /// <summary>
             /// Whether or not the project tracker has been notified that it should start to push state
@@ -42,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void AddToPushListIfNeeded(AbstractProject project, List<AbstractProject> inOrderToPush, HashSet<AbstractProject> visited)
             {
+                AssertIsForeground();
+
                 if (_pushedProjects.Contains(project))
                 {
                     return;
@@ -54,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var projectReference in project.GetCurrentProjectReferences())
                 {
-                    AddToPushListIfNeeded(_tracker._projectMap[projectReference.ProjectId], inOrderToPush, visited);
+                    AddToPushListIfNeeded(_tracker.GetProject(projectReference.ProjectId), inOrderToPush, visited);
                 }
 
                 inOrderToPush.Add(project);
@@ -62,12 +73,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             internal void SolutionClosed()
             {
+                AssertIsForeground();
+
                 _solutionAdded = false;
                 _pushedProjects.Clear();
             }
 
             internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
             {
+                AssertIsForeground();
+
                 // If the workspace host isn't actually ready yet, we shouldn't do anything.
                 // Also, if the solution is closing we shouldn't do anything either, because all of our state is
                 // in the process of going away. This can happen if we receive notification that a document has

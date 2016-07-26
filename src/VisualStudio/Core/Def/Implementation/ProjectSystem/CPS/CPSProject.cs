@@ -37,13 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
             // If we were unable to set the output path from SetCommandLineArguments (due to null output file name or directory in the given commandLineForOptions),
             // we set a default unique output path.
-            if (this.TryGetBinOutputPath() == null)
+            if (this.BinOutputPath == null)
             {
                 var uniqueDefaultOutputPath = PathUtilities.CombinePathsUnchecked(Path.GetTempPath(), projectDisplayName + projectGuid.GetHashCode().ToString());
                 SetOutputPathAndRelatedData(objOutputPath: uniqueDefaultOutputPath, hasSameBinAndObjOutputPaths: true);
             }
 
-            Contract.ThrowIfNull(this.TryGetBinOutputPath());
+            Contract.ThrowIfNull(this.BinOutputPath);
 
             // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);

@@ -59,26 +59,26 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using (var environment = new TestEnvironment())
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", $"/out:{initialBinPath}"))
             {
-                Assert.Equal(initialBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(initialBinPath, project.TryGetObjOutputPath());
+                Assert.Equal(initialBinPath, project.BinOutputPath);
+                Assert.Equal(initialBinPath, project.ObjOutputPath);
 
                 // Change output folder.
                 var newBinPath = @"C:\NewFolder\test.dll";
                 project.SetCommandLineArguments($"/out:{newBinPath}");
-                Assert.Equal(newBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(newBinPath, project.TryGetObjOutputPath());
+                Assert.Equal(newBinPath, project.BinOutputPath);
+                Assert.Equal(newBinPath, project.ObjOutputPath);
 
                 // Change output file name.
                 newBinPath = @"C:\NewFolder\test2.dll";
                 project.SetCommandLineArguments($"/out:{newBinPath}");
-                Assert.Equal(newBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(newBinPath, project.TryGetObjOutputPath());
+                Assert.Equal(newBinPath, project.BinOutputPath);
+                Assert.Equal(newBinPath, project.ObjOutputPath);
 
                 // Change output file name and folder.
                 newBinPath = @"C:\NewFolder3\test3.dll";
                 project.SetCommandLineArguments($"/out:{newBinPath}");
-                Assert.Equal(newBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(newBinPath, project.TryGetObjOutputPath());
+                Assert.Equal(newBinPath, project.BinOutputPath);
+                Assert.Equal(newBinPath, project.ObjOutputPath);
             }
         }
 
@@ -99,7 +99,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ProjectLastDesignTimeBuildSucceededSetter_CPS()
         {
