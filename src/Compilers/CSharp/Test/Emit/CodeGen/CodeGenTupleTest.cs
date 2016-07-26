@@ -15286,33 +15286,40 @@ class Derived : Base
             var source = @"
 public class Base
 {
+    public virtual (int a, int b) M1() { return (1, 2); }
     public virtual (int a, int b) M2() { return (1, 2); }
     public virtual (int a, int b)[] M3() { return new[] { (1, 2) }; }
     public virtual System.Nullable<(int a, int b)> M4() { return (1, 2); }
     public virtual ((int a, int b) c, int d) M5() { return ((1, 2), 3); }
+    public virtual (dynamic a, dynamic b) M6() { return (1, 2); }
 }
 public class Derived : Base
 {
+    public override (int a, int b) M1() { return (1, 2); }
     public override (int notA, int notB) M2() { return (1, 2); }
     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
+    public override (dynamic notA, dynamic) M6() { return (1, 2); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics(
-                // (12,44): error CS8218: 'Derived.M3()': cannot change tuple element names when overriding inherited member 'Base.M3()'
-                //     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(12, 44),
-                // (13,59): error CS8218: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
-                //     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(13, 59),
-                // (14,53): error CS8218: 'Derived.M5()': cannot change tuple element names when overriding inherited member 'Base.M5()'
-                //     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M5").WithArguments("Derived.M5()", "Base.M5()").WithLocation(14, 53),
-                // (11,42): error CS8218: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
+                // (14,42): error CS8218: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
                 //     public override (int notA, int notB) M2() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(11, 42)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(14, 42),
+                // (15,44): error CS8218: 'Derived.M3()': cannot change tuple element names when overriding inherited member 'Base.M3()'
+                //     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(15, 44),
+                // (16,59): error CS8218: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
+                //     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(16, 59),
+                // (17,53): error CS8218: 'Derived.M5()': cannot change tuple element names when overriding inherited member 'Base.M5()'
+                //     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M5").WithArguments("Derived.M5()", "Base.M5()").WithLocation(17, 53),
+                // (18,45): error CS8218: 'Derived.M6()': cannot change tuple element names when overriding inherited member 'Base.M6()'
+                //     public override (dynamic notA, dynamic) M6() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M6").WithArguments("Derived.M6()", "Base.M6()").WithLocation(18, 45)
                 );
         }
 
