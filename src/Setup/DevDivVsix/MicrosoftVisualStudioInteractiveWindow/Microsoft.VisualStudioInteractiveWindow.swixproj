@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
 
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Package Include="Microsoft.CodeAnalysis.VisualStudioInteractiveWindow.swr" />
+    <Package Include="Microsoft.VisualStudioInteractiveWindow.swr" />
   </ItemGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.targets" />
