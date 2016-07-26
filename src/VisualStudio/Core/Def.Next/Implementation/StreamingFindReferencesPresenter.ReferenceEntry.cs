@@ -91,6 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
             }
 
+            internal bool TryCreateToolTip(string columnName, out object toolTip)
+            {
+                toolTip = GetEllisionBufferAroundReference();
+                return true;
+            }
+
             private FrameworkElement GetEllisionBufferAroundReference()
             {
                 var snapshotSpan = GetSnapshotSpanAroundReference();
