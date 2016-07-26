@@ -399,6 +399,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return project.ProjectReferences.Any(p => p.ProjectId == sourceProject.Id);
             }
 
+            return project.HasReferenceToAssembly(containingAssembly);
+        }
+
+        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol)
+        {
+            return project.HasReferenceToAssembly(assemblySymbol.Name);
+        }
+
+        public static bool HasReferenceToAssembly(this Project project, string assemblyName)
+        {
             // If the project we're looking at doesn't even support compilations, then there's no 
             // way for it to have an IAssemblySymbol.  And without that, there is no way for it
             // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
@@ -408,17 +418,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // WORKAROUND:
-            // perf  check metadata reference using newly created empty compilation with only metadata references.
+            // perf check metadata reference using newly created empty compilation with only metadata references.
+            //
+            // TODO(cyrusn): Why don't we call project.TryGetCompilation first?  
+            // wouldn't we want to use that compilation if it's available?
             var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
-                project.AssemblyName,
-                project.CompilationOptions);
+                project.AssemblyName, project.CompilationOptions);
 
             compilation = compilation.AddReferences(project.MetadataReferences);
 
             return project.MetadataReferences.Any(m =>
             {
                 var symbol = compilation.GetAssemblyOrModuleSymbol(m) as IAssemblySymbol;
-                return symbol != null && symbol.Name == containingAssembly.Name;
+                return symbol != null && symbol.Name == assemblyName;
             });
         }
     }
