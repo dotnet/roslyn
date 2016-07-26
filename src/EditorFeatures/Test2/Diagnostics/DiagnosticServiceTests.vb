@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
 
                 ' check reporting diagnostic to a project that doesn't exist
-                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, New ProjectId(Guid.NewGuid(), "dummy"))
+                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, ProjectId.CreateFromSerialized(Guid.NewGuid(), "dummy"))
                 Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())
 

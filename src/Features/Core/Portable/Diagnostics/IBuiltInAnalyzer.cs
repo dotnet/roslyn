@@ -8,6 +8,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IBuiltInAnalyzer
     {
+        /// <summary>
+        /// This category will be used to run analyzer more efficiently by restricting scope of analysis
+        /// </summary>
         DiagnosticAnalyzerCategory GetAnalyzerCategory();
+
+        /// <summary>
+        /// This indicates whether this builtin analyzer must run in proc or can be run on remote host such as service hub
+        /// </summary>
+        bool MustRunInProc { get; }
     }
 }
