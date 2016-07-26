@@ -28,7 +28,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 return _lastSolution.Item2;
             }
 
-            return await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // create new solution
+            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            // save it
+            _lastSolution = ValueTuple.Create(solutionChecksum, solution);
+
+            return solution;
         }
 
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
