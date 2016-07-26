@@ -511,8 +511,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
         }
 
-        private static class TupleNamesEncoder
+        internal static class TupleNamesEncoder
         {
+            // TODO: can this be factored more?
+            public static ImmutableArray<string> Encode(TypeSymbol type)
+            {
+                var namesBuilder = ArrayBuilder<string>.GetInstance();
+                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
+                Debug.Assert(namesBuilder.Any());
+
+                // If none of the tuples have names, return a default array
+                if (namesBuilder.All(name => name == null))
+                {
+                    namesBuilder.Free();
+                    return default(ImmutableArray<string>);
+                }
+
+                return namesBuilder.ToImmutableAndFree();
+            }
+
             public static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol stringType)
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();

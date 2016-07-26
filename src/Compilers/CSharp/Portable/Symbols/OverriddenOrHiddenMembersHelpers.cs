@@ -154,20 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
         }
 
-        private static ImmutableArray<Symbol> RemoveOverridesWithDifferentTupleElementNames(Symbol member, ImmutableArray<Symbol> overriddenMembers)
-        {
-            var result = ArrayBuilder<Symbol>.GetInstance(overriddenMembers.Length);
-            foreach (var overriddenMember in overriddenMembers)
-            {
-                if (MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(member, overriddenMember))
-                {
-                    result.Add(overriddenMember);
-                }
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
         /// <summary>
         /// In the CLI, accessors are just regular methods and their overriding/hiding rules are the same as for
         /// regular methods.  In C#, however, accessors are intimately connected with their corresponding properties.

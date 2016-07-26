@@ -15383,12 +15383,18 @@ public class Derived : Base
                 // (12,44): error CS8218: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
                 //     public override (int notA, int notB)[] P2 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P2").WithArguments("Derived.P2", "Base.P2").WithLocation(12, 44),
+                // (12,49): error CS8218: 'Derived.P2.get': cannot change tuple element names when overriding inherited member 'Base.P2.get'
+                //     public override (int notA, int notB)[] P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P2.get", "Base.P2.get").WithLocation(12, 49),
                 // (12,54): error CS8218: 'Derived.P2.set': cannot change tuple element names when overriding inherited member 'Base.P2.set'
                 //     public override (int notA, int notB)[] P2 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P2.set", "Base.P2.set").WithLocation(12, 54),
                 // (13,43): error CS8218: 'Derived.P3': cannot change tuple element names when overriding inherited member 'Base.P3'
                 //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P3").WithArguments("Derived.P3", "Base.P3").WithLocation(13, 43),
+                // (13,48): error CS8218: 'Derived.P3.get': cannot change tuple element names when overriding inherited member 'Base.P3.get'
+                //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P3.get", "Base.P3.get").WithLocation(13, 48),
                 // (13,71): error CS8218: 'Derived.P3.set': cannot change tuple element names when overriding inherited member 'Base.P3.set'
                 //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P3.set", "Base.P3.set").WithLocation(13, 71),
@@ -15421,25 +15427,54 @@ using System;
 public class Base
 {
     public virtual event Func<(int a, int b)> E1;
-    //public virtual (int a, int b) P1 { get { return (1, 2); } set { } }
-    //public virtual (int a, int b)[] P2 { get; set; }
-    //public virtual (int a, int b)? P3 { get { return (1, 2); } set { } }
-    //public virtual ((int a, int b) c, int d) P4 { get; set; }
+    public virtual event Func<(int a, int b)> E2;
+    public virtual event Func<(int a, int b)[]> E3;
+    public virtual event Func<((int a, int b) c, int d)> E4;
+
+    void M() { E1(); E2(); E3(); E4(); }
 }
 public class Derived : Base
 {
     public override event Func<(int a, int b)> E1;
-    //public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
-    //public override (int notA, int notB)[] P2 { get; set; }
-    //public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
-    //public override ((int notA, int notB) c, int d) P4 { get; set; }
+    public override event Func<(int notA, int notB)> E2;
+    public override event Func<(int notA, int notB)[]> E3;
+    public override event Func<((int notA, int) c, int d)> E4;
+
+    void M() { E1(); E2(); E3(); E4(); }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // TODO: wrong error
+                // (15,54): error CS8218: 'Derived.E2': cannot change tuple element names when overriding inherited member 'Base.E2'
+                //     public override event Func<(int notA, int notB)> E2;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2", "Base.E2").WithLocation(15, 54),
+                // (15,54): error CS8218: 'Derived.E2.add': cannot change tuple element names when overriding inherited member 'Base.E2.add'
+                //     public override event Func<(int notA, int notB)> E2;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2.add", "Base.E2.add").WithLocation(15, 54),
+                // (15,54): error CS8218: 'Derived.E2.remove': cannot change tuple element names when overriding inherited member 'Base.E2.remove'
+                //     public override event Func<(int notA, int notB)> E2;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2.remove", "Base.E2.remove").WithLocation(15, 54),
+                // (16,56): error CS8218: 'Derived.E3': cannot change tuple element names when overriding inherited member 'Base.E3'
+                //     public override event Func<(int notA, int notB)[]> E3;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3", "Base.E3").WithLocation(16, 56),
+                // (16,56): error CS8218: 'Derived.E3.add': cannot change tuple element names when overriding inherited member 'Base.E3.add'
+                //     public override event Func<(int notA, int notB)[]> E3;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3.add", "Base.E3.add").WithLocation(16, 56),
+                // (16,56): error CS8218: 'Derived.E3.remove': cannot change tuple element names when overriding inherited member 'Base.E3.remove'
+                //     public override event Func<(int notA, int notB)[]> E3;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3.remove", "Base.E3.remove").WithLocation(16, 56),
+                // (17,60): error CS8218: 'Derived.E4': cannot change tuple element names when overriding inherited member 'Base.E4'
+                //     public override event Func<((int notA, int) c, int d)> E4;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4", "Base.E4").WithLocation(17, 60),
+                // (17,60): error CS8218: 'Derived.E4.add': cannot change tuple element names when overriding inherited member 'Base.E4.add'
+                //     public override event Func<((int notA, int) c, int d)> E4;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4.add", "Base.E4.add").WithLocation(17, 60),
+                // (17,60): error CS8218: 'Derived.E4.remove': cannot change tuple element names when overriding inherited member 'Base.E4.remove'
+                //     public override event Func<((int notA, int) c, int d)> E4;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4.remove", "Base.E4.remove").WithLocation(17, 60)
                 );
         }
+
         [Fact]
         public void HiddenMethodsWithDifferentTupleNames()
         {
