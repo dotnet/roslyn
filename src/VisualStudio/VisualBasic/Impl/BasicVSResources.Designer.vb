@@ -272,11 +272,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Me.&apos; preferences.
+        '''  Looks up a localized string similar to &apos;Me.&apos; preferences:.
         '''</summary>
-        Friend Shared ReadOnly Property Me_preferences() As String
+        Friend Shared ReadOnly Property Me_preferences_colon() As String
             Get
-                Return ResourceManager.GetString("Me_preferences", resourceCulture)
+                Return ResourceManager.GetString("Me_preferences_colon", resourceCulture)
             End Get
         End Property
         

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Windows.Data
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
@@ -14,6 +15,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Return key.Option.Feature = SimplificationOptions.PerLanguageFeatureName OrElse
                    key.Option.Feature = CodeStyleOptions.PerLanguageCodeStyleOption
         End Function
+
+#Region "Preview Text"
 
         Private Shared s_fieldDeclarationPreviewTrue As String = "
 Class C
@@ -147,10 +150,15 @@ Class Program
 End Class
 ]]></a>.Value
 
+#End Region
+
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
             MyBase.New(optionSet, serviceProvider, LanguageNames.VisualBasic)
 
-            Dim qualifyGroupTitle = BasicVSResources.Me_preferences
+            Dim collectionView = DirectCast(CollectionViewSource.GetDefaultView(CodeStyleItems), ListCollectionView)
+            collectionView.GroupDescriptions.Add(New PropertyGroupDescription(NameOf(AbstractCodeStyleOptionViewModel.GroupName)))
+
+            Dim qualifyGroupTitle = BasicVSResources.Me_preferences_colon
             Dim qualifyMemberAccessPreferences = New List(Of CodeStylePreference) From
             {
                 New CodeStylePreference(BasicVSResources.Prefer_Me, isChecked:=True),

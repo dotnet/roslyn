@@ -231,8 +231,8 @@
   <data name="Prefer_Me" xml:space="preserve">
     <value>Prefer 'Me.'</value>
   </data>
-  <data name="Me_preferences" xml:space="preserve">
-    <value>'Me.' preferences</value>
+  <data name="Me_preferences_colon" xml:space="preserve">
+    <value>'Me.' preferences:</value>
   </data>
   <data name="predefined_type_preferences_colon" xml:space="preserve">
     <value>predefined type preferences:</value>
