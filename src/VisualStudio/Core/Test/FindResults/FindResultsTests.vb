@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
@@ -123,7 +124,8 @@ using System.Threading;
         Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(MockDocumentNavigationServiceProvider),
-                GetType(MockSymbolNavigationServiceProvider)))
+                GetType(MockSymbolNavigationServiceProvider),
+                GetType(DefaultDefinitionsAndReferencesFactory)))
 
         Private Async Function VerifyAsync(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem)) As System.Threading.Tasks.Task
             Dim workspaceXml =
@@ -147,7 +149,10 @@ using System.Threading;
 
                 WpfTestCase.RequireWpfFact($"The {NameOf(Implementation.Library.FindResults.LibraryManager)} assumes it's on the VS UI thread and thus uses WaitAndGetResult")
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
-                Dim findReferencesTree = libraryManager.CreateFindReferencesItems(workspace.CurrentSolution, result)
+
+                Dim factory = workspace.Services.GetService(Of IDefinitionsAndReferencesFactory)
+                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(workspace.CurrentSolution, result)
+                Dim findReferencesTree = libraryManager.CreateFindReferencesItems(definitionsAndReferences)
 
                 ' We cannot control the ordering of top-level nodes in the Find Symbol References window, so do not consider ordering of these items here.
                 expectedResults = expectedResults.OrderBy(Function(n) n.DisplayText).ToList()
