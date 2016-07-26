@@ -58,25 +58,25 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             switch (referencedSymbol.Definition.Kind)
             {
-                case SymbolKind.Event:
-                case SymbolKind.Field:
-                case SymbolKind.Label:
-                case SymbolKind.Local:
-                case SymbolKind.Method:
-                case SymbolKind.Parameter:
-                case SymbolKind.Property:
-                case SymbolKind.RangeVariable:
-                    return 0;
+            case SymbolKind.Event:
+            case SymbolKind.Field:
+            case SymbolKind.Label:
+            case SymbolKind.Local:
+            case SymbolKind.Method:
+            case SymbolKind.Parameter:
+            case SymbolKind.Property:
+            case SymbolKind.RangeVariable:
+                return 0;
 
-                case SymbolKind.ArrayType:
-                case SymbolKind.DynamicType:
-                case SymbolKind.ErrorType:
-                case SymbolKind.NamedType:
-                case SymbolKind.PointerType:
-                    return 1;
+            case SymbolKind.ArrayType:
+            case SymbolKind.DynamicType:
+            case SymbolKind.ErrorType:
+            case SymbolKind.NamedType:
+            case SymbolKind.PointerType:
+                return 1;
 
-                default:
-                    return 2;
+            default:
+                return 2;
             }
         }
 
@@ -94,14 +94,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 return;
             }
 
-            // Try to create an item for this definition.  If we can't,
-            // ignore it entirely (including all its reference locations).
-            var definitionItem = CreateDefinitionItem(solution, referencedSymbol);
-            if (definitionItem == null)
-            {
-                return;
-            }
-
+            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
@@ -127,11 +120,34 @@ namespace Microsoft.CodeAnalysis.FindReferences
             return null;
         }
 
-        private static DefinitionItem CreateDefinitionItem(
-            Solution solution, ReferencedSymbol referencedSymbol)
+        private static void CreateReferences(
+            ReferencedSymbol referencedSymbol,
+            ImmutableArray<SourceReferenceItem>.Builder references,
+            DefinitionItem definitionItem,
+            HashSet<DocumentLocation> uniqueLocations)
         {
-            var definition = referencedSymbol.Definition;
+            foreach (var referenceLocation in referencedSymbol.Locations)
+            {
+                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(definitionItem);
+                if (sourceReferenceItem == null)
+                {
+                    continue;
+                }
 
+                if (uniqueLocations.Add(sourceReferenceItem.Location))
+                {
+                    references.Add(sourceReferenceItem);
+                }
+            }
+        }
+    }
+
+    internal static class DefinitionItemExtensions
+    {
+        public static DefinitionItem ToDefinitionItem(
+            this ISymbol definition,
+            Solution solution)
+        {
             var definitionLocations = ConvertDefinitionLocations(solution, definition);
             var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
 
@@ -184,34 +200,26 @@ namespace Microsoft.CodeAnalysis.FindReferences
             return result.ToImmutable();
         }
 
-        private static void CreateReferences(
-            ReferencedSymbol referencedSymbol,
-            ImmutableArray<SourceReferenceItem>.Builder references,
-            DefinitionItem definitionItem,
-            HashSet<DocumentLocation> uniqueLocations)
+        public static SourceReferenceItem TryCreateSourceReferenceItem(
+            this ReferenceLocation referenceLocation,
+            DefinitionItem definitionItem)
         {
-            foreach (var referenceLocation in referencedSymbol.Locations)
+            var location = referenceLocation.Location;
+            Debug.Assert(location.IsInSource);
+
+            var document = referenceLocation.Document;
+            var sourceSpan = location.SourceSpan;
+
+            var documentLocation = new DocumentLocation(document, sourceSpan);
+            if (!documentLocation.CanNavigateTo())
             {
-                var location = referenceLocation.Location;
-                Debug.Assert(location.IsInSource);
-
-                var document = referenceLocation.Document;
-                var sourceSpan = location.SourceSpan;
-
-                var documentLocation = new DocumentLocation(document, sourceSpan);
-                if (!documentLocation.CanNavigateTo())
-                {
-                    continue;
-                }
-
-                if (uniqueLocations.Add(documentLocation))
-                {
-                    references.Add(new SourceReferenceItem(definitionItem, documentLocation));
-                }
+                return null;
             }
+
+            return new SourceReferenceItem(definitionItem, documentLocation);
         }
 
-        public static readonly SymbolDisplayFormat s_definitionDisplayFormat =
+        private static readonly SymbolDisplayFormat s_definitionDisplayFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,

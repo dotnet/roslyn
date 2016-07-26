@@ -1,5 +1,10 @@
-﻿using Microsoft.CodeAnalysis.Editor.Navigation;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -7,21 +12,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private class RoslynDefinitionBucket : DefinitionBucket
         {
+            private readonly StreamingFindReferencesPresenter _presenter;
             private readonly TableDataSourceFindReferencesContext _context;
-            private readonly INavigableItem _definitionItem;
-            private readonly NavigableItemEntryData _entryData;
+            private readonly DefinitionItem _definitionItem;
 
             public RoslynDefinitionBucket(
+                StreamingFindReferencesPresenter presenter,
                 TableDataSourceFindReferencesContext context,
-                INavigableItem definitionItem,
-                NavigableItemEntryData entryData)
+                DefinitionItem definitionItem)
                 : base(name: "",
                        sourceTypeIdentifier: context.SourceTypeIdentifier,
                        identifier: context.Identifier)
             {
+                _presenter = presenter;
                 _context = context;
                 _definitionItem = definitionItem;
-                _entryData = entryData;
             }
 
             public override bool TryGetValue(string key, out object content)
@@ -32,10 +37,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private object GetValue(string key)
             {
-                // Return data specific to a definition.
+                switch (key)
+                {
+                case StandardTableKeyNames.Text:
+                case StandardTableKeyNames.FullText:
+                    return _definitionItem.DisplayParts.JoinText();
 
-                // Then fall back to the data that's common to references and definitions.
-                return _entryData.GetValue(key);
+                case StandardTableKeyNames2.TextInlines:
+                    return _definitionItem.DisplayParts.ToTextBlock(_presenter._typeMap).Inlines;
+
+                case StandardTableKeyNames2.DefinitionIcon:
+                    return _definitionItem.Tags.GetGlyph().GetImageMoniker();
+                }
+
+                return null;
             }
         }
     }

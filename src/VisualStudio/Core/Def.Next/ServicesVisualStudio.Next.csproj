@@ -27,7 +27,6 @@
   <ItemGroup Label="Build Items">
     <Compile Include="Implementation\StreamingFindReferencesPresenter.cs" />
     <Compile Include="Implementation\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.EntryData.cs" />
     <Compile Include="Implementation\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="Implementation\StreamingFindReferencesPresenter.Subscription.cs" />
     <Compile Include="Implementation\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />

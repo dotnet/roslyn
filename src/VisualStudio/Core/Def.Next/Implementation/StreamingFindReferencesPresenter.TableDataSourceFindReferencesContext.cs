@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -41,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// bucket for it.  The first time we hear about a definition we'll make a single task
             /// and then always return that for all future references found.
             /// </summary>
-            private readonly Dictionary<INavigableItem, Task<RoslynDefinitionBucket>> _definitionToBucketTask =
-                new Dictionary<INavigableItem, Task<RoslynDefinitionBucket>>();
+            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
+                new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
 
             private ImmutableList<ReferenceEntry> _referenceEntries = ImmutableList<ReferenceEntry>.Empty;
             private TableEntriesSnapshot _lastSnapshot;
@@ -124,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            public async override void OnReferenceFound(INavigableItem definition, INavigableItem reference)
+            public async override void OnReferenceFound(SourceReferenceItem reference)
             {
                 try
                 {
@@ -136,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // know so that it doesn't verify results until this completes.
                     using (var token = _presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
-                        await OnReferenceFoundAsync(definition, reference).ConfigureAwait(false);
+                        await OnReferenceFoundAsync(reference).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -144,25 +145,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            private async Task OnReferenceFoundAsync(
-                INavigableItem definition, INavigableItem referenceItem)
+            private async Task OnReferenceFoundAsync(SourceReferenceItem referenceItem)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // First find the bucket corresponding to our definition. If we can't find/create 
                 // one, then don't do anything for this reference.
-                var definitionBucket = await GetOrCreateDefinitionBucketAsync(
-                    definition, cancellationToken).ConfigureAwait(false);
+                var definitionBucket = GetOrCreateDefinitionBucket(referenceItem.Definition);
                 if (definitionBucket == null)
                 {
                     return;
                 }
 
                 // Now make the underlying data object for the reference.
-                var entryData = await this.TryCreateNavigableItemEntryData(
-                    referenceItem, isDefinition: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var referenceEntry = new ReferenceEntry(definitionBucket, referenceItem, entryData);
+                //var entryData = await this.TryCreateNavigableItemEntryData(
+                //    referenceItem, isDefinition: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var referenceEntry = await this.CreateReferenceEntryAsync(
+                    definitionBucket, referenceItem, cancellationToken).ConfigureAwait(false);
+                if (referenceEntry == null)
+                {
+                    return;
+                }
 
                 lock (_gate)
                 {
@@ -175,10 +179,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 NotifySinksOfChangedVersion();
             }
 
-            private async Task<NavigableItemEntryData> TryCreateNavigableItemEntryData(
-                INavigableItem item, bool isDefinition, CancellationToken cancellationToken)
+            private async Task<ReferenceEntry> CreateReferenceEntryAsync(
+                RoslynDefinitionBucket definitionBucket, SourceReferenceItem referenceItem, CancellationToken cancellationToken)
             {
-                var document = item.Document;
+                var location = referenceItem.Location;
+                var document = location.Document;
 
                 // The FAR system needs to know the guid for the project that a def/reference is 
                 // from.  So we only support this for documents from a VSWorkspace.
@@ -194,35 +199,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return null;
                 }
 
-                var taggedText = await GetTaggedTextAsync(document, item, isDefinition, cancellationToken).ConfigureAwait(false);
+                var taggedText = await GetTaggedTextForReferenceAsync(document, referenceItem, cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                return new NavigableItemEntryData(
-                    _presenter, item, projectGuid.Value, sourceText, 
-                    taggedText, displayGlyph: isDefinition);
-            }
-
-            private Task<ImmutableArray<TaggedText>> GetTaggedTextAsync(
-                Document document, INavigableItem item, bool isDefinition, CancellationToken cancellationToken)
-            {
-                return isDefinition
-                    ? GetTaggedTextForDefinitionAsync(item)
-                    : GetTaggedTextForReferenceAsync(document, item, cancellationToken);
+                return new ReferenceEntry(
+                    _presenter, definitionBucket, referenceItem, 
+                    projectGuid.Value, sourceText, taggedText);
             }
 
             private Task<ImmutableArray<TaggedText>> GetTaggedTextForDefinitionAsync(
-                INavigableItem item)
+                DefinitionItem item)
             {
-                return Task.FromResult(item.DisplayTaggedParts);
+                return Task.FromResult(item.DisplayParts);
             }
 
             private async Task<ImmutableArray<TaggedText>> GetTaggedTextForReferenceAsync(
-                Document document, INavigableItem item, CancellationToken cancellationToken)
+                Document document, SourceReferenceItem item, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var referenceSpan = item.SourceSpan;
+                var referenceSpan = item.Location.SourceSpan;
                 var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
 
                 var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
@@ -235,33 +232,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return classifiedLineParts.ToTaggedText();
             }
 
-            private Task<RoslynDefinitionBucket> GetOrCreateDefinitionBucketAsync(
-                INavigableItem definition, CancellationToken cancellationToken)
+            private RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
             {
                 lock (_gate)
                 {
-                    Task<RoslynDefinitionBucket> bucketTask;
-                    if (!_definitionToBucketTask.TryGetValue(definition, out bucketTask))
+                    RoslynDefinitionBucket bucket;
+                    if (!_definitionToBucket.TryGetValue(definition, out bucket))
                     {
-                        bucketTask = CreateDefinitionBucketAsync(definition, cancellationToken);
-                        _definitionToBucketTask.Add(definition, bucketTask);
+                        bucket = new RoslynDefinitionBucket(_presenter, this, definition);
                     }
 
-                    return bucketTask;
+                    return bucket;
                 }
-            }
-
-            private async Task<RoslynDefinitionBucket> CreateDefinitionBucketAsync(
-                INavigableItem definitionItem, CancellationToken cancellationToken)
-            {
-                var entryData = await TryCreateNavigableItemEntryData(
-                    definitionItem, isDefinition: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (entryData == null)
-                {
-                    return null;
-                }
-
-                return new RoslynDefinitionBucket(this, definitionItem, entryData);
             }
 
             private void NotifySinksOfChangedVersion()

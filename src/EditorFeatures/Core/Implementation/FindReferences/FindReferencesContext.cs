@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.FindReferences;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public virtual void OnDefinitionFound(
-            INavigableItem definition, bool shouldDisplayWithNoReferences)
+            DefinitionItem definition, bool shouldDisplayWithNoReferences)
         {
         }
 
-        public virtual void OnReferenceFound(INavigableItem definition, INavigableItem reference)
+        public virtual void OnReferenceFound(SourceReferenceItem reference)
         {
         }
 
