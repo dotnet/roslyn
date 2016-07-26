@@ -7262,6 +7262,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Both partial method declarations, &apos;{0}&apos; and &apos;{1}&apos;, must use the same tuple element names..
+        /// </summary>
+        internal static string ERR_PartialMethodTupleNameDifference {
+            get {
+                return ResourceManager.GetString("ERR_PartialMethodTupleNameDifference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Both partial method declarations must be unsafe or neither may be unsafe.
         /// </summary>
         internal static string ERR_PartialMethodUnsafeDifference {

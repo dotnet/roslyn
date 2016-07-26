@@ -1081,8 +1081,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(s_emptyTypeMembers.Count == 0);
-                return symbols.Count > 0 ? 
-                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) : 
+                return symbols.Count > 0 ?
+                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) :
                     s_emptyTypeMembers;
             }
             finally
@@ -2379,6 +2379,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (method.IsPartialImplementation && (object)method.OtherPartOfPartial == null)
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
+                    }
+                    else if ((object)method.OtherPartOfPartial != null && !MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(method, method.OtherPartOfPartial))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodTupleNameDifference, method.Locations[0], method, method.OtherPartOfPartial);
                     }
                 }
             }

@@ -2054,6 +2054,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodMustHaveLatent" xml:space="preserve">
     <value>No defining declaration found for implementing declaration of partial method '{0}'</value>
   </data>
+  <data name="ERR_PartialMethodTupleNameDifference" xml:space="preserve">
+    <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
+  </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">
     <value>Partial method declarations of '{0}' have inconsistent type parameter constraints</value>
   </data>

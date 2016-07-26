@@ -15679,5 +15679,26 @@ public class C : I0<(int a, int b)>
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("C.get()", "I0<(int a, int b)>.get()").WithLocation(9, 33)
                 );
         }
+
+        [Fact]
+        public void PartialMethodsWithDifferentTupleNames()
+        {
+            var source = @"
+public partial class C
+{
+    partial void set((int a, int b) y);
+}
+public partial class C
+{
+    partial void set((int notA, int notB) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS8221: Both partial method declarations, 'C.set((int a, int b))' and 'C.set((int notA, int notB))', must use the same tuple element names.
+                //     partial void set((int a, int b) y);
+                Diagnostic(ErrorCode.ERR_PartialMethodTupleNameDifference, "set").WithArguments("C.set((int a, int b))", "C.set((int notA, int notB))").WithLocation(4, 18)
+                );
+        }
     }
 }
