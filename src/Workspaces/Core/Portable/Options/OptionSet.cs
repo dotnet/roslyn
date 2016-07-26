@@ -38,10 +38,5 @@ namespace Microsoft.CodeAnalysis.Options
         public abstract OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string language, T value);
 
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
-
-        internal bool GetOption(object runtimeOptions)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
