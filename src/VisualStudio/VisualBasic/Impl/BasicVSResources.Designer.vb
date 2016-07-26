@@ -380,25 +380,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Prefer intrinsic predefined type keyword in member access expressions.
-        '''</summary>
-        Friend Shared ReadOnly Property Prefer_intrinsic_predefined_type_keyword_in_member_access_expressions() As String
-            Get
-                Return ResourceManager.GetString("Prefer_intrinsic_predefined_type_keyword_in_member_access_expressions", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Prefer intrinsic predefined type keyword when declaring locals, parameters and members.
-        '''</summary>
-        Friend Shared ReadOnly Property Prefer_intrinsic_predefined_type_keyword_when_declaring_locals_parameters_and_members() As String
-            Get
-                Return ResourceManager.GetString("Prefer_intrinsic_predefined_type_keyword_when_declaring_locals_parameters_and_mem"& _ 
-                        "bers", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Prefer &apos;Me.&apos;.
         '''</summary>
         Friend Shared ReadOnly Property Prefer_Me() As String

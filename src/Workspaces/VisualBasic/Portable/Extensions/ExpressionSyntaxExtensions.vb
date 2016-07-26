@@ -4,6 +4,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
@@ -1005,6 +1006,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                                     keywordKind,
                                                     memberAccess.GetTrailingTrivia()))
 
+                                replacementNode = replacementNode.WithAdditionalAnnotations(
+                                    New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+
                                 issueSpan = memberAccess.Span
 
                                 Return True
@@ -1075,13 +1079,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return (((memberAccess.Parent IsNot Nothing) AndAlso (TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax)) OrElse
                     (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
                    (Not InsideNameOfExpression(memberAccess)) AndAlso
-                   optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
+                   SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, LanguageNames.VisualBasic)
         End Function
 
         Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
             Return (name.Parent IsNot Nothing) AndAlso (TypeOf name.Parent IsNot MemberAccessExpressionSyntax) AndAlso (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
-                   optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic)
+                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)
         End Function
 
         <Extension>
@@ -1305,12 +1309,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                     keywordKind,
                                     name.GetTrailingTrivia())
                                 Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
-                                If token.Text = valueText OrElse
-                                   PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
-                                   PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
+                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet)
+                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)
+                                If token.Text = valueText OrElse inDeclarationContext OrElse inMemberAccessContext Then
+
+                                    Dim codeStyleOptionName As String = Nothing
+                                    If inDeclarationContext Then
+                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                    ElseIf inMemberAccessContext Then
+                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+                                    End If
+
                                     replacementNode = SyntaxFactory.PredefinedType(token)
                                     issueSpan = name.Span
-                                    Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+
+                                    Dim canReplace = name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+                                    If canReplace Then
+                                        replacementNode = replacementNode.WithAdditionalAnnotations(New SyntaxAnnotation(codeStyleOptionName))
+                                    End If
+
+                                    Return canReplace
                                 End If
                             End If
                         End If

@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 SimplificationOptions.PreferImplicitTypeInference,
                 SimplificationOptions.PreferImplicitTypeInLocalDeclaration,
                 SimplificationOptions.AllowSimplificationToGenericType,
-                SimplificationOptions.AllowSimplificationToBaseType,
-                SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
-                SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+                SimplificationOptions.AllowSimplificationToBaseType
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()
