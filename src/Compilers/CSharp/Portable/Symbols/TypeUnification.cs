@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          ref substitution);
 #if DEBUG
             Debug.Assert(!result ||
-                SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t1)) == SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t2)));
+                SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t1)).Equals(SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t2)), ignoreDynamic: false, ignoreTupleNames: true));
 #endif
             return result;
         }
@@ -143,6 +143,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         NamedTypeSymbol nt1 = (NamedTypeSymbol)t1.Type;
                         NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.Type;
+
+                        if (nt1.IsTupleType)
+                        {
+                            if (!nt2.IsTupleType)
+                            {
+                                return false;
+                            }
+
+                            var t1Types = nt1.TupleUnderlyingType;
+                            var t2Types = nt2.TupleUnderlyingType;
+                            return CanUnifyHelper(new TypeWithModifiers(nt1.TupleUnderlyingType), new TypeWithModifiers(nt2.TupleUnderlyingType), ref substitution);
+                        }
 
                         if (!nt1.IsGenericType)
                         {

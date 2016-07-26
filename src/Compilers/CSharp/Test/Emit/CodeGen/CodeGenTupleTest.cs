@@ -15900,6 +15900,33 @@ public class D : I1, I3 { }
         }
 
         [Fact]
+        public void InterfaceUnification()
+        {
+            var source = @"
+public interface I0<T1> { }
+public class C1<T2> : I0<(int, int)>, I0<(T2, T2)> { }
+public class C2<T2> : I0<(int, int)>, I0<System.ValueTuple<T2, T2>> { }
+public class C3<T2> : I0<(int a, int b)>, I0<(T2, T2)> { }
+public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0695: 'C4<T2>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T2 a, T2 b)>' because they may unify for some type parameter substitutions
+                // public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T2>", "I0<(int a, int b)>", "I0<(T2 a, T2 b)>").WithLocation(6, 14),
+                // (3,14): error CS0695: 'C1<T2>' cannot implement both 'I0<(int, int)>' and 'I0<(T2, T2)>' because they may unify for some type parameter substitutions
+                // public class C1<T2> : I0<(int, int)>, I0<(T2, T2)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T2>", "I0<(int, int)>", "I0<(T2, T2)>").WithLocation(3, 14),
+                // (5,14): error CS0695: 'C3<T2>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T2, T2)>' because they may unify for some type parameter substitutions
+                // public class C3<T2> : I0<(int a, int b)>, I0<(T2, T2)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T2>", "I0<(int a, int b)>", "I0<(T2, T2)>").WithLocation(5, 14),
+                // (4,14): error CS0695: 'C2<T2>' cannot implement both 'I0<(int, int)>' and 'I0<(T2, T2)>' because they may unify for some type parameter substitutions
+                // public class C2<T2> : I0<(int, int)>, I0<System.ValueTuple<T2, T2>> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T2>", "I0<(int, int)>", "I0<(T2, T2)>").WithLocation(4, 14)
+                );
+        }
+
+        [Fact]
         public void InheritFromMetadataWithDifferentNames()
         {
             const string ilSource = @"
