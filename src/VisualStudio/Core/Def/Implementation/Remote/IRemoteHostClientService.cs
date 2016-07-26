@@ -7,12 +7,13 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
 {
     /// <summary>
-    /// Return <see cref="RemoteHostClient"/> user can use to communicate with remote host (ex, ServiceHub) 
+    /// Returns a <see cref="RemoteHostClient"/> that a user can use to communicate with a remote host (i.e. ServiceHub) 
     /// </summary>
     internal interface IRemoteHostClientService : IWorkspaceService
     {
         // TODO: split service to registration service and one that return RemoteHostClient
         void Enable();
+
         void Disable();
 
         Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);
