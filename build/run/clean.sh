@@ -51,6 +51,7 @@ then
     echo "removing Binaries/Release and Binaries/Debug directories"
     rm -rf "$RoslynDir/Binaries/Debug" || true
     rm -rf "$RoslynDir/Binaries/Release" || true
+    rm -rf "$RoslynDir/Binaries/Obj" || true
 fi
 
 if [[ $DeleteLocalPackage = true ]]

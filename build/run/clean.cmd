@@ -26,6 +26,7 @@ if "%ClearBinaries%" == "true" (
     echo Clearing the Binaries/Release and Binaries/Debug directories
     rd /s /q "%RoslynRoot%/Binaries/Release"
     rd /s /q "%RoslynRoot%/Binaries/Debug"
+    rd /s /q "%RoslynRoot%/Binaries/Obj"
 )
 
 if "%ClearLocalPackages%" == "true" (
