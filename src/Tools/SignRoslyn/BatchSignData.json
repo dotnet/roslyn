@@ -112,6 +112,7 @@
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
         "Newtonsoft.Json.dll",
+        "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
         "System.Reflection.Metadata.dll",
         "System.Collections.Immutable.dll",
