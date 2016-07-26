@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis
             CheckNotContainsDocument(document.Id);
             CheckContainsProject(document.Id.ProjectId);
 
-            return this.AddDocument(document.State);
+            return this.AddDocument((DocumentState)document.State);
         }
 
         /// <summary>
@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis
                         || _documentIdOfLatestSolutionWithPartialCompilation != documentId)
                     {
                         var tracker = this.GetCompilationTracker(documentId.ProjectId);
-                        var newTracker = tracker.FreezePartialStateWithTree(this, doc.State, tree, cancellationToken);
+                        var newTracker = tracker.FreezePartialStateWithTree(this, (DocumentState)doc.State, tree, cancellationToken);
 
                         var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
                         var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
