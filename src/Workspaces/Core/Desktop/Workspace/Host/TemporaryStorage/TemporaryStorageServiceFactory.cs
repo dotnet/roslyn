@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
                 return new TemporaryStreamStorage(this, storageName, size);
             }
 
-            private class TemporaryTextStorage : ITemporaryTextStorage2
+            private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private Encoding _encoding;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            private class TemporaryStreamStorage : ITemporaryStreamStorage2
+            private class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private MemoryMappedInfo _memoryMappedInfo;

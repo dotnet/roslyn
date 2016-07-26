@@ -10,7 +10,14 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface ITemporaryStorageService2 : ITemporaryStorageService
     {
+        /// <summary>
+        /// Attach to existing <see cref="ITemporaryStreamStorage"/> with given name.
+        /// </summary>
         ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long size, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Attach to existing <see cref="ITemporaryTextStorage"/> with given name.
+        /// </summary>
         ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long size, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

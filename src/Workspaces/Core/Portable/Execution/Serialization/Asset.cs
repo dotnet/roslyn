@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var text = await _state.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO: make TextDocumentState to implement ISupportTemporaryStorage?
-            _serializer.Serialize(_state.Storage as ITemporaryTextStorage2, text, writer, cancellationToken);
+            _serializer.Serialize(_state.Storage as ITemporaryStorageWithName, text, writer, cancellationToken);
         }
     }
 }

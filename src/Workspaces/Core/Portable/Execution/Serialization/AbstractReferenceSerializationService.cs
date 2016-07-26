@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             {
                 foreach (var storage in storages)
                 {
-                    var storage2 = storage as ITemporaryStreamStorage2;
+                    var storage2 = storage as ITemporaryStorageWithName;
                     if (storage2 == null)
                     {
                         return false;

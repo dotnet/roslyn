@@ -938,7 +938,7 @@
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ISupportDirectMemoryAccess.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorage.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorage2.cs" />
+    <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageWithName.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageService.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageService2.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TrivialTemporaryStorageService.cs" />

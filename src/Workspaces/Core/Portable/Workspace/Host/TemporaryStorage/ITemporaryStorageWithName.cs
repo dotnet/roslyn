@@ -5,15 +5,16 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// TemporaryStorage can be used to read and write text to a temporary storage location.
     /// </summary>
-    internal interface ITemporaryTextStorage2 : ITemporaryTextStorage
+    internal interface ITemporaryStorageWithName
     {
+        /// <summary>
+        /// Get name of the temporary storage
+        /// </summary>
         string Name { get; }
-        long Size { get; }
-    }
 
-    internal interface ITemporaryStreamStorage2 : ITemporaryStreamStorage
-    {
-        string Name { get; }
+        /// <summary>
+        /// Get size of the temporary storage
+        /// </summary>
         long Size { get; }
     }
 }

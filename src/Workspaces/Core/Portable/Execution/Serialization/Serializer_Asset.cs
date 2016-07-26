@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new DocumentChecksumObjectInfo(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
         }
 
-        public void Serialize(ITemporaryTextStorage2 storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void Serialize(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
