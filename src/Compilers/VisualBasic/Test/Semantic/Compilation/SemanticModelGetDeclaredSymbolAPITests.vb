@@ -2933,6 +2933,30 @@ End Interface
             Assert.NotNull(fSymbol2)
             Assert.Equal("Function I1.F() As System.String", fSymbol2.ToTestDisplayString())
         End Sub
+
+        <Fact(), WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        Public Sub TestGetDeclaredSymbolWithIncompleteDeclaration()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation name="Compilation">
+    <file name="a.vb">
+Class C0
+End Class
+
+Class 
+
+Class C1
+End Class
+    </file>
+</compilation>)
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim syntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.ClassStatement, 2).AsNode(), ClassStatementSyntax)
+            Dim symbol = model.GetDeclaredSymbol(syntax)
+            Assert.NotNull(symbol)
+            Assert.Equal("?", symbol.ToTestDisplayString())
+            Assert.Equal(TypeKind.Class, symbol.TypeKind)
+        End Sub
 #End Region
 
     End Class

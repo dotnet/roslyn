@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <ProjectDir>$(MSBuildThisFileDirectory)..\..\..\</ProjectDir>
+    <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
+    <BinariesPath>$(ProjectDir)Binaries\$(Configuration)</BinariesPath>
+    <RoslynMyGetApiKey Condition="'$(RoslynMyGetApiKey)' == ''">"no key"</RoslynMyGetApiKey>
+  </PropertyGroup>
+
+  <!-- Non-official builds / local testing have different defaults -->
+  <PropertyGroup Condition="'$(OfficialBuild)' != 'true'">
+    <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
+    <SignRoslynArgs>-test</SignRoslynArgs>
+    <PublishAssetsArgs>-test</PublishAssetsArgs>
+    <CopyInsertionFileArgs>-test</CopyInsertionFileArgs>
+  </PropertyGroup>
+
+  <Target Name="Build">
+    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
+
+    <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" />
+    <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
+    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
+
+    <!-- TODO: pass arguments -->
+    <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
+
+    <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
+    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
+
+    <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
+
+    <!-- Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
+         and ready to be inserted -->
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1 -binariesPath &quot;$(BinariesPath)&quot;" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)stop-compiler-server.ps1" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)publish-assets.ps1 -binariesPath &quot;$(BinariesPath)&quot; -branchName $(BranchName) -apiKey $(RoslynMyGetApiKey) $(PublishAssetsArgs)" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)copy-insertion-items.ps1 -binariesPath &quot;$(BinariesPath)&quot; $(CopyInsertionFileArgs)" />
+  </Target>
+
+</Project>
+

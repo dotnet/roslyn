@@ -8,7 +8,6 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -272,6 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.PseudoVariable:
                     EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
+                    break;
+
+                case BoundKind.Void:
+                    Debug.Assert(!used);
                     break;
 
                 default:
@@ -1382,11 +1385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                 CallKind.ConstrainedCallVirt;
 
                     tempOpt = EmitReceiverRef(receiver, isAccessConstrained: callKind == CallKind.ConstrainedCallVirt);
-                }
-
-                if (method.ReplacedBy != null)
-                {
-                    callKind = CallKind.Call;
                 }
             }
 

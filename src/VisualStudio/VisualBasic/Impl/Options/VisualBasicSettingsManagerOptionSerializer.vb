@@ -13,10 +13,9 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
-Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ExportLanguageSpecificOptionSerializer(
@@ -34,8 +33,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Inherits AbstractSettingsManagerOptionSerializer
 
         <ImportingConstructor>
-        Public Sub New(serviceProvider As SVsServiceProvider, importedOptionService As IOptionService)
-            MyBase.New(serviceProvider, importedOptionService)
+        Public Sub New(workspace As VisualStudioWorkspaceImpl)
+            MyBase.New(workspace)
         End Sub
 
         Private Const Style_QualifyFieldAccess As String = NameOf(AutomationObject.Style_QualifyFieldAccess)
@@ -90,7 +89,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 [option].Name = CompletionOptions.TriggerOnTypingLetters.Name OrElse
                 [option].Name = CompletionOptions.TriggerOnDeletion.Name Then
                 Return True
-
+            ElseIf [option].Name = CompletionOptions.SnippetsBehavior.Name Then
+                Return True
             ElseIf languageName = LanguageNames.VisualBasic Then
                 If [option].Feature = FeatureOnOffOptions.OptionName Then
                     Return [option].Name = FeatureOnOffOptions.PrettyListing.Name OrElse
@@ -167,6 +167,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return FetchEnterKeyBehavior(optionKey, value)
             End If
 
+            If optionKey.Option Is CompletionOptions.SnippetsBehavior Then
+                Return FetchSnippetsBehavior(optionKey, value)
+            End If
+
             If optionKey.Option Is CompletionOptions.TriggerOnDeletion Then
                 Return FetchTriggerOnDeletion(optionKey, value)
             End If
@@ -191,6 +195,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             If MyBase.TryFetch(optionKey, value) Then
                 If value.Equals(EnterKeyRule.Default) Then
                     value = EnterKeyRule.Always
+                End If
+
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        Private Function FetchSnippetsBehavior(optionKey As OptionKey, ByRef value As Object) As Boolean
+            If MyBase.TryFetch(optionKey, value) Then
+                If value.Equals(SnippetsRule.Default) Then
+                    value = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
                 End If
 
                 Return True

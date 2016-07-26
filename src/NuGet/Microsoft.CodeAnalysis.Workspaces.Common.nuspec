@@ -13,7 +13,7 @@ Supported Platforms:
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-      <dependency id="Microsoft.Composition" version="1.0.27" />
+      <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
     </dependencies>
 
     <language>en-US</language>

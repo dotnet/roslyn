@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -328,8 +329,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasErrors);
         }
 
-        private static ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
+            for (int i = 0; i < arguments.Arguments.Count; i++)
+            {
+                Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
+
+                if (arguments.Arguments[i].Kind == BoundKind.OutVarLocalPendingInference)
+                {
+                    var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
+                    builder.AddRange(arguments.Arguments);
+
+                    do
+                    {
+                        BoundExpression argument = builder[i];
+
+                        if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                        {
+                            builder[i] = ((OutVarLocalPendingInference)argument).FailInference(this, diagnostics);
+                        }
+
+                        i++;
+                    }
+                    while (i < builder.Count);
+
+                    return builder.ToImmutableAndFree();
+                }
+            }
+
             return arguments.Arguments.ToImmutable();
         }
 
@@ -804,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.Succeeded)
             {
-                if (analyzedArguments.HasErrors)
+                if (analyzedArguments.HasErrors || methodGroup.Receiver?.HasErrors == true)
                 {
                     // Errors for arguments have already been reported, except for unbound lambdas.
                     // We report those now.
@@ -1070,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method.IsGenericMethod && method.ConstructedFrom() == method;
         }
 
-        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods)
         {
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var m in methods)
@@ -1083,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<PropertySymbol> properties)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<PropertySymbol> properties)
         {
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var m in properties)
@@ -1096,10 +1123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
             // Since the purpose is to bind any unbound lambdas, we return early if there are none.
-            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda))
+            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference))
             {
                 return analyzedArguments.Arguments.ToImmutable();
             }
@@ -1125,6 +1152,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // replace the unbound lambda with its best inferred bound version
                     newArguments[i] = unboundArgument.BindForErrorRecovery();
+                }
+                else if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                {
+                    // See if all applicable applicable parameters have the same type
+                    TypeSymbol candidateType = null;
+                    foreach (var parameterList in parameterListList)
+                    {
+                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                        if ((object)parameterType != null)
+                        {
+                            if ((object)candidateType == null)
+                            {
+                                candidateType = parameterType;
+                            }
+                            else if (!candidateType.Equals(parameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+                            {
+                                // type mismatch
+                                candidateType = null;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ((object)candidateType == null)
+                    {
+                        newArguments[i] = ((OutVarLocalPendingInference)argument).FailInference(this, null);
+                    }
+                    else
+                    {
+                        newArguments[i] = ((OutVarLocalPendingInference)argument).SetInferredType(candidateType, success: true);
+                    }
+                }
+                else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
+                {
+                    newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
                 }
             }
 
@@ -1161,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Absent parameter types to bind the arguments, we simply use the arguments provided for error recovery.
         /// </summary>
-        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
         {
             return BuildArgumentsForErrorRecovery(analyzedArguments, Enumerable.Empty<ImmutableArray<ParameterSymbol>>());
         }

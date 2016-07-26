@@ -1178,35 +1178,6 @@ extension class Ext : Base {
             );
         }
 
-        [Fact]
-        public void ReplaceMethodInExtensionClass()
-        {
-            var text = @"
-class Base
-{
-    public void Foo()
-    {
-    }
-}
-
-extension class Ext : Base {
-    replace public void Foo()
-    {
-        original();
-    }
-}
-";
-
-            CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
-                // (10,25): error CS8209: A replacement method cannot be defined in an extension class.
-                //     replace public void Foo()
-                Diagnostic(ErrorCode.ERR_ReplaceMethodInExtensionClass, "Foo").WithLocation(10, 25),
-                // (12,9): error CS8944: No original member for 'Ext.Foo()'
-                //         original();
-                Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("Ext.Foo()").WithLocation(12, 9)
-            );
-        }
-
         [Fact(Skip = "PROTOTYPE: Static class extensions are not implemented yet")]
         public void InstanceInStaticExtension()
         {

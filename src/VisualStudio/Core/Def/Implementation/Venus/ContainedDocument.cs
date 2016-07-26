@@ -808,7 +808,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(_containedLanguage.DataBuffer);
@@ -840,7 +840,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private void AdjustIndentationForSpan(
             Document document, ITextEdit edit, TextSpan visibleSpan, IFormattingRule baseIndentationRule, OptionSet options)
         {
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
             using (var rulePool = SharedPools.Default<List<IFormattingRule>>().GetPooledObject())
             using (var spanPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())

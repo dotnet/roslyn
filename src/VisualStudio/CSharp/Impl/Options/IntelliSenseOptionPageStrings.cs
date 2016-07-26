@@ -47,5 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Always_add_new_line_on_enter =>
             CSharpVSResources.Option_Always_add_new_line_on_enter;
+
+        public static string Snippets_behavior =>
+            CSharpVSResources.Snippets_behavior;
+
+        public static string Option_Never_include_snippets =>
+            CSharpVSResources.Option_Never_include_snippets;
+
+        public static string Option_Always_include_snippets =>
+            CSharpVSResources.Option_Always_include_snippets;
+
+        public static string Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier =>
+            CSharpVSResources.Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier;
     }
 }

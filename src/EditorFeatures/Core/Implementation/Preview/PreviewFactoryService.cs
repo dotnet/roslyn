@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             if (newDocument.SupportsSyntaxTree)
             {
-                var newRoot = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var newRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
                 var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
                 var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
                 var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
@@ -539,7 +539,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+            return _textBufferFactoryService.CreateTextBuffer(
+                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
         private ITextBuffer CreateNewPlainTextBuffer(TextDocument document, CancellationToken cancellationToken)
@@ -548,7 +549,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var contentType = _textBufferFactoryService.TextContentType;
 
-            return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+            return _textBufferFactoryService.CreateTextBuffer(
+                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
         private async Task<object> CreateNewDifferenceViewerAsync(PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
@@ -623,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace.EnableDiagnostic();
             }
 
-            return diffViewer;
+            return new DifferenceViewerPreview(diffViewer);
         }
 
         private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)

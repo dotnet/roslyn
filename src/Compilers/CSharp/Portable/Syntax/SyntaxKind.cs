@@ -192,9 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
-        ReplaceKeyword = 8439,
-        OriginalKeyword = 8440,
-        ExtensionKeyword = 8441,
+        ExtensionKeyword = 8438,
 
         // additional preprocessor keywords
         ElifKeyword = 8467,
@@ -399,7 +397,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         TrueLiteralExpression = 8752,
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
-        OriginalExpression = 8755,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -545,6 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TupleType = 8925,
         TupleElement = 8926,
         TupleExpression = 8927,
+        VariableDeconstructionDeclarator = 8928,
 
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,

@@ -34,22 +34,6 @@ string GetVersionSuffix(string version)
     return (dash > 0) ? version.Substring(dash) : "";
 }
 
-string GetCommonVersionSuffix(IEnumerable<KeyValuePair<string, string>> packages)
-{
-    var firstPkg = packages.First();
-    string firstSuffix = GetVersionSuffix(firstPkg.Value);
-
-    // TODO: need to have version variable for each package
-    //var otherPkg = packages.FirstOrDefault(p => GetVersionSuffix(p.Value) != firstSuffix);
-    //if (otherPkg.Key != null)
-    //{
-    //    Console.Error.WriteLine($"Error: Inconsistent version suffixes: {firstPkg.Key} {firstPkg.Value} vs {otherPkg.Key} {otherPkg.Value}");
-    //    Environment.Exit(3);
-    //}
-
-    return firstSuffix;
-}
-
 async Task<string> DownloadPackageList(string repo, string channel, bool lkg)
 {
     string versionsUrl = "https://raw.githubusercontent.com/dotnet/versions";
@@ -70,26 +54,17 @@ async Task<string> DownloadPackageList(string repo, string channel, bool lkg)
 }
 
 var allPackages = new List<KeyValuePair<string, string>>();
-var suffixes = new List<KeyValuePair<string, string>>();
 
 foreach (var repo in repos)
 {
     string name = repo.Attribute("name").Value;
     string channel = repo.Attribute("channel").Value;
-    string commonVersionSuffix = repo.Attribute("commonVersionSuffix")?.Value;
     bool lkg = repo.Attribute("lkg")?.Value == "true";
 
     WriteLine($"Downloading list of '{name}' packages...");
     var packages = ParsePackageVersions(await DownloadPackageList(name, channel, lkg)).ToArray();
 
     WriteLine($"  Found {packages.Length} packages.");
-
-    if (commonVersionSuffix != null)
-    {
-        var suffix = GetCommonVersionSuffix(packages);
-        suffixes.Add(new KeyValuePair<string, string>(commonVersionSuffix, suffix));
-        WriteLine($"  Version suffix: '{suffix}'");
-    }
 
     allPackages.AddRange(packages);
     WriteLine("Done.");
@@ -140,9 +115,10 @@ void UpdateTargetsFile(string path)
     string originalText = File.ReadAllText(path);
     string newText = originalText;
 
-    foreach (var suffix in suffixes)
+    foreach (var package in allPackages)
     {
-        newText = UpdateVersionElement(newText, suffix.Key, suffix.Value);
+        var elementName = package.Key.Replace(".", "") + "Version";
+        newText = UpdateVersionElement(newText, elementName, package.Value);
     }
 
     if (originalText != newText)
@@ -166,6 +142,6 @@ string UpdateVersionElement(string text, string elementName, string newValue)
 
 if (suffixes.Count > 0)
 {
-    UpdateTargetsFile(Path.Combine(roslynRoot, "build", "Targets", "VSL.Versions.targets"));
+    UpdateTargetsFile(Path.Combine(roslynRoot, "build", "Targets", "Dependencies.props"));
 }
 

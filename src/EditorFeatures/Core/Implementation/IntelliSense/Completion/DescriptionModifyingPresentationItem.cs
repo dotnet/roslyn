@@ -67,14 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var change = await service.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
 
             // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
-            if (change.TextChanges.Length == 1)
-            {
-                return change.TextChanges[0];
-            }
-            else
-            {
-                return new TextChange(item.Span, item.DisplayText);
-            }
+            return change.TextChange;
         }
     }
 }

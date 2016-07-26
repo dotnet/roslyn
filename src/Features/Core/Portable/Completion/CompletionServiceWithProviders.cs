@@ -137,16 +137,33 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, CompletionTrigger trigger)
+        protected virtual ImmutableArray<CompletionProvider> GetProviders(
+            ImmutableHashSet<string> roles, CompletionTrigger trigger)
         {
-            if (trigger.Kind == CompletionTriggerKind.Snippets)
+            var snippetsRule = this.GetRules().SnippetsRule;
+
+            if (snippetsRule == SnippetsRule.Default ||
+                snippetsRule == SnippetsRule.NeverInclude)
             {
-                return GetProviders(roles).Where(p => p.IsSnippetProvider).ToImmutableArray();
+                return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
-            else
+            else if (snippetsRule == SnippetsRule.AlwaysInclude)
             {
                 return GetProviders(roles);
             }
+            else if (snippetsRule == SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
+            {
+                if (trigger.Kind == CompletionTriggerKind.Snippets)
+                {
+                    return GetProviders(roles).Where(p => p.IsSnippetProvider).ToImmutableArray();
+                }
+                else
+                {
+                    return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                }
+            }
+
+            return ImmutableArray<CompletionProvider>.Empty;
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
@@ -174,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var defaultItemSpan = this.GetDefaultItemSpan(text, caretPosition);
+            var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
             options = options ?? document.Options;
             var providers = GetProviders(roles, trigger);
@@ -380,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (defaultSpan == null)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                defaultSpan = this.GetDefaultItemSpan(text, position);
+                defaultSpan = this.GetDefaultCompletionListSpan(text, position);
             }
 
             var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);
@@ -435,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText)));
+                return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
             }
         }
 

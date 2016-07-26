@@ -23,6 +23,14 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Shared\Microsoft.CSharp.Core.targets">
+      <Link>Microsoft.CSharp.Core.targets</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Shared\Microsoft.VisualBasic.Core.targets">
+      <Link>Microsoft.VisualBasic.Core.targets</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

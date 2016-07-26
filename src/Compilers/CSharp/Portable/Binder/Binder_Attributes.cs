@@ -289,10 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics,
                             hadError,
                             argument,
-                            argument.Expression,
+                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,
-                            refKind: RefKind.None,
-                            allowArglist: false);
+                            refKind: RefKind.None);
 
                         if (boundNamedArgumentsBuilder != null)
                         {
@@ -824,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-                Conversion conversion = conversions.ClassifyConversion(argumentType, parameter.Type, ref useSiteDiagnostics, builtinOnly: true);
+                Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
 
                 // NOTE: Won't always succeed, even though we've performed overload resolution.
                 // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

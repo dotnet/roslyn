@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
@@ -171,5 +172,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             }.ToImmutableArray()
         End Function
 
+        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
+            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
+        End Function
     End Class
 End Namespace

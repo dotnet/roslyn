@@ -1,0 +1,58 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
+    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
+    <MicrosoftVisualBasicVersion>10.0.0</MicrosoftVisualBasicVersion>
+    
+    <!-- symreader -->
+    <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.4.0</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60706-02</MicrosoftDiaSymReaderPortablePdbVersion>
+
+    <!-- CoreFX -->
+    <NETStandardLibraryVersion>1.6.0</NETStandardLibraryVersion>
+    <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
+    <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>
+    <SystemCollectionsConcurrentVersion>4.0.12</SystemCollectionsConcurrentVersion>
+    <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
+    <SystemConsoleVersion>4.0.0</SystemConsoleVersion>
+    <SystemDiagnosticsDebugVersion>4.0.11</SystemDiagnosticsDebugVersion>
+    <SystemDiagnosticsFileVersionInfoVersion>4.0.0</SystemDiagnosticsFileVersionInfoVersion>
+    <SystemDiagnosticsStackTraceVersion>4.0.1</SystemDiagnosticsStackTraceVersion>
+    <SystemDiagnosticsToolsVersion>4.0.1</SystemDiagnosticsToolsVersion>
+    <SystemDynamicRuntimeVersion>4.0.11</SystemDynamicRuntimeVersion>
+    <SystemGlobalizationVersion>4.0.11</SystemGlobalizationVersion>
+    <SystemIOVersion>4.1.0</SystemIOVersion>
+    <SystemIOFileSystemVersion>4.0.1</SystemIOFileSystemVersion>
+    <SystemIOFileSystemPrimitivesVersion>4.0.1</SystemIOFileSystemPrimitivesVersion>
+    <SystemLinqVersion>4.1.0</SystemLinqVersion>
+    <SystemLinqExpressionsVersion>4.1.0</SystemLinqExpressionsVersion>
+    <SystemReflectionVersion>4.1.0</SystemReflectionVersion>
+    <SystemReflectionExtensionsVersion>4.0.1</SystemReflectionExtensionsVersion>
+    <SystemReflectionPrimitivesVersion>4.0.1</SystemReflectionPrimitivesVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24227-04</SystemReflectionMetadataVersion>
+    <SystemResourcesResourceManagerVersion>4.0.1</SystemResourcesResourceManagerVersion>
+    <SystemRuntimeVersion>4.1.0</SystemRuntimeVersion>
+    <SystemRuntimeExtensionsVersion>4.1.0</SystemRuntimeExtensionsVersion>
+    <SystemRuntimeHandlesVersion>4.0.1</SystemRuntimeHandlesVersion>
+    <SystemRuntimeInteropServicesVersion>4.1.0</SystemRuntimeInteropServicesVersion>
+    <SystemRuntimeLoaderVersion>4.0.0</SystemRuntimeLoaderVersion>
+    <SystemRuntimeNumericsVersion>4.0.1</SystemRuntimeNumericsVersion>
+    <SystemSecurityCryptographyAlgorithmsVersion>4.2.0</SystemSecurityCryptographyAlgorithmsVersion>
+    <SystemSecurityCryptographyEncodingVersion>4.0.0</SystemSecurityCryptographyEncodingVersion>
+    <SystemSecurityCryptographyX509CertificatesVersion>4.1.0</SystemSecurityCryptographyX509CertificatesVersion>
+    <SystemTextEncodingVersion>4.0.11</SystemTextEncodingVersion>
+    <SystemTextEncodingCodePagesVersion>4.0.1</SystemTextEncodingCodePagesVersion>
+    <SystemTextEncodingExtensionsVersion>4.0.11</SystemTextEncodingExtensionsVersion>
+    <SystemThreadingVersion>4.0.11</SystemThreadingVersion>
+    <SystemThreadingTasksVersion>4.0.11</SystemThreadingTasksVersion>
+    <SystemThreadingTasksParallelVersion>4.0.1</SystemThreadingTasksParallelVersion>
+    <SystemThreadingThreadVersion>4.0.0</SystemThreadingThreadVersion>
+    <SystemXmlReaderWriterVersion>4.0.11</SystemXmlReaderWriterVersion>
+    <SystemXmlXDocumentVersion>4.0.11</SystemXmlXDocumentVersion>
+    <SystemXmlXmlDocumentVersion>4.0.1</SystemXmlXmlDocumentVersion>
+    <SystemXmlXPathXDocumentVersion>4.0.1</SystemXmlXPathXDocumentVersion>
+  </PropertyGroup>
+</Project>

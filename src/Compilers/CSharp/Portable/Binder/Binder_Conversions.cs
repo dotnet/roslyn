@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.IsTupleLiteral || 
-                (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
+            if (conversion.IsTupleLiteralConversion || 
+                (conversion.Kind == ConversionKind.ImplicitNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Skip introducing the conversion from C to C?.  The "to" conversion is now wrong though,
                     // because it will still assume converting C? to D?. 
 
-                    toConversion = Conversions.ClassifyConversion(conversionReturnType, destination, ref useSiteDiagnostics);
+                    toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, ref useSiteDiagnostics);
                     Debug.Assert(toConversion.Exists);
                 }
                 else
@@ -335,16 +335,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-
-            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTupleLiteral || conversion.Kind == ConversionKind.ImplicitNullable);
             Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
 
-            TypeSymbol destinationWithoutNullable = conversion.Kind == ConversionKind.ImplicitNullable ?
-                                                                           destinationWithoutNullable = destination.GetNullableUnderlyingType() :
-                                                                           destination;
+            var destinationWithoutNullable = destination;
+            var conversionWithoutNullable = conversion;
+
+            if (conversion.Kind == ConversionKind.ImplicitNullable)
+            {
+                destinationWithoutNullable = destination.GetNullableUnderlyingType();
+                conversionWithoutNullable = conversion.UnderlyingConversions[0]; 
+            }
+
+            Debug.Assert(conversionWithoutNullable.IsTupleLiteralConversion);
 
             NamedTypeSymbol targetType = (NamedTypeSymbol)destinationWithoutNullable;
-
             if (targetType.IsTupleType)
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
@@ -359,24 +363,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
+            var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
+                var elementConversion = underlyingConversions[i];
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion elementConversion;
-                if (isCast)
-                {
-                    elementConversion = this.Conversions.ClassifyConversionForCast(argument, destType, ref useSiteDiagnostics);
-                }
-                else
-                {
-                    elementConversion = this.Conversions.ClassifyConversionFromExpression(argument, destType, ref useSiteDiagnostics);
-                }
-
-                diagnostics.Add(syntax, useSiteDiagnostics);
                 convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
             }
 
@@ -386,20 +380,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedArguments.ToImmutableAndFree(), 
                 targetType);
 
-            // We need to preserve any conversion that changes the type (even identity conversions),
-            // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-            if (!isCast && targetType == destination)
+            if (sourceTuple.Type != destination)
             {
-                return result;
+                // literal cast is applied to the literal 
+                result = new BoundConversion(
+                    sourceTuple.Syntax,
+                    result,
+                    conversion,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination);
             }
 
-            // if we have a nullable cast combined with a name/dynamic cast
-            // name/dynamic cast must happen before converting to nullable
-            if (conversion.Kind == ConversionKind.ImplicitNullable &&
-                destinationWithoutNullable != targetType)
+            // If we had a cast in the code, keep conversion in the tree.
+            // even though the literal is already converted to the target type.
+            if (isCast)
             {
-                Debug.Assert(destinationWithoutNullable.Equals(targetType, ignoreDynamic: true));
-
                 result = new BoundConversion(
                     syntax,
                     result,
@@ -407,19 +404,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: destinationWithoutNullable)
-                { WasCompilerGenerated = sourceTuple.WasCompilerGenerated };
+                    type: destination);
             }
-                                  
-            return new BoundConversion(
-                syntax,
-                result,
-                conversion,
-                @checked: false,
-                explicitCastInCode: isCast,
-                constantValueOpt: ConstantValue.NotAvailable,
-                type: destination)
-            { WasCompilerGenerated = sourceTuple.WasCompilerGenerated };
+
+            return result;
         }
 
         private static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
@@ -542,8 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Perform final validation of the method to be invoked.
 
             Debug.Assert(memberSymbol.Kind != SymbolKind.Method ||
-                memberSymbol.CanBeReferencedByName || //should be true since the caller has LookupOptions.MustBeReferenceableByName set
-                (object)memberSymbol.ReplacedBy != null);
+                memberSymbol.CanBeReferencedByName);
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
 

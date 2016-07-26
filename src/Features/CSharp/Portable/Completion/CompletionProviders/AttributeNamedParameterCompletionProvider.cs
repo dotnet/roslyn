@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    select SymbolCompletionItem.Create(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
-                       span: context.DefaultItemSpan,
                        symbol: p,
                        descriptionPosition: token.SpanStart,
                        sortText: p.Name,
@@ -167,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    select SymbolCompletionItem.Create(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
-                       span: context.DefaultItemSpan,
                        symbol: p,
                        descriptionPosition: token.SpanStart,
                        sortText: p.Name,
@@ -226,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return attributeType.GetAttributeNamedParameters(semanticModel.Compilation, within);
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetTextChange(selectedItem, ch));
         }

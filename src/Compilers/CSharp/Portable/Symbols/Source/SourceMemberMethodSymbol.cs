@@ -223,13 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-            else if (this.IsInExtensionClass)
-            {
-                if (this.IsReplace)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ReplaceMethodInExtensionClass, location);
-                }
-            }
 
             if (this.MethodKind == MethodKind.UserDefinedOperator)
             {
@@ -755,8 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async |
-                    DeclarationModifiers.Replace;
+                    DeclarationModifiers.Async;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogPath != null)
             {
                 errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     int notShown = errorsAndWarnings.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
-                    _console.Error.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
+                    _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
             finally

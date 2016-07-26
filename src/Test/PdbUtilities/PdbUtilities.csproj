@@ -66,12 +66,6 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
       <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
-      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
-      <Link>Shared\CustomDebugInfoConstants.cs</Link>
-    </Compile>
     <Compile Include="Metadata\AggregatedMetadataReader.cs" />
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
@@ -82,7 +76,6 @@
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
     <Compile Include="Pdb\SymReaderFactory.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
-    <Compile Include="Shared\CustomDebugInfoReader.cs" />
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\StringUtilities.cs" />
@@ -96,9 +89,9 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
-      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
-      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    <ProjectReference Include="..\..\Dependencies\DiaSymReader.PortablePdb\DiaSymReader.PortablePdb.csproj">
+      <Project>{d06f8190-ac11-48e6-b0bf-5f17b7eb7b62}</Project>
+      <Name>DiaSymReader.PortablePdb</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
       <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
@@ -114,6 +107,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
+  <Import Project="..\..\Compilers\Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

@@ -38,6 +38,9 @@
   <PropertyGroup>
     <StartupObject>Runner.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,9 +54,7 @@
   <ItemGroup>
     <Compile Include="Benchview.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="CPC-Consumption\ScenarioGenerator.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="CPC-Consumption\TraceManager.cs" />
     <Compile Include="TraceBackup.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +76,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CPC-Consumption\" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

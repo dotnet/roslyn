@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // If null, the document's language service will be used.
         private readonly ISnippetInfoService _snippetInfoService;
 
-        internal override bool IsSnippetProvider
-        {
-            get { return true; }
-        }
+        internal override bool IsSnippetProvider => true;
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {
@@ -36,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            if (!options.GetOption(CSharpCompletionOptions.IncludeSnippets))
-            {
-                return false;
-            }
-
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
@@ -62,21 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                if (!options.GetOption(CSharpCompletionOptions.IncludeSnippets))
-                {
-                    return;
-                }
-
                 var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     UnionCompletionItemComparer.Instance,
-                    (d, c) => GetSnippetsForDocumentAsync(d, position, context.DefaultItemSpan, workspace, c),
+                    (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
                     cancellationToken).ConfigureAwait(false);
 
                 context.AddItems(snippetCompletionItems);
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(Document document, int position, TextSpan itemSpan, Workspace workspace, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(
+            Document document, int position, Workspace workspace, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -110,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return SpecializedCollections.EmptyEnumerable<CompletionItem>();
                 }
 
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, itemSpan, isPreProcessorContext: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
@@ -123,13 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
             {
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, itemSpan, isPreProcessorContext: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(Workspace workspace, SemanticModel semanticModel, TextSpan itemSpan, bool isPreProcessorContext, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
+            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, CancellationToken cancellationToken)
         {
             var service = _snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
@@ -148,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                 sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                 description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
-                span: itemSpan,
                 glyph: Glyph.Snippet,
                 shouldFormatOnCommit: service.ShouldFormatSnippet(snippet))).ToList();
         }

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -52,25 +53,35 @@ namespace Microsoft.CodeAnalysis.Editor
             var result = new List<object>();
             var gotRichPreview = false;
 
-            foreach (var previewItem in _previews)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (previewItem.Text != null)
+                foreach (var previewItem in _previews)
                 {
-                    result.Add(previewItem.Text);
-                }
-                else if (!gotRichPreview)
-                {
-                    var preview = await previewItem.LazyPreview(cancellationToken).ConfigureAwait(true);
-                    if (preview != null)
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (previewItem.Text != null)
                     {
-                        result.Add(preview);
-                        gotRichPreview = true;
+                        result.Add(previewItem.Text);
+                    }
+                    else if (!gotRichPreview)
+                    {
+                        var preview = await previewItem.LazyPreview(cancellationToken).ConfigureAwait(true);
+                        if (preview != null)
+                        {
+                            result.Add(preview);
+                            gotRichPreview = true;
+                        }
                     }
                 }
-            }
 
-            return result.Count == 0 ? null : result;
+                return result.Count == 0 ? null : result;
+            }
+            catch (OperationCanceledException)
+            {
+                // make sure we dispose all disposable preview objects before
+                // we let control to exit this method
+                result.OfType<IDisposable>().Do(d => d.Dispose());
+                throw;
+            }
         }
 
         /// <summary>Merge two different previews into one final preview result.  The final preview will

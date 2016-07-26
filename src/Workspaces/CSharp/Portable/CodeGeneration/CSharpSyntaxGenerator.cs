@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var arg = node as ArgumentSyntax;
-            if (arg != null)
+            if (arg != null && arg.Expression != null)
             {
                 return SyntaxFactory.AttributeArgument(default(NameEqualsSyntax), arg.NameColon, arg.Expression);
             }

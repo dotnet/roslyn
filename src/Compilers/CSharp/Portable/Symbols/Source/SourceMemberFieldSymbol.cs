@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void TypeChecks(TypeSymbol type, BaseFieldDeclarationSyntax fieldSyntax, VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
+        private void TypeChecks(TypeSymbol type, BaseFieldDeclarationSyntax fieldSyntax, DiagnosticBag diagnostics)
         {
             if (type.IsStatic)
             {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // update the lazyType only if it contains value last seen by the current thread:
             if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
             {
-                TypeChecks(type, fieldSyntax, declarator, diagnostics);
+                TypeChecks(type, fieldSyntax, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);

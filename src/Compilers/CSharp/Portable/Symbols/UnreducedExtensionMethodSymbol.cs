@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol ContainingSymbol => _containingMethod;
 
-            public override int Ordinal => this._underlyingParameter.Ordinal - 1;
+            public override int Ordinal => this._underlyingParameter.Ordinal + 1;
 
             public override TypeSymbol Type => _containingMethod._typeMap.SubstituteType(this._underlyingParameter.Type).Type;
 
