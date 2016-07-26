@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             private readonly Workspace _workspace;
             private readonly SymbolKey _symbolKey;
-            private readonly string _symbolAssemblyName;
+            private readonly AssemblyIdentity _symbolAssemblyIdentity;
             private readonly ImmutableArray<TaggedText> _originationParts;
 
             public SymbolDefinitionLocation(Solution solution, ISymbol definition)
             {
                 _workspace = solution.Workspace;
                 _symbolKey = definition.GetSymbolKey();
-                _symbolAssemblyName = definition.ContainingAssembly?.Name;
+                _symbolAssemblyIdentity = definition.ContainingAssembly?.Identity;
                 _originationParts = GetOriginationParts(definition);
             }
 
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
             private ValueTuple<Project, ISymbol>? ResolveSymbolInCurrentSolution()
             {
                 var project = _workspace.CurrentSolution
-                                        .Projects
-                                        .FirstOrDefault(p => p.HasReferenceToAssembly(_symbolAssemblyName));
+                    .ProjectsWithReferenceToAssembly(_symbolAssemblyIdentity)
+                    .FirstOrDefault();
 
                 if (project == null)
                 {
