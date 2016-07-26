@@ -2328,7 +2328,7 @@ FullWidthRepeat2:
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
 
                 If yearIsFirst Then
-                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
+                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options)
                 End If
 
                 Return result
@@ -2429,7 +2429,7 @@ baddate:
                     Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
                     If haveNewLine Then
-                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
+                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options)
                     End If
 
                     Return result
@@ -2534,23 +2534,15 @@ baddate:
             If CheckFeatureAvailability(feature) Then
                 Return token
             End If
-            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Dim resID As ERRID = 0
+            Dim ok = feature.TryGetResourceId(resID)
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(resID))
             Return DirectCast(token.AddError(errorInfo), SyntaxToken)
         End Function
 
         Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(Me.Options, feature)
+            Return Syntax.InternalSyntax.Parser.CheckFeatureAvailability(Me.Options, feature)
         End Function
 
-        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
-            Dim required = feature.GetLanguageVersion()
-            Dim actual = parseOptions.LanguageVersion
-            Return CInt(required) <= CInt(actual)
-        End Function
     End Class
 End Namespace

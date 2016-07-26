@@ -6236,6 +6236,12 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             args = DefaultParse({"/features:Test,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "true"}}))
+            ' Test for presence of feature in FEATURES, that may not be under a language version yet. (Used developement of features.)
+            ' This should be false as is checking for the "Feature" in the parse options from above parsing.
+            Assert.False(Syntax.InternalSyntax.Parser.CheckFeatureAvailability(args.ParseOptions, Syntax.InternalSyntax.Feature._FeatureWithoutLangVersion_))
+            ' This should be true as we are parsing with "Feature" passed as an cmd arg.
+            args = DefaultParse({"/features:_FeatureWithoutLangVersion_,", "a.vb"}, _baseDirectory)
+            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatureAvailability(args.ParseOptions, Syntax.InternalSyntax.Feature._FeatureWithoutLangVersion_))
         End Sub
 
         <Fact>

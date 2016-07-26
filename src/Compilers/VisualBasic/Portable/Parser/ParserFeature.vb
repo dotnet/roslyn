@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        _FeatureWithoutLangVersion_ ' This used to unittest the feature cmd arg. (NEVER place under a language version.)
     End Enum
 
     Friend Module FeatureExtensions
@@ -42,6 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.BinaryLiterals
                     Return "binaryLiterals"
+                Case Feature._FeatureWithoutLangVersion_
+                    Return "_FeatureWithoutLangVersion_"
 
                 Case Else
                     Return Nothing
@@ -49,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension>
-        Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion
-
+        Friend Function TryGetLanguageVersion(feature As Feature, ByRef langVersion As LanguageVersion) As Boolean
+            langVersion = LanguageVersion.None
             Select Case feature
                 Case Feature.AutoProperties,
                      Feature.LineContinuation,
@@ -59,12 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.CollectionInitializers,
                      Feature.SubLambdas,
                      Feature.ArrayLiterals
-                    Return LanguageVersion.VisualBasic10
+                    langVersion = LanguageVersion.VisualBasic10
 
                 Case Feature.AsyncExpressions,
                      Feature.Iterators,
                      Feature.GlobalNamespace
-                    Return LanguageVersion.VisualBasic11
+                    langVersion = LanguageVersion.VisualBasic11
 
                 Case Feature.NullPropagatingOperator,
                      Feature.NameOfExpressions,
@@ -80,70 +83,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialModules,
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
-                    Return LanguageVersion.VisualBasic14
-
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(feature)
+                    langVersion = LanguageVersion.VisualBasic14
             End Select
-
+            Return langVersion <> LanguageVersion.None
         End Function
 
         <Extension>
-        Friend Function GetResourceId(feature As Feature) As ERRID
+        Friend Function TryGetResourceId(feature As Feature, ByRef errID As ERRID) As Boolean
+            errID = 0
             Select Case feature
                 Case Feature.AutoProperties
-                    Return ERRID.FEATURE_AutoProperties
+                    errID = ERRID.FEATURE_AutoProperties
                 Case Feature.ReadonlyAutoProperties
-                    Return ERRID.FEATURE_ReadonlyAutoProperties
+                    errID = ERRID.FEATURE_ReadonlyAutoProperties
                 Case Feature.LineContinuation
-                    Return ERRID.FEATURE_LineContinuation
+                    errID = ERRID.FEATURE_LineContinuation
                 Case Feature.StatementLambdas
-                    Return ERRID.FEATURE_StatementLambdas
+                    errID = ERRID.FEATURE_StatementLambdas
                 Case Feature.CoContraVariance
-                    Return ERRID.FEATURE_CoContraVariance
+                    errID = ERRID.FEATURE_CoContraVariance
                 Case Feature.CollectionInitializers
-                    Return ERRID.FEATURE_CollectionInitializers
+                    errID = ERRID.FEATURE_CollectionInitializers
                 Case Feature.SubLambdas
-                    Return ERRID.FEATURE_SubLambdas
+                    errID = ERRID.FEATURE_SubLambdas
                 Case Feature.ArrayLiterals
-                    Return ERRID.FEATURE_ArrayLiterals
+                    errID = ERRID.FEATURE_ArrayLiterals
                 Case Feature.AsyncExpressions
-                    Return ERRID.FEATURE_AsyncExpressions
+                    errID = ERRID.FEATURE_AsyncExpressions
                 Case Feature.Iterators
-                    Return ERRID.FEATURE_Iterators
+                    errID = ERRID.FEATURE_Iterators
                 Case Feature.GlobalNamespace
-                    Return ERRID.FEATURE_GlobalNamespace
+                    errID = ERRID.FEATURE_GlobalNamespace
                 Case Feature.NullPropagatingOperator
-                    Return ERRID.FEATURE_NullPropagatingOperator
+                    errID = ERRID.FEATURE_NullPropagatingOperator
                 Case Feature.NameOfExpressions
-                    Return ERRID.FEATURE_NameOfExpressions
+                    errID = ERRID.FEATURE_NameOfExpressions
                 Case Feature.RegionsEverywhere
-                    Return ERRID.FEATURE_RegionsEverywhere
+                    errID = ERRID.FEATURE_RegionsEverywhere
                 Case Feature.MultilineStringLiterals
-                    Return ERRID.FEATURE_MultilineStringLiterals
+                    errID = ERRID.FEATURE_MultilineStringLiterals
                 Case Feature.CObjInAttributeArguments
-                    Return ERRID.FEATURE_CObjInAttributeArguments
+                    errID = ERRID.FEATURE_CObjInAttributeArguments
                 Case Feature.LineContinuationComments
-                    Return ERRID.FEATURE_LineContinuationComments
+                    errID = ERRID.FEATURE_LineContinuationComments
                 Case Feature.TypeOfIsNot
-                    Return ERRID.FEATURE_TypeOfIsNot
+                    errID = ERRID.FEATURE_TypeOfIsNot
                 Case Feature.YearFirstDateLiterals
-                    Return ERRID.FEATURE_YearFirstDateLiterals
+                    errID = ERRID.FEATURE_YearFirstDateLiterals
                 Case Feature.WarningDirectives
-                    Return ERRID.FEATURE_WarningDirectives
+                    errID = ERRID.FEATURE_WarningDirectives
                 Case Feature.PartialModules
-                    Return ERRID.FEATURE_PartialModules
+                    errID = ERRID.FEATURE_PartialModules
                 Case Feature.PartialInterfaces
-                    Return ERRID.FEATURE_PartialInterfaces
+                    errID = ERRID.FEATURE_PartialInterfaces
                 Case Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
-                    Return ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
+                    errID = ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                 Case Feature.DigitSeparators
-                    Return ERRID.FEATURE_DigitSeparators
+                    errID = ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
-                    Return ERRID.FEATURE_BinaryLiterals
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(feature)
+                    errID = ERRID.FEATURE_BinaryLiterals
+                Case Feature._FeatureWithoutLangVersion_
+                    errID = ERRID._FeatureWithoutLangVersion_
             End Select
+            Return (errID >= ERRID.FEATURE_AutoProperties) And (errID <= ERRID._FeatureWithoutLangVersion_)
         End Function
+
     End Module
 End Namespace
