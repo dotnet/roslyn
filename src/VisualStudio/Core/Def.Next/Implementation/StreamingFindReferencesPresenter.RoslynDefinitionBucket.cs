@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Navigation;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+﻿using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
-using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
