@@ -6,6 +6,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Navigation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -50,7 +51,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.AnnotatedSpans(DefinitionKey).ToList())).ToList()
 
                     Dim actualDefinitions = GetFileNamesAndSpans(
-                        context.Definitions.Where(AddressOf context.ShouldShow))
+                        context.Definitions.Where(AddressOf context.ShouldShow).
+                                            OfType(Of DefinitionLocation.DocumentDefinitionLocation).
+                                            Select(Function(d) d.Location))
 
                     Assert.Equal(expectedDefinitions, actualDefinitions)
 
@@ -60,21 +63,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                             Select(Function(d) New FileNameAndSpans(
                                                    d.Name, d.SelectedSpans.ToList())).ToList()
 
-                    Dim actualReferences = GetFileNamesAndSpans(context.References)
+                    Dim actualReferences = GetFileNamesAndSpans(
+                        context.References.Select(Function(r) r.Location))
 
                     Assert.Equal(expectedReferences, actualReferences)
                 Next
             End Using
         End Function
 
-        Private Function GetFileNamesAndSpans(items As IEnumerable(Of INavigableItem)) As List(Of FileNameAndSpans)
+        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentLocation)) As List(Of FileNameAndSpans)
             Return items.Where(Function(i) i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
                          Select(Function(g) GetFileNameAndSpans(g)).ToList()
         End Function
 
-        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, INavigableItem)) As FileNameAndSpans
+        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentLocation)) As FileNameAndSpans
             Return New FileNameAndSpans(
                 g.Key.Name,
                 g.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).
@@ -112,16 +116,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Private ReadOnly gate As Object = New Object()
 
-            Private ReadOnly definitionToShouldShowWithNoReferences As Dictionary(Of INavigableItem, Boolean) = New Dictionary(Of INavigableItem, Boolean)
-            Public ReadOnly definitionToReferences As MultiDictionary(Of INavigableItem, INavigableItem) = New MultiDictionary(Of INavigableItem, INavigableItem)
+            Private ReadOnly definitionToShouldShowWithNoReferences As Dictionary(Of DefinitionItem, Boolean) = New Dictionary(Of DefinitionItem, Boolean)
+            Public ReadOnly definitionToReferences As MultiDictionary(Of DefinitionItem, SourceReferenceItem) = New MultiDictionary(Of DefinitionItem, SourceReferenceItem)
 
-            Public ReadOnly Property Definitions As IEnumerable(Of INavigableItem)
+            Public ReadOnly Property Definitions As IEnumerable(Of DefinitionItem)
                 Get
                     Return definitionToShouldShowWithNoReferences.Keys
                 End Get
             End Property
 
-            Public Iterator Function References() As IEnumerable(Of INavigableItem)
+            Public Iterator Function References() As IEnumerable(Of SourceReferenceItem)
                 For Each kvp In definitionToReferences
                     For Each value In kvp.Value
                         Yield value
@@ -130,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Function
 
 
-            Public Function ShouldShow(definition As INavigableItem) As Boolean
+            Public Function ShouldShow(definition As DefinitionItem) As Boolean
                 If definitionToReferences(definition).Count > 0 Then
                     Return True
                 End If
@@ -138,16 +142,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definitionToShouldShowWithNoReferences(definition)
             End Function
 
-            Public Overrides Sub OnDefinitionFound(definition As INavigableItem,
+            Public Overrides Sub OnDefinitionFound(definition As DefinitionItem,
                                                    shouldDisplayWithNoReferences As Boolean)
                 SyncLock gate
                     Me.definitionToShouldShowWithNoReferences(definition) = shouldDisplayWithNoReferences
                 End SyncLock
             End Sub
 
-            Public Overrides Sub OnReferenceFound(definition As INavigableItem, reference As INavigableItem)
+            Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
                 SyncLock gate
-                    definitionToReferences.Add(definition, reference)
+                    definitionToReferences.Add(reference.Definition, reference)
                 End SyncLock
             End Sub
         End Class
