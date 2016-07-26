@@ -701,7 +701,7 @@ namespace Microsoft.Cci
                 var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
 
                 documentHandle = _debugMetadataOpt.AddDocument(
-                    name: SerializeDocumentName(document.Location),
+                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
                     hashAlgorithm: checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(checksumAndAlgorithm.Item2),
                     hash: (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(checksumAndAlgorithm.Item1),
                     language: _debugMetadataOpt.GetOrAddGuid(document.Language));
@@ -710,45 +710,6 @@ namespace Microsoft.Cci
             }
 
             return documentHandle;
-        }
-
-        private static readonly char[] s_separator1 = { '/' };
-        private static readonly char[] s_separator2 = { '\\' };
-
-        private BlobHandle SerializeDocumentName(string name)
-        {
-            Debug.Assert(name != null);
-
-            var writer = new BlobBuilder();
-
-            int c1 = Count(name, s_separator1[0]);
-            int c2 = Count(name, s_separator2[0]);
-            char[] separator = (c1 >= c2) ? s_separator1 : s_separator2;
-
-            writer.WriteByte((byte)separator[0]);
-
-            // TODO: avoid allocations
-            foreach (var part in name.Split(separator))
-            {
-                BlobHandle partIndex = _debugMetadataOpt.GetOrAddBlob(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedInteger(MetadataTokens.GetHeapOffset(partIndex));
-            }
-
-            return _debugMetadataOpt.GetOrAddBlob(writer);
-        }
-
-        private static int Count(string str, char c)
-        {
-            int count = 0;
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (str[i] == c)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         #endregion

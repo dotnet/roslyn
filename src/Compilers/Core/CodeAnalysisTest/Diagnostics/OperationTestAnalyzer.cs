@@ -999,12 +999,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
-            ImmutableArray.Create(EventReferenceDescriptor, 
-                HandlerAddedDescriptor, 
-                HandlerRemovedDescriptor, 
-                PropertyReferenceDescriptor, 
-                FieldReferenceDescriptor, 
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(EventReferenceDescriptor,
+                HandlerAddedDescriptor,
+                HandlerRemovedDescriptor,
+                PropertyReferenceDescriptor,
+                FieldReferenceDescriptor,
                 MethodBindingDescriptor,
                 InvalidEventDescriptor);
 
@@ -1233,11 +1233,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.None);
         }
     }
-    
+
     public class AddressOfTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor AddressOfDescriptor = new DiagnosticDescriptor(
             "AddressOfOperation",
             "AddressOf operation found",
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(BinaryUserDefinedOperatorDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
                     {
                         operationContext.ReportDiagnostic(
-                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor, 
+                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor,
                                 binary.Syntax.GetLocation(),
                                 binary.BinaryOperationKind.ToString()));
                     }
@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor ForLoopConditionCrashDescriptor = new DiagnosticDescriptor(
             "ForLoopConditionCrash",
             "Ensure ForLoopCondition property doesn't crash",
@@ -2062,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterSyntaxNodeAction(
                  (syntaxContext) =>
                  {
-                     
+
                      syntaxContext.ReportDiagnostic(Diagnostic.Create(AssignmentSyntaxDescriptor, syntaxContext.Node.GetLocation()));
                  },
                  CSharp.SyntaxKind.SimpleAssignmentExpression);
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class LiteralTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor LiteralDescriptor = new DiagnosticDescriptor(
             "Literal",
             "A literal is found",
@@ -2095,6 +2095,216 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Text));
                  },
                  OperationKind.LiteralExpression);
+        }
+    }
+
+    // This analyzer is to test operation action registration method in AnalysisContext
+    public class AnalysisContextAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionDescriptor = new DiagnosticDescriptor(
+            "AnalysisContext",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(
+                        Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "Analysis"));
+                },
+                OperationKind.LiteralExpression);
+        }
+    }
+
+    // This analyzer is to test internal operation action registration method in AnalysisContext
+    public class AnalysisContextInternalAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
+            "AnalysisContextInternal",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionInternalDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationActionParamsArrayInternal(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(
+                        Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "Analysis"));
+                },
+                OperationKind.LiteralExpression);
+        }
+    }
+
+    // This analyzer is to test operation action registration method in CompilationStartAnalysisContext
+    public class CompilationStartAnalysisContextAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionDescriptor = new DiagnosticDescriptor(
+            "CompilationStartAnalysisContext",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(
+                (compilationStartContext) =>
+                {
+                    compilationStartContext.RegisterOperationAction(
+                        (operationContext) =>
+                        {
+                            operationContext.ReportDiagnostic(
+                                Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
+                        },
+                        OperationKind.LiteralExpression);
+                });
+        }
+    }
+
+    // This analyzer is to test internal operation action registration method in CompilationStartAnalysisContext
+    public class CompilationStartAnalysisContextInternalAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
+            "CompilationStartAnalysisContextInternal",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionInternalDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(
+                (compilationStartContext) =>
+                {
+                    compilationStartContext.RegisterOperationActionParamsArrayInternal(
+                        (operationContext) =>
+                        {
+                            operationContext.ReportDiagnostic(
+                                Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
+                        },
+                        OperationKind.LiteralExpression);
+                });
+        }
+    }
+
+    // This analyzer is to test GetOperation method in SemanticModel
+    public class SemanticModelAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor GetOperationDescriptor = new DiagnosticDescriptor(
+            "GetOperation",
+            "An IOperation is returned by SemanticModel",
+            "An IOperation is returned by SemanticModel.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(GetOperationDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperation(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression);
+
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperation(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
+        }
+    }
+
+    // This analyzer is to test GetOperationInternal method in SemanticModel
+    public class SemanticModelInternalAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+
+        public static readonly DiagnosticDescriptor GetOperationInternalDescriptor = new DiagnosticDescriptor(
+            "GetOperationInternal",
+            "An IOperation is returned by SemanticModel",
+            "An IOperation is returned by SemanticModel.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(GetOperationInternalDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperationInternal(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression);
+
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperationInternal(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
         }
     }
 }

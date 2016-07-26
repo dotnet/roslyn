@@ -2015,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (SyntaxNode executableBlock in executableBlocks)
             {
-                IOperation operation = semanticModel.GetOperation(executableBlock, cancellationToken);
+                IOperation operation = semanticModel.GetOperationInternal(executableBlock, cancellationToken);
                 if (operation != null)
                 {
                     operationBlocksToAnalyze.AddRange(operation);
