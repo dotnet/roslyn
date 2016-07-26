@@ -15317,7 +15317,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenMethodWithDifferenTupleNamesInParameters()
+        public void OverridenMethodWithDifferentTupleNamesInParameters()
         {
             var source = @"
 public class Base
@@ -15406,6 +15406,33 @@ public class Derived : Base
                 );
         }
 
+        [Fact]
+        public void OverridenEventsWithDifferentTupleNames()
+        {
+            var source = @"
+using System;
+public class Base
+{
+    public virtual event Func<(int a, int b)> E1;
+    //public virtual (int a, int b) P1 { get { return (1, 2); } set { } }
+    //public virtual (int a, int b)[] P2 { get; set; }
+    //public virtual (int a, int b)? P3 { get { return (1, 2); } set { } }
+    //public virtual ((int a, int b) c, int d) P4 { get; set; }
+}
+public class Derived : Base
+{
+    public override event Func<(int a, int b)> E1;
+    //public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+    //public override (int notA, int notB)[] P2 { get; set; }
+    //public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+    //public override ((int notA, int notB) c, int d) P4 { get; set; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // TODO: wrong error
+                );
+        }
         [Fact]
         public void HiddenMethodsWithDifferentTupleNames()
         {
@@ -15640,17 +15667,21 @@ public interface I1 : I0
         {
             var source = @"
 public interface I0<T> { }
-public class C : I0<(int a, int b)>, I0<(int notA, int notB)> { }
-public class D : I0<int>, I0<int> { }
+public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
+public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
+public class C3 : I0<int>, I0<int> { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (4,27): error CS0528: 'I0<int>' is already listed in interface list
-                // public class D : I0<int>, I0<int> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<int>").WithArguments("I0<int>").WithLocation(4, 27),
-                // (3,38): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names
-                // public class C : I0<(int a, int b)>, I0<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "I0<(int notA, int notB)>").WithArguments("I0<(int notA, int notB)>").WithLocation(3, 38)
+                // (5,28): error CS0528: 'I0<int>' is already listed in interface list
+                // public class C3 : I0<int>, I0<int> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<int>").WithArguments("I0<int>").WithLocation(5, 28),
+                // (4,39): error CS0528: 'I0<(int a, int b)>' is already listed in interface list
+                // public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<(int a, int b)>").WithArguments("I0<(int a, int b)>").WithLocation(4, 39),
+                // (3,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C1'.
+                // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "C1").WithLocation(3, 14)
                 );
         }
 
@@ -15667,6 +15698,11 @@ public class C : I0<(int a, int b)>
 {
     public (int notA, int notB) get() { return (1, 2); }
     public void set((int notA, int notB) y) { }
+}
+public class D : I0<(int a, int b)>
+{
+    public (int a, int b) get() { return (1, 2); }
+    public void set((int a, int b) y) { }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
@@ -15686,18 +15722,89 @@ public class C : I0<(int a, int b)>
             var source = @"
 public partial class C
 {
-    partial void set((int a, int b) y);
+    partial void M1((int a, int b) x);
+    partial void M2((int a, int b) x);
+    partial void M3((int a, int b) x);
 }
 public partial class C
 {
-    partial void set((int notA, int notB) y) { }
+    partial void M1((int notA, int notB) y) { }
+    partial void M2((int, int) y) { }
+    partial void M3((int a, int b) y) { }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (4,18): error CS8221: Both partial method declarations, 'C.set((int a, int b))' and 'C.set((int notA, int notB))', must use the same tuple element names.
-                //     partial void set((int a, int b) y);
-                Diagnostic(ErrorCode.ERR_PartialMethodTupleNameDifference, "set").WithArguments("C.set((int a, int b))", "C.set((int notA, int notB))").WithLocation(4, 18)
+                // (4,18): error CS8221: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                //     partial void M1((int a, int b) x);
+                Diagnostic(ErrorCode.ERR_PartialMethodTupleNameDifference, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
+                // (5,18): error CS8221: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                //     partial void M2((int a, int b) x);
+                Diagnostic(ErrorCode.ERR_PartialMethodTupleNameDifference, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
+                );
+        }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInBaseInterfaces()
+        {
+            var source = @"
+public interface I0<T> { }
+public partial class C : I0<(int a, int b)> { }
+public partial class C : I0<(int notA, int notB)> { }
+public partial class C : I0<(int, int)> { }
+
+public partial class D : I0<(int a, int b)> { }
+public partial class D : I0<(int a, int b)> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // public partial class C : I0<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "C").WithLocation(4, 22),
+                // (5,22): error CS8219: 'I0<(int, int)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // public partial class C : I0<(int, int)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "C").WithLocation(5, 22)
+                );
+        }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInBaseTypes()
+        {
+            var source = @"
+public class Base<T> { }
+public partial class C1 : Base<(int a, int b)> { }
+public partial class C1 : Base<(int notA, int notB)> { }
+public partial class C2 : Base<(int a, int b)> { }
+public partial class C2 : Base<(int, int)> { }
+public partial class C3 : Base<(int a, int b)> { }
+public partial class C3 : Base<(int a, int b)> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (5,22): error CS0263: Partial declarations of 'C2' must not specify different base classes
+                // public partial class C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 22),
+                // (3,22): error CS0263: Partial declarations of 'C1' must not specify different base classes
+                // public partial class C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
+        public void IndirectInterfaceBasesWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0<T> { }
+public interface I1 : I0<(int a, int b)> { }
+public interface I2 : I0<(int notA, int notB)> { }
+public interface I3 : I0<(int a, int b)> { }
+
+public class C : I1, I2 { }
+public class D : I1, I3 { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // TODO: should be error
                 );
         }
     }

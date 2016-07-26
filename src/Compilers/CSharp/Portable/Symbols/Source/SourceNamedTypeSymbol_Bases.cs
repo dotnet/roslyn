@@ -264,6 +264,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!interfaceLocations.ContainsKey(t))
                     {
+                        foreach (var baseInterface in baseInterfaces)
+                        {
+                            if (t.Equals(baseInterface, ignoreTupleNames: true))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, decl.NameLocation, t, this);
+                                break;
+                            }
+                        }
+
                         baseInterfaces.Add(t);
                         interfaceLocations.Add(t, decl.NameLocation);
                     }
@@ -427,11 +436,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (t == baseType)
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
-                                continue;
-                            }
-                            else if (t.Equals(baseType, ignoreTupleNames: true))
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, baseType);
                                 continue;
                             }
                         }
