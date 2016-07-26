@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.TypeNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.Values.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DebuggerPlaceholders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeAndCustomInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeWalker.cs" />

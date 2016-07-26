@@ -1,6 +1,5 @@
 ﻿{
   "dependencies": {
-    "Microsoft.VisualStudio.Debugger.Metadata": "14.3.25420"
   },
   "frameworks": {
     "net46": {}
