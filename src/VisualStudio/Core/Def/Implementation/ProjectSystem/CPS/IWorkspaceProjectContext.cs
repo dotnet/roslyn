@@ -7,36 +7,32 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see cref="IProjectContextFactory.CreateProjectContext(string, string, string, Shell.Interop.IVsHierarchy)"/>. 
+    /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext"/>. 
     /// </summary>
-    internal interface IProjectContext : IDisposable
+    internal interface IWorkspaceProjectContext : IDisposable
     {
         // Project properties.
         string DisplayName { get; set; }
         string ProjectFilePath { get; set; }
         Guid Guid { get; set; }
-        string ProjectType { get; set; }
-        bool DesignTimeBuildStatus { get; set; }
+        bool LastDesignTimeBuildSucceeded { get; set; }
 
         // Options.
-        void SetCommandLineArguments(CommandLineArguments commandLineArguments);
         void SetCommandLineArguments(string commandLineForOptions);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
         void RemoveMetadataReference(string referencePath);
-        void AddProjectReference(IProjectContext project, MetadataReferenceProperties properties);
-        void RemoveProjectReference(IProjectContext project);
+        void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties);
+        void RemoveProjectReference(IWorkspaceProjectContext project);
+        void AddAnalyzerReference(string referencePath);
+        void RemoveAnalyzerReference(string referencePath);
 
-        // Analyzers.
-        void AddAnalyzerAssembly(string analyzerAssemblyFullPath);
-        void RemoveAnalyzerAssembly(string analyzerAssemblyFullPath);
-        void SetRuleSetFile(string ruleSetFileFullPath);
-        void AddAdditionalFile(string additionalFilePath);
-        void RemoveAdditionalFile(string additionalFilePath);
-
-        // Source files.
+        // Files.
         void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
+        void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
+        void RemoveAdditionalFile(string filePath);
+        void SetRuleSetFile(string filePath);
     }
 }

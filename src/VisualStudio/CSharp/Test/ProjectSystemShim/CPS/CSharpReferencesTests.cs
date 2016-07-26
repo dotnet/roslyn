@@ -78,11 +78,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             {
                 // Add analyzer reference
                 var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
-                project.AddAnalyzerAssembly(analyzerAssemblyFullPath);
+                project.AddAnalyzerReference(analyzerAssemblyFullPath);
                 Assert.True(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
 
                 // Remove analyzer reference
-                project.RemoveAnalyzerAssembly(analyzerAssemblyFullPath);
+                project.RemoveAnalyzerReference(analyzerAssemblyFullPath);
                 Assert.False(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
             }
         }

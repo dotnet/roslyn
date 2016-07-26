@@ -3,37 +3,17 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
+using DisposableFile = Microsoft.CodeAnalysis.Test.Utilities.DisposableFile;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     public class AnalyzersTests
     {
-        private sealed class DisposableFile : IDisposable
-        {
-            private readonly string _filePath;
-
-            public DisposableFile()
-            {
-                _filePath = System.IO.Path.GetTempFileName();
-            }
-
-            public void Dispose()
-            {
-                File.Delete(_filePath);
-            }
-
-            public string Path
-            {
-                get { return _filePath; }
-            }
-        }
-
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_GeneralOption_CPS()
@@ -55,7 +35,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
                 project.SetRuleSetFile(ruleSetFile.Path);
-                CSharpHelpers.SetCommandLineArguments(project, commandLineArguments: $"/ruleset:{ruleSetFile.Path}");
+                project.SetCommandLineArguments($"/ruleset:{ruleSetFile.Path}");
 
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;

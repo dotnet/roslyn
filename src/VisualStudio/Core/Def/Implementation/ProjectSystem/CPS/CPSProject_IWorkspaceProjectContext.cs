@@ -8,10 +8,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
-    internal sealed partial class CPSProject : AbstractProject, IProjectContext
+    internal sealed partial class CPSProject : AbstractProject, IWorkspaceProjectContext
     {
         #region Project properties
-        string IProjectContext.DisplayName
+        string IWorkspaceProjectContext.DisplayName
         {
             get
             {
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        string IProjectContext.ProjectFilePath
+        string IWorkspaceProjectContext.ProjectFilePath
         {
             get
             {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        Guid IProjectContext.Guid
+        Guid IWorkspaceProjectContext.Guid
         {
             get
             {
@@ -48,38 +48,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        string IProjectContext.ProjectType
+        bool IWorkspaceProjectContext.LastDesignTimeBuildSucceeded
         {
             get
             {
-                return base.ProjectType;
+                return _lastDesignTimeBuildSucceeded;
             }
             set
             {
-                base.ProjectType = value;
-            }
-        }
-
-        bool IProjectContext.DesignTimeBuildStatus
-        {
-            get
-            {
-                return _designTimeBuildStatus;
-            }
-            set
-            {
-                _designTimeBuildStatus = value;
+                _lastDesignTimeBuildSucceeded = value;
             }
         }
         #endregion
 
         #region Options
-        public void SetCommandLineArguments(CommandLineArguments commandLineArguments)
-        {
-            SetArgumentsAndUpdateOptions(commandLineArguments);
-            PostSetCommandLineArguments(commandLineArguments);            
-        }
-
         public void SetCommandLineArguments(string commandLineForOptions)
         {
             var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
@@ -110,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             base.RemoveMetadataReference(referencePath);
         }
 
-        public void AddProjectReference(IProjectContext project, MetadataReferenceProperties properties)
+        public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
         {
             var abstractProject = GetAbstractProject(project);
 
@@ -125,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        public void RemoveProjectReference(IProjectContext project)
+        public void RemoveProjectReference(IWorkspaceProjectContext project)
         {
             var referencedProject = GetAbstractProject(project);
 
@@ -138,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        private AbstractProject GetAbstractProject(IProjectContext project)
+        private AbstractProject GetAbstractProject(IWorkspaceProjectContext project)
         {
             var abstractProject = project as AbstractProject;
             if (abstractProject == null)
@@ -150,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
         #endregion
 
-        #region Source files
+        #region Files
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => isInCurrentContext, folderNames: folderNames.ToImmutableArrayOrEmpty());
@@ -160,6 +142,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             RemoveFile(filePath);
         }
+
+        public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
+        {
+            AddAdditionalFile(filePath, getIsInCurrentContext: _ => isInCurrentContext);
+        }
+
         #endregion
 
         #region IDisposable

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private bool _intellisenseBuildSucceeded = true;
         private string _intellisenseBuildFailureReason = null;
 
-        protected override bool DesignTimeBuildStatus => _intellisenseBuildSucceeded;
+        protected override bool LastDesignTimeBuildSucceeded => _intellisenseBuildSucceeded;
 
         public void SetIntellisenseBuildResult(bool succeeded, string reason)
         {

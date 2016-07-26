@@ -8,17 +8,16 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class AbstractProject : IAnalyzerHost
+    internal partial class AbstractProject
     {
         private AnalyzerFileWatcherService _analyzerFileWatcherService = null;
         private AnalyzerDependencyCheckingService _dependencyCheckingService = null;
 
-        public void AddAnalyzerAssembly(string analyzerAssemblyFullPath)
+        public void AddAnalyzerReference(string analyzerAssemblyFullPath)
         {
             if (_analyzers.ContainsKey(analyzerAssemblyFullPath))
             {
@@ -67,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public void RemoveAnalyzerAssembly(string analyzerAssemblyFullPath)
+        public void RemoveAnalyzerReference(string analyzerAssemblyFullPath)
         {
             VisualStudioAnalyzer analyzer;
             if (!_analyzers.TryGetValue(analyzerAssemblyFullPath, out analyzer))
@@ -121,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ResetAnalyzerRuleSet(ruleSetFileFullPath);
         }
 
-        public void AddAdditionalFile(string additionalFilePath)
+        public void AddAdditionalFile(string additionalFilePath, Func<IVisualStudioHostDocument, bool> getIsInCurrentContext)
         {
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
@@ -135,8 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            AddAdditionalDocument(document,
-                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
+            AddAdditionalDocument(document, isCurrentContext: getIsInCurrentContext(document));
         }
 
         public void RemoveAdditionalFile(string additionalFilePath)

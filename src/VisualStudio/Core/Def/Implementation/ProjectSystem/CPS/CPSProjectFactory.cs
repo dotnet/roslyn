@@ -19,8 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
-    [Export(typeof(IProjectContextFactory))]
-    internal partial class CPSProjectFactory : IProjectContextFactory
+    [Export(typeof(IWorkspaceProjectContextFactory))]
+    internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
         private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IServiceProvider _serviceProvider;
@@ -50,24 +50,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         // internal for testing purposes only.
-        internal static CPSProject CreateCPSProject(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, string language, ICommandLineParserService commandLineParserService)
+        internal static CPSProject CreateCPSProject(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, Guid projectGuid, string language, ICommandLineParserService commandLineParserService, string commandLineForOptions)
         {
             return new CPSProject(projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
                 serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null,
-                projectDisplayName: projectDisplayName, projectFilePath: projectFilePath, commandLineParserServiceOpt: commandLineParserService);
+                projectDisplayName: projectDisplayName, projectFilePath: projectFilePath, projectGuid: projectGuid,
+                commandLineForOptions: commandLineForOptions, commandLineParserServiceOpt: commandLineParserService);
         }
 
-        IProjectContext IProjectContextFactory.CreateProjectContext(
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
             string languageName,
             string projectDisplayName,
             string projectFilePath,
-            IVsHierarchy hierarchy)
+            Guid projectGuid,
+            object hierarchy,
+            string commandLineForOptions)
         {
             Contract.ThrowIfNull(hierarchy);
-
+            var vsHierarchy = hierarchy as IVsHierarchy;
+            if (vsHierarchy == null)
+            {
+                throw new ArgumentException(nameof(hierarchy));
+            }
+            
             Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
             return new CPSProject(_projectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
-                hierarchy, languageName, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
+                vsHierarchy, languageName, projectGuid, commandLineForOptions, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
         }
 

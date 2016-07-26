@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string projectFilePath,
             IVsHierarchy hierarchy,
             string language,
+            Guid projectGuid,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
@@ -93,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ServiceProvider = serviceProvider;
             Language = language;
             Hierarchy = hierarchy;
+            Guid = projectGuid;
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
@@ -127,9 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
-
-            // Initialize parsed command line arguments.
-            SetArguments(commandlineForOptions: string.Empty);
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -231,9 +230,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected IContentTypeRegistryService ContentTypeRegistryService { get; }
 
         /// <summary>
-        /// Flag indicating if the design time build has succeeded for current project state.
+        /// Flag indicating if the latest design time build has succeeded for current project state.
         /// </summary>
-        protected abstract bool DesignTimeBuildStatus { get; }
+        protected abstract bool LastDesignTimeBuildSucceeded { get; }
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
@@ -265,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                 additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
 
-            return info.WithHasAllInformation(hasAllInformation: DesignTimeBuildStatus);
+            return info.WithHasAllInformation(hasAllInformation: LastDesignTimeBuildSucceeded);
         }
 
         protected ImmutableArray<string> GetStrongNameKeyPaths()
@@ -361,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // internal for testing purposes.
         internal CompilationOptions CurrentCompilationOptions { get; private set; }
-        protected ParseOptions CurrentParseOptions { get; private set; }
+        internal ParseOptions CurrentParseOptions { get; private set; }
 
         /// <summary>
         /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.
@@ -545,8 +544,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
                 VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
 
-                RemoveAnalyzerAssembly(analyzer.FullPath);
-                AddAnalyzerAssembly(analyzer.FullPath);                
+                RemoveAnalyzerReference(analyzer.FullPath);
+                AddAnalyzerReference(analyzer.FullPath);                
             }));
         }
 

@@ -38,16 +38,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                   projectSystemName,
                   projectFilePath: GetProjectFilePath(hierarchy),
                   hierarchy: hierarchy,
+                  projectGuid: GetProjectIDGuid(hierarchy),
                   language: language,
                   serviceProvider: serviceProvider,
                   visualStudioWorkspaceOpt: visualStudioWorkspaceOpt,
                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
                   commandLineParserServiceOpt: commandLineParserServiceOpt)
         {
-            Guid = GetProjectIDGuid(hierarchy);
             ProjectType = GetProjectType(hierarchy);
             ConnectHierarchyEvents();
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
+
+            // Initialize command line arguments.
+            base.SetArguments(commandlineForOptions: string.Empty);
         }
 
         public override void Disconnect()

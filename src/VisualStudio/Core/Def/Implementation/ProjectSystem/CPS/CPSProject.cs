@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : AbstractProject
     {
-        private bool _designTimeBuildStatus;
+        private bool _lastDesignTimeBuildSucceeded;
 
         public CPSProject(
             VisualStudioProjectTracker projectTracker,
@@ -22,20 +22,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string projectFilePath,
             IVsHierarchy hierarchy,
             string language,
+            Guid projectGuid,
+            string commandLineForOptions,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt)
             : base(projectTracker, reportExternalErrorCreatorOpt, projectDisplayName, projectFilePath,
-                   hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
+                   hierarchy, language, projectGuid, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
         {
-            // Set the initial default output bin path for the project, before we add the project to the project tracker.
-            var uniqueDefaultOutputPath = PathUtilities.CombinePathsUnchecked(Path.GetTempPath(), Guid.NewGuid().ToString());
-            SetOutputPathAndRelatedData(objOutputPath: uniqueDefaultOutputPath, hasSameBinAndObjOutputPaths: true);
+            // Initialize the options.
+            SetCommandLineArguments(commandLineForOptions);
 
+            // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
+            // If we were unable to set the output path from SetCommandLineArguments (due to null output file name or directory in the given commandLineForOptions),
+            // we set a default unique output path.
+            if (this.TryGetBinOutputPath() == null)
+            {
+                var uniqueDefaultOutputPath = PathUtilities.CombinePathsUnchecked(Path.GetTempPath(), projectDisplayName + projectGuid.GetHashCode().ToString());
+                SetOutputPathAndRelatedData(objOutputPath: uniqueDefaultOutputPath, hasSameBinAndObjOutputPaths: true);
+            }
+
+            Contract.ThrowIfNull(this.TryGetBinOutputPath());
+
+            // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);
 
-            _designTimeBuildStatus = true;
+            _lastDesignTimeBuildSucceeded = true;
         }
 
         protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
@@ -43,6 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             throw new NotSupportedException();
         }
 
-        protected sealed override bool DesignTimeBuildStatus => _designTimeBuildStatus;
+        protected sealed override bool LastDesignTimeBuildSucceeded => _lastDesignTimeBuildSucceeded;
     }
 }

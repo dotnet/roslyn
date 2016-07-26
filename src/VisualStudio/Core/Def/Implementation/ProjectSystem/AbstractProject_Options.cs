@@ -31,16 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Sets the given command line arguments to be the last parsed command line arguments and
-        /// creates and sets new options using these command line arguments.
-        /// </summary>
-        protected void SetArgumentsAndUpdateOptions(CommandLineArguments commandLineArguments)
-        {
-            _lastParsedCommandLineArguments = commandLineArguments;
-            UpdateOptions();            
-        }
-
-        /// <summary>
         /// If the command line has changed from the last parsed command line, then it parses it and sets new command line arguments.
         /// Subsequently, regardless of whether command line changed, it creates and sets new options using the last parsed command line arguments.
         /// </summary>
@@ -69,7 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return SetArgumentsAndUpdateOptions(savedLastParsedCompilerOptions);
         }
 
-        private CommandLineArguments SetArguments(string commandlineForOptions)
+        /// <summary>
+        /// If the command line has changed from the last parsed command line, then it parses it and sets new command line arguments.
+        /// </summary>
+        /// <param name="commandlineForOptions"></param>
+        /// <returns></returns>
+        protected CommandLineArguments SetArguments(string commandlineForOptions)
         {
             if (!string.Equals(_lastParsedCompilerOptions, commandlineForOptions, StringComparison.OrdinalIgnoreCase))
             {
