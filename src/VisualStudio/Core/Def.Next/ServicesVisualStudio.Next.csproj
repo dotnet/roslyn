@@ -25,12 +25,12 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.cs" />
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.Subscription.cs" />
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
-    <Compile Include="Implementation\StreamingFindReferencesPresenter.ReferenceEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.ReferenceEntry.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     [Export(typeof(IStreamingFindReferencesPresenter)), Shared]
     internal partial class StreamingFindReferencesPresenter :
