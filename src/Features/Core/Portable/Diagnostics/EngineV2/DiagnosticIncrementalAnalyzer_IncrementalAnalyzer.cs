@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -68,15 +69,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
 
                 // PERF: get analyzers that are not suppressed.
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project))
-                                        .ToImmutableArrayOrEmpty();
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project));
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
@@ -258,16 +258,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void RaiseProjectDiagnosticsIfNeeded(
             Project project,
             IEnumerable<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
-            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty, result);
+            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, result);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
             Project project,
             IEnumerable<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> oldResult,
-            ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> newResult)
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
         {
             if (oldResult.Count == 0 && newResult.Count == 0)
             {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind,
-            AnalysisResult oldResult, AnalysisResult newResult,
+            DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
             Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             var oldItems = GetResult(oldResult, kind, document.Id);
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsCreated(document, stateSet, kind, newItems, raiseEvents);
         }
 
-        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, AnalysisResult oldAnalysisResult, AnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
