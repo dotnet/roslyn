@@ -16,14 +16,11 @@ x64/
 [Bb]in/
 [Oo]bj/
 
-[Tt]ools/
-
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
 
 # Prevent accidental re-checkin of NuGet.exe
-NuGet.exe
-nuget.exe
+[nN]u[gG]et.exe
 
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
