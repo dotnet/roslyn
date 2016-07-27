@@ -23,10 +23,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsumesUtil.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="FileName.cs" />
     <Compile Include="JsonTypes.cs" />
-    <Compile Include="NuGetReference.cs" />
+    <Compile Include="NuGetPackage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectJsonUtil.cs" />
     <Compile Include="RepoData.cs" />

@@ -42,36 +42,13 @@ namespace RepoUtil
                 case Mode.Verify:
                     return VerifyUtil.Go(sourcesPath, repoData);
                 case Mode.Consumes:
-                    return Consumes(sourcesPath);
+                    {
+                        Console.WriteLine(ConsumesUtil.Go(sourcesPath, repoData));
+                        return true;
+                    }
                 default:
                     throw new Exception("Unrecognized mode");
             }
-        }
-
-        private static bool Consumes(string sourcesPath)
-        {
-            var set = new HashSet<string>(StringComparer.Ordinal);
-            var list = new List<string>();
-            var all = Data.FloatingList.Concat(Data.StaticList).Select(x => new FileName(sourcesPath, x));
-            foreach (var fileName in all)
-            {
-                foreach (var nugetRef in ProjectJsonUtil.GetDependencies(fileName.FullPath))
-                {
-                    var key = $@"""{nugetRef.Name}"" : ""{nugetRef.Version}""";
-                    if (set.Add(key))
-                    {
-                        list.Add(key);
-                    }
-                }
-            }
-
-            list.Sort();
-            foreach (var key in list)
-            {
-                Console.WriteLine(key);
-            }
-
-            return true;
         }
 
         private static void Usage()

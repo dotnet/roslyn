@@ -21,17 +21,17 @@ namespace RepoUtil
         }
 
         // TOOD: use FileName here
-        internal static ImmutableArray<NuGetReference> GetDependencies(string filePath)
+        internal static ImmutableArray<NuGetPackage> GetDependencies(string filePath)
         {
             // Need to track any file that has dependencies
             var obj = JObject.Parse(File.ReadAllText(filePath));
             var dependencies = (JObject)obj["dependencies"];
             if (dependencies == null)
             {
-                return ImmutableArray<NuGetReference>.Empty;
+                return ImmutableArray<NuGetPackage>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<NuGetReference>();
+            var builder = ImmutableArray.CreateBuilder<NuGetPackage>();
             foreach (var dependency in dependencies.Properties())
             {
                 builder.Add(ParseDependency(dependency));
@@ -43,7 +43,7 @@ namespace RepoUtil
         /// <summary>
         /// Parse out a dependency entry from the project.json file.
         /// </summary>
-        internal static NuGetReference ParseDependency(JProperty prop)
+        internal static NuGetPackage ParseDependency(JProperty prop)
         {
             var name = prop.Name;
 
@@ -57,7 +57,7 @@ namespace RepoUtil
                 version = ((JObject)prop.Value).Value<string>("version");
             }
 
-            return new NuGetReference(name, version);
+            return new NuGetPackage(name, version);
         }
 
         internal static bool VerifyTracked(string sourcesPath, IEnumerable<FileName> fileNames)
@@ -79,6 +79,12 @@ namespace RepoUtil
             }
 
             return allGood;
+        }
+
+        // TODO: Need to include our toolset files not named project.json.
+        internal static IEnumerable<string> GetProjectJsonFiles(string sourcesPath)
+        {
+            return Directory.EnumerateFiles(sourcesPath, "project.json", SearchOption.AllDirectories);
         }
     }
 }

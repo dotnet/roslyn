@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace RepoUtil
 {
-    internal struct NuGetReference
+    internal struct NuGetPackage
     {
         internal string Name { get; }
         internal string Version { get; }
 
-        internal NuGetReference(string name, string version)
+        internal NuGetPackage(string name, string version)
         {
             Name = name;
             Version = version;

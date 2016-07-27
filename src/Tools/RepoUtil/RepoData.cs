@@ -39,7 +39,7 @@ namespace RepoUtil
         /// <summary>
         /// Fixed references which do not change during a build.
         /// </summary>
-        internal ImmutableArray<NuGetReference> StaticPackages { get; }
+        internal ImmutableArray<NuGetPackage> StaticPackages { get; }
 
         /// <summary>
         /// This is a map of static package names to the list of supported versions.
@@ -47,13 +47,13 @@ namespace RepoUtil
         internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap { get; }
 
         internal ImmutableArray<string> FloatingBuildPackages { get; }
-
         internal ImmutableArray<string> FloatingToolsetPackages { get; }
-
         internal ImmutableArray<string> FloatingPackages { get; }
+        internal bool HasCurentData { get; }
 
-        internal RepoData(IEnumerable<NuGetReference> staticPackages, IEnumerable<string> floatingBuildPackages, IEnumerable<string> floatingToolsetPackages)
+        internal RepoData(IEnumerable<NuGetPackage> staticPackages, IEnumerable<string> floatingBuildPackages, IEnumerable<string> floatingToolsetPackages, bool hasCurrentData = false)
         {
+            HasCurentData = hasCurrentData;
             StaticPackages = staticPackages.OrderBy(x => x.Name).ToImmutableArray();
 
             // TODO: Validate duplicate names in the floating lists
@@ -86,20 +86,20 @@ namespace RepoUtil
             // Need to track any file that has dependencies
             var obj = JObject.Parse(File.ReadAllText(jsonFilePath));
             var staticPackages = (JObject)obj["staticPackages"];
-            var staticPackagesList = ImmutableArray.CreateBuilder<NuGetReference>();
+            var staticPackagesList = ImmutableArray.CreateBuilder<NuGetPackage>();
             foreach (var prop in staticPackages.Properties())
             {
                 if (prop.Value.Type == JTokenType.String)
                 {
                     var version = (string)prop.Value;
-                    var nugetRef = new NuGetReference(prop.Name, version);
+                    var nugetRef = new NuGetPackage(prop.Name, version);
                     staticPackagesList.Add(nugetRef);
                 }
                 else
                 {
                     foreach (var version in ((JArray)prop.Value).Values<string>())
                     {
-                        var nugetRef = new NuGetReference(prop.Name, version);
+                        var nugetRef = new NuGetPackage(prop.Name, version);
                         staticPackagesList.Add(nugetRef);
                     }
                 }
@@ -113,6 +113,33 @@ namespace RepoUtil
                 staticPackagesList,
                 build.Values<string>(),
                 toolset.Values<string>());
+        }
+
+        /// <summary>
+        /// The raw RepoData contains only the static + toolset packages that we need to track.  This method will examine the current
+        /// state of the repo and add in the current data.
+        /// </summary>
+        internal RepoData PopulateWithCurrentData(string sourcesPath)
+        {
+            var list = new List<string>(FloatingPackages);
+            foreach (var fileName in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
+            {
+                foreach (var nuget in ProjectJsonUtil.GetDependencies(fileName))
+                {
+                    if (StaticPackagesMap.ContainsKey(nuget.Name) || FloatingToolsetPackages.Contains(nuget.Name))
+                    {
+                        continue;
+                    }
+
+                    list.Add(nuget.Name);
+                }
+            }
+
+            return new RepoData(
+                StaticPackages,
+                list,
+                FloatingToolsetPackages,
+                hasCurrentData: true);
         }
     }
 }

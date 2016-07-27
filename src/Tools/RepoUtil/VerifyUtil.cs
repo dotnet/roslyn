@@ -16,10 +16,10 @@ namespace RepoUtil
     {
         private struct NuGetReferenceSource
         {
-            internal NuGetReference NuGetReference { get; }
+            internal NuGetPackage NuGetReference { get; }
             internal FileName FileName { get; }
 
-            internal NuGetReferenceSource(NuGetReference nugetRef, FileName fileName)
+            internal NuGetReferenceSource(NuGetPackage nugetRef, FileName fileName)
             {
                 NuGetReference = nugetRef;
                 FileName = fileName;
@@ -50,7 +50,7 @@ namespace RepoUtil
         private bool VerifyPackages()
         {
             var allGood = false;
-            foreach (var filePath in GetProjectJsonFiles())
+            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_sourcesPath))
             {
                 var fileName = FileName.FromFullPath(_sourcesPath, filePath);
                 foreach (var nugetRef in ProjectJsonUtil.GetDependencies(filePath))
@@ -75,7 +75,7 @@ namespace RepoUtil
             return allGood;
         }
 
-        private bool VerifyFloatingPackage(NuGetReference nugetRef, FileName fileName)
+        private bool VerifyFloatingPackage(NuGetPackage nugetRef, FileName fileName)
         {
             NuGetReferenceSource source;
             if (_floatingPackageMap.TryGetValue(nugetRef.Name, out source))
@@ -95,7 +95,7 @@ namespace RepoUtil
             return true;
         }
 
-        private bool VerifyStaticPackage(NuGetReference nugetRef, FileName fileName)
+        private bool VerifyStaticPackage(NuGetPackage nugetRef, FileName fileName)
         {
             Debug.Assert(_repoData.StaticPackagesMap.ContainsKey(nugetRef.Name));
             var versions = _repoData.StaticPackagesMap[nugetRef.Name];
@@ -108,10 +108,5 @@ namespace RepoUtil
             return true;
         }
 
-        // TODO: Need to include our toolset files not named project.json.
-        private IEnumerable<string> GetProjectJsonFiles()
-        {
-            return Directory.EnumerateFiles(_sourcesPath, "project.json", SearchOption.AllDirectories);
-        }
     }
 }
