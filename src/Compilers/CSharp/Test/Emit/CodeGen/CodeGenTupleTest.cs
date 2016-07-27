@@ -15927,6 +15927,46 @@ public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
         }
 
         [Fact]
+        public void AmbiguousExtensionMethodWithDifferentTupleNames()
+        {
+            var source = @"
+public static class C1
+{
+    public static void M(this string self, (int, int) x) { System.Console.Write($""C1.M({x}) ""); }
+}
+public static class C2
+{
+    public static void M(this string self, (int a, int b) x) { System.Console.Write($""C2.M({x}) ""); }
+}
+public static class C3
+{
+    public static void M(this string self, (int c, int d) x) { System.Console.Write($""C3.M({x}) ""); }
+}
+public class D
+{
+    public static void Main()
+    {
+        ""string"".M((1, 1));
+        ""string"".M((a: 1, b: 1));
+        ""string"".M((c: 1, d: 1));
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (18,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
+                //         "string".M((1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C1.M(string, (int, int))", "C2.M(string, (int a, int b))").WithLocation(18, 18),
+                // (19,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
+                //         "string".M((a: 1, b: 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C1.M(string, (int, int))", "C2.M(string, (int a, int b))").WithLocation(19, 18),
+                // (20,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
+                //         "string".M((c: 1, d: 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C1.M(string, (int, int))", "C2.M(string, (int a, int b))").WithLocation(20, 18)
+                );
+        }
+
+        [Fact]
         public void InheritFromMetadataWithDifferentNames()
         {
             const string ilSource = @"
