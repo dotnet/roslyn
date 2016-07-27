@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RepoUtil
@@ -36,20 +37,14 @@ namespace RepoUtil
     /// </summary>
     internal class RepoConfig
     {
-        /// <summary>
-        /// Fixed references which do not change during a build.
-        /// </summary>
         internal ImmutableArray<NuGetPackage> StaticPackages { get; }
-
-        /// <summary>
-        /// This is a map of static package names to the list of supported versions.
-        /// </summary>
         internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap { get; }
-
         internal ImmutableArray<string> ToolsetPackages { get; }
+        internal GenerateData? MSBuildGenerateData { get; }
 
-        internal RepoConfig(IEnumerable<NuGetPackage> staticPackages, IEnumerable<string> toolsetPackages)
+        internal RepoConfig(IEnumerable<NuGetPackage> staticPackages, IEnumerable<string> toolsetPackages, GenerateData? msbuildGenerateData)
         {
+            MSBuildGenerateData = msbuildGenerateData;
             StaticPackages = staticPackages.OrderBy(x => x.Name).ToImmutableArray();
 
             // TODO: Validate duplicate names in the floating lists
@@ -102,9 +97,41 @@ namespace RepoUtil
             var toolsetPackagesProp = obj.Property("toolsetPackages");
             var toolsetPackages = ((JArray)toolsetPackagesProp.Value).Values<string>();
 
+            GenerateData? msbuildGenerateData = null;
+            var generateObj = (JObject)obj.Property("generate").Value;
+            if (generateObj != null)
+            {
+                msbuildGenerateData = ReadGenerateData(generateObj, "msbuild");
+            }
+
             return new RepoConfig(
                 staticPackagesList,
-                toolsetPackages);
+                toolsetPackages,
+                msbuildGenerateData);
+        }
+
+        private static GenerateData? ReadGenerateData(JObject obj, string propName)
+        {
+            var prop = obj.Property(propName);
+            if (prop == null)
+            {
+                return null;
+            }
+
+            return ReadGenerateData((JObject)prop.Value);
+        }
+
+        private static GenerateData ReadGenerateData(JObject obj)
+        {
+            var relativeFilePath = (string)obj.Property("path").Value;
+            var builder = ImmutableArray.CreateBuilder<Regex>();
+            var array = (JArray)obj.Property("values").Value;
+            foreach (var item in array.Values<string>())
+            {
+                builder.Add(new Regex(item));
+            }
+
+            return new GenerateData(relativeFilePath, builder.ToImmutable());
         }
     }
 }

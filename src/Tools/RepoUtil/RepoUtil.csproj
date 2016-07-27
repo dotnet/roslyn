@@ -20,6 +20,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -27,6 +29,8 @@
     <Compile Include="ConsumesUtil.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="FileName.cs" />
+    <Compile Include="GenerateData.cs" />
+    <Compile Include="GenerateUtil.cs" />
     <Compile Include="JsonTypes.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="Program.cs" />

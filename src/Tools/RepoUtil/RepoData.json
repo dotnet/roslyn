@@ -38,5 +38,20 @@
 
     "toolsetPackages": [
 
-    ]
+    ],
+
+    "generate": {
+        "msbuild": {
+            "path": "build\\Targets\\Dependencies.props",
+            "values": [
+                "Microsoft.Dia.*",
+                "System\\.*",
+                "NETStandardLibraryVersion",
+                "MicrosoftCodeAnalysisAnalyzersVersion",
+                "ManagedEsentVersion",
+                "MicrosoftVisualBasicVersion",
+                "MicrosoftCompositionVersion"
+            ]
+        }
+    }
 }

@@ -15,6 +15,7 @@ namespace RepoUtil
             Usage,
             Verify,
             Consumes,
+            Generate,
         }
 
         internal static readonly string[] ProjectJsonFileRelativeNames = Array.Empty<string>();
@@ -46,6 +47,13 @@ namespace RepoUtil
                         Console.WriteLine(ConsumesUtil.Go(repoConfig, sourcesPath));
                         return true;
                     }
+                case Mode.Generate:
+                    {
+                        var repoData = RepoData.Create(repoConfig, sourcesPath);
+                        var util = new GenerateUtil(repoData);
+                        util.Go();
+                        return true;
+                    }
                 default:
                     throw new Exception("Unrecognized mode");
             }
@@ -56,6 +64,7 @@ namespace RepoUtil
             var text = @"
   -verify: check the state of the repo
   -consumes: output the conent consumed by this repo
+  -generate: generate all the supporting files
 ";
             Console.Write(text);
         }
@@ -79,6 +88,10 @@ namespace RepoUtil
                         break;
                     case "-consumes":
                         mode = Mode.Consumes;
+                        index++;
+                        break;
+                    case "-generate":
+                        mode = Mode.Generate;
                         index++;
                         break;
                     default:

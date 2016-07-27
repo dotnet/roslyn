@@ -11,26 +11,37 @@ namespace RepoUtil
 {
     internal sealed class RepoData
     {
-        private readonly RepoConfig _repoConfig;
-
+        internal string SourcesPath { get; }
+        internal RepoConfig RepoConfig { get; }
         internal ImmutableArray<NuGetPackage> FloatingBuildPackages { get; }
         internal ImmutableArray<NuGetPackage> FloatingToolsetPackages { get; }
         internal ImmutableArray<NuGetPackage> FloatingPackages { get; }
-        internal ImmutableArray<NuGetPackage> StaticPackages => _repoConfig.StaticPackages;
-        internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap => _repoConfig.StaticPackagesMap;
+        internal ImmutableArray<NuGetPackage> StaticPackages => RepoConfig.StaticPackages;
+        internal ImmutableArray<NuGetPackage> AllPackages { get; }
+        internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap => RepoConfig.StaticPackagesMap;
 
-        internal RepoData(RepoConfig config, IEnumerable<NuGetPackage> floatingPackages)
+        internal RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetPackage> floatingPackages)
         {
-            _repoConfig = config;
+            SourcesPath = sourcesPath;
+            RepoConfig = config;
             FloatingToolsetPackages = floatingPackages
-                .Where(x => _repoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
+                .Where(x => RepoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
                 .OrderBy(x => x.Name)
                 .ToImmutableArray();
             FloatingBuildPackages = floatingPackages
-                .Where(x => !_repoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
+                .Where(x => !RepoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
                 .OrderBy(x => x.Name)
                 .ToImmutableArray();
             FloatingPackages = floatingPackages
+                .OrderBy(x => x.Name)
+                .ToImmutableArray();
+            AllPackages = Combine(FloatingBuildPackages, FloatingToolsetPackages, StaticPackages);
+        }
+
+        private static ImmutableArray<NuGetPackage> Combine(params ImmutableArray<NuGetPackage>[] args)
+        {
+            return args
+                .SelectMany(x => x)
                 .OrderBy(x => x.Name)
                 .ToImmutableArray();
         }
@@ -57,6 +68,7 @@ namespace RepoUtil
 
             return new RepoData(
                 config,
+                sourcesPath,
                 set);
         }
     }
