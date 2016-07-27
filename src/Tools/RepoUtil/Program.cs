@@ -33,17 +33,17 @@ namespace RepoUtil
                 return false;
             }
 
-            var repoData = RepoData.ReadFrom(Path.Combine(AppContext.BaseDirectory, "RepoData.json"));
+            var repoConfig = RepoConfig.ReadFrom(Path.Combine(AppContext.BaseDirectory, "RepoData.json"));
             switch (mode)
             {
                 case Mode.Usage:
                     Usage();
                     return true;
                 case Mode.Verify:
-                    return VerifyUtil.Go(sourcesPath, repoData);
+                    return VerifyUtil.Go(repoConfig, sourcesPath);
                 case Mode.Consumes:
                     {
-                        Console.WriteLine(ConsumesUtil.Go(sourcesPath, repoData));
+                        Console.WriteLine(ConsumesUtil.Go(repoConfig, sourcesPath));
                         return true;
                     }
                 default:

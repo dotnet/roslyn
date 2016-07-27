@@ -36,8 +36,7 @@
         "xunit.runner.console": [ "2.1.0", "2.2.0-beta1-build3239" ]
     },
 
-    "floatingPackages": {
-        "build": [ ],
-        "toolset": [ ]
-    }
+    "toolsetPackages": [
+
+    ]
 }

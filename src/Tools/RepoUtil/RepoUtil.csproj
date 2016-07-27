@@ -23,6 +23,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="ConsumesUtil.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="FileName.cs" />
@@ -30,6 +31,7 @@
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectJsonUtil.cs" />
+    <Compile Include="RepoConfig.cs" />
     <Compile Include="RepoData.cs" />
     <Compile Include="VerifyUtil.cs" />
   </ItemGroup>

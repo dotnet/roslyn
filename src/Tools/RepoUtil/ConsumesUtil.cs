@@ -16,14 +16,12 @@ namespace RepoUtil
 
         internal ConsumesUtil(RepoData repoData)
         {
-            Debug.Assert(repoData.HasCurentData);
             _repoData = repoData;
         }
 
-        internal static string Go(string sourcesPath, RepoData repoData)
+        internal static string Go(RepoConfig repoConfig, string sourcesPath)
         {
-            Debug.Assert(!repoData.HasCurentData);
-            repoData = repoData.PopulateWithCurrentData(sourcesPath);
+            var repoData = RepoData.Create(repoConfig, sourcesPath);
             var util = new ConsumesUtil(repoData);
             var obj = util.GoCore();
             return obj.ToString(Formatting.Indented);

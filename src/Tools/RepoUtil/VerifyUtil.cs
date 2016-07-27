@@ -27,18 +27,18 @@ namespace RepoUtil
         }
 
         private readonly string _sourcesPath;
-        private readonly RepoData _repoData;
+        private readonly RepoConfig _repoConfig;
         private readonly Dictionary<string, NuGetReferenceSource> _floatingPackageMap = new Dictionary<string, NuGetReferenceSource>(StringComparer.Ordinal);
 
-        internal VerifyUtil(string sourcesPath, RepoData repoData)
+        internal VerifyUtil(RepoConfig repoConfig, string sourcesPath)
         {
+            _repoConfig = repoConfig;
             _sourcesPath = sourcesPath;
-            _repoData = repoData;
         }
 
-        internal static bool Go(string sourcesPath, RepoData repoData)
+        internal static bool Go(RepoConfig repoConfig, string sourcesPath)
         {
-            var util = new VerifyUtil(sourcesPath, repoData);
+            var util = new VerifyUtil(repoConfig, sourcesPath);
             return util.Go();
         }
 
@@ -55,7 +55,7 @@ namespace RepoUtil
                 var fileName = FileName.FromFullPath(_sourcesPath, filePath);
                 foreach (var nugetRef in ProjectJsonUtil.GetDependencies(filePath))
                 {
-                    if (_repoData.StaticPackages.Any(x => x.Name == nugetRef.Name))
+                    if (_repoConfig.StaticPackages.Any(x => x.Name == nugetRef.Name))
                     {
                         if (!VerifyStaticPackage(nugetRef, fileName))
                         {
@@ -97,8 +97,8 @@ namespace RepoUtil
 
         private bool VerifyStaticPackage(NuGetPackage nugetRef, FileName fileName)
         {
-            Debug.Assert(_repoData.StaticPackagesMap.ContainsKey(nugetRef.Name));
-            var versions = _repoData.StaticPackagesMap[nugetRef.Name];
+            Debug.Assert(_repoConfig.StaticPackagesMap.ContainsKey(nugetRef.Name));
+            var versions = _repoConfig.StaticPackagesMap[nugetRef.Name];
             if (!versions.Contains(nugetRef.Version))
             {
                 Console.WriteLine($"Package {nugetRef.Name} at version {nugetRef.Version} in {fileName} is not a valid version");
