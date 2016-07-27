@@ -40,12 +40,18 @@ namespace RepoUtil
         internal ImmutableArray<NuGetPackage> StaticPackages { get; }
         internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap { get; }
         internal ImmutableArray<string> ToolsetPackages { get; }
+        internal ImmutableArray<Regex> NuSpecExcludes { get; }
         internal GenerateData? MSBuildGenerateData { get; }
 
-        internal RepoConfig(IEnumerable<NuGetPackage> staticPackages, IEnumerable<string> toolsetPackages, GenerateData? msbuildGenerateData)
+        internal RepoConfig(
+            IEnumerable<NuGetPackage> staticPackages, 
+            IEnumerable<string> toolsetPackages, 
+            IEnumerable<Regex> nuspecExcludes,
+            GenerateData? msbuildGenerateData)
         {
             MSBuildGenerateData = msbuildGenerateData;
             StaticPackages = staticPackages.OrderBy(x => x.Name).ToImmutableArray();
+            NuSpecExcludes = nuspecExcludes.ToImmutableArray();
 
             // TODO: Validate duplicate names in the floating lists
             ToolsetPackages = toolsetPackages.OrderBy(x => x).ToImmutableArray();
@@ -104,9 +110,17 @@ namespace RepoUtil
                 msbuildGenerateData = ReadGenerateData(generateObj, "msbuild");
             }
 
+            var nuspecExcludes = new List<Regex>();
+            var nuspecExcludesProp = obj.Property("nuspecExcludes");
+            if (nuspecExcludesProp != null)
+            {
+                nuspecExcludes.AddRange(((JArray)nuspecExcludesProp.Value).Values<string>().Select(x => new Regex(x)));
+            }
+
             return new RepoConfig(
                 staticPackagesList,
                 toolsetPackages,
+                nuspecExcludes,
                 msbuildGenerateData);
         }
 

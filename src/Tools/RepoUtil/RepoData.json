@@ -45,7 +45,7 @@
             "path": "build\\Targets\\Dependencies.props",
             "values": [
                 "Microsoft.Dia.*",
-                "System\\.*",
+                "System.*",
                 "NETStandardLibraryVersion",
                 "MicrosoftCodeAnalysisAnalyzersVersion",
                 "ManagedEsentVersion",
@@ -53,5 +53,14 @@
                 "MicrosoftCompositionVersion"
             ]
         }
-    }
+    },
+
+    "nuspecExcludes": [
+        "^packages.*",
+        "^Binaries.*",
+        "^src\\\\Samples.*",
+        "^src\\\\Dependencies.*",
+        ".*NuSpec.loc.*",
+        ".*Templates.*"
+    ]
 }

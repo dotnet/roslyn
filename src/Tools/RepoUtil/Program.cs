@@ -16,6 +16,7 @@ namespace RepoUtil
             Verify,
             Consumes,
             Change,
+            Produces,
         }
 
         internal static readonly string[] ProjectJsonFileRelativeNames = Array.Empty<string>();
@@ -54,6 +55,12 @@ namespace RepoUtil
                         util.ChangeAll();
                         return true;
                     }
+                case Mode.Produces:
+                    {
+                        var util = new ProduceUtil(repoConfig, sourcesPath);
+                        util.Go();
+                        return true;
+                    }
                 default:
                     throw new Exception("Unrecognized mode");
             }
@@ -69,6 +76,7 @@ namespace RepoUtil
             Console.Write(text);
         }
 
+        // TODO: don't use dashes here.
         private static bool TryParseCommandLine(string[] args, out Mode mode, out string sourcesPath)
         {
             var allGood = true;
@@ -92,6 +100,10 @@ namespace RepoUtil
                         break;
                     case "-change":
                         mode = Mode.Change;
+                        index++;
+                        break;
+                    case "-produces":
+                        mode = Mode.Produces;
                         index++;
                         break;
                     default:

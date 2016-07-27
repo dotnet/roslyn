@@ -34,6 +34,8 @@
     <Compile Include="JsonTypes.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="NuGetPackageChange.cs" />
+    <Compile Include="NuSpecUtil.cs" />
+    <Compile Include="ProduceUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectJsonUtil.cs" />
     <Compile Include="RepoConfig.cs" />
