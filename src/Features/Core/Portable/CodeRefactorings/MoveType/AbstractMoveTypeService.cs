@@ -27,26 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             RenameFile
         }
 
-        protected bool ShouldAnalyze(SyntaxNode root, TextSpan span)
-        {
-            return GetNodeToAnalyze(root, span) is TTypeDeclarationSyntax;
-        }
-
-        protected virtual SyntaxNode GetNodeToAnalyze(SyntaxNode root, TextSpan span)
-        {
-            return root.FindNode(span);
-        }
-
-        private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
-            typeNode.Parent is TTypeDeclarationSyntax;
-
-        /// <summary>
-        /// checks if there is a single top level type declaration in a document
-        /// </summary>
-        private bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
-            root.DescendantNodes(n => (n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax))
-            .OfType<TTypeDeclarationSyntax>()
-            .Count() > 1;
+        protected virtual SyntaxNode GetNodeToAnalyze(SyntaxNode root, TextSpan span) => root.FindNode(span);
 
         public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -68,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
             return actions;
         }
+
+        private bool ShouldAnalyze(SyntaxNode root, TextSpan span) =>
+            GetNodeToAnalyze(root, span) is TTypeDeclarationSyntax;
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
@@ -97,11 +81,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return actions.ToImmutableArray();
         }
 
-        private CodeAction GetCodeAction(
-            State state,
-            OperationKind operationKind)
-        {
-            return new MoveTypeCodeAction((TService)this, state, operationKind);
-        }
+        private CodeAction GetCodeAction(State state, OperationKind operationKind) => 
+            new MoveTypeCodeAction((TService)this, state, operationKind);
+        
+        private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
+            typeNode.Parent is TTypeDeclarationSyntax;
+
+        /// <summary>
+        /// checks if there is a single top level type declaration in a document
+        /// </summary>
+        private bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
+            root.DescendantNodes(n => (n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax))
+            .OfType<TTypeDeclarationSyntax>()
+            .Count() > 1;
     }
 }
