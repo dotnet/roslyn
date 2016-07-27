@@ -31,6 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return SpecializedCollections.SingletonEnumerable(part).ToTextBlock(typeMap);
         }
 
+        public static IList<Inline> ToInlines(this IEnumerable<TaggedText> parts, ClassificationTypeMap typeMap)
+        {
+            var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
+            var inlines = new List<Inline>();
+
+            foreach (var part in parts)
+            {
+                inlines.Add(part.ToRun(formatMap, typeMap));
+            }
+
+            return inlines;
+        }
+
         public static TextBlock ToTextBlock(this IEnumerable<TaggedText> parts, ClassificationTypeMap typeMap)
         {
             var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
@@ -38,12 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
             result.SetDefaultTextProperties(formatMap);
 
-            foreach (var part in parts)
-            {
-                result.Inlines.Add(part.ToRun(formatMap, typeMap));
-            }
-
-            return result;
+            result.Inlines.AddRange(parts.ToInlines(typeMap));
         }
 
         public static IList<ClassificationSpan> ToClassificationSpans(

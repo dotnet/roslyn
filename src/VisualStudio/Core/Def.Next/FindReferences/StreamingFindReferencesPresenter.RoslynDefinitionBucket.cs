@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Documents;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindReferences;
@@ -44,11 +47,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 case StandardTableKeyNames.FullText:
                     return DefinitionItem.DisplayParts.JoinText();
 
-                //case StandardTableKeyNames2.TextInlines:
-                //    return DefinitionItem.DisplayParts.ToTextBlock(_presenter._typeMap).Inlines;
+                case StandardTableKeyNames2.TextInlines:
+                    return DefinitionItem.DisplayParts.ToInlines(_presenter._typeMap);
 
                 case StandardTableKeyNames2.DefinitionIcon:
                     return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+
+                //case StandardTableKeyNames2.TextInlines:
+                //    // content of the bucket displayed as a rich text
+                //    var inlines = new List<Inline>();
+                //    inlines.Add(new Run("testing") { FontWeight = FontWeights.Bold });
+                //    inlines.Add(new Run(": defined in "));
+
+                //    return inlines;
                 }
 
                 return null;
