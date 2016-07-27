@@ -56,15 +56,15 @@ namespace RepoUtil
             return GetFloatingPackages("toolset", _repoData.FloatingToolsetPackages);
         }
 
-        private JProperty GetFloatingPackages(string name, IEnumerable<string> packages)
+        private JProperty GetFloatingPackages(string name, IEnumerable<NuGetPackage> packages)
         {
-            var array = new JArray();
+            var obj = new JObject();
             foreach (var package in packages)
             {
-                array.Add(package);
+                obj.Add(GetProperty(package));
             }
 
-            return new JProperty(name, array);
+            return new JProperty(name, obj);
         }
 
         private static JProperty GetProperty(NuGetPackage package)

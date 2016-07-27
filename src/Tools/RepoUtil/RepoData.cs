@@ -12,18 +12,27 @@ namespace RepoUtil
     internal sealed class RepoData
     {
         private readonly RepoConfig _repoConfig;
-        private readonly ImmutableArray<string> _buildPackages;
 
+        internal ImmutableArray<NuGetPackage> FloatingBuildPackages { get; }
+        internal ImmutableArray<NuGetPackage> FloatingToolsetPackages { get; }
+        internal ImmutableArray<NuGetPackage> FloatingPackages { get; }
         internal ImmutableArray<NuGetPackage> StaticPackages => _repoConfig.StaticPackages;
         internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap => _repoConfig.StaticPackagesMap;
-        internal ImmutableArray<string> FloatingBuildPackages => _buildPackages;
-        internal ImmutableArray<string> FloatingToolsetPackages => _repoConfig.ToolsetPackages;
-        internal ImmutableArray<string> FloatingPackages => FloatingBuildPackages.Concat(FloatingToolsetPackages).ToImmutableArray();
 
-        internal RepoData(RepoConfig config, IEnumerable<string> floatingPackages)
+        internal RepoData(RepoConfig config, IEnumerable<NuGetPackage> floatingPackages)
         {
             _repoConfig = config;
-            _buildPackages = floatingPackages.OrderBy(x => x).ToImmutableArray();
+            FloatingToolsetPackages = floatingPackages
+                .Where(x => _repoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
+                .OrderBy(x => x.Name)
+                .ToImmutableArray();
+            FloatingBuildPackages = floatingPackages
+                .Where(x => !_repoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
+                .OrderBy(x => x.Name)
+                .ToImmutableArray();
+            FloatingPackages = floatingPackages
+                .OrderBy(x => x.Name)
+                .ToImmutableArray();
         }
 
         /// <summary>
@@ -32,17 +41,17 @@ namespace RepoUtil
         /// </summary>
         internal static RepoData Create(RepoConfig config, string sourcesPath)
         {
-            var set = new HashSet<string>(Constants.NugetPackageNameComparer);
+            var set = new HashSet<NuGetPackage>();
             foreach (var fileName in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
             {
                 foreach (var nuget in ProjectJsonUtil.GetDependencies(fileName))
                 {
-                    if (config.StaticPackagesMap.ContainsKey(nuget.Name) || config.ToolsetPackages.Contains(nuget.Name, Constants.NugetPackageNameComparer))
+                    if (config.StaticPackagesMap.ContainsKey(nuget.Name))
                     {
                         continue;
                     }
 
-                    set.Add(nuget.Name);
+                    set.Add(nuget);
                 }
             }
 
