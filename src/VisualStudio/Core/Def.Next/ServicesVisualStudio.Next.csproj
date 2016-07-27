@@ -31,6 +31,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.ReferenceEntry.cs" />
+    <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
