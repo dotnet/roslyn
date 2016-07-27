@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    [ExportWorkspaceService(typeof(ICompilerDiagnosticAnalyzer)), Shared]
-    internal class InProcCompilerDiagnosticAnalyzer : ICompilerDiagnosticAnalyzer
+    [ExportWorkspaceService(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor)), Shared]
+    internal class InProcCodeAnalysisDiagnosticAnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
     {
         public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {

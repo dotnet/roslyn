@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
 
-                var executor = project.Solution.Workspace.Services.GetService<ICompilerDiagnosticAnalyzer>();
+                var executor = project.Solution.Workspace.Services.GetService<ICodeAnalysisDiagnosticAnalyzerExecutor>();
                 return await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 

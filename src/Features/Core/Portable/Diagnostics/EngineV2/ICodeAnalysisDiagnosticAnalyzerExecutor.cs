@@ -7,7 +7,13 @@ using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    internal interface ICompilerDiagnosticAnalyzer : IWorkspaceService
+    /// <summary>
+    /// Interface to run DiagnosticAnalyzers. Implementation of this interface should be 
+    /// able to run analyzers that can run in command line (Host agnostic DiagnosticAnalyzers)
+    /// 
+    /// How and where analyzers run depends on the implementation of this interface
+    /// </summary>
+    internal interface ICodeAnalysisDiagnosticAnalyzerExecutor : IWorkspaceService
     {
         Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken);
     }

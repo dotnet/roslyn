@@ -22,10 +22,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 {
-    [ExportWorkspaceService(typeof(ICompilerDiagnosticAnalyzer), layer: ServiceLayer.Host), Shared]
-    internal class OutOfProcCompilerDiagnosticAnalyzer : ICompilerDiagnosticAnalyzer
+    [ExportWorkspaceService(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor), layer: ServiceLayer.Host), Shared]
+    internal class OutOfProcDiagnosticAnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
     {
-        private static readonly ICompilerDiagnosticAnalyzer _inProcAnalyzer = new InProcCompilerDiagnosticAnalyzer();
+        private static readonly ICodeAnalysisDiagnosticAnalyzerExecutor _inProcAnalyzer = new InProcCodeAnalysisDiagnosticAnalyzerExecutor();
 
         private readonly IDiagnosticAnalyzerService _analyzerService;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         private ChecksumScope _lastSnapshot;
 
         [ImportingConstructor]
-        public OutOfProcCompilerDiagnosticAnalyzer(
+        public OutOfProcDiagnosticAnalyzerExecutor(
             IDiagnosticAnalyzerService analyzerService,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {

@@ -233,8 +233,8 @@
     <Compile Include="FindReferences\DocumentLocation.cs" />
     <Compile Include="FindReferences\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindReferences\SourceReferenceItem.cs" />
-    <Compile Include="Diagnostics\EngineV2\InProcCompilerDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\EngineV2\ICompilerDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
