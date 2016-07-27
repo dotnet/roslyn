@@ -21,11 +21,11 @@ Scenarios
 General
 -------
 Source generators are implementations of `Microsoft.CodeAnalysis.SourceGenerator`.
-```
-    public abstract class SourceGenerator
-    {
-        public abstract void Execute(SourceGeneratorContext context);
-    }
+```c#
+public abstract class SourceGenerator
+{
+    public abstract void Execute(SourceGeneratorContext context);
+}
 ```
 `SourceGenerator` implementations are defined in external assemblies passed to the compiler
 using the same `-analyzer:` option used for diagnostic analyzers. Valid source generators
@@ -42,13 +42,13 @@ the assembly in which it is defined.
 `SourceGenerator` has a single `Execute` method that is called by the host -- either the IDE
 or the command-line compiler. `Execute` provides
 access to the `Compilation` and allows adding source and reporting diagnostics.
-```
-    public abstract class SourceGeneratorContext
-    {
-        public abstract Compilation Compilation { get; }
-        public abstract void ReportDiagnostic(Diagnostic diagnostic);
-        public abstract void AddCompilationUnit(string name, SyntaxTree tree);
-    }
+```c#
+public abstract class SourceGeneratorContext
+{
+    public abstract Compilation Compilation { get; }
+    public abstract void ReportDiagnostic(Diagnostic diagnostic);
+    public abstract void AddCompilationUnit(string name, SyntaxTree tree);
+}
 ```
 Generators add source to the compilation using `context.AddCompilationUnit()`.
 Source can be added to the compilation but not replaced or rewritten. The `replace` keyword allows redefining methods.
@@ -74,30 +74,29 @@ Source generators are executed by the command-line compilers and the IDE. The ge
 are obtained from the `AnalyzerReference.GetSourceGenerators` for each analyzer reference
 specified on the command-line or in the project. `GetSourceGenerators` uses reflection to find types that
 inherit from `SourceGenerator` and instantiates those types.
-```
-    public abstract class AnalyzerReference
-    {
-        ...
-        public abstract ImmutableArray<SourceGenerator> GetSourceGenerators(string language);
-    }
-
+```c#
+public abstract class AnalyzerReference
+{
+    ...
+    public abstract ImmutableArray<SourceGenerator> GetSourceGenerators(string language);
+}
 ```
 A public `GeneratedSource` extension method on `Compilation` executes each generator in a collection of generators
 and returns the collection of `SyntaxTrees` and `Diagnostics`.
 (`GenerateSource` is called by the command-line compilers and IDE.)
 If `writeToDisk` is true, the generated source is persisted to `outputPath`. Regardless of whether the tree is persisted
 to disk, `SyntaxTree.FilePath` is set.
-```
-    public static class SourceGeneratorExtensions
-    {
-        public static ImmutableArray<SyntaxTree> GenerateSource(
-            this Compilation compilation,
-            ImmutableArray<SourceGenerator> generators,
-            string outputPath,
-            bool writeToDisk,
-            out ImmutableArray<Diagnostic> diagnostics,
-            CancellationToken cancellationToken);
-    }
+```c#
+public static class SourceGeneratorExtensions
+{
+    public static ImmutableArray<SyntaxTree> GenerateSource(
+        this Compilation compilation,
+        ImmutableArray<SourceGenerator> generators,
+        string outputPath,
+        bool writeToDisk,
+        out ImmutableArray<Diagnostic> diagnostics,
+        CancellationToken cancellationToken);
+}
 ```
 The compilers and IDE add `SyntaxTrees` returned by `GenerateSource` to the `Compilation` to
 generate a new `Compilation` that is compiled and passed to any diagnostic analyzers.
@@ -121,37 +120,41 @@ To redefine members in generated source, there are new language keywords: `repla
 
 `replace` and `original` are contextual keywords: `replace` is a keyword only when used as a member modifier;
 `original` is a keyword only when used within a `replace` method (similar to parser handling of `async` and `await`).
-```
+
 original.cs:
-    partial class C
-    {
-        void F() { }
-        int P { get; set; }
-        object this[int index] { get { return null; } }
-        event EventHandler E;
-    }
+```c#
+partial class C
+{
+    void F() { }
+    int P { get; set; }
+    object this[int index] { get { return null; } }
+    event EventHandler E;
+}
+```
 
 replace.cs:    
-    partial class C
+```c#
+partial class C
+{
+    replace void F() { original(); }
+    replace int P
     {
-        replace void F() { original(); }
-        replace int P
-        {
-            get { return original; }
-            set { original += value; } // P.get and P.set
-        }
-        replace object this[int index]
-        {
-            get { return original[index]; }
-        }
-        replace event EventHandler E
-        {
-            add { original += value; }
-            remove { original -= value; }
-        }
+        get { return original; }
+        set { original += value; } // P.get and P.set
     }
+    replace object this[int index]
+    {
+        get { return original[index]; }
+    }
+    replace event EventHandler E
+    {
+        add { original += value; }
+        remove { original -= value; }
+    }
+}
 ```
 The following `class` and `struct` members can be replaced:
+
 1. Static and instance methods, properties, and events
 1. Explicit interface implementations of members
 1. User defined operators
@@ -163,6 +166,7 @@ The following `class` and `struct` members can be replaced:
 The default constructor can be added by a generator but not replaced.
 
 The following must match when replacing a member:
+
 1. Signature: name, accessibility, arity, return type, parameter number, parameter types and ref-ness
 1. Parameter names and default values (to prevent changing the interpretation of call-sites)
 1. Type parameters and constraints
