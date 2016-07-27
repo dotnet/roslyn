@@ -5463,13 +5463,13 @@ class C
             var tuple4 = (TypeSymbol)comp.CreateTupleTypeSymbol((INamedTypeSymbol)tuple1.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b"));
 
             Assert.True(tuple1.Equals(tuple2));
-            Assert.True(tuple1.Equals(tuple2, ignoreDynamic: true, ignoreTupleNames: true));
+            Assert.True(tuple1.Equals(tuple2, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
 
             Assert.False(tuple1.Equals(tuple3));
-            Assert.True(tuple1.Equals(tuple3, ignoreDynamic: true, ignoreTupleNames: true));
+            Assert.True(tuple1.Equals(tuple3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
 
             Assert.False(tuple1.Equals(tuple4));
-            Assert.True(tuple1.Equals(tuple4, ignoreDynamic: true, ignoreTupleNames: true));
+            Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
         }
 
         [Fact]
@@ -8675,12 +8675,12 @@ class C
         private static void AssertTupleTypeEquality(TypeSymbol tuple)
         {
             Assert.True(tuple.Equals(tuple));
-            Assert.True(tuple.Equals(tuple, false, ignoreDynamic: false, ignoreTupleNames: false));
-            Assert.True(tuple.Equals(tuple, false, ignoreDynamic: true, ignoreTupleNames: true));
-            Assert.False(tuple.Equals(tuple.TupleUnderlyingType, ignoreDynamic: false, ignoreTupleNames: false));
-            Assert.False(tuple.TupleUnderlyingType.Equals(tuple, ignoreDynamic: false, ignoreTupleNames: false));
-            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, false, ignoreDynamic: true, ignoreTupleNames: true));
-            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, false, ignoreDynamic: true, ignoreTupleNames: true));
+            Assert.True(tuple.Equals(tuple, TypeCompareKind.ConsiderEverything));
+            Assert.True(tuple.Equals(tuple, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.False(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
+            Assert.False(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.ConsiderEverything));
+            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
 
             var members = tuple.GetMembers();
 
@@ -10413,16 +10413,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true, true));
-                Assert.True(t3.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true, true));
-                Assert.True(t3.Equals(t5, false, true, true));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2"));
@@ -10432,20 +10432,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true, true));
-                Assert.True(t6.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true, true));
-                Assert.True(t8.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true, true));
-                Assert.True(t8.Equals(t6, false, true, true));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
 
@@ -10465,16 +10465,16 @@ namespace System
                                                   ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "i", "h"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true, true));
-                Assert.True(t3.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true, true));
-                Assert.True(t3.Equals(t5, false, true, true));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10486,21 +10486,21 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true, true));
-                Assert.True(t6.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
                                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item9", "Item8"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true, true));
-                Assert.True(t8.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true, true));
-                Assert.True(t8.Equals(t6, false, true, true));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
 
                 var t9 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10519,12 +10519,12 @@ namespace System
 
                 Assert.False(t1.Equals(t11));
                 AssertTupleTypeMembersEquality(t1, t11);
-                Assert.True(t1.Equals(t11, false, true, true));
-                Assert.True(t11.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t11, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t11.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 Assert.False(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, false, true, true));
+                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 Assert.False(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true, true));
+                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
 
                 AssertTestDisplayString(t11.GetMembers(),
                     "System.Int32 ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item1",
@@ -10576,12 +10576,12 @@ namespace System
 
                 Assert.False(t1.Equals(t12));
                 AssertTupleTypeMembersEquality(t1, t12);
-                Assert.True(t1.Equals(t12, false, true, true));
-                Assert.True(t12.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t12, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t12.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 Assert.False(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, false, true, true));
+                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 Assert.False(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true, true));
+                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
 
                 AssertTestDisplayString(t12.GetMembers(),
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item1",
@@ -10647,16 +10647,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("c", "b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true, true));
-                Assert.True(t3.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true, true));
-                Assert.True(t3.Equals(t5, false, true, true));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3"));
@@ -10666,20 +10666,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true, true));
-                Assert.True(t6.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item3", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true, true));
-                Assert.True(t8.Equals(t1, false, true, true));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true, true));
-                Assert.True(t8.Equals(t6, false, true, true));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
         }

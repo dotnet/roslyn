@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          ref substitution);
 #if DEBUG
             Debug.Assert(!result ||
-                SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t1)).Equals(SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t2)), ignoreDynamic: false, ignoreTupleNames: true));
+                SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t1)).Equals(SubstituteAllTypeParameters(substitution, new TypeWithModifiers(t2)), TypeCompareKind.IgnoreTupleNames));
 #endif
             return result;
         }

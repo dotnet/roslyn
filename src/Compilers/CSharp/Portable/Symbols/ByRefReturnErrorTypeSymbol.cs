@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                              substitutedReferencedType.CustomModifiers);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             if ((object)this == (object)t2)
             {
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ByRefReturnErrorTypeSymbol other = t2 as ByRefReturnErrorTypeSymbol;
-            return (object)other != null && _referencedType.Equals(other._referencedType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames) &&
-                   (ignoreCustomModifiersAndArraySizesAndLowerBounds || _countOfCustomModifiersPrecedingByRef == other._countOfCustomModifiersPrecedingByRef);
+            return (object)other != null && _referencedType.Equals(other._referencedType, comparison) &&
+                   (comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) || _countOfCustomModifiersPrecedingByRef == other._countOfCustomModifiersPrecedingByRef);
         }
 
         public override int GetHashCode()

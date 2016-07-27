@@ -326,17 +326,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames);
+            return this.Equals(t2 as ArrayTypeSymbol, comparison);
         }
 
         internal bool Equals(ArrayTypeSymbol other)
         {
-            return Equals(other, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false, ignoreTupleNames: true);
+            return Equals(other, TypeCompareKind.IgnoreTupleNames);
         }
 
-        private bool Equals(ArrayTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
+        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
@@ -344,13 +344,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object)other == null || !other.HasSameShapeAs(this) ||
-                !other.ElementType.Equals(ElementType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames))
+                !other.ElementType.Equals(ElementType, comparison))
             {
                 return false;
             }
 
             // Make sure custom modifiers and bounds are the same.
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
+            if (!comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
             {
                 var mod = this.CustomModifiers;
                 var otherMod = other.CustomModifiers;

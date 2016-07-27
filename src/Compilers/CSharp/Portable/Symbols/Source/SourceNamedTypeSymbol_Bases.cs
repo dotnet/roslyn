@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var seenInterface in seenInterfaces)
                     {
-                        if (@interface.Equals(seenInterface, ignoreTupleNames: true))
+                        if (@interface.Equals(seenInterface, TypeCompareKind.IgnoreTupleNames))
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, this);
                             break;

@@ -523,8 +523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
-                returnType1.Equals(returnType2, ignoreDynamic: ignoreDynamic, ignoreTupleNames: ignoreTupleNames) :
-                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: ignoreDynamic, ignoreTupleNames: ignoreTupleNames);
+                returnType1.Equals(returnType2, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) :
+                returnType1.Type.Equals(returnType2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames));
         }
 
         private static TypeMap GetTypeMap(Symbol member)
@@ -666,12 +666,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the runtime compares custom modifiers using (effectively) SequenceEqual
                 if (considerCustomModifiers)
                 {
-                    if (!type1.Equals(type2, ignoreDynamic, ignoreTupleNames) || (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
+                    if (!type1.Equals(type2, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) || 
+                        (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
                     {
                         return false;
                     }
                 }
-                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: ignoreDynamic, ignoreTupleNames: ignoreTupleNames))
+                else if (!type1.Type.Equals(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)))
                 {
                     return false;
                 }

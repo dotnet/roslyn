@@ -653,10 +653,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Return types must match exactly, parameters might match modulo identity conversion.
                     if (op.Signature.Kind == existingSignature.Kind && // Easy out
-                        op.Signature.ReturnType.Equals(existingSignature.ReturnType, ignoreDynamic: false, ignoreTupleNames: false) &&
-                        op.Signature.LeftType.Equals(existingSignature.LeftType, ignoreDynamic: true, ignoreTupleNames: true) &&
-                        op.Signature.RightType.Equals(existingSignature.RightType, ignoreDynamic: true, ignoreTupleNames: true) &&
-                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, ignoreDynamic: true, ignoreTupleNames: true))
+                        op.Signature.ReturnType.Equals(existingSignature.ReturnType, TypeCompareKind.ConsiderEverything) &&
+                        op.Signature.LeftType.Equals(existingSignature.LeftType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames) &&
+                        op.Signature.RightType.Equals(existingSignature.RightType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames) &&
+                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames))
                     {
                         equivalentToExisting = true;
                         break;

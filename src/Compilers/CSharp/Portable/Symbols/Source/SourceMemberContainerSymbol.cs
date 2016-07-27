@@ -1892,13 +1892,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < op1.ParameterCount; ++p)
             {
-                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true, ignoreTupleNames: true))
+                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
             }
 
-            if (!op1.ReturnType.Equals(op2.ReturnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true, ignoreTupleNames: true))
+            if (!op1.ReturnType.Equals(op2.ReturnType, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
@@ -2570,7 +2570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
-                if (!propertyParamType.Equals(methodParam.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true, ignoreTupleNames: true))
+                if (!propertyParamType.Equals(methodParam.Type, TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
@@ -2588,7 +2588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.Equals(methodParams[0].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true, ignoreTupleNames: true);
+                eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)

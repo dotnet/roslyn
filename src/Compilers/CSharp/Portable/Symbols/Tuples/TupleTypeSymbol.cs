@@ -1095,40 +1095,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic, bool ignoreTupleNames)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            if (ignoreTupleNames)
+            if (comparison.HasFlag(TypeCompareKind.IgnoreTupleNames) )
             {
                 if (t2?.IsTupleType == true)
                 {
                     t2 = t2.TupleUnderlyingType;
                 }
 
-                return _underlyingType.Equals(t2, ignoreCustomModifiers, ignoreDynamic, ignoreTupleNames);
+                return _underlyingType.Equals(t2, comparison);
             }
 
-            return this.Equals(t2 as TupleTypeSymbol, ignoreCustomModifiers, ignoreDynamic, ignoreTupleNames);
+            return this.Equals(t2 as TupleTypeSymbol, comparison);
         }
 
         internal bool Equals(TupleTypeSymbol other)
         {
-            return Equals(other, ignoreCustomModifiers: false, ignoreDynamic: false, ignoreTupleNames: false);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TupleTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic, bool ignoreTupleNames)
+        private bool Equals(TupleTypeSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._underlyingType.Equals(_underlyingType, ignoreCustomModifiers, ignoreDynamic, ignoreTupleNames))
+            if ((object)other == null || !other._underlyingType.Equals(_underlyingType, comparison))
             {
                 return false;
             }
 
             // Make sure field names are the same.
-            if (!ignoreTupleNames)
+            if (!comparison.HasFlag(TypeCompareKind.IgnoreTupleNames))
             {
                 if (this._elementNames.IsDefault)
                 {

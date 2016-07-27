@@ -663,14 +663,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false, bool ignoreTupleNames = false)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             Debug.Assert(!this.IsTupleType);
 
             if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
-            if (ignoreDynamic)
+            if (comparison.HasFlag(TypeCompareKind.IgnoreDynamic))
             {
                 if (t2.TypeKind == TypeKind.Dynamic)
                 {
@@ -682,13 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (ignoreTupleNames)
+            if (comparison.HasFlag(TypeCompareKind.IgnoreTupleNames))
             {
                 // If ignoring tuple element names, compare underlying tuple types
                 if (t2.IsTupleType)
                 {
                     t2 = t2.TupleUnderlyingType;
-                    if (this.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames)) return true;
+                    if (this.Equals(t2, comparison)) return true;
                 }
             }
 
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var otherOriginalDefinition = other.OriginalDefinition;
 
             if (((object)this == (object)thisOriginalDefinition || (object)other == (object)otherOriginalDefinition) &&
-                !(ignoreCustomModifiersAndArraySizesAndLowerBounds && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers)))
+                !(comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers)))
             {
                 return false;
             }
@@ -716,16 +716,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // The checks above are supposed to handle the vast majority of cases.
             // More complicated cases are handled in a special helper to make the common case scenario simple/fast
-            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames);
+            return EqualsComplicatedCases(other, comparison);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic, bool ignoreTupleNames)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeCompareKind comparison)
         {
             if ((object)this.ContainingType != null &&
-                !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames))
+                !this.ContainingType.Equals(other.ContainingType, comparison))
             {
                 return false;
             }
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (((thisIsNotConstructed || otherIsNotConstructed) &&
-                 !(ignoreCustomModifiersAndArraySizesAndLowerBounds && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers))) ||
+                 !(comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers))) ||
                 this.IsUnboundGenericType != other.IsUnboundGenericType)
             {
                 return false;
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasTypeArgumentsCustomModifiers = this.HasTypeArgumentsCustomModifiers;
 
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers != other.HasTypeArgumentsCustomModifiers)
+            if (!comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) && hasTypeArgumentsCustomModifiers != other.HasTypeArgumentsCustomModifiers)
             {
                 return false;
             }
@@ -766,10 +766,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < count; i++)
             {
-                if (!typeArguments[i].Equals(otherTypeArguments[i], ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic, ignoreTupleNames)) return false;
+                if (!typeArguments[i].Equals(otherTypeArguments[i], comparison)) return false;
             }
 
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers)
+            if (!comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) && hasTypeArgumentsCustomModifiers)
             {
                 Debug.Assert(other.HasTypeArgumentsCustomModifiers);
                 var modifiers = this.TypeArgumentsCustomModifiers;

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(ignoreDynamic: true, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreTupleNames: true);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -272,7 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)t != null)
             {
-                if (type.Equals(t, ignoreDynamic: ignoreDynamicAndTupleNames, ignoreTupleNames: ignoreDynamicAndTupleNames))
+                var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames) : TypeCompareKind.ConsiderEverything;
+                if (type.Equals(t, comparison))
                 {
                     return true;
                 }
@@ -288,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool IsEqualToOrDerivedFrom(TypeSymbol type, bool ignoreDynamicAndTupleNames, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return this.Equals(type, ignoreDynamic: ignoreDynamicAndTupleNames, ignoreTupleNames: ignoreDynamicAndTupleNames) || this.IsDerivedFrom(type, ignoreDynamicAndTupleNames, ref useSiteDiagnostics);
+            var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames) : TypeCompareKind.ConsiderEverything;
+            return this.Equals(type, comparison) || this.IsDerivedFrom(type, ignoreDynamicAndTupleNames, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -296,11 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// semantics.
         /// </summary>
         /// <param name="t2">The other type.</param>
-        /// <param name="ignoreCustomModifiersAndArraySizesAndLowerBounds">True to compare without regard to custom modifiers, false by default.</param>
-        /// <param name="ignoreDynamic">True to ignore the distinction between object and dynamic, false by default.</param>
-        /// <param name="ignoreTupleNames">True to ignore the distinction between tuple element names, true by default.</param>
+        /// <param name="compareKind">
+        /// What kind of comparison to use? 
+        /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
+        /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false, bool ignoreTupleNames = false)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind = TypeCompareKind.ConsiderEverything)
         {
             return ReferenceEquals(this, t2);
         }
@@ -309,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var t2 = obj as TypeSymbol;
             if ((object)t2 == null) return false;
-            return this.Equals(t2, false, false);
+            return this.Equals(t2, TypeCompareKind.ConsiderEverything);
         }
 
         /// <summary>
@@ -323,13 +326,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool _ignoreDynamic, _ignoreCustomModifiersAndArraySizesAndLowerBounds, _ignoreTupleNames;
+            private readonly TypeCompareKind _comparison;
 
-            public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreTupleNames)
+            public EqualsIgnoringComparer(TypeCompareKind comparison)
             {
-                _ignoreDynamic = ignoreDynamic;
-                _ignoreCustomModifiersAndArraySizesAndLowerBounds = ignoreCustomModifiersAndArraySizesAndLowerBounds;
-                _ignoreTupleNames = ignoreTupleNames;
+                _comparison = comparison;
             }
 
             public override int GetHashCode(TypeSymbol obj)
@@ -341,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return
                     (object)x == null ? (object)y == null :
-                    x.Equals(y, ignoreCustomModifiersAndArraySizesAndLowerBounds: _ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic: _ignoreDynamic, ignoreTupleNames: _ignoreTupleNames);
+                    x.Equals(y, _comparison);
             }
         }
 

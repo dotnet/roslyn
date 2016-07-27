@@ -2482,7 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     best = candidate;
                 }
-                else if (best.Equals(candidate, ignoreDynamic: true, ignoreTupleNames: true))
+                else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames))
                 {
                     if (candidate.IsTupleType)
                     {
