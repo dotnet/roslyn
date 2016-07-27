@@ -14,10 +14,10 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.targets" />
 
   <Target Name="BeforeBuild">
-    <MSBuild Projects="Microsoft.VisualStudioInteractiveWindow.swixproj" Targets="Build" />
+    <MSBuild Projects="Microsoft.VisualStudio.InteractiveWindow.swixproj" Targets="Build" />
   </Target>
 
   <ItemGroup>
-    <MergeManifest Include="$(OutputPath)Microsoft.VisualStudioInteractiveWindow.json" />
+    <MergeManifest Include="$(OutputPath)Microsoft.VisualStudio.InteractiveWindow.json" />
   </ItemGroup>
 </Project>
