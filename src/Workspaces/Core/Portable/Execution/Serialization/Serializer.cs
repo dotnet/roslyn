@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal partial class Serializer
     {
         private readonly HostWorkspaceServices _workspaceServices;
-        private readonly ConcurrentDictionary<string, ILanguageSpecificSerializationService> _lazyLanguageSerializationService;
+        private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
         public readonly IReferenceSerializationService HostSerializationService;
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _workspaceServices = workspaceServices;
 
             HostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
-            _lazyLanguageSerializationService = new ConcurrentDictionary<string, ILanguageSpecificSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
+            _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
 
             // TODO: figure out how to support Serialize like the way Deserialize work. tried once, couldn't figure out since
             //       different kind of data require different number of data to serialize it. that is required so that we don't hold on
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        private ILanguageSpecificSerializationService GetSerializationService(string languageName)
+        private IOptionsSerializationService GetOptionsSerializationService(string languageName)
         {
-            return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<ILanguageSpecificSerializationService>());
+            return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
         }
     }
 

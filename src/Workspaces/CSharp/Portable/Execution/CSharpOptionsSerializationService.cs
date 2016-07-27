@@ -11,8 +11,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Execution
 {
-    [ExportLanguageService(typeof(ILanguageSpecificSerializationService), LanguageNames.CSharp), Shared]
-    internal class CSharpLanguageSpecificSerializationService : AbstractLanguageSpecificSerializationService
+    [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
+    internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
     {
         public override void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {

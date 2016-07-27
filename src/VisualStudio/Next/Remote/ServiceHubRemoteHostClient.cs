@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static async Task<ServiceHubRemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            var primary = new HubClient("Primary");
+            var primary = new HubClient("RoslynPrimaryHubClient");
             var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
             var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _hubClient = hubClient;
             _stream = stream;
 
-            _rpc = JsonRpc.Attach(stream, this);
+            _rpc = JsonRpc.Attach(stream, target: this);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;

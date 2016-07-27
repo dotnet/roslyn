@@ -107,7 +107,7 @@
     <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
     <Compile Include="Editing\VisualBasicImportAdder.vb" />
-    <Compile Include="Execution\VisualBasicLanguageSpecificSerializationService.vb" />
+    <Compile Include="Execution\VisualBasicOptionsSerializationService.vb" />
     <Compile Include="Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="Extensions\CallStatementSyntaxExtensions.vb" />

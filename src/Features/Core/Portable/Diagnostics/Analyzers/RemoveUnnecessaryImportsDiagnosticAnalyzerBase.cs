@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
-        public bool MustRunInProc => true;
+        public bool RunInProcess => true;
 
         public override void Initialize(AnalysisContext context)
         {

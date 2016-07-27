@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             customTags: DiagnosticCustomTags.Unnecessary);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
-        public bool MustRunInProc => false;
+        public bool RunInProcess => false;
 
         public override void Initialize(AnalysisContext context)
         {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class ClientDirectStream : Stream
     {
-        // 128KB buffer size
+        // 4KB buffer size
         private const int BUFFERSIZE = 4 * 1024;
 
         private readonly string _name;

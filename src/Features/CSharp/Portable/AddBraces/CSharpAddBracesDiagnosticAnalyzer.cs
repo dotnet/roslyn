@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
 
-        public bool MustRunInProc => false;
+        public bool RunInProcess => false;
 
         public override void Initialize(AnalysisContext context)
         {

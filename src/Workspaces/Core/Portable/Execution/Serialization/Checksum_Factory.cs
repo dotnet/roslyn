@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public static Checksum Create<TChecksums>(string kind, TChecksums checksums, CancellationToken cancellationToken)
+        public static Checksum Create<TChecksums>(string kind, TChecksums checksums)
             where TChecksums : IEnumerable<Checksum>
         {
             using (var stream = SerializableBytes.CreateWritableStream())
@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 foreach (var checksum in checksums)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
                     checksum.WriteTo(writer);
                 }
 
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             using (var pool = Creator.CreateList(checksum1, checksum2))
             {
-                return Create(kind, pool.Object, CancellationToken.None);
+                return Create(kind, pool.Object);
             }
         }
 
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 checksum1, checksum2, checksum3, checksum4,
                 checksum5, checksum6, checksum7, checksum8))
             {
-                return Create(kind, pool.Object, CancellationToken.None);
+                return Create(kind, pool.Object);
             }
         }
 
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     pool.Object.Add(objects[i].Checksum);
                 }
 
-                return Create(kind, pool.Object, CancellationToken.None);
+                return Create(kind, pool.Object);
             }
         }
 

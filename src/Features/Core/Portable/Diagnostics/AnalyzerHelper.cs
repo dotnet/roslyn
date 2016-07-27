@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool MustRunInProc(this DiagnosticAnalyzer analyzer)
+        public static bool MustRunInProcess(this DiagnosticAnalyzer analyzer)
         {
             if (analyzer.IsWorkspaceDiagnosticAnalyzer())
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            return builtInAnalyzer.MustRunInProc;
+            return builtInAnalyzer.RunInProcess;
         }
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)

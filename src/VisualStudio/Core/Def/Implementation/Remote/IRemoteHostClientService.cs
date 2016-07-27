@@ -13,7 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
     {
         // TODO: split service to registration service and one that return RemoteHostClient
         void Enable();
-
         void Disable();
 
         Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);

@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.Execution
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
-    <ExportLanguageService(GetType(ILanguageSpecificSerializationService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicLanguageSpecificSerializationService
-        Inherits AbstractLanguageSpecificSerializationService
+    <ExportLanguageService(GetType(IOptionsSerializationService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicOptionsSerializationService
+        Inherits AbstractOptionsSerializationService
 
         Public Overrides Sub WriteTo(options As CompilationOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteCompilationOptionsTo(options, writer, cancellationToken)
@@ -98,13 +98,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Dim languageVersion = DirectCast(reader.ReadInt32(), LanguageVersion)
 
             Dim count = reader.ReadInt32()
-            Dim builder = ImmutableArray.CreateBuilder(Of KeyValuePair(Of String, Object))
+            Dim builder = ImmutableArray.CreateBuilder(Of KeyValuePair(Of String, Object))(count)
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
                 Dim value = reader.ReadValue()
                 builder.Add(KeyValuePair.Create(key, value))
             Next
-            Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.ToImmutable())
+            Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
         End Function
     End Class

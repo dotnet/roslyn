@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RoslynServices.AssetService.RegisterAssetSource(_currentId, this);
         }
 
-        public abstract Task RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken cancellationToken);
+        public abstract Task<object> RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken cancellationToken);
 
         public void Done()
         {

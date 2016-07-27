@@ -5,9 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -20,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly object _gate;
 
-            private CancellationTokenSource _shutdown;
-            private Task<RemoteHostClient> _instance;
+            private CancellationTokenSource _shutdownCancellationTokenSource;
+            private Task<RemoteHostClient> _instanceTask;
 
             public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService)
             {
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 lock (_gate)
                 {
-                    if (_instance != null)
+                    if (_instanceTask != null)
                     {
                         // already enabled
                         return;
@@ -48,10 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // make sure we run it on background thread
-                    _shutdown = new CancellationTokenSource();
+                    _shutdownCancellationTokenSource = new CancellationTokenSource();
 
-                    var token = _shutdown.Token;
-                    _instance = Task.Run(() => EnableAsync(token), token);
+                    var token = _shutdownCancellationTokenSource.Token;
+                    _instanceTask = Task.Run(() => EnableAsync(token), token);
                 }
             }
 
@@ -59,21 +61,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 lock (_gate)
                 {
-                    if (_instance == null)
+                    if (_instanceTask == null)
                     {
                         // already disabled
                         return;
                     }
 
-                    var instance = _instance;
-                    _instance = null;
+                    var instance = _instanceTask;
+                    _instanceTask = null;
 
                     RemoveGlobalAssets();
 
-                    _shutdown.Cancel();
+                    _shutdownCancellationTokenSource.Cancel();
 
                     try
                     {
+                        instance.Wait(_shutdownCancellationTokenSource.Token);
+
                         instance.Result.Shutdown();
                     }
                     catch (OperationCanceledException)
@@ -83,31 +87,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            public async Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
+            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
-                // copy instance to local variable so that we don't need lock here
-                var instance = _instance;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                Task<RemoteHostClient> instance;
+                lock (_gate)
+                {
+                    instance = _instanceTask;
+                }
+
                 if (instance == null)
                 {
                     // service is in shutdown mode or not enabled
-                    return null;
+                    return SpecializedTasks.Default<RemoteHostClient>();
                 }
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // make sure instance was started
-                return await instance.ConfigureAwait(false);
+                return instance;
             }
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
                 await AddGlobalAssetsAsync(cancellationToken).ConfigureAwait(false);
 
-                return await StartInternalAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            private async Task<RemoteHostClient> StartInternalAsync(CancellationToken cancellationToken)
-            {
                 // TODO: abstract this out so that we can have more host than service hub
                 var instance = await ServiceHubRemoteHostClient.CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
                 instance.ConnectionChanged += OnConnectionChanged;
@@ -138,40 +140,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             // use local token and lock on instance
-            private void OnConnectionChanged(object sender, bool connection)
+            private void OnConnectionChanged(object sender, bool connected)
             {
-                if (connection)
+                if (connected)
                 {
                     return;
                 }
 
-                // if remote host gets disconnected. tell users that remote host is gone and whether they want to recover remote host.
-                lock (_gate)
-                {
-                    if (_shutdown.IsCancellationRequested)
-                    {
-                        // we are shutting down.
-                        return;
-                    }
-
-                    _instance = null;
-                }
-
-                _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(
-                    ServicesVSResources.Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start_working_in_proc_do_you_want_to_recover_remote_host,
-                    new ErrorReportingUI(ServicesVSResources.Re_enable, ErrorReportingUI.UIKind.Button, () =>
-                    {
-                        lock (_gate)
-                        {
-                            if (_shutdown.IsCancellationRequested)
-                            {
-                                // we are shutting down
-                                return;
-                            }
-
-                            _instance = StartInternalAsync(_shutdown.Token);
-                        }
-                    }));
+                // crash right away when connection is closed
+                FatalError.Report(new Exception("Connection to remote host closed"));
             }
         }
     }

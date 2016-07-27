@@ -12,28 +12,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
 {
     internal static class Extensions
     {
-        public static ChecksumObjects<ProjectChecksumObject> ToProjectObjects(this ChecksumCollection collection, ISolutionChecksumService service)
+        public static ChecksumCollectionWithActualData<ProjectChecksumObject> ToProjectObjects(this ChecksumCollection collection, ISolutionChecksumService service)
         {
             Contract.ThrowIfFalse(collection.Kind == WellKnownChecksumObjects.Projects);
-            return new ChecksumObjects<ProjectChecksumObject>(service, collection);
+            return new ChecksumCollectionWithActualData<ProjectChecksumObject>(service, collection);
         }
 
-        public static ChecksumObjects<DocumentChecksumObject> ToDocumentObjects(this ChecksumCollection collection, ISolutionChecksumService service)
+        public static ChecksumCollectionWithActualData<DocumentChecksumObject> ToDocumentObjects(this ChecksumCollection collection, ISolutionChecksumService service)
         {
             Contract.ThrowIfFalse(collection.Kind == WellKnownChecksumObjects.Documents || collection.Kind == WellKnownChecksumObjects.TextDocuments);
-            return new ChecksumObjects<DocumentChecksumObject>(service, collection);
+            return new ChecksumCollectionWithActualData<DocumentChecksumObject>(service, collection);
         }
     }
 
-    internal class ChecksumObjects<T> : ChecksumObject where T : ChecksumObject
+    /// <summary>
+    /// this is a helper collection for unit test. just packaging checksum collection with actual items
+    /// </summary>
+    internal class ChecksumCollectionWithActualData<T> : ChecksumObject where T : ChecksumObject
     {
-        private readonly ChecksumCollection _collection;
-
-        public ChecksumObjects(ISolutionChecksumService servie, ChecksumCollection collection) : base(collection.Checksum, collection.Kind)
+        public ChecksumCollectionWithActualData(ISolutionChecksumService service, ChecksumCollection collection) : base(collection.Checksum, collection.Kind)
         {
-            _collection = collection;
-
-            Objects = ImmutableArray.CreateRange(collection.Objects.Select(c => (T)servie.GetChecksumObject(c, CancellationToken.None)));
+            Objects = ImmutableArray.CreateRange(collection.Objects.Select(c => (T)service.GetChecksumObject(c, CancellationToken.None)));
         }
 
         public ImmutableArray<T> Objects { get; }

@@ -4,17 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Checksum of data
+    /// Checksum of data can be used later to see whether two data are same or not
+    /// without actually comparing data itself
     /// </summary>
     internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
     {
         private readonly ImmutableArray<byte> _checkSum;
-        private int? _lazyHash;
+        private StrongBox<int> _lazyHash;
 
         public Checksum(byte[] checksum) :
             this(ImmutableArray.Create(checksum))
@@ -73,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Execution
                     hash = Hash.Combine((int)_checkSum[i], hash);
                 }
 
-                _lazyHash = hash;
-            }
+                _lazyHash = new StrongBox<int>(hash);
+            };
 
             return _lazyHash.Value;
         }
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 builder.Add(reader.ReadByte());
             }
 
-            return new Checksum(builder.ToImmutable());
+            return new Checksum(builder.MoveToImmutable());
         }
     }
 }

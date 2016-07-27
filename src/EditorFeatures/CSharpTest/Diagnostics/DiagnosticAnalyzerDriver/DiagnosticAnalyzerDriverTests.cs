@@ -161,7 +161,7 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
-            public bool MustRunInProc => true;
+            public bool RunInProcess => true;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public bool MustRunInProc => true;
+        public bool RunInProcess => true;
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 

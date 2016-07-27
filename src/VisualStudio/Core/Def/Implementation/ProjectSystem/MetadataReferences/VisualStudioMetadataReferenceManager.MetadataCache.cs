@@ -32,25 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 lock (_gate)
                 {
-                    return TryGetSource_NoLock(key, out source);
+                    return _metadataCache.TryGetValue(key, out source);
                 }
-            }
-
-            private bool TryGetSource_NoLock(FileKey key, out ValueSource<AssemblyMetadata> source)
-            {
-                if (_metadataCache.TryGetValue(key, out source))
-                {
-                    return true;
-                }
-
-                source = null;
-                return false;
             }
 
             private bool TryGetMetadata_NoLock(FileKey key, out AssemblyMetadata metadata)
             {
                 ValueSource<AssemblyMetadata> metadataSource;
-                if (TryGetSource_NoLock(key, out metadataSource))
+                if (_metadataCache.TryGetValue(key, out metadataSource))
                 {
                     metadata = metadataSource.GetValue();
                     return metadata != null;

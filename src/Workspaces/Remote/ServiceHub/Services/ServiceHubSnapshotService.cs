@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _assetChannelCancellationToken = assetChannelCancellationToken;
             }
 
-            public override async Task RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken callerCancellationToken)
+            public override async Task<object> RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken callerCancellationToken)
             {
                 // it should succeed as long as matching VS is alive
                 // TODO: add logging mechanism using Logger
@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 2. Request to required this asset has cancelled. (callerCancellationToken)
                 using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_assetChannelCancellationToken, callerCancellationToken))
                 {
-                    await _rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                    return await _rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                         new object[] { serviceId, checksum.ToArray() },
                         (s, c) => ReadAssetAsync(s, _logger, serviceId, checksum, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
 
-            private static Task ReadAssetAsync(
+            private static Task<object> ReadAssetAsync(
                 Stream stream, TraceSource logger, int serviceId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using (var reader = new ObjectReader(stream))
@@ -80,9 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // in service hub, cancellation means simply closed stream
                     var @object = RoslynServices.AssetService.Deserialize<object>(kind, reader, cancellationToken);
 
-                    RoslynServices.AssetService.Set(checksum, @object);
-
-                    return SpecializedTasks.EmptyTask;
+                    return Task.FromResult(@object);
                 }
             }
         }

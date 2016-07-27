@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                                   _warningDiagnosticDescriptor, _errorDiagnosticDescriptor);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        public bool MustRunInProc => true;
+        public bool RunInProcess => true;
 
         public override void Initialize(AnalysisContext context)
         {

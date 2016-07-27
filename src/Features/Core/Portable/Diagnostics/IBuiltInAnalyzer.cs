@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// at this moment, remote host provide same context as command line build and only that context
         /// </summary>
-        bool MustRunInProc { get; }
+        bool RunInProcess { get; }
     }
 }

@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public AssetService()
         {
-            Task.Factory.StartNew(CleanAssets, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        private async Task CleanAssets()
+        private async Task CleanAssetsAsync()
         {
             var purgeAfterTimeSpan = TimeSpan.FromMinutes(PurgeAfter);
             var cleanupIntervalTimeSpan = TimeSpan.FromMinutes(CleanupInterval);
@@ -59,32 +59,28 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public void Set(Checksum checksum, object value)
-        {
-            _assets.TryAdd(checksum, new Entry(value));
-        }
-
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             Entry entry;
             if (!_assets.TryGetValue(checksum, out entry))
             {
                 // TODO: what happen if service doesn't come back. timeout?
-                await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+                var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                if (!_assets.TryGetValue(checksum, out entry))
-                {
-                    // this can happen if all asset source is released due to cancellation
-                    cancellationToken.ThrowIfCancellationRequested();
+                Set(checksum, value);
 
-                    Contract.Fail("how this can happen?");
-                }
+                return (T)value;
             }
 
             // Update timestamp
             Update(checksum, entry);
 
             return (T)entry.Object;
+        }
+
+        private void Set(Checksum checksum, object value)
+        {
+            _assets.TryAdd(checksum, new Entry(value));
         }
 
         private void Update(Checksum checksum, Entry entry)
@@ -94,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             entry.LastAccessed = DateTime.UtcNow;
         }
 
-        public async Task RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        public async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             // the service doesn't care which asset source it uses to get the asset. if there are multiple
             // channel created (multiple caller to code analysis service), we will have multiple asset sources
@@ -111,23 +107,27 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // ask one of asset source for data
-                    await source.RequestAssetAsync(serviceId, checksum, cancellationToken).ConfigureAwait(false);
+                    return await source.RequestAssetAsync(serviceId, checksum, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (IsExpected(ex))
                 {
-                    // connection to the asset source has closed.
-                    // move to next asset source
-                    Contract.ThrowIfFalse(ex is OperationCanceledException || ex is IOException || ex is ObjectDisposedException);
-
                     // cancellation could be from either caller or asset side when cancelled. we only throw cancellation if
                     // caller side is cancelled. otherwise, we move to next asset source
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    // connection to the asset source has closed.
+                    // move to next asset source
                     continue;
                 }
-
-                break;
             }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private bool IsExpected(Exception ex)
+        {
+            // these exception can happen if either operation is cancelled, connection to asset source is closed
+            return ex is OperationCanceledException || ex is IOException || ex is ObjectDisposedException;
         }
 
         public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)

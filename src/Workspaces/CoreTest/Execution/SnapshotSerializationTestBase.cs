@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CollectionEqual(service, solutionId1.Projects.ToProjectObjects(service), solutionId2.Projects.ToProjectObjects(service));
         }
 
-        internal static void CollectionEqual(ISolutionChecksumService service, ChecksumObjects<ProjectChecksumObject> projectIds1, ChecksumObjects<ProjectChecksumObject> projectIds2)
+        internal static void CollectionEqual(ISolutionChecksumService service, ChecksumCollectionWithActualData<ProjectChecksumObject> projectIds1, ChecksumCollectionWithActualData<ProjectChecksumObject> projectIds2)
         {
             ChecksumObjectEqual(projectIds1, projectIds2);
             Assert.Equal(projectIds1.Objects.Length, projectIds2.Objects.Length);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static void CollectionEqual(ChecksumObjects<DocumentChecksumObject> documentIds1, ChecksumObjects<DocumentChecksumObject> documentIds2)
+        internal static void CollectionEqual(ChecksumCollectionWithActualData<DocumentChecksumObject> documentIds1, ChecksumCollectionWithActualData<DocumentChecksumObject> documentIds2)
         {
             ChecksumObjectEqual(documentIds1, documentIds2);
             Assert.Equal(documentIds1.Objects.Length, documentIds2.Objects.Length);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        internal static void VerifyCollectionInService(ISolutionChecksumService snapshotService, ChecksumObjects<DocumentChecksumObject> documents, int expectedCount)
+        internal static void VerifyCollectionInService(ISolutionChecksumService snapshotService, ChecksumCollectionWithActualData<DocumentChecksumObject> documents, int expectedCount)
         {
             VerifyChecksumObjectInService(snapshotService, documents);
             Assert.Equal(documents.Objects.Length, expectedCount);

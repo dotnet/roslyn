@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // TODO: language specific, should I put this ability in compilation layer?
             writer.WriteString(language);
 
-            var service = GetSerializationService(language);
+            var service = GetOptionsSerializationService(language);
             service.WriteTo(options, writer, cancellationToken);
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var language = reader.ReadString();
 
-            var service = GetSerializationService(language);
+            var service = GetOptionsSerializationService(language);
             return service.ReadCompilationOptionsFrom(reader, cancellationToken);
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // TODO: language specific, should I put this ability in compilation layer?
             writer.WriteString(language);
 
-            var service = GetSerializationService(language);
+            var service = GetOptionsSerializationService(language);
             service.WriteTo(options, writer, cancellationToken);
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var language = reader.ReadString();
 
-            var service = GetSerializationService(language);
+            var service = GetOptionsSerializationService(language);
             return service.ReadParseOptionsFrom(reader, cancellationToken);
         }
 

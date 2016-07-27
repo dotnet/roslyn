@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
             // TODO: later, make sure we can run all analyzer on remote host. 
             //       for now, we will check whether built in analyzer can run on remote host and only those run on remote host.
-            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProc()), project, cancellationToken);
+            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProcess()), project, cancellationToken);
             var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
 
             // run them concurrently in vs and remote host
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
             // TODO: this should be moved out
             var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
-            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.MustRunInProc()));
+            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.MustRunInProcess()));
             if (analyzerMap.Count == 0)
             {
                 return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);

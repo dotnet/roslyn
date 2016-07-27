@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly DiagnosticDescriptor _descriptor =
                     new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public bool MustRunInProc => true;
+            public bool RunInProcess => true;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

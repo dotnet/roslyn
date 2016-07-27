@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }.ToImmutableArray();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorNamingStyle);
-        public bool MustRunInProc => true;
+        public bool RunInProcess => true;
 
         public override void Initialize(AnalysisContext context)
         {

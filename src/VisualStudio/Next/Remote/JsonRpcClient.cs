@@ -22,11 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public JsonRpcClient(Stream stream)
         {
             _stream = stream;
-            _rpc = JsonRpc.Attach(stream, GetTarget());
-            _rpc.Disconnected += Disconnected;
+            _rpc = JsonRpc.Attach(stream, GetCallbackTarget());
+            _rpc.Disconnected += OnDisconnected;
         }
 
-        protected virtual object GetTarget()
+        protected virtual object GetCallbackTarget()
         {
             return null;
         }
@@ -57,11 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _rpc.Dispose();
             _stream.Dispose();
-        }
-
-        private void Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
-        {
-            OnDisconnected(sender, e);
         }
 
         protected virtual void OnDisposed()

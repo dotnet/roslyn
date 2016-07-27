@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 builder.Add(Checksum.ReadFrom(reader));
             }
 
-            var snapshotId = new ChecksumCollection(this, builder.ToImmutable(), kind);
+            var snapshotId = new ChecksumCollection(this, builder.MoveToImmutable(), kind);
             Contract.ThrowIfFalse(checksum.Equals(snapshotId.Checksum));
 
             return snapshotId;

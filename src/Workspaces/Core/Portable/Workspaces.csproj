@@ -369,10 +369,10 @@
     <Compile Include="Execution\Serialization\ChecksumScope.cs" />
     <Compile Include="Execution\Serialization\Checksum_Factory.cs" />
     <Compile Include="Execution\Serialization\HierarchicalChecksumObject.cs" />
-    <Compile Include="Execution\Serialization\ILanguageSpecificSerializationService.cs" />
+    <Compile Include="Execution\Serialization\IOptionsSerializationService.cs" />
     <Compile Include="Execution\Serialization\IReferenceSerializationService.cs" />
     <Compile Include="Execution\Serialization\ISolutionChecksumService.cs" />
-    <Compile Include="Execution\Serialization\AbstractLanguageSpecificSerializationService.cs" />
+    <Compile Include="Execution\Serialization\AbstractOptionsSerializationService.cs" />
     <Compile Include="Execution\Serialization\ISupportTemporaryStorage.cs" />
     <Compile Include="Execution\Serialization\PooledList.cs" />
     <Compile Include="Execution\Serialization\ReferenceSerializationServiceFactory.cs" />
