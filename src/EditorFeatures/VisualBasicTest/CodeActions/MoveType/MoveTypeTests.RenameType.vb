@@ -34,7 +34,21 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-        Public Async Function MoreThanOneTypeInFile_RenameType() As Task
+        Public Async Function MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType() As Task
+            Dim code =
+<File>
+[||]Class Class1
+End Class
+
+Class test1
+End Class
+</File>
+
+            Await TestRenameTypeToMatchFileAsync(code, expectedCodeAction:=False)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType() As Task
             Dim code =
 <File>
 [||]Class Class1
@@ -44,7 +58,16 @@ Class Class2
 End Class
 </File>
 
-            Await TestRenameTypeToMatchFileAsync(code, expectedCodeAction:=False)
+            Dim codeAfterRenamingType =
+<File>
+Class [|test1|]
+End Class
+
+Class Class2
+End Class
+</File>
+
+            Await TestRenameTypeToMatchFileAsync(code, codeAfterRenamingType)
         End Function
     End Class
 End Namespace
