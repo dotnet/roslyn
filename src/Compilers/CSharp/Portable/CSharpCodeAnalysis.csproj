@@ -361,6 +361,7 @@
     <Compile Include="FlowAnalysis\EntryPointsWalker.cs" />
     <Compile Include="FlowAnalysis\ExitPointsWalker.cs" />
     <Compile Include="FlowAnalysis\FlowAnalysisPass.cs" />
+    <Compile Include="FlowAnalysis\LocalFunctionAssignmentPass.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass.AbstractLocalState.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass_Switch.cs" />

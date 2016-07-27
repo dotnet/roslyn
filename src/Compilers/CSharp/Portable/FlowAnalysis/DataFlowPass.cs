@@ -116,13 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
-            if (_localFuncResults != null)
-            {
-                foreach (var val in _localFuncResults.Values)
-                {
-                    val.Free();
-                }
-            }
+            FreeLocalFuncInfos(_readVars.Values);
+            _localFuncAssignmentResults?.Free();
 
             base.Free();
         }
@@ -316,6 +311,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static void Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
         {
             var walker = new DataFlowPass(compilation, member, node, requireOutParamsAssigned: requireOutParamsAssigned);
+            var localFuncWrites = new LocalFunctionAssignmentPass(compilation,
+                                                                  member,
+                                                                  node,
+                                                                  requireOutParamsAssigned: requireOutParamsAssigned);
 
             if (diagnostics != null)
             {
@@ -325,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                walker.Analyze(ref badRegion, diagnostics);
+                localFuncWrites.Analyze(ref badRegion, diagnostics);
+                walker.Analyze(ref badRegion, diagnostics, localFuncWrites.GetResults());
                 Debug.Assert(!badRegion);
             }
             catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
@@ -336,6 +336,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker.Free();
             }
+        }
+
+        private void InitializeLocalFuncAssignmentResults(LocalFuncAssignmentResults results)
+        {
+            if (results != null)
+            {
+                _localFuncAssignmentResults = results;
+
+                Debug.Assert(nextVariableSlot == 1);
+
+                variableBySlot = results.VariableSlots.ToArray();
+                nextVariableSlot = variableBySlot.Length;
+                for (int slot = 1; slot < variableBySlot.Length; slot++)
+                {
+                    _variableSlot[variableBySlot[slot]] = slot;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Analyze the body with <see cref="LocalFuncAssignmentResults" />.
+        /// </summary>
+        protected void Analyze(ref bool badRegion, DiagnosticBag diagnostics, LocalFuncAssignmentResults results)
+        {
+            InitializeLocalFuncAssignmentResults(results);
+            Analyze(ref badRegion, diagnostics);
         }
 
         /// <summary>
@@ -368,16 +394,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             if (IsCaptured(variable,
-                           rangeVariableUnderlyingParameter,
-                           currentMethodOrLambda))
+                           currentMethodOrLambda,
+                           rangeVariableUnderlyingParameter))
             {
                 NoteCaptured(variable);
             }
         }
 
-        private static bool IsCaptured(Symbol variable,
-                                       ParameterSymbol rangeVariableUnderlyingParameter,
-                                       MethodSymbol containingMethodOrLambda)
+        protected static bool IsCaptured(Symbol variable,
+                                         MethodSymbol containingMethodOrLambda,
+                                         ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             switch (variable.Kind)
             {
@@ -434,15 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var local = variable as LocalSymbol;
             if ((object)local != null)
             {
-                if (IsCapturedInLocalFunction(local,
-                                              rangeVariableUnderlyingParameter))
-                {
-                    NoteReadInLocalFunction(local, local);
-                }
-                else
-                {
-                    _usedVariables.Add(local);
-                }
+                _usedVariables.Add(local);
             }
 
             var localFunction = variable as LocalFunctionSymbol;
@@ -475,17 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)n;
-                            var underlyingVariable = GetVariableOpt(fieldAccess);
-                            if (IsCapturedInLocalFunction(underlyingVariable))
-                            {
-                                NoteReadInLocalFunction(fieldAccess.FieldSymbol,
-                                                        underlyingVariable,
-                                                        MakeSlot(fieldAccess));
-                            }
-                            else
-                            {
-                                NoteRead(fieldAccess.FieldSymbol);
-                            }
+                            NoteRead(fieldAccess.FieldSymbol);
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
                             {
@@ -504,17 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             FieldSymbol associatedField = eventAccess.EventSymbol.AssociatedField;
                             if ((object)associatedField != null)
                             {
-                                var underlyingVariable = GetVariableOpt(eventAccess);
-                                if (IsCapturedInLocalFunction(underlyingVariable))
-                                {
-                                    NoteReadInLocalFunction(associatedField,
-                                                            underlyingVariable,
-                                                            MakeSlot(eventAccess));
-                                }
-                                else
-                                {
-                                    NoteRead(associatedField);
-                                }
+                                NoteRead(associatedField);
 
                                 if (MayRequireTracking(eventAccess.ReceiverOpt, associatedField))
                                 {
@@ -530,34 +528,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
 
                     case BoundKind.Local:
-                        {
-                            var local = (BoundLocal)n;
-                            var localSymbol = local.LocalSymbol;
-                            if (IsCapturedInLocalFunction(localSymbol))
-                            {
-                                NoteReadInLocalFunction(localSymbol, localSymbol);
-                            }
-                            else
-                            {
-                                NoteRead(localSymbol);
-                            }
-                            return;
-                        }
+                        NoteRead(((BoundLocal)n).LocalSymbol);
+                        return;
 
                     case BoundKind.Parameter:
-                        {
-                            var param = (BoundParameter)n;
-                            var parameterSymbol = param.ParameterSymbol;
-                            if (IsCapturedInLocalFunction(parameterSymbol))
-                            {
-                                NoteReadInLocalFunction(parameterSymbol, parameterSymbol);
-                            }
-                            else
-                            {
-                                NoteRead(parameterSymbol);
-                            }
-                            return;
-                        }
+                        NoteRead(((BoundParameter)n).ParameterSymbol);
+                        return;
 
                     default:
                         return;
@@ -857,65 +833,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns the tracked variable in the expression, or null if there
-        /// is none.
-        /// </summary>
-        private Symbol GetVariableOpt(BoundExpression node)
-        {
-            while (true)
-            {
-                switch (node.Kind)
-                {
-                    case BoundKind.ThisReference:
-                        return MethodThisParameter;
-                    case BoundKind.BaseReference:
-                        return MethodThisParameter;
-                    case BoundKind.Local:
-                        return ((BoundLocal)node).LocalSymbol;
-                    case BoundKind.Parameter:
-                        return ((BoundParameter)node).ParameterSymbol;
-                    case BoundKind.RangeVariable:
-                        node = ((BoundRangeVariable)node).Value;
-                        break;
-                    case BoundKind.FieldAccess:
-                        {
-                            var fieldAccess = (BoundFieldAccess)node;
-                            var fieldSymbol = fieldAccess.FieldSymbol;
-                            var receiverOpt = fieldAccess.ReceiverOpt;
-                            if (fieldSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return null; // access of static field
-                            if (fieldSymbol.IsFixed) return null; // fixed buffers are not tracked
-                            if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return null; // field of non-struct
-                            node = receiverOpt;
-                            break;
-                        }
-                    case BoundKind.EventAccess:
-                        {
-                            var eventAccess = (BoundEventAccess)node;
-                            var eventSymbol = eventAccess.EventSymbol;
-                            var receiverOpt = eventAccess.ReceiverOpt;
-                            if (eventSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return null; // access of static event
-                            if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return null; // event of non-struct
-                            if (!eventSymbol.HasAssociatedField) return null;
-                            node = receiverOpt;
-                            break;
-                        }
-                    case BoundKind.PropertyAccess:
-                        {
-                            var propAccess = (BoundPropertyAccess)node;
-                            var propSymbol = propAccess.PropertySymbol;
-                            var receiverOpt = propAccess.ReceiverOpt;
-                            if (propSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return null; // access of static field
-                            if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return null; // field of non-struct
-                            node = receiverOpt;
-                            break;
-                        }
-                    default:
-                        return null;
-                }
-            }
-        }
-
-        /// <summary>
         /// Check that the given variable is definitely assigned.  If not, produce an error.
         /// </summary>
         protected void CheckAssigned(Symbol symbol, CSharpSyntaxNode node)
@@ -924,15 +841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)symbol != null)
             {
                 NoteRead(symbol);
-
-                // If we're in a local func, instead of reporting an unassigned
-                // local, we should just note that we read it. We won't know if
-                // the local is actually unassigned until we get to the local
-                // function call
-                if (IsCapturedInLocalFunction(symbol))
-                {
-                    return;
-                }
 
                 if (this.State.Reachable)
                 {
@@ -949,21 +857,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the given variable is definitely assigned.  If not, produce an error.
         /// </summary>
-        protected void CheckAssigned(Symbol symbol, CSharpSyntaxNode node, int? slotOpt)
+        private void CheckAssigned(Symbol symbol, CSharpSyntaxNode node, int? slotOpt)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
                 NoteRead(symbol);
-
-                // If we're in a local func, instead of reporting an unassigned
-                // local, we should just note that we read it. We won't know if
-                // the local is actually unassigned until we get to the local
-                // function call
-                if (IsCapturedInLocalFunction(symbol))
-                {
-                    return;
-                }
 
                 if (this.State.Reachable)
                 {
@@ -981,6 +880,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int slot = slotOpt ?? VariableSlot(symbol);
             if (slot <= 0) return;
+
+            // If we're recording reads and the symbol is captured by the nearest
+            // local function, record the read and skip the diagnostic
+            if (_recordingReads)
+            {
+                if ((symbol.Kind == SymbolKind.Local &&
+                    ((LocalSymbol)symbol).IsConst) ||
+                    IsCapturedInLocalFunction(slot))
+                {
+                    RecordReadInLocalFunction(slot);
+                    return;
+                }
+            }
+
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
             if (symbol.Kind == SymbolKind.Local && (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
             {
@@ -1040,22 +953,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
         {
-            NoteRead(expr);
-
-            // If we're in a local func, instead of reporting an unassigned
-            // field, we should just note that we read it. We won't know if
-            // the field is actually unassigned until we get to the local
-            // function call
-            if (IsCapturedInLocalFunction(GetVariableOpt(expr)))
-            {
-                return;
-            }
-
             int unassignedSlot;
             if (this.State.Reachable && !IsAssigned(expr, out unassignedSlot))
             {
                 ReportUnassigned(fieldSymbol, unassignedSlot, node);
             }
+
+            NoteRead(expr);
         }
 
         private bool IsAssigned(BoundExpression node, out int unassignedSlot)
@@ -1150,6 +1054,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.State.IsAssigned(unassignedSlot);
         }
 
+        /// <summary>
+        /// Report a given variable as not definitely assigned.  Once a variable has been so
+        /// reported, we suppress further reports of that variable.
+        /// </summary>
         protected virtual void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node) =>
             ReportUnassigned(fieldSymbol, node, slotOpt: unassignedSlot);
 
@@ -1240,8 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)node;
-                        var localSymbol = local.LocalSymbol;
-                        if (localSymbol.RefKind != refKind)
+                        if (local.LocalSymbol.RefKind != refKind)
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
@@ -1250,14 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             int slot = MakeSlot(local);
-                            if (IsCapturedInLocalFunction(localSymbol))
-                            {
-                                AssignVarInLocalFunction(slot, localSymbol);
-                            }
-                            else
-                            {
-                                SetSlotState(slot, written);
-                            }
+                            SetSlotState(slot, written);
                             if (written) NoteWrite(local, value, read);
                         }
                         break;
@@ -1265,22 +1165,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
+                case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
                 case BoundKind.PropertyAccess:
-                case BoundKind.FieldAccess:
                     {
                         var expression = (BoundExpression)node;
                         int slot = MakeSlot(expression);
-
-                        var underlyingVariable = GetVariableOpt(expression);
-                        if (IsCapturedInLocalFunction(underlyingVariable))
-                        {
-                            AssignVarInLocalFunction(slot, underlyingVariable);
-                        }
-                        else
-                        {
-                            SetSlotState(slot, written);
-                        }
+                        SetSlotState(slot, written);
                         if (written) NoteWrite(expression, value, read);
                         break;
                     }
@@ -1555,7 +1446,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeclareVariables(node.Locals);
 
-            VisitLocalFunctions(node);
+            // First assemble possibly-unassigned reads for all
+            // local functions
+            RecordReadsInLocalFunctions(node);
 
             var result = base.VisitBlock(node);
             ReportUnusedVariables(node.Locals);
@@ -1838,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
                 var localFunc = (LocalFunctionSymbol)node.Method.OriginalDefinition;
-                VisitLocalFunctionAccess(localFunc, node.Syntax, write: true);
+                ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
             return base.VisitCall(node);
         }
@@ -1850,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var localFunc = (LocalFunctionSymbol)node.SymbolOpt.OriginalDefinition;
                 var syntax = node.Syntax;
-                VisitLocalFunctionAccess(localFunc, syntax, write: false);
+                ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
             return base.VisitConversion(node);
         }
@@ -1861,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var syntax = node.Syntax;
                 var localFunc = (LocalFunctionSymbol)node.MethodOpt.OriginalDefinition;
-                VisitLocalFunctionAccess(localFunc, syntax, write: false);
+                ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
             return base.VisitDelegateCreationExpression(node);
         }
@@ -1878,19 +1771,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitMethodGroup(node);
         }
 
+        public override BoundNode VisitLambda(BoundLambda node) =>
+            // Lambdas can't definitely assign captured vars
+            VisitLambdaOrLocalFunction(node, recordAssigns: false);
 
-        public override BoundNode VisitLambda(BoundLambda node)
-        {
-            return VisitLambdaOrLocalFunction(node);
-        }
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-        {
-            Assign(node, value: null);
-            return null;
-        }
-
-        private BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node)
+        protected BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node, bool recordAssigns)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
             this.currentMethodOrLambda = node.Symbol;
@@ -1905,6 +1790,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
             LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
+
+            if (recordAssigns)
+            {
+                // Check for assignments to captured variables
+                RecordCapturedAssigns(ref finalState, ref this.State);
+            }
+
             IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
             foreach (PendingBranch pending in pendingReturns)
             {
@@ -1927,6 +1819,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = oldMethodOrLambda;
             return null;
         }
+
+        protected virtual void RecordCapturedAssigns(
+            ref LocalState original,
+            ref LocalState @new)
+        { }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
         {

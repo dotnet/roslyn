@@ -5,152 +5,70 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class DataFlowPass
     {
-        private class LocalFuncInfo
+        /// <summary>
+        /// Holds info from the assignment pass done by
+        /// <see cref="LocalFunctionAssignmentPass"/>.
+        /// </summary>
+        private LocalFuncAssignmentResults _localFuncAssignmentResults;
+
+        /// <summary>
+        /// True if we're currently recording reads, rather than reporting
+        /// diagnostics.
+        /// </summary>
+        private bool _recordingReads = false;
+
+        private SmallDictionary<LocalFunctionSymbol, LocalFuncInfo> _readVars =
+            new SmallDictionary<LocalFunctionSymbol, LocalFuncInfo>();
+
+
+        protected class LocalFuncInfo
         {
-            public LocalFuncInfo(BoundLocalFunctionStatement boundNode)
-            {
-                BoundNode = boundNode;
-            }
-
-            public struct UsedVariable : IEqualityComparer<UsedVariable>
-            {
-                public bool Written { get; }
-                public Symbol CapturedSymbol { get; }
-                public Symbol SymbolOpt { get; }
-                public int? SlotOpt { get; }
-
-                public UsedVariable(bool written,
-                                    Symbol capturedSymbol,
-                                    Symbol symbol = null,
-                                    int? slot = null)
-                {
-                    Written = written;
-                    CapturedSymbol = capturedSymbol;
-                    SymbolOpt = symbol;
-                    SlotOpt = slot;
-                }
-
-                public bool Equals(UsedVariable left, UsedVariable right) =>
-                    left.Written == right.Written &&
-                    left.CapturedSymbol == right.CapturedSymbol &&
-                    left.SymbolOpt == right.SymbolOpt &&
-                    left.SlotOpt == right.SlotOpt;
-
-                public int GetHashCode(UsedVariable usedVar) =>
-                    Hash.Combine(usedVar.Written,
-                    Hash.Combine(usedVar.CapturedSymbol.GetHashCode(),
-                    Hash.Combine(usedVar.SymbolOpt?.GetHashCode() ?? 0,
-                                 usedVar.SlotOpt?.GetHashCode() ?? 0)));
-            }
-
-            public OrderedSet<UsedVariable> UsedVariables { get; } =
-                new OrderedSet<UsedVariable>();
-
-            private PooledHashSet<LocalFunctionSymbol> _usedLocalFuncs;
-            public PooledHashSet<LocalFunctionSymbol> UsedLocalFunctions
-            {
-                get
-                {
-                    if (_usedLocalFuncs == null)
-                    {
-                        _usedLocalFuncs = PooledHashSet<LocalFunctionSymbol>.GetInstance();
-                    }
-
-                    return _usedLocalFuncs;
-                }
-            }
-
-            /// <summary>
-            /// Indicates that the set of "used" variables changed during the
-            /// last data flow pass. If the set changed, we must re-run the
-            /// analysis until we have reached a fixed-point.
-            /// </summary>
-            public bool IsDirty { get; set; } = false;
-
-            public BoundLocalFunctionStatement BoundNode { get; }
+            public bool IsDirty { get; set; }
+            public PooledHashSet<int> UsedVars =
+                PooledHashSet<int>.GetInstance();
 
             public void Free()
             {
-                _usedLocalFuncs?.Free();
+                UsedVars.Free();
             }
         }
 
-        // Save the list of reads, writes, and diagnostics for all local funcs
-        private SmallDictionary<LocalFunctionSymbol, LocalFuncInfo> _localFuncResults;
-        private SmallDictionary<LocalFunctionSymbol, LocalFuncInfo> LocalFuncResults
+        protected class LocalFuncAssignmentResults
         {
-            get
-            {
-                if (_localFuncResults == null)
-                {
-                    _localFuncResults = new SmallDictionary<LocalFunctionSymbol, LocalFuncInfo>();
-                }
+            public SmallDictionary<LocalFunctionSymbol, LocalFuncInfo> AssignedVars { get; }
+            public ImmutableArray<VariableIdentifier> VariableSlots { get; }
 
-                return _localFuncResults;
+            public LocalFuncAssignmentResults(
+                SmallDictionary<LocalFunctionSymbol, LocalFuncInfo> assignedVars,
+                ImmutableArray<VariableIdentifier> variableSlots)
+            {
+                AssignedVars = assignedVars;
+                VariableSlots = variableSlots;
+            }
+
+            public void Free()
+            {
+                FreeLocalFuncInfos(AssignedVars.Values);
             }
         }
 
-        private void VisitLocalFunctions(BoundBlock block)
+        private static void FreeLocalFuncInfos<T>(T infos)
+            where T : IEnumerable<LocalFuncInfo>
         {
-            foreach (var stmt in block.Statements)
+            foreach (var info in infos)
             {
-                if (stmt.Kind == BoundKind.LocalFunctionStatement)
-                {
-                    var localFunc = (BoundLocalFunctionStatement)stmt;
-
-                    // Initialize local func before visiting
-                    if (!LocalFuncResults.ContainsKey(localFunc.Symbol))
-                    {
-                        LocalFuncResults.Add(localFunc.Symbol, new LocalFuncInfo(localFunc));
-                    }
-                    VisitLambdaOrLocalFunction(localFunc);
-                }
-            }
-
-            if ((object)currentMethodOrLambda == topLevelMethod &&
-                _localFuncResults != null)
-            {
-                // Visit dirty local functions until the read/written set is stable
-                while (HasDirtyLocalFunctions(LocalFuncResults.Values))
-                {
-                    foreach (var kvp in LocalFuncResults)
-                    {
-                        var info = kvp.Value;
-
-                        // The local func counts as dirty if it itself is dirty
-                        // or if one of its dependencies is dirty
-                        bool isDirty = info.IsDirty;
-                        foreach (var dependency in info.UsedLocalFunctions)
-                        {
-                            isDirty |= LocalFuncResults[dependency].IsDirty;
-                            if (isDirty)
-                            {
-                                break;
-                            }
-                        }
-
-                        info.IsDirty = false;
-                        if (isDirty)
-                        {
-                            // Note: Recursively visits this local function, which
-                            // may cause other local functions to be visited, even
-                            // if they're not marked dirty.
-                            // Consider: Is there a more efficient walk that we could
-                            // do here?
-                            VisitLambdaOrLocalFunction(info.BoundNode);
-                        }
-                    }
-                }
+                info.Free();
             }
         }
 
-        private static bool HasDirtyLocalFunctions<T>(T localFuncInfos)
+        protected static bool HasDirtyLocalFunctions<T>(T localFuncInfos)
             where T : IEnumerable<LocalFuncInfo>
         {
             foreach (var info in localFuncInfos)
@@ -163,139 +81,186 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void NoteReadInLocalFunction(Symbol variable, Symbol capturedSymbol, int? slotOpt = null)
+        protected static void ClearDirtyBits<T>(T localFuncInfos)
+            where T : IEnumerable<LocalFuncInfo>
         {
-            var localFunc = GetNearestLocalFunctionOpt();
-
-            Debug.Assert(localFunc != null);
-
-            var results = LocalFuncResults[localFunc];
-            var usedVar = new LocalFuncInfo.UsedVariable(written: false,
-                                                         capturedSymbol: capturedSymbol,
-                                                         symbol: variable,
-                                                         slot: slotOpt);
-            if (!results.UsedVariables.Contains(usedVar))
+            foreach (var info in localFuncInfos)
             {
-                results.UsedVariables.Add(usedVar);
-                results.IsDirty = true;
+                info.IsDirty = false;
             }
-        }
-
-        private void AssignVarInLocalFunction(int slot, Symbol capturedSymbol)
-        {
-            var localFunc = GetNearestLocalFunctionOpt();
-
-            Debug.Assert(localFunc != null);
-
-            var info = LocalFuncResults[localFunc];
-            var usedVar = new LocalFuncInfo.UsedVariable(written: true,
-                                                         capturedSymbol: capturedSymbol,
-                                                         slot: slot);
-            if (!info.UsedVariables.Contains(usedVar))
-            {
-                info.UsedVariables.Add(usedVar);
-                info.IsDirty = true;
-            }
-        }
-
-        private void VisitLocalFunctionAccess(
-            LocalFunctionSymbol localFunc,
-            CSharpSyntaxNode syntax,
-            bool write)
-        {
-            _usedLocalFunctions.Add(localFunc);
-            LocalFuncInfo info;
-            if (LocalFuncResults.TryGetValue(localFunc, out info))
-            {
-                foreach (var usedVar in info.UsedVariables)
-                {
-                    bool capturedInLocalFunction =
-                        IsCapturedInLocalFunction(usedVar.CapturedSymbol);
-
-                    if (write && usedVar.Written)
-                    {
-                        if (capturedInLocalFunction)
-                        {
-                            AssignVarInLocalFunction(usedVar.SlotOpt.Value, usedVar.CapturedSymbol);
-                        }
-                        else
-                        {
-                            SetSlotState(usedVar.SlotOpt.Value, assigned: true);
-                        }
-                    }
-                    else
-                    {
-                        if (capturedInLocalFunction)
-                        {
-                            NoteReadInLocalFunction(usedVar.SymbolOpt,
-                                                    usedVar.CapturedSymbol,
-                                                    slotOpt: usedVar.SlotOpt);
-                        }
-                        else
-                        {
-                            CheckAssigned(usedVar.SymbolOpt, syntax, usedVar.SlotOpt);
-                        }
-                    }
-                }
-            }
-
-            var containingLocalFunc = GetNearestLocalFunctionOpt();
-            if ((object)containingLocalFunc != null)
-            {
-                info = LocalFuncResults[containingLocalFunc];
-                if (!info.UsedLocalFunctions.Contains(localFunc))
-                {
-                    info.UsedLocalFunctions.Add(localFunc);
-                    info.IsDirty = true;
-                }
-            }
-        }
-
-        private bool IsCapturedInLocalFunction(Symbol variable,
-            ParameterSymbol rangeVariableUnderlyingParameter = null)
-        {
-            if (variable == null)
-            {
-                return false;
-            }
-            
-            if (!IsCaptured(variable,
-                            rangeVariableUnderlyingParameter,
-                            currentMethodOrLambda))
-            {
-                return false;
-            }
-
-            var localFunc = GetNearestLocalFunctionOpt();
-            if ((object)localFunc == null)
-            {
-                return false;
-            }
-
-            return IsCaptured(variable,
-                              rangeVariableUnderlyingParameter,
-                              localFunc);
         }
 
         /// <summary>
-        /// If the nearest enclosing non-lambda method is a local function, returns
-        /// that local function. Otherwise, returns null.
+        /// The results from running the assignment pass.
         /// </summary>
-        private LocalFunctionSymbol GetNearestLocalFunctionOpt()
+        protected virtual LocalFuncAssignmentResults GetResults() => null;
+
+        /// <summary>
+        /// Records all possibly-unassigned reads in all local
+        /// functions in the given block.
+        /// </summary>
+        private void RecordReadsInLocalFunctions(BoundBlock block)
         {
-            // Lambdas inherit from their containing method/function
-            Symbol containingSymbol = currentMethodOrLambda;
-            while ((object)containingSymbol != null)
+            if (block.LocalFunctions.IsDefaultOrEmpty)
             {
-                if (containingSymbol.Kind == SymbolKind.Method &&
-                    ((MethodSymbol)containingSymbol).MethodKind != MethodKind.AnonymousFunction)
-                {
-                    break;
-                }
-                containingSymbol = containingSymbol.ContainingSymbol;
+                return;
             }
 
-            return containingSymbol as LocalFunctionSymbol;
+            if (currentMethodOrLambda == topLevelMethod)
+            {
+                _recordingReads = true;
+            }
+
+            do
+            {
+                ClearDirtyBits(_readVars.Values);
+
+                foreach (var stmt in block.Statements)
+                {
+                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    {
+                        var savedState = this.State;
+                        var localFunc = (BoundLocalFunctionStatement)stmt;
+
+                        // Clear the state before visitation since all captured
+                        // reads could be unassigned at the local function callsite
+                        this.State = new LocalState(
+                            BitVector.Create(this.State.Assigned.Capacity));
+
+                        // Assign all parameters of all parent functions
+                        EnterAllParameters();
+
+                        VisitLambdaOrLocalFunction(localFunc,
+                            recordAssigns: false);
+
+                        this.State = savedState;
+                    }
+                }
+            } while (HasDirtyLocalFunctions(_readVars.Values));
+
+            if (currentMethodOrLambda == topLevelMethod)
+            {
+                _recordingReads = false;
+            }
+        }
+
+        private void EnterAllParameters()
+        {
+            foreach (var info in variableBySlot)
+            {
+                if (info.Symbol?.Kind == SymbolKind.Parameter)
+                {
+                    EnterParameter((ParameterSymbol)info.Symbol);
+                }
+            }
+        }
+
+        private void RecordReadInLocalFunction(int slot)
+        {
+            var localFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+
+            Debug.Assert(localFunc != null);
+
+            LocalFuncInfo readInfo;
+            if (_readVars.TryGetValue(localFunc, out readInfo))
+            {
+                if (!readInfo.UsedVars.Contains(slot))
+                {
+                    readInfo.IsDirty = true;
+                    readInfo.UsedVars.Add(slot);
+                }
+            }
+            else
+            {
+                readInfo = new LocalFuncInfo();
+                readInfo.IsDirty = true;
+                readInfo.UsedVars.Add(slot);
+                _readVars.Add(localFunc, readInfo);
+            }
+        }
+
+        /// <summary>
+        /// At the local function's use site, checks that all variables read
+        /// are assigned and assigns all variables that are definitely assigned
+        /// to be definitely assigned.
+        /// </summary>
+        protected virtual void ReplayReadsAndWrites(
+            LocalFunctionSymbol localFunc,
+            CSharpSyntaxNode syntax,
+            bool writes)
+        {
+            _usedLocalFunctions.Add(localFunc);
+
+            // First process the reads
+            LocalFuncInfo info;
+            if (_readVars.TryGetValue(localFunc, out info))
+            {
+                foreach (var usedVarSlot in info.UsedVars)
+                {
+                    var symbol = variableBySlot[usedVarSlot].Symbol;
+                    CheckAssigned(symbol, syntax, usedVarSlot);
+                }
+            }
+
+            // Now the writes
+            if (writes &&
+                _localFuncAssignmentResults?.AssignedVars
+                    .TryGetValue(localFunc, out info) == true)
+            {
+                foreach (var usedVarSlot in info.UsedVars)
+                {
+                    SetSlotAssigned(usedVarSlot);
+                }
+            }
+        }
+
+        protected int RootSlot(int slot)
+        {
+            while (true)
+            {
+                var varInfo = variableBySlot[slot];
+                if (varInfo.ContainingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = varInfo.ContainingSlot;
+                }
+            }
+        }
+
+        protected bool IsCapturedInLocalFunction(int slot,
+            ParameterSymbol rangeVariableUnderlyingParameter = null)
+        {
+            if (slot <= 0) return false;
+
+            // Find the root slot, since that would be the only
+            // slot, if any, that is captured in a local function
+            var rootVarInfo = variableBySlot[RootSlot(slot)];
+
+            var rootSymbol = rootVarInfo.Symbol;
+
+            // A variable is captured in a local function iff its
+            // container is higher in the tree than the nearest
+            // local function
+            var nearestLocalFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            return (object)nearestLocalFunc != null &&
+                   IsCaptured(rootSymbol, nearestLocalFunc, rangeVariableUnderlyingParameter);
+        }
+
+        private static LocalFunctionSymbol GetNearestLocalFunctionOpt(Symbol symbol)
+        {
+            while (symbol != null)
+            {
+                if (symbol.Kind == SymbolKind.Method &&
+                    ((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
+                {
+                    return (LocalFunctionSymbol)symbol;
+                }
+                symbol = symbol.ContainingSymbol;
+            }
+            return null;
         }
     }
 }

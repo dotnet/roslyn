@@ -122,10 +122,7 @@ class C
     }
 }
 ");
-            comp.VerifyDiagnostics(
-                // (17,9): error CS0165: Use of unassigned local variable 'x'
-                //         L1();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "L1()").WithArguments("x").WithLocation(17, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -185,9 +182,6 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,13): warning CS0168: The variable 'x' is declared but never used
-                //         int x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13),
                 // (7,14): warning CS0168: The variable 'Local' is declared but never used
                 //         bool Local() => x == 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
@@ -290,9 +284,6 @@ class C
                 // (37,16): error CS0165: Use of unassigned local variable 's1'
                 //         S s2 = s1; // unassigned
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(37, 16),
-                // (48,9): error CS0165: Use of unassigned local variable 's1'
-                //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("s1").WithLocation(48, 9),
                 // (48,9): error CS0170: Use of possibly unassigned field 'y'
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("y").WithLocation(48, 9));
@@ -319,12 +310,12 @@ class C
     void AssignInLocalFunc()
     {
         A a1;
-        Local1();
+        Local1(); // unassigned
         A a2 = a1;
         void Local1()
         {
             a1.x = 0;
-            a1.y = 0;
+            a1.y = 0; 
         }
 
         B b1;
@@ -377,9 +368,6 @@ class C
                 // (28,9): error CS0170: Use of possibly unassigned field 'a'
                 //         Local2();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local2()").WithArguments("a").WithLocation(28, 9),
-                // (28,9): error CS0165: Use of unassigned local variable 'b1'
-                //         Local2();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local2()").WithArguments("b1").WithLocation(28, 9),
                 // (41,16): error CS0165: Use of unassigned local variable 'b1'
                 //         B b2 = b1; // unassigned
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b1").WithArguments("b1").WithLocation(41, 16),
@@ -389,9 +377,9 @@ class C
                 // (61,9): error CS0170: Use of possibly unassigned field 'a'
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("a").WithLocation(61, 9),
-                // (61,9): error CS0165: Use of unassigned local variable 'b1'
-                //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("b1").WithLocation(61, 9));
+                // (62,16): error CS0165: Use of unassigned local variable 'b1'
+                //         B b2 = b1; // unassigned
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b1").WithArguments("b1").WithLocation(62, 16));
         }
 
         [Fact]
@@ -454,10 +442,10 @@ class C
         {
             s1 = new S();
             s1.x = 0;
-            s1.Event += Handler;
+            s1.Event += Handler1;
             s1.Fire();
 
-            void Handler(object sender, EventArgs args)
+            void Handler1(object sender, EventArgs args)
             {
                 s1.x++;
             }
@@ -467,9 +455,9 @@ class C
         void Local2()
         {
             s3.x = 0;
-            s3.Event += Handler;
+            s3.Event += Handler2;
 
-            void Handler(object sender, EventArgs args)
+            void Handler2(object sender, EventArgs args)
             {
                 s1.x++;
                 s3.x++;
@@ -549,6 +537,78 @@ class C
                 // (21,13): error CS0165: Use of unassigned local variable 'x'
                 //             Local2();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "Local2()").WithArguments("x").WithLocation(21, 13));
+        }
+
+        [Fact]
+        public void NotAssignedControlFlow()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void FullyAssigned()
+    {
+        int x;
+        int y = 0;
+        void Local()
+        {
+            if (y == 0)
+                x = 0;
+            else
+                Local2();
+        }
+        void Local2()
+        {
+            x = 0;
+        }
+        Local();
+        y = x;
+    }
+    void PartiallyAssigned()
+    {
+        int x;
+        int y = 0;
+        void Local()
+        {
+            if (y == 0)
+                x = 0;
+            else
+                Local2();
+        }
+        void Local2()
+        {
+            //x = 0;
+        }
+        Local();
+        y = x; // unassigned
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (38,13): error CS0165: Use of unassigned local variable 'x'
+                //         y = x; // unassigned
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(38, 13));
+        }
+
+        [Fact]
+        public void UseConsts()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S
+{
+    public const int z = 0;
+}
+
+class C
+{
+    const int x = 0;
+    void M()
+    {
+        const int y = 0;
+        Local();
+
+        int Local() => x + y + S.z;
+    }
+}");
+            comp.VerifyDiagnostics();
         }
     }
 }
