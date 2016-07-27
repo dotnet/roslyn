@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.FindReferences
             return new DocumentDefinitionLocation(location);
         }
 
-        public static DefinitionLocation CreateSymbolLocation(ISymbol symbol, Project referencingProject)
+        public static DefinitionLocation CreateSymbolLocation(Solution solution, ISymbol symbol)
         {
-            return new SymbolDefinitionLocation(symbol, referencingProject);
+            return new SymbolDefinitionLocation(solution, symbol);
         }
 
         public static DefinitionLocation CreateNonNavigatingLocation(
