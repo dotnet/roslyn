@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             [ImportMany] IEnumerable<IStreamingFindReferencesPresenter> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            Contract.ThrowIfNull(_synchronousPresenters);
+            Contract.ThrowIfNull(synchronousPresenters);
             Contract.ThrowIfNull(streamingPresenters);
             Contract.ThrowIfNull(asyncListeners);
 
