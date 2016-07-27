@@ -52,9 +52,7 @@ echo Building this commit:
 git show --no-patch --pretty=raw HEAD
 
 REM Restore the NuGet packages 
-.\run.cmd sync 
-echo Exit Code is %errorlevel%
-
+call .\run.cmd sync || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
 set bindir=%RoslynRoot%Binaries
