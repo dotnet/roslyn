@@ -366,12 +366,14 @@
     <Compile Include="Execution\Serialization\AssetBuilder.cs" />
     <Compile Include="Execution\Serialization\Checksum.cs" />
     <Compile Include="Execution\Serialization\ChecksumObject.cs" />
+    <Compile Include="Execution\Serialization\ChecksumScope.cs" />
     <Compile Include="Execution\Serialization\Checksum_Factory.cs" />
     <Compile Include="Execution\Serialization\HierarchicalChecksumObject.cs" />
     <Compile Include="Execution\Serialization\ILanguageSpecificSerializationService.cs" />
     <Compile Include="Execution\Serialization\IReferenceSerializationService.cs" />
     <Compile Include="Execution\Serialization\ISolutionChecksumService.cs" />
     <Compile Include="Execution\Serialization\AbstractLanguageSpecificSerializationService.cs" />
+    <Compile Include="Execution\Serialization\ISupportTemporaryStorage.cs" />
     <Compile Include="Execution\Serialization\PooledList.cs" />
     <Compile Include="Execution\Serialization\ReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\Serialization\Serializer.cs" />
@@ -380,7 +382,7 @@
     <Compile Include="Execution\Serialization\SnapshotBuilder.cs" />
     <Compile Include="Execution\Serialization\SolutionChecksumObjects.cs" />
     <Compile Include="Execution\Serialization\SolutionChecksumObjectInfo.cs" />
-    <Compile Include="Execution\Serialization\SnapshotStorage.cs" />
+    <Compile Include="Execution\Serialization\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\Serialization\SolutionChecksumService.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />

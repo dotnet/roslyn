@@ -12,63 +12,63 @@ namespace Microsoft.CodeAnalysis.Execution
     internal struct AssetBuilder
     {
         private readonly Serializer _serializer;
-        private readonly SnapshotStorage _storage;
+        private readonly ChecksumTree _checksumTree;
 
-        public AssetBuilder(Solution solution) : this(new AssetOnlyStorage(solution))
+        public AssetBuilder(Solution solution) : this(new AssetOnlyChecksumTree(solution))
         {
         }
 
-        public AssetBuilder(SnapshotStorage storage)
+        public AssetBuilder(ChecksumTree checksumTree)
         {
-            _storage = storage;
-            _serializer = storage.Serializer;
+            _checksumTree = checksumTree;
+            _serializer = checksumTree.Serializer;
         }
 
         public Task<Asset> BuildAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionChecksumObjectInfo, CreateSolutionChecksumObjectInfoAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionChecksumObjectInfo, CreateSolutionChecksumObjectInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectChecksumObjectInfo, CreateProjectChecksumObjectInfoAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectChecksumObjectInfo, CreateProjectChecksumObjectInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(document.State, GetInfo(document), WellKnownChecksumObjects.DocumentChecksumObjectInfo, CreateDocumentChecksumObjectInfoAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(document.State, GetInfo(document), WellKnownChecksumObjects.DocumentChecksumObjectInfo, CreateDocumentChecksumObjectInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CompilationOptions compilationOptions, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(compilationOptions, project, WellKnownChecksumObjects.CompilationOptions, CreateCompilationOptionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(compilationOptions, project, WellKnownChecksumObjects.CompilationOptions, CreateCompilationOptionsAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, ParseOptions parseOptions, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(parseOptions, project, WellKnownChecksumObjects.ParseOptions, CreateParseOptionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(parseOptions, project, WellKnownChecksumObjects.ParseOptions, CreateParseOptionsAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(ProjectReference reference, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.ProjectReference, CreateProjectReferenceAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.ProjectReference, CreateProjectReferenceAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(MetadataReference reference, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.MetadataReference, CreateMetadataReferenceAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.MetadataReference, CreateMetadataReferenceAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.AnalyzerReference, CreateAnalyzerReferenceAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.AnalyzerReference, CreateAnalyzerReferenceAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(TextDocumentState state, SourceText unused, CancellationToken cancellationToken)
         {
             // TODO: currently this is a bit wierd not to hold onto source text.
             //       it would be nice if SourceText is changed like how recoverable syntax tree work.
-            return _storage.GetOrCreateAssetAsync(state, state, WellKnownChecksumObjects.SourceText, CreateSourceTextAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(state, state, WellKnownChecksumObjects.SourceText, CreateSourceTextAsync, cancellationToken);
         }
 
         private Task<Asset> CreateSolutionChecksumObjectInfoAsync(SolutionChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.Execution
             return SourceCodeKind.Regular;
         }
 
-        private sealed class AssetOnlyStorage : SnapshotStorage
+        private sealed class AssetOnlyChecksumTree : ChecksumTree
         {
-            public AssetOnlyStorage(Solution solution) :
+            public AssetOnlyChecksumTree(Solution solution) :
                 base(solution)
             {
             }

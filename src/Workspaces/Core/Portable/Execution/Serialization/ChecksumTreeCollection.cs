@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// This is collection of hierarchical checksum trees
     /// </summary>
-    internal class SnapshotStorages
+    internal class ChecksumTreeCollection
     {
         /// <summary>
         /// global asset is an asset which life time is same as host
@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// map from solution checksum to its hierarchical checksum tree root
         /// </summary>
-        private readonly ConcurrentDictionary<ChecksumScope, Storage> _snapshots;
+        private readonly ConcurrentDictionary<ChecksumScope, MyChecksumTree> _checksumTrees;
 
-        public SnapshotStorages()
+        public ChecksumTreeCollection()
         {
             _globalAssets = new ConcurrentDictionary<object, Asset>(concurrencyLevel: 2, capacity: 10);
-            _snapshots = new ConcurrentDictionary<ChecksumScope, Storage>(concurrencyLevel: 2, capacity: 10);
+            _checksumTrees = new ConcurrentDictionary<ChecksumScope, MyChecksumTree>(concurrencyLevel: 2, capacity: 10);
 
             // TODO: currently only red node we are holding in this tree is Solution. create SolutionState so
             //       that we don't hold onto any red nodes (such as Document/Project)
@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.Execution
             _globalAssets.TryRemove(value, out asset);
         }
 
-        public SnapshotStorage CreateSnapshotStorage(Solution solution)
+        public ChecksumTree CreateChecksumTree(Solution solution)
         {
-            return new Storage(this, solution);
+            return new MyChecksumTree(this, solution);
         }
 
         public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
         {
             // search snapshots we have
-            foreach (var storage in _snapshots.Values)
+            foreach (var tree in _checksumTrees.Values)
             {
-                var checksumObject = storage.TryGetChecksumObject(checksum, cancellationToken);
+                var checksumObject = tree.TryGetChecksumObject(checksum, cancellationToken);
                 if (checksumObject != null)
                 {
                     return checksumObject;
@@ -89,15 +89,15 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            // as long as solution snapshot is pinned. it must exist in one of the storages.
+            // as long as solution snapshot is pinned. it must exist in one of the trees.
             throw ExceptionUtilities.UnexpectedValue(checksum);
         }
 
         private ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
         {
-            foreach (var storage in _snapshots.Values)
+            foreach (var tree in _checksumTrees.Values)
             {
-                var entry = storage.TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                var entry = tree.TryGetChecksumObjectEntry(key, kind, cancellationToken);
                 if (entry != null)
                 {
                     return entry;
@@ -107,29 +107,29 @@ namespace Microsoft.CodeAnalysis.Execution
             return null;
         }
 
-        public void RegisterSnapshot(ChecksumScope snapshot, SnapshotStorage storage)
+        public void RegisterSnapshot(ChecksumScope snapshot, ChecksumTree tree)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
-            Contract.ThrowIfFalse(_snapshots.TryAdd(snapshot, (Storage)storage));
+            Contract.ThrowIfFalse(_checksumTrees.TryAdd(snapshot, (MyChecksumTree)tree));
         }
 
         public void UnregisterSnapshot(ChecksumScope snapshot)
         {
             // calling it multiple times for same snapshot is not allowed.
-            Storage dummy;
-            Contract.ThrowIfFalse(_snapshots.TryRemove(snapshot, out dummy));
+            MyChecksumTree dummy;
+            Contract.ThrowIfFalse(_checksumTrees.TryRemove(snapshot, out dummy));
         }
 
         /// <summary>
-        /// Each hierarchical checksum object has 1 corresponding storage.
+        /// Each hierarchical checksum object has 1 corresponding checksum tree.
         /// 
-        /// in storage, it will either have assets or storage for child hierarchical checksum objects.
+        /// in tree, it will either have assets or sub tree for child hierarchical checksum objects.
         /// 
         /// think this as a node in syntax tree, asset as token in the tree.
         /// </summary>
-        private sealed class Storage : SnapshotStorage
+        private sealed class MyChecksumTree : ChecksumTree
         {
-            private readonly SnapshotStorages _owner;
+            private readonly ChecksumTreeCollection _owner;
 
             // some of data (checksum) in this cache can be moved into object itself if we decide to do so.
             // this is cache since we can always rebuild these.
@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.Execution
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
-            public Storage(SnapshotStorages owner, Solution solution) :
+            public MyChecksumTree(ChecksumTreeCollection owner, Solution solution) :
                 base(solution)
             {
                 _owner = owner;
                 _cache = new ConcurrentDictionary<object, ChecksumObjectCache>(concurrencyLevel: 2, capacity: 1);
 
-                // TODO: specialize root storage vs all child storage
+                // TODO: specialize root checksum tree vs all sub tree.
             }
 
             public override void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
@@ -166,19 +166,19 @@ namespace Microsoft.CodeAnalysis.Execution
 
                     if (entry.TryGetValue(checksum, out checksumObject))
                     {
-                        // this storage has information for the checksum
+                        // this tree has information for the checksum
                         return checksumObject;
                     }
 
-                    var storage = entry.TryGetStorage();
-                    if (storage == null)
+                    var tree = entry.TryGetSubTree();
+                    if (tree == null)
                     {
-                        // this entry doesn't have sub storage.
+                        // this entry doesn't have sub tree.
                         continue;
                     }
 
-                    // ask its sub storages
-                    checksumObject = storage.TryGetChecksumObject(checksum, cancellationToken);
+                    // ask its sub trees
+                    checksumObject = tree.TryGetChecksumObject(checksum, cancellationToken);
                     if (checksumObject != null)
                     {
                         // found one
@@ -192,33 +192,33 @@ namespace Microsoft.CodeAnalysis.Execution
                     return asset;
                 }
 
-                // this storage has no reference to the given checksum
+                // this tree has no reference to the given checksum
                 return null;
             }
 
             public ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
             {
-                // find snapshot storage that contains given key, kind tuple.
+                // find snapshot tree that contains given key, kind tuple.
                 ChecksumObjectCache self;
                 ChecksumObject checksumObject;
                 if (_cache.TryGetValue(key, out self) &&
                     self.TryGetValue(kind, out checksumObject))
                 {
-                    // this storage owns it
+                    // this tree owns it
                     return self;
                 }
 
                 foreach (var entry in _cache.Values)
                 {
-                    var storage = entry.TryGetStorage();
-                    if (storage == null)
+                    var tree = entry.TryGetSubTree();
+                    if (tree == null)
                     {
-                        // this entry doesn't have sub storage.
+                        // this entry doesn't have sub tree.
                         continue;
                     }
 
-                    // ask its sub storages
-                    var subEntry = storage.TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                    // ask its sub trees
+                    var subEntry = tree.TryGetChecksumObjectEntry(key, kind, cancellationToken);
                     if (subEntry != null)
                     {
                         // found one
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     }
                 }
 
-                // this storage has no reference to the given checksum
+                // this tree has no reference to the given checksum
                 return null;
             }
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) =>
                 {
-                    var snapshotBuilder = new SnapshotBuilder(GetStorage(key));
+                    var snapshotBuilder = new SnapshotBuilder(GetChecksumTree(key));
                     var assetBuilder = new AssetBuilder(this);
 
                     return valueGetterAsync(v, k, snapshotBuilder, assetBuilder, c);
@@ -291,10 +291,10 @@ namespace Microsoft.CodeAnalysis.Execution
                 return entry.Add(checksumObject);
             }
 
-            private SnapshotStorage GetStorage<TKey>(TKey key)
+            private ChecksumTree GetChecksumTree<TKey>(TKey key)
             {
                 var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
-                return entry.GetOrCreateStorage(_owner, Solution);
+                return entry.GetOrCreateChecksumTree(_owner, Solution);
             }
 
             internal void TestOnly_ClearCache()
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             private ChecksumObject _checksumObject;
 
-            private Storage _lazyStorage;
+            private MyChecksumTree _lazyChecksumTree;
             private ConcurrentDictionary<string, ChecksumObject> _lazyKindToChecksumObjectMap;
             private ConcurrentDictionary<Checksum, ChecksumObject> _lazyChecksumToChecksumObjectMap;
 
@@ -390,20 +390,20 @@ namespace Microsoft.CodeAnalysis.Execution
                 return false;
             }
 
-            public Storage TryGetStorage()
+            public MyChecksumTree TryGetSubTree()
             {
-                return _lazyStorage;
+                return _lazyChecksumTree;
             }
 
-            public Storage GetOrCreateStorage(SnapshotStorages owner, Solution solution)
+            public MyChecksumTree GetOrCreateChecksumTree(ChecksumTreeCollection owner, Solution solution)
             {
-                if (_lazyStorage != null)
+                if (_lazyChecksumTree != null)
                 {
-                    return _lazyStorage;
+                    return _lazyChecksumTree;
                 }
 
-                Interlocked.CompareExchange(ref _lazyStorage, new Storage(owner, solution), null);
-                return _lazyStorage;
+                Interlocked.CompareExchange(ref _lazyChecksumTree, new MyChecksumTree(owner, solution), null);
+                return _lazyChecksumTree;
             }
 
             private void EnsureLazyMap()
@@ -424,18 +424,18 @@ namespace Microsoft.CodeAnalysis.Execution
     }
 
     /// <summary>
-    /// Base type for storage. we currently have 2 implementation.
+    /// Base type for checksum tree. we currently have 2 implementation.
     /// 
     /// one that used for hierarchical tree, one that is used to create one off asset
     /// from asset builder such as additional or global asset which is not part of
     /// hierarchical checksum tree
     /// </summary>
-    internal abstract class SnapshotStorage
+    internal abstract class ChecksumTree
     {
         public readonly Solution Solution;
         public readonly Serializer Serializer;
 
-        protected SnapshotStorage(Solution solution)
+        protected ChecksumTree(Solution solution)
         {
             Solution = solution;
             Serializer = new Serializer(solution.Workspace.Services);

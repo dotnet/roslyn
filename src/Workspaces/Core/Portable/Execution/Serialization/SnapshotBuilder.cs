@@ -12,52 +12,52 @@ namespace Microsoft.CodeAnalysis.Execution
     internal struct SnapshotBuilder
     {
         private readonly Serializer _serializer;
-        private readonly SnapshotStorage _storage;
+        private readonly ChecksumTree _checksumTree;
 
-        public SnapshotBuilder(SnapshotStorage storage)
+        public SnapshotBuilder(ChecksumTree checksumTree)
         {
-            _storage = storage;
-            _serializer = storage.Serializer;
+            _checksumTree = checksumTree;
+            _serializer = checksumTree.Serializer;
         }
 
         public Task<SolutionChecksumObject> BuildAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(solution, solution, SolutionChecksumObject.Name, CreateSolutionChecksumObjectAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(solution, solution, SolutionChecksumObject.Name, CreateSolutionChecksumObjectAsync, cancellationToken);
         }
 
         public Task<ProjectChecksumObject> BuildAsync(Project project, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), project, ProjectChecksumObject.Name, CreateProjectChecksumObjectAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), project, ProjectChecksumObject.Name, CreateProjectChecksumObjectAsync, cancellationToken);
         }
 
         private Task<DocumentChecksumObject> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(document.State, document, DocumentChecksumObject.Name, CreateDocumentChecksumObjectAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(document.State, document, DocumentChecksumObject.Name, CreateDocumentChecksumObjectAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Solution solution, IEnumerable<Project> projects, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(solution, projects, WellKnownChecksumObjects.Projects, CreateProjectChecksumCollectionAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(solution, projects, WellKnownChecksumObjects.Projects, CreateProjectChecksumCollectionAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<TextDocument> documents, string kind, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), documents, kind, CreateDocumentChecksumObjectAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), documents, kind, CreateDocumentChecksumObjectAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<ProjectReference> projectReferences, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), projectReferences, WellKnownChecksumObjects.ProjectReferences, CreateChecksumCollectionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), projectReferences, WellKnownChecksumObjects.ProjectReferences, CreateChecksumCollectionsAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<MetadataReference> metadataReferences, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), metadataReferences, WellKnownChecksumObjects.MetadataReferences, CreateChecksumCollectionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), metadataReferences, WellKnownChecksumObjects.MetadataReferences, CreateChecksumCollectionsAsync, cancellationToken);
         }
 
         private Task<ChecksumCollection> BuildAsync(Project project, IEnumerable<AnalyzerReference> analyzerReferences, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), analyzerReferences, WellKnownChecksumObjects.AnalyzerReferences, CreateChecksumCollectionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateHierarchicalChecksumObjectAsync(project.Solution.GetProjectState(project.Id), analyzerReferences, WellKnownChecksumObjects.AnalyzerReferences, CreateChecksumCollectionsAsync, cancellationToken);
         }
 
         private async Task<SolutionChecksumObject> CreateSolutionChecksumObjectAsync(

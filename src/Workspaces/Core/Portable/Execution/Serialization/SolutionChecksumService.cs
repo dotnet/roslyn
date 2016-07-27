@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Execution
     [ExportWorkspaceServiceFactory(typeof(ISolutionChecksumService)), Shared]
     internal class SolutionChecksumServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly SnapshotStorages _storages = new SnapshotStorages();
+        private readonly ChecksumTreeCollection _storages = new ChecksumTreeCollection();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Execution
         internal class Service : ISolutionChecksumService
         {
             private readonly HostWorkspaceServices _workspaceServices;
-            private readonly SnapshotStorages _storages;
+            private readonly ChecksumTreeCollection _storages;
 
-            public Service(HostWorkspaceServices workspaceServices, SnapshotStorages storages)
+            public Service(HostWorkspaceServices workspaceServices, ChecksumTreeCollection storages)
             {
                 _workspaceServices = workspaceServices;
                 _storages = storages;
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Execution
             public async Task<ChecksumScope> CreateChecksumAsync(Solution solution, CancellationToken cancellationToken)
             {
                 // TODO: add logging mechanism
-                var snapshotStorage = _storages.CreateSnapshotStorage(solution);
+                var checksumTree = _storages.CreateChecksumTree(solution);
 
-                var builder = new SnapshotBuilder(snapshotStorage);
-                var snapshot = new ChecksumScope(_storages, snapshotStorage, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
+                var builder = new SnapshotBuilder(checksumTree);
+                var snapshot = new ChecksumScope(_storages, checksumTree, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
 
                 return snapshot;
             }

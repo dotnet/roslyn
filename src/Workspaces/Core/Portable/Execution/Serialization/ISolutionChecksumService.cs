@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -45,47 +44,5 @@ namespace Microsoft.CodeAnalysis.Execution
 
         // TODO: provide a way to walk whole hierarchical checksum tree or return multiple ChecksumObject
         //       based on given predicate
-    }
-
-    /// <summary>
-    /// a checksum scope that one can use to pin assets in memory while working on remote host
-    /// </summary>
-    internal class ChecksumScope : IDisposable
-    {
-        private readonly SnapshotStorages _storages;
-        private readonly SnapshotStorage _storage;
-
-        public readonly SolutionChecksumObject SolutionChecksum;
-
-        public ChecksumScope(
-            SnapshotStorages storages,
-            SnapshotStorage storage,
-            SolutionChecksumObject solutionChecksum)
-        {
-            _storages = storages;
-            _storage = storage;
-
-            SolutionChecksum = solutionChecksum;
-
-            _storages.RegisterSnapshot(this, storage);
-        }
-
-        public Workspace Workspace => _storage.Solution.Workspace;
-
-        /// <summary>
-        /// Add asset that is not part of solution to be part of this snapshot.
-        /// 
-        /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
-        ///       this should be changed so that custom serializer can be discoverable by <see cref="ChecksumObject.Kind"/> 
-        /// </summary>
-        public void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
-        {
-            _storage.AddAdditionalAsset(asset, cancellationToken);
-        }
-
-        public void Dispose()
-        {
-            _storages.UnregisterSnapshot(this);
-        }
     }
 }

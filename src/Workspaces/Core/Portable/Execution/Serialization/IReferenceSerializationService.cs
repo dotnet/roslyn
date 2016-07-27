@@ -23,13 +23,4 @@ namespace Microsoft.CodeAnalysis.Execution
         MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken);
         AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken);
     }
-
-    /// <summary>
-    /// This lets consumer to get to inner temporary storage that references use
-    /// as its shadow copy storage
-    /// </summary>
-    internal interface ISupportTemporaryStorage
-    {
-        IEnumerable<ITemporaryStreamStorage> GetStorages();
-    }
 }

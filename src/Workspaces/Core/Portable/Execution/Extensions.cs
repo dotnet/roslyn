@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    // REVIEW: should there be auto retry mechanism such as if out of proc run fails, it automatically calls inProc one?
     internal static class Extensions
     {
         public static void WriteArray<T>(this ObjectWriter writer, T[] array)

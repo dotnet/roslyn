@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         public void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var file = reference as AnalyzerFileReference;
             if (file != null)
             {
@@ -126,6 +128,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var type = reader.ReadString();
             if (type == nameof(AnalyzerFileReference))
             {
@@ -148,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        protected void WritePortableExecutableReferenceHeaderTo(PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
+        protected void WritePortableExecutableReferenceHeaderTo(
+            PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteString(nameof(PortableExecutableReference));
             writer.WriteInt32((int)kind);
@@ -194,6 +199,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         private void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             writer.WriteInt32((int)metadata.Kind);
 
             var metadataReader = GetMetadataReader(metadata);
@@ -204,7 +211,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             writer.WriteArray(guid.ToByteArray());
         }
 
-        private void WritePortableExecutableReferenceTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WritePortableExecutableReferenceTo(
+            PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
             WritePortableExecutableReferenceMetadataTo(reference, writer, cancellationToken);
@@ -212,7 +220,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             // TODO: what I should do with documentation provider? it is not exposed outside
         }
 
-        private void WritePortableExecutableReferenceMetadataTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WritePortableExecutableReferenceMetadataTo(
+            PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var metadata = GetMetadata(reference);
             WriteTo(metadata, writer, cancellationToken);
@@ -239,6 +248,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         private void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             writer.WriteInt32((int)properties.Kind);
             writer.WriteArray(properties.Aliases.ToArray());
             writer.WriteBoolean(properties.EmbedInteropTypes);
@@ -246,6 +257,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         private MetadataReferenceProperties ReadMetadataReferencePropertiesFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var kind = (MetadataImageKind)reader.ReadInt32();
             var aliases = reader.ReadArray<string>().ToImmutableArrayOrEmpty();
             var embedInteropTypes = reader.ReadBoolean();
@@ -274,7 +287,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             WriteTo((ModuleMetadata)metadata, writer, cancellationToken);
         }
 
-        private bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
+            ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var storages = reference.GetStorages();
             if (storages == null)
@@ -311,7 +325,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             }
         }
 
-        private ValueTuple<Metadata, ImmutableArray<ITemporaryStreamStorage>> ReadMetadataFrom(ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
+        private ValueTuple<Metadata, ImmutableArray<ITemporaryStreamStorage>> ReadMetadataFrom(
+            ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             var metadataKind = (MetadataImageKind)reader.ReadInt32();
             if (metadataKind == MetadataImageKind.Assembly)
@@ -341,7 +356,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             return ValueTuple.Create<Metadata, ImmutableArray<ITemporaryStreamStorage>>(moduleInfo.Item1, ImmutableArray.Create(moduleInfo.Item2));
         }
 
-        private ValueTuple<ModuleMetadata, ITemporaryStreamStorage> ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
+        private ValueTuple<ModuleMetadata, ITemporaryStreamStorage> ReadModuleMetadataFrom(
+            ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -364,7 +380,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             return ValueTuple.Create(metadata, storage);
         }
 
-        private void GetTemporaryStorage(ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorage storage, out long length, CancellationToken cancellationToken)
+        private void GetTemporaryStorage(
+            ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorage storage, out long length, CancellationToken cancellationToken)
         {
             if (kind == SerializationKinds.Bits)
             {
@@ -445,10 +462,12 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         private void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var blockFieldInfo = reader.GetType().GetTypeInfo().GetDeclaredField("Block");
             var block = blockFieldInfo.GetValue(reader);
 
-            // once things become public API, change it to copy stream over byte* and length from metadata reader
+            // TODO: once things become public API, change it to copy stream over byte* and length from metadata reader
             var toArrayFieldInfo = block.GetType().GetTypeInfo().GetDeclaredMethod("ToArray");
             var array = (byte[])toArrayFieldInfo.Invoke(block, null);
 
@@ -473,12 +492,10 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
         private sealed class PinnedObject : IDisposable
         {
             private readonly GCHandle _gcHandle;
-            private readonly long _length;
 
             public PinnedObject(byte[] array, long length)
             {
                 _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-                _length = length;
             }
 
             internal IntPtr GetPointer()
@@ -486,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
                 return _gcHandle.AddrOfPinnedObject();
             }
 
-            private void Dispose(bool disposing)
+            private void OnDispose()
             {
                 if (_gcHandle.IsAllocated)
                 {
@@ -496,13 +513,13 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
             ~PinnedObject()
             {
-                Dispose(false);
+                OnDispose();
             }
 
             public void Dispose()
             {
                 GC.SuppressFinalize(this);
-                Dispose(true);
+                OnDispose();
             }
         }
 
