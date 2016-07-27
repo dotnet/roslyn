@@ -699,7 +699,4 @@ Additional information: {1}</value>
   <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
   </data>
-  <data name="Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start_working_in_proc_do_you_want_to_recover_remote_host" xml:space="preserve">
-    <value>Connection to remote host has been lost. some features might stop working or start working in proc. do you want to recover remote host?</value>
-  </data>
 </root>

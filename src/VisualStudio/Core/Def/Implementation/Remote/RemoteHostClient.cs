@@ -66,9 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
             OnConnectionChanged(false);
         }
 
-        private void OnConnectionChanged(bool connection)
+        private void OnConnectionChanged(bool connected)
         {
-            ConnectionChanged?.Invoke(this, connection);
+            ConnectionChanged?.Invoke(this, connected);
         }
 
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism

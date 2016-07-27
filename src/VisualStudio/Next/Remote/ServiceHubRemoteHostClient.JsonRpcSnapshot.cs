@@ -80,6 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _snapshotClient.Dispose();
             }
 
+            /// <summary>
+            /// Communication channel between VS feature and roslyn service in remote host.
+            /// 
+            /// this is the channel consumer of remote host client will playing with
+            /// </summary>
             private class ServiceJsonRpcClient : JsonRpcClient
             {
                 private readonly object _callbackTarget;
@@ -90,9 +95,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _callbackTarget = callbackTarget;
                 }
 
-                protected override object GetTarget() => _callbackTarget;
+                protected override object GetCallbackTarget() => _callbackTarget;
             }
 
+            /// <summary>
+            /// Communication channel between remote host client and remote host.
+            /// 
+            /// this is framework's back channel to talk to remote host
+            /// 
+            /// for example, this will be used to deliver missing assets in remote host.
+            /// 
+            /// each remote host client will have its own back channel so that it can work isolated
+            /// with other clients.
+            /// </summary>
             private class SnapshotJsonRpcClient : JsonRpcClient
             {
                 private readonly JsonRpcSession _owner;
@@ -106,13 +121,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 private ChecksumScope ChecksumScope => _owner.ChecksumScope;
-                protected override object GetTarget() => this;
 
+                protected override object GetCallbackTarget() => this;
+
+                /// <summary>
+                /// this is callback from remote host side to get asset associated with checksum from VS.
+                /// </summary>
                 public async Task RequestAssetAsync(int serviceId, byte[] checksum, string streamName)
                 {
                     try
                     {
-                        // this is callback from remote host side to get asset associated with checksum from VS.
                         var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
 
                         using (var stream = new ClientDirectStream(streamName))

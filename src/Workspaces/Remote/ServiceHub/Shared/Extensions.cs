@@ -17,15 +17,13 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            Task task = null;
-
             try
             {
                 using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                 using (var stream = new ServerDirectStream())
                 {
                     // send request by adding direct stream name to end of arguments
-                    task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -54,15 +52,13 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            Task task = null;
-
             try
             {
                 using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                 using (var stream = new ServerDirectStream())
                 {
                     // send request to asset source
-                    task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
