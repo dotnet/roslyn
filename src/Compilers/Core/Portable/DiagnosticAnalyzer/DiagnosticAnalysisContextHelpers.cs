@@ -70,6 +70,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
+        
+        internal static void VerifyIOperationFeatureFlag(bool isIOperationFeatureEnabled)
+        {
+            if (!isIOperationFeatureEnabled)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+            }
+        }
 
         private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
         {
