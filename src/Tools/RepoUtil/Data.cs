@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RepoUtil
 {
-    class Data
+    internal static class Data
     {
         /// <summary>
         /// The dependencies in these project.json files are expected to be regularly updated by 
@@ -87,8 +87,8 @@ namespace RepoUtil
             @"src\Tools\Source\RunTests\project.json",
         };
 
-        internal static readonly ImmutableArray<string> FloatingList = ImmutableArray.Create(s_floatingList);
-        internal static readonly ImmutableArray<string> StaticList = ImmutableArray.Create(s_staticList);
+        internal static readonly ImmutableArray<string> FloatingList = s_floatingList.OrderBy(x => x).ToImmutableArray();
+        internal static readonly ImmutableArray<string> StaticList = s_staticList.OrderBy(x => x).ToImmutableArray();
 
         internal static ImmutableArray<FileName> GetFloatingFileNames(string sourcesPath)
         {

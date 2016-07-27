@@ -33,13 +33,14 @@ namespace RepoUtil
                 return false;
             }
 
+            var repoData = RepoData.ReadFrom(Path.Combine(AppContext.BaseDirectory, "RepoData.json"));
             switch (mode)
             {
                 case Mode.Usage:
                     Usage();
                     return true;
                 case Mode.Verify:
-                    return Verify(sourcesPath);
+                    return VerifyUtil.Go(sourcesPath, repoData);
                 case Mode.Consumes:
                     return Consumes(sourcesPath);
                 default:
@@ -47,49 +48,27 @@ namespace RepoUtil
             }
         }
 
-        /// <summary>
-        /// Verify our repo is consistent and this tool has enough information to make changes to the state.
-        ///
-        /// TOOD: should this run before every command?
-        /// </summary>
-        private static bool Verify(string sourcesPath)
-        {
-            var fileNames = Data
-                .StaticList
-                .Concat(Data.FloatingList)
-                .Select(x => new FileName(sourcesPath, x));
-            var allGood = false;
-            foreach (var fileName in fileNames)
-            {
-                if (!File.Exists(fileName.FullPath))
-                {
-                    Console.WriteLine($"Project file {fileName} does not exist");
-                    allGood = false;
-                }
-            }
-
-            if (!allGood)
-            {
-                return false;
-            }
-
-            return ProjectJsonUtil.VerifyTracked(sourcesPath, fileNames);
-        }
-
         private static bool Consumes(string sourcesPath)
         {
-            var map = new Dictionary<string, NuGetReference>(StringComparer.Ordinal);
-            foreach (var fileName in Data.GetFloatingFileNames(sourcesPath))
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            var list = new List<string>();
+            var all = Data.FloatingList.Concat(Data.StaticList).Select(x => new FileName(sourcesPath, x));
+            foreach (var fileName in all)
             {
                 foreach (var nugetRef in ProjectJsonUtil.GetDependencies(fileName.FullPath))
                 {
-                    map[nugetRef.Name] = nugetRef;
+                    var key = $@"""{nugetRef.Name}"" : ""{nugetRef.Version}""";
+                    if (set.Add(key))
+                    {
+                        list.Add(key);
+                    }
                 }
             }
 
-            foreach (var nugetRef in map.Values.OrderBy(x => x.Name))
+            list.Sort();
+            foreach (var key in list)
             {
-                Console.WriteLine($@"""{nugetRef.Name}"" : ""{nugetRef.Version}""");
+                Console.WriteLine(key);
             }
 
             return true;

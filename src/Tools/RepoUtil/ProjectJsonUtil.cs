@@ -20,6 +20,7 @@ namespace RepoUtil
             return GetDependencies(filePath).Length > 0;
         }
 
+        // TOOD: use FileName here
         internal static ImmutableArray<NuGetReference> GetDependencies(string filePath)
         {
             // Need to track any file that has dependencies

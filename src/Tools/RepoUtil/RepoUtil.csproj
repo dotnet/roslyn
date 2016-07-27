@@ -29,9 +29,14 @@
     <Compile Include="NuGetReference.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectJsonUtil.cs" />
+    <Compile Include="RepoData.cs" />
+    <Compile Include="VerifyUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="RepoData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

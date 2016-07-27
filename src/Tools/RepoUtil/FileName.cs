@@ -20,6 +20,12 @@ namespace RepoUtil
             RelativePath = relativePath;
         }
 
+        internal static FileName FromFullPath(string rootPath, string fullPath)
+        {
+            fullPath = fullPath.Substring(rootPath.Length + 1);
+            return new FileName(rootPath, fullPath);
+        }
+
         public static bool operator ==(FileName left, FileName right) => left.FullPath == right.FullPath;
         public static bool operator !=(FileName left, FileName right) => !(left == right);
         public bool Equals(FileName other) => this == other;
