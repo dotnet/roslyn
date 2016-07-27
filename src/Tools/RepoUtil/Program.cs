@@ -15,7 +15,6 @@ namespace RepoUtil
             Usage,
             Verify,
             Consumes,
-            Generate,
             Change,
         }
 
@@ -48,18 +47,11 @@ namespace RepoUtil
                         Console.WriteLine(ConsumesUtil.Go(repoConfig, sourcesPath));
                         return true;
                     }
-                case Mode.Generate:
-                    {
-                        var repoData = RepoData.Create(repoConfig, sourcesPath);
-                        var util = new GenerateUtil(repoData);
-                        util.Go();
-                        return true;
-                    }
                 case Mode.Change:
                     {
                         var repoData = RepoData.Create(repoConfig, sourcesPath);
                         var util = new ChangeUtil(repoData);
-                        util.Go();
+                        util.ChangeAll();
                         return true;
                     }
                 default:
@@ -72,7 +64,7 @@ namespace RepoUtil
             var text = @"
   -verify: check the state of the repo
   -consumes: output the conent consumed by this repo
-  -generate: generate all the supporting files
+  -change: change the dependencies.
 ";
             Console.Write(text);
         }
@@ -96,10 +88,6 @@ namespace RepoUtil
                         break;
                     case "-consumes":
                         mode = Mode.Consumes;
-                        index++;
-                        break;
-                    case "-generate":
-                        mode = Mode.Generate;
                         index++;
                         break;
                     case "-change":

@@ -31,7 +31,6 @@
     <Compile Include="Data.cs" />
     <Compile Include="FileName.cs" />
     <Compile Include="GenerateData.cs" />
-    <Compile Include="GenerateUtil.cs" />
     <Compile Include="JsonTypes.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="NuGetPackageChange.cs" />
