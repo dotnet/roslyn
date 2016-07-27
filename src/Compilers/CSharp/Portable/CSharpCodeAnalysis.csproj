@@ -401,6 +401,7 @@
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.Analysis.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrame.cs" />
+    <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.LocalFunctionReferenceRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaMethod.cs" />
     <Compile Include="Lowering\LocalRewriter\DynamicSiteContainer.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter.cs" />
