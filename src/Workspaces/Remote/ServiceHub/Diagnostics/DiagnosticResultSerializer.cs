@@ -176,22 +176,28 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var operationBlockEndActionsCount = reader.ReadInt32();
             var executionTime = new TimeSpan(reader.ReadInt64());
 
-            return new AnalyzerTelemetryInfo(
-                compilationStartActionsCount,
-                compilationEndActionsCount,
-                compilationActionsCount,
-                syntaxTreeActionsCount,
-                semanticModelActionsCount,
-                symbolActionsCount,
-                syntaxNodeActionsCount,
-                codeBlockStartActionsCount,
-                codeBlockEndActionsCount,
-                codeBlockActionsCount,
-                operationActionsCount,
-                operationBlockStartActionsCount,
-                operationBlockEndActionsCount,
-                operationBlockActionsCount,
-                executionTime);
+            return new AnalyzerTelemetryInfo()
+            {
+                CompilationStartActionsCount = compilationStartActionsCount,
+                CompilationEndActionsCount = compilationEndActionsCount,
+                CompilationActionsCount = compilationActionsCount,
+
+                SyntaxTreeActionsCount = syntaxTreeActionsCount,
+                SemanticModelActionsCount = semanticModelActionsCount,
+                SymbolActionsCount = symbolActionsCount,
+                SyntaxNodeActionsCount = syntaxNodeActionsCount,
+
+                CodeBlockStartActionsCount = codeBlockStartActionsCount,
+                CodeBlockEndActionsCount = codeBlockEndActionsCount,
+                CodeBlockActionsCount = codeBlockActionsCount,
+
+                OperationActionsCount = operationActionsCount,
+                OperationBlockStartActionsCount = operationBlockStartActionsCount,
+                OperationBlockEndActionsCount = operationBlockEndActionsCount,
+                OperationBlockActionsCount = operationBlockActionsCount,
+
+                ExecutionTime = executionTime
+            };
         }
     }
 }
