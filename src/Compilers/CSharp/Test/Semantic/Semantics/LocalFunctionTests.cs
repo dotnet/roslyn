@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
         {
@@ -700,12 +701,12 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (9,9): warning CS0162: Unreachable code detected
-    //         int x = 2;
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
-    // (15,9): error CS0165: Use of unassigned local variable 'Local'
-    //         Local();
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(15, 9)
+                // (9,9): warning CS0162: Unreachable code detected
+                //         int x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
+                // (15,9): error CS0165: Use of unassigned local variable 'x'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("x").WithLocation(15, 9)
     );
         }
 
@@ -734,12 +735,12 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (9,9): warning CS0162: Unreachable code detected
-    //         int x = 2;
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
-    // (15,22): error CS0165: Use of unassigned local variable 'Local'
-    //         Action foo = Local;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(15, 22)
+                // (9,9): warning CS0162: Unreachable code detected
+                //         int x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
+                // (15,22): error CS0165: Use of unassigned local variable 'x'
+                //         Action foo = Local;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("x").WithLocation(15, 22)
     );
         }
 
@@ -768,13 +769,13 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (9,9): warning CS0162: Unreachable code detected
-    //         int x = 2;
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
-    // (15,19): error CS0165: Use of unassigned local variable 'Local'
-    //         var bar = new Action(Local);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "new Action(Local)").WithArguments("Local").WithLocation(15, 19)
-    );
+                // (9,9): warning CS0162: Unreachable code detected
+                //         int x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
+                // (15,19): error CS0165: Use of unassigned local variable 'x'
+                //         var bar = new Action(Local);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "new Action(Local)").WithArguments("x").WithLocation(15, 19)
+                );
         }
 
         [Fact]
@@ -1215,11 +1216,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (17,13): error CS0165: Use of unassigned local variable 'Local'
-    //             Local();
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(17, 13)
-    );
+            VerifyDiagnostics(source);
         }
 
         [Fact]

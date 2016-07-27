@@ -897,7 +897,7 @@ class Program
                 void M3()
                 {
                     int d = c;
-                    Print(d);
+                    Print(d + b);
                 }
                 M3();
             };
@@ -910,7 +910,7 @@ class Program
         E();
     }
 }";
-            VerifyOutput(source, "2");
+            VerifyOutput(source, "4");
         }
 
         [Fact]
