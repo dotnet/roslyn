@@ -581,10 +581,11 @@ Public Module BuildDevDivInsertionFiles
                             Continue For
                         End If
 
-                        Dim fileName = Path.GetFileName(vsixPart.Uri.ToString())
+                        Dim partRelativePath = GetPartRelativePath(vsixPart)
+                        Dim partFileName = Path.GetFileName(partRelativePath)
 
                         ' If this is something that we don't need to ship, skip it
-                        If VsixContentsToSkip.Contains(fileName) Then
+                        If VsixContentsToSkip.Contains(partFileName) Then
                             Continue For
                         End If
 
@@ -593,18 +594,18 @@ Public Module BuildDevDivInsertionFiles
                         Dim dependency As DependencyInfo = Nothing
                         Dim relativeOutputDir As String
 
-                        If IsLanguageServiceRegistrationFile(fileName) Then
+                        If IsLanguageServiceRegistrationFile(partFileName) Then
                             relativeOutputDir = Path.Combine(GetExternalApiDirectory(), "LanguageServiceRegistration", vsixName)
-                        ElseIf dependencies.TryGetValue(fileName, dependency) Then
+                        ElseIf dependencies.TryGetValue(partFileName, dependency) Then
                             relativeOutputDir = GetExternalApiDirectory(dependency)
                         Else
                             relativeOutputDir = GetExternalApiDirectory()
                         End If
 
-                        Dim relativeOutputFilePath = Path.Combine(relativeOutputDir, fileName)
+                        Dim relativeOutputFilePath = Path.Combine(relativeOutputDir, partFileName)
 
                         If processedFiles.Add(relativeOutputFilePath) Then
-                            If IsLanguageServiceRegistrationFile(fileName) Then
+                            If IsLanguageServiceRegistrationFile(partFileName) Then
                                 Dim absoluteOutputFilePath = GetAbsolutePathInOutputDirectory(relativeOutputFilePath)
                                 WriteVsixPartToFile(vsixPart, absoluteOutputFilePath)
 
@@ -617,29 +618,29 @@ Public Module BuildDevDivInsertionFiles
                                         RewriteVsixManifest(absoluteOutputFilePath)
                                 End Select
                             ElseIf dependency Is Nothing Then
-                                If Not File.Exists(Path.Combine(inputDirectory, fileName)) Then
+                                If Not File.Exists(Path.Combine(inputDirectory, partRelativePath)) Then
                                     Throw New InvalidOperationException($"File '{vsixPart.Uri}' is contained in '{vsixFileName}' but not present in '{inputDirectory}'.")
                                 End If
 
                                 ' paths are relative to input directory:
-                                filesToInsert.Add(New NugetFileInfo(fileName))
+                                filesToInsert.Add(New NugetFileInfo(partFileName))
 
-                                AddXmlDocumentationFile(filesToInsert, fileName)
+                                AddXmlDocumentationFile(filesToInsert, partFileName)
                             End If
 
                             ' Now write the setup authoring for it
-                            wsx.Root.Add(CreateComponentFragment(vsixName, fileName, relativeOutputFilePath))
+                            wsx.Root.Add(CreateComponentFragment(vsixName, partFileName, relativeOutputFilePath))
 
                             ' Localization:
-                            If NeedsLocalization(fileName) Then
-                                Dim resourceFileSourcePath = If(CompilerFiles.Contains(fileName),
+                            If NeedsLocalization(partFileName) Then
+                                Dim resourceFileSourcePath = If(CompilerFiles.Contains(partFileName),
                                     $"!(bindpath.binaries.$(var.Chip))\$(var.LocalizationPathModifier)\simship\$(var.Lang)\{relativeOutputDir}\",
                                     $"!(bindpath.binaries.$(var.Chip))\$(var.LocalizationPathModifier)\$(var.Lang)\{relativeOutputDir}\")
 
-                                Dim resourcePath = resourceFileSourcePath + GetAssemblyResourcesDllName(fileName)
-                                resWsx.Root.Add(CreateResourceComponentFragment(vsixName, fileName, resourcePath))
+                                Dim resourcePath = resourceFileSourcePath + GetAssemblyResourcesDllName(partFileName)
+                                resWsx.Root.Add(CreateResourceComponentFragment(vsixName, partFileName, resourcePath))
 
-                                GenerateLocProject(fileName, relativeOutputFilePath, locProjects)
+                                GenerateLocProject(partFileName, relativeOutputFilePath, locProjects)
                             End If
                         End If
                     Next
@@ -659,6 +660,15 @@ Public Module BuildDevDivInsertionFiles
             wsx.Save(GetAbsolutePathInOutputDirectory("SetupAuthoring\Roslyn\RoslynLanguageServices.wxs"), SaveOptions.OmitDuplicateNamespaces)
             resWsx.Save(GetAbsolutePathInOutputDirectory("SetupAuthoring\Roslyn\RoslynLanguageServices_Res.wxs"), SaveOptions.OmitDuplicateNamespaces)
         End Sub
+
+        Private Function GetPartRelativePath(part As PackagePart) As String
+            Dim name = part.Uri.OriginalString
+            If name.Length > 0 AndAlso name(0) = "/"c Then
+                name = name.Substring(1)
+            End If
+
+            Return name.Replace("/"c, "\"c)
+        End Function
 
         Private Function NeedsLocalization(fileName As String) As Boolean
             Return IsExecutableCodeFileName(fileName) AndAlso Not BinariesToSkipLocalization.Contains(fileName)

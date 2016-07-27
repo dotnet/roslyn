@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
 
+        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
+        
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
 
@@ -98,7 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             return options.WithFeatures(options.Features.Concat(list));
         }
-
+        
+        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
+        }
     }
 }
 

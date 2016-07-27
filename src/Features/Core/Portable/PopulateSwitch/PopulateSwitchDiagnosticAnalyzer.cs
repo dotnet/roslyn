@@ -1,5 +1,9 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,7 +29,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterOperationAction(AnalyzeOperation, OperationKind.SwitchStatement);
+            var internalMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+            internalMethod.Invoke(context, new object[] { new Action<OperationAnalysisContext>(AnalyzeOperation), ImmutableArray.Create(OperationKind.SwitchStatement) });
         }
 
         private void AnalyzeOperation(OperationAnalysisContext context)

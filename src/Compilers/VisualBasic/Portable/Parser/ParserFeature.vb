@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        IOperation
         ImplicitDefaultValueOnOptionalParameter
     End Enum
 
@@ -43,6 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.BinaryLiterals
                     Return "binaryLiterals"
+
+                Case Feature.IOperation
+                    Return "IOperation"
+
                 Case Feature.ImplicitDefaultValueOnOptionalParameter
                     Return "implicitDefaultValueOnOptionalParameter"
 
@@ -84,6 +89,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return LanguageVersion.VBvNext
+
                 Case Feature.ImplicitDefaultValueOnOptionalParameter
                     Return LanguageVersion.VBvnext
 
@@ -146,6 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
                     Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.IOperation
+                    Return ERRID.FEATURE_IOperation
                 Case Feature.ImplicitDefaultValueOnOptionalParameter
                     Return ERRID.FEATURE_ImplicitDefaultValueOptionalParameter
                 Case Else
