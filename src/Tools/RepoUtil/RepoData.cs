@@ -121,7 +121,7 @@ namespace RepoUtil
         /// </summary>
         internal RepoData PopulateWithCurrentData(string sourcesPath)
         {
-            var list = new List<string>(FloatingPackages);
+            var set = new HashSet<string>(FloatingPackages, StringComparer.OrdinalIgnoreCase);
             foreach (var fileName in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
             {
                 foreach (var nuget in ProjectJsonUtil.GetDependencies(fileName))
@@ -131,13 +131,13 @@ namespace RepoUtil
                         continue;
                     }
 
-                    list.Add(nuget.Name);
+                    set.Add(nuget.Name);
                 }
             }
 
             return new RepoData(
                 StaticPackages,
-                list,
+                set,
                 FloatingToolsetPackages,
                 hasCurrentData: true);
         }
