@@ -16,6 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
     internal partial class StreamingFindReferencesPresenter :
         ForegroundThreadAffinitizedObject, IStreamingFindReferencesPresenter
     {
+        public const string RoslynFindReferencesTableDataSourceIdentifier =
+            nameof(RoslynFindReferencesTableDataSourceIdentifier);
+
+        public const string RoslynFindReferencesTableDataSourceSourceTypeIdentifier =
+            nameof(RoslynFindReferencesTableDataSourceSourceTypeIdentifier);
+
         private readonly IServiceProvider _serviceProvider;
         private readonly IAsynchronousOperationListener _asyncListener;
 

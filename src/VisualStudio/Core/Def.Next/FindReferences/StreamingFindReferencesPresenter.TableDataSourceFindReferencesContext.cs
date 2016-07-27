@@ -87,13 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public string DisplayName => "Roslyn Data Source";
 
-            public string Identifier => "Roslyn Identifier";
+            public string Identifier => RoslynFindReferencesTableDataSourceIdentifier;
 
-            /// <summary>
-            /// This value is expected by the "FindAllReferences" <see cref="ITableManager"/>.
-            /// Do not change it.
-            /// </summary>
-            public string SourceTypeIdentifier => "FindAllReferencesProvider";
+            public string SourceTypeIdentifier => RoslynFindReferencesTableDataSourceSourceTypeIdentifier;
 
             public IDisposable Subscribe(ITableDataSink sink)
             {
