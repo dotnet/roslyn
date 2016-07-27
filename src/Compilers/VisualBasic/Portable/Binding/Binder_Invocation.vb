@@ -3076,7 +3076,7 @@ ProduceBoundNode:
                 End If
 
                 defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
-                Debug.WriteLine(defaultArgument)
+
             ElseIf param.IsOptional Then
 
                 ' Handle optional object type argument when no default value is specified.

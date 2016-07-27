@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests
         Inherits BasicTestBase
 
-        Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+        Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
 
         <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
         <Fact()>
@@ -2447,7 +2447,7 @@ End Class
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=useOpts)
-            CompileAndVerify(compilation:=compilation.With_MY_FEATURE_, expectedOutput:=
+            CompileAndVerify(compilation:=compilation.WithImplicitDefaultOptionalParameter, expectedOutput:=
             <![CDATA[
 1: 21
 0: 22

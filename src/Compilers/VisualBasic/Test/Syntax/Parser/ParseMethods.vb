@@ -9,7 +9,7 @@ Imports Roslyn.Test.Utilities
 Public Class ParseMethods
     Inherits BasicTestBase
 
-    Private MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.With_MY_FEATURE_
+    Private MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
 
     <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
