@@ -20,7 +20,6 @@ namespace RepoUtil
             return GetDependencies(filePath).Length > 0;
         }
 
-        // TOOD: use FileName here
         internal static ImmutableArray<NuGetPackage> GetDependencies(string filePath)
         {
             // Need to track any file that has dependencies
@@ -38,6 +37,55 @@ namespace RepoUtil
             }
 
             return builder.ToImmutable();
+        }
+
+        /// <summary>
+        /// Change the NuGet dependencies in the file to match the new packages.
+        /// </summary>
+        internal static bool ChangeDependencies(string filePath, ImmutableDictionary<string, NuGetPackage> changeMap)
+        {
+            var obj = JObject.Parse(File.ReadAllText(filePath));
+            var dependencies = (JObject)obj["dependencies"];
+            if (dependencies == null)
+            {
+                return false;
+            }
+
+            var changed = false;
+            foreach (var prop in dependencies.Properties())
+            {
+                var currentPackage = ParseDependency(prop);
+                NuGetPackage newPackage;
+                if (!changeMap.TryGetValue(currentPackage.Name, out newPackage))
+                {
+                    continue;
+                }
+
+                ChangeDependency(prop, newPackage.Version);
+                changed = true;
+            }
+
+            if (!changed)
+            {
+                return false;
+            }
+
+            var data = JsonConvert.SerializeObject(obj, Formatting.Indented);
+            File.WriteAllText(filePath, data);
+            return true;
+        }
+
+        private static void ChangeDependency(JProperty prop, string version)
+        {
+            if (prop.Value.Type == JTokenType.String)
+            {
+                prop.Value = version;
+            }
+            else
+            {
+                var obj = (JObject)prop.Value;
+                obj["version"] = version;
+            }
         }
 
         /// <summary>

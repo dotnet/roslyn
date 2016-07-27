@@ -8,6 +8,7 @@ using System.Xml.Linq;
 
 namespace RepoUtil
 {
+    // TODO: delete this type and merge into ChangeUtil.
     internal class GenerateUtil
     {
         private readonly RepoData _repoData;

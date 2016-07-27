@@ -16,6 +16,7 @@ namespace RepoUtil
             Verify,
             Consumes,
             Generate,
+            Change,
         }
 
         internal static readonly string[] ProjectJsonFileRelativeNames = Array.Empty<string>();
@@ -54,6 +55,13 @@ namespace RepoUtil
                         util.Go();
                         return true;
                     }
+                case Mode.Change:
+                    {
+                        var repoData = RepoData.Create(repoConfig, sourcesPath);
+                        var util = new ChangeUtil(repoData);
+                        util.Go();
+                        return true;
+                    }
                 default:
                     throw new Exception("Unrecognized mode");
             }
@@ -72,7 +80,7 @@ namespace RepoUtil
         private static bool TryParseCommandLine(string[] args, out Mode mode, out string sourcesPath)
         {
             var allGood = true;
-            var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory));
+            var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory)));
             sourcesPath = Path.GetDirectoryName(binariesPath);
             mode = Mode.Usage;
 
@@ -92,6 +100,10 @@ namespace RepoUtil
                         break;
                     case "-generate":
                         mode = Mode.Generate;
+                        index++;
+                        break;
+                    case "-change":
+                        mode = Mode.Change;
                         index++;
                         break;
                     default:
