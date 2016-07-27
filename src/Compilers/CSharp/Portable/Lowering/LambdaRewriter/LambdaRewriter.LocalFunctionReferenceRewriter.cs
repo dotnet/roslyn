@@ -12,7 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LambdaRewriter : MethodToClassRewriter
     {
         /// <summary>
-        /// Rewrites local function declarations into closure classes.
+        /// This pass is expected to run on partially lowered methods
+        /// previously containing one or more local functions. At this
+        /// point all local functions should have been rewritten into
+        /// proper closure classes and have frames and proxies generated
+        /// for them.
+        /// 
+        /// The only thing left is to visit all "references" to local functions
+        /// and rewrite them to be references to the rewritten form. 
         /// </summary>
         private sealed class LocalFunctionReferenceRewriter : BoundTreeRewriterWithStackGuard
         {
@@ -34,13 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node = node.Update(receiver, method, arguments);
                 }
 
-                var visited = base.VisitCall(node);
-                if (visited.Kind != BoundKind.Call)
-                {
-                    return visited;
-                }
-
-                return (BoundCall)visited;
+                return base.VisitCall(node);
             }
 
             public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -76,22 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return base.VisitConversion(conversion);
             }
-
-            public override BoundNode VisitBlock(BoundBlock node)
-            {
-                var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
-
-                foreach (var statement in node.Statements)
-                {
-                    var replacement = (BoundStatement)this.Visit(statement);
-                    if (replacement != null)
-                    {
-                        newStatements.Add(replacement);
-                    }
-                }
-
-                return node.Update(node.Locals, node.LocalFunctions, newStatements.ToImmutableAndFree());
-            }
         }
 
 
@@ -105,10 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.MethodKind == MethodKind.LocalFunction);
 
-            var constructed = symbol as ConstructedMethodSymbol;
-            if (constructed != null)
+            if ((object)symbol != symbol.ConstructedFrom)
             {
-                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method, ref parameters, this.TypeMap.SubstituteTypes(constructed.TypeArguments).SelectAsArray(t => t.Type));
+                RemapLocalFunction(syntax,
+                                   symbol.ConstructedFrom,
+                                   out receiver,
+                                   out method,
+                                   ref parameters,
+                                   TypeMap.SubstituteTypes(symbol.TypeArguments)
+                                          .SelectAsArray(t => t.Type));
                 return;
             }
 
@@ -126,6 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // will always be a LambdaFrame, it's always a closure class
                     var frameType = (NamedTypeSymbol)lambda.Parameters[i].Type.OriginalDefinition;
+
+                    Debug.Assert(frameType is LambdaFrame);
+
                     if (frameType.IsGenericType)
                     {
                         var typeParameters = ((LambdaFrame)frameType).ConstructedFromTypeParameters;
@@ -140,7 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             method = lambda;
             NamedTypeSymbol constructedFrame;
-            RemapLambdaOrLocalFunction(syntax, symbol, typeArguments, mappedLocalFunction.ClosureKind, ref method, out receiver, out constructedFrame);
+            RemapLambdaOrLocalFunction(syntax,
+                                       symbol,
+                                       typeArguments,
+                                       mappedLocalFunction.ClosureKind,
+                                       ref method,
+                                       out receiver,
+                                       out constructedFrame);
         }
     }
 }

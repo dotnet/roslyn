@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Now lower the references
             if (rewriter._localFunctionMap.Count != 0)
             {
-                body = rewriter.RewriteLocalFunctionDefinitions(body);
+                body = rewriter.RewriteLocalFunctionReferences(body);
             }
 
             CheckLocalsDefined(body);
@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = F(prologue, addedLocals);
 
-            //_framePointers.Remove(frame);
             _innermostFramePointer = oldInnermostFramePointer;
 
             if ((object)_innermostFramePointer != null)
@@ -709,7 +708,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
         }
 
-        public BoundStatement RewriteLocalFunctionDefinitions(BoundStatement loweredBody)
+        /// <summary>
+        /// Visit all references to local functions (calls, delegete
+        /// conversions, delegate creations) and rewrite them to point
+        /// to the rewritten local function method instead of the original. 
+        /// </summary>
+        public BoundStatement RewriteLocalFunctionReferences(BoundStatement loweredBody)
         {
             var rewriter = new LocalFunctionReferenceRewriter(this);
 
@@ -723,8 +727,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var synthesizedMethods = CompilationState.SynthesizedMethods;
             if (synthesizedMethods != null)
             {
+                // Dump the existing methods for rewriting
                 var oldMethods = synthesizedMethods.ToImmutable();
                 synthesizedMethods.Clear();
+
                 foreach (var oldMethod in oldMethods)
                 {
                     var synthesizedLambda = oldMethod.Method as SynthesizedLambdaMethod;
