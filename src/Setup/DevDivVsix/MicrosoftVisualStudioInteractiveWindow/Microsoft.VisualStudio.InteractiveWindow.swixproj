@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Package Include="Microsoft.VisualStudioInteractiveWindow.swr" />
+    <Package Include="Microsoft.VisualStudio.InteractiveWindow.swr" />
   </ItemGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.targets" />
