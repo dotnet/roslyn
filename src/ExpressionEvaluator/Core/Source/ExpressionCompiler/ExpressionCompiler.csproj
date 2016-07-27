@@ -62,9 +62,6 @@
     <Compile Include="MethodContextReuseConstraints.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
       <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>

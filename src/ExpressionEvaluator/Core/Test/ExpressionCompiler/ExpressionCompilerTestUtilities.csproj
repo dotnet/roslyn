@@ -19,7 +19,6 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
