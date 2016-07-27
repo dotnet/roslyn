@@ -78,8 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // return GetEllisionBufferAroundReference();
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
 
-                case StandardTableKeyNames2.TextInlines:
-                    return _taggedParts.ToTextBlock(_presenter._typeMap).Inlines;
+                //case StandardTableKeyNames2.TextInlines:
+                //    return _taggedParts.ToTextBlock(_presenter._typeMap).Inlines;
+
+                case StandardTableKeyNames2.DefinitionIcon:
+                    return _definitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
 
                 case StandardTableKeyNames2.Definition:
                     return _definitionBucket;

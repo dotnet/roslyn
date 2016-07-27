@@ -236,6 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     if (!_definitionToBucket.TryGetValue(definition, out bucket))
                     {
                         bucket = new RoslynDefinitionBucket(_presenter, this, definition);
+                        _definitionToBucket.Add(definition, bucket);
                     }
 
                     return bucket;

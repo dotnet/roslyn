@@ -14,7 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         {
             private readonly StreamingFindReferencesPresenter _presenter;
             private readonly TableDataSourceFindReferencesContext _context;
-            private readonly DefinitionItem _definitionItem;
+
+            public readonly DefinitionItem DefinitionItem;
 
             public RoslynDefinitionBucket(
                 StreamingFindReferencesPresenter presenter,
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 _presenter = presenter;
                 _context = context;
-                _definitionItem = definitionItem;
+                DefinitionItem = definitionItem;
             }
 
             public override bool TryGetValue(string key, out object content)
@@ -41,13 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                 case StandardTableKeyNames.Text:
                 case StandardTableKeyNames.FullText:
-                    return _definitionItem.DisplayParts.JoinText();
+                    return DefinitionItem.DisplayParts.JoinText();
 
-                case StandardTableKeyNames2.TextInlines:
-                    return _definitionItem.DisplayParts.ToTextBlock(_presenter._typeMap).Inlines;
+                //case StandardTableKeyNames2.TextInlines:
+                //    return DefinitionItem.DisplayParts.ToTextBlock(_presenter._typeMap).Inlines;
 
                 case StandardTableKeyNames2.DefinitionIcon:
-                    return _definitionItem.Tags.GetGlyph().GetImageMoniker();
+                    return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
                 }
 
                 return null;
