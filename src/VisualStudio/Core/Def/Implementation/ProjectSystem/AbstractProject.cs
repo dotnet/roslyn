@@ -6,16 +6,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -23,9 +25,11 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSLangProj;
 
+using VsHierarchyPropID = Microsoft.VisualStudio.Shell.VsHierarchyPropID;
+
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal abstract partial class AbstractProject : IVisualStudioHostProject
+    internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
     {
         internal static object RuleSetErrorId = new object();
 
@@ -107,6 +111,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             category: FeaturesResources.ErrorCategory,
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        /// <summary>
+        /// When a reference changes on disk we start a delayed task to update the <see cref="Workspace"/>.
+        /// It is delayed for two reasons: first, there are often a bunch of change notifications in quick succession
+        /// as the file is written.  Second, we often get the first notification while something is still writing the
+        /// file, so we're unable to actually load it.  To avoid both of these issues, we wait five seconds before
+        /// reloading the metadata.  This <see cref="Dictionary{TKey, TValue}"/> holds on to
+        /// <see cref="CancellationTokenSource"/>s that allow us to cancel the existing reload task if another file
+        /// change comes in before we process it.
+        /// </summary>
+        private readonly Dictionary<VisualStudioMetadataReference, CancellationTokenSource> _changedReferencesPendingUpdate
+            = new Dictionary<VisualStudioMetadataReference, CancellationTokenSource>();
 
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
@@ -589,8 +605,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private void OnImportChanged(object sender, EventArgs e)
         {
+            AssertIsForeground();
+
             VisualStudioMetadataReference reference = (VisualStudioMetadataReference)sender;
 
+            CancellationTokenSource delayTaskCancellationTokenSource;
+            if (_changedReferencesPendingUpdate.TryGetValue(reference, out delayTaskCancellationTokenSource))
+            {
+                delayTaskCancellationTokenSource.Cancel();
+            }
+
+            delayTaskCancellationTokenSource = new CancellationTokenSource();
+            _changedReferencesPendingUpdate[reference] = delayTaskCancellationTokenSource;
+
+            var task = Task.Delay(TimeSpan.FromSeconds(5), delayTaskCancellationTokenSource.Token)
+                .ContinueWith(
+                    OnImportChangedAfterDelay,
+                    reference,
+                    delayTaskCancellationTokenSource.Token,
+                    TaskContinuationOptions.None,
+                    TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        private void OnImportChangedAfterDelay(Task previous, object state)
+        {
+            AssertIsForeground();
+
+            var reference = (VisualStudioMetadataReference)state;
+            _changedReferencesPendingUpdate.Remove(reference);
             // Ensure that we are still referencing this binary
             if (_metadataReferences.Contains(reference))
             {
@@ -954,8 +996,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public virtual void Disconnect()
         {
+            AssertIsForeground();
+
             using (_visualStudioWorkspaceOpt?.Services.GetService<IGlobalOperationNotificationService>()?.Start("Disconnect Project"))
             {
+                // No sense in reloading any metadata references anymore.
+                foreach (var cancellationTokenSource in _changedReferencesPendingUpdate.Values)
+                {
+                    cancellationTokenSource.Cancel();
+                }
+
+                _changedReferencesPendingUpdate.Clear();
+
                 // Unsubscribe IVsHierarchyEvents
                 DisconnectHierarchyEvents();
 
