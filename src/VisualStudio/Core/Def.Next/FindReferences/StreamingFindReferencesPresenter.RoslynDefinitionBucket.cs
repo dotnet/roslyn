@@ -48,18 +48,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return DefinitionItem.DisplayParts.JoinText();
 
                 case StandardTableKeyNames2.TextInlines:
-                    return DefinitionItem.DisplayParts.ToInlines(_presenter._typeMap);
+                    var inlines = new List<Inline> { new Run(" ") };
+                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter._typeMap));
+                    foreach (var inline in inlines)
+                    {
+                        inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
+                    }
+                    return inlines;
 
                 case StandardTableKeyNames2.DefinitionIcon:
                     return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
 
-                //case StandardTableKeyNames2.TextInlines:
-                //    // content of the bucket displayed as a rich text
-                //    var inlines = new List<Inline>();
-                //    inlines.Add(new Run("testing") { FontWeight = FontWeights.Bold });
-                //    inlines.Add(new Run(": defined in "));
+                    //case StandardTableKeyNames2.TextInlines:
+                    //    // content of the bucket displayed as a rich text
+                    //    var inlines = new List<Inline>();
+                    //    inlines.Add(new Run("testing") { FontWeight = FontWeights.Bold });
+                    //    inlines.Add(new Run(": defined in "));
 
-                //    return inlines;
+                    //    return inlines;
                 }
 
                 return null;

@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
+using System.Windows.Controls;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
@@ -34,10 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             _textEditorFactoryService = textEditorFactoryService;
         }
 
-        public FrameworkElement Create()
+        public ContentControl Create()
         {
             return new ViewHostingControl(CreateView, CreateBuffer);
         }
+
+        FrameworkElement IDeferredQuickInfoContent.Create() => Create();
 
         private IWpfTextView CreateView(ITextBuffer buffer)
         {

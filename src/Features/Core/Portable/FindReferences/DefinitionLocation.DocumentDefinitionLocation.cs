@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             public override ImmutableArray<TaggedText> OriginationParts =>
                 ImmutableArray.Create(new TaggedText(TextTags.Text, Location.Document.Project.Name));
 
-            public override bool CanNavigateTo() => Location.CanNavigateTo();
+            public override bool CanNavigateTo() => true;
             public override bool TryNavigateTo() => Location.TryNavigateTo();
         }
     }

@@ -195,37 +195,55 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return null;
                 }
 
-                var taggedText = await GetTaggedTextForReferenceAsync(document, referenceItem, cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var referenceSpan = referenceItem.Location.SourceSpan;
+                var lineSpan = GetLineSpanForReference(sourceText, referenceSpan);
+                var regionSpan = GetRegionSpanForReference(sourceText, referenceSpan);
+
+                var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
+                var taggedRegionParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, regionSpan, cancellationToken).ConfigureAwait(false);
 
                 return new ReferenceEntry(
-                    _presenter, definitionBucket, referenceItem, 
-                    projectGuid.Value, sourceText, taggedText);
+                    _presenter, workspace, definitionBucket, referenceItem, 
+                    projectGuid.Value, sourceText, taggedLineParts, taggedRegionParts);
             }
 
-            private Task<ImmutableArray<TaggedText>> GetTaggedTextForDefinitionAsync(
-                DefinitionItem item)
+            private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
             {
-                return Task.FromResult(item.DisplayParts);
+                var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
+                var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
+
+                return TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
             }
 
-            private async Task<ImmutableArray<TaggedText>> GetTaggedTextForReferenceAsync(
-                Document document, SourceReferenceItem item, CancellationToken cancellationToken)
+            private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
+            {
+                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+
+                var firstLineNumber = Math.Max(0, lineNumber - 2);
+                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + 2);
+
+                return TextSpan.FromBounds(
+                    sourceText.Lines[firstLineNumber].Start,
+                    sourceText.Lines[lastLineNumber].End);
+            }
+
+            private async Task<TaggedTextAndHighlightSpan> GetTaggedTextForReferenceAsync(
+                Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var referenceSpan = item.Location.SourceSpan;
-                var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
-
-                var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
-                var span = TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
-
-                // TODO: highlight the actual reference span in some way.
                 var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                    semanticModel, span, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    semanticModel, widenedSpan, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
 
-                return classifiedLineParts.ToTaggedText();
+                var taggedText = classifiedLineParts.ToTaggedText();
+
+                var highlightSpan = new TextSpan(
+                    start: referenceSpan.Start - widenedSpan.Start, 
+                    length: referenceSpan.Length);
+
+                return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);
             }
 
             private RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)

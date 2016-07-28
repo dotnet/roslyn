@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Windows;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
@@ -38,6 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 return this._referenceEntries[index].TryCreateToolTip(columnName, out toolTip);
             }
+
+            //public override bool TryCreateColumnContent(
+            //    int index, string columnName, bool singleColumnView, out FrameworkElement content)
+            //{
+            //    return this._referenceEntries[index].TryCreateColumnContent(columnName, out content);
+            //}
         }
     }
 }

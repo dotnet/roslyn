@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindReferences
@@ -174,16 +172,13 @@ namespace Microsoft.CodeAnalysis.FindReferences
                     {
                         result.Add(DefinitionLocation.CreateSymbolLocation(solution, definition));
                     }
-                    else if (location.IsInSource)
+                    else if (location.IsVisibleSourceLocation())
                     {
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            var documentLocation = new DocumentLocation(document, location.SourceSpan);
-                            if (documentLocation.CanNavigateTo())
-                            {
-                                result.Add(DefinitionLocation.CreateDocumentLocation(documentLocation));
-                            }
+                            result.Add(DefinitionLocation.CreateDocumentLocation(
+                                new DocumentLocation(document, location.SourceSpan)));
                         }
                     }
                 }
@@ -205,18 +200,15 @@ namespace Microsoft.CodeAnalysis.FindReferences
             DefinitionItem definitionItem)
         {
             var location = referenceLocation.Location;
+
             Debug.Assert(location.IsInSource);
-
-            var document = referenceLocation.Document;
-            var sourceSpan = location.SourceSpan;
-
-            var documentLocation = new DocumentLocation(document, sourceSpan);
-            if (!documentLocation.CanNavigateTo())
+            if (!location.IsVisibleSourceLocation())
             {
                 return null;
             }
 
-            return new SourceReferenceItem(definitionItem, documentLocation);
+            return new SourceReferenceItem(definitionItem, 
+                new DocumentLocation(referenceLocation.Document, location.SourceSpan));
         }
 
         private static readonly SymbolDisplayFormat s_definitionDisplayFormat =
