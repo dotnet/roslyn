@@ -219,10 +219,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
             {
-                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                const int AdditionalLineCountPerSide = 3;
 
-                var firstLineNumber = Math.Max(0, lineNumber - 2);
-                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + 2);
+                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
 
                 return TextSpan.FromBounds(
                     sourceText.Lines[firstLineNumber].Start,
@@ -235,7 +236,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                    semanticModel, widenedSpan, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    semanticModel, widenedSpan, document.Project.Solution.Workspace,
+                    insertSourceTextInGaps: true,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var taggedText = classifiedLineParts.ToTaggedText();
 

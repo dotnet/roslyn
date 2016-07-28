@@ -119,11 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return _boxedProjectGuid;
 
                 case StandardTableKeyNames.Text:
-                    return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
-
-                case StandardTableKeyNames.FullText:
-                    // When we support classified lines, change this to:
-                    // return GetEllisionBufferAroundReference();
+                // case StandardTableKeyNames.FullText:
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
 
                 case StandardTableKeyNames2.TextInlines:
@@ -181,70 +177,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 toolTip = textBlock;
                 return true;
-            }
-
-            private FrameworkElement GetEllisionBufferAroundReference()
-            {
-                var snapshotSpanAndCloseAction = GetSnapshotSpanAroundReference();
-                if (snapshotSpanAndCloseAction == null)
-                {
-                    return null;
-                }
-
-                var snapshotSpan = snapshotSpanAndCloseAction.Item1;
-                var closeAction = snapshotSpanAndCloseAction.Item2;
-
-                var content = new ElisionBufferDeferredContent(
-                    snapshotSpan,
-                    _presenter._projectionBufferFactoryService,
-                    _presenter._editorOptionsFactoryService,
-                    _presenter._textEditorFactoryService);
-
-                var element = content.Create();
-                return element;
-            }
-
-            private Tuple<SnapshotSpan, Action> GetSnapshotSpanAroundReference()
-            {
-                var snapshotAndCloseAction = GetTextSnapshotAndCloseAction();
-
-                var snapshot = snapshotAndCloseAction.Item1;
-                var closeAction = snapshotAndCloseAction.Item2;
-                
-                var wholeSnapshotSpan = new TextSpan(0, snapshot.Length);
-                var finalSpan = this.SourceSpan.Intersection(wholeSnapshotSpan) ?? default(TextSpan);
-
-                var lineNumber = snapshot.GetLineNumberFromPosition(finalSpan.Start);
-                var firstLineNumber = Math.Max(0, lineNumber - 2);
-                var lastLineNumber = Math.Min(snapshot.LineCount - 1, lineNumber + 2);
-
-                var snapshotSpan = new SnapshotSpan(snapshot,
-                    Span.FromBounds(
-                        snapshot.GetLineFromLineNumber(firstLineNumber).Start,
-                        snapshot.GetLineFromLineNumber(lastLineNumber).End));
-
-                return Tuple.Create(snapshotSpan, closeAction);
-            }
-
-            private Tuple<ITextSnapshot, Action> GetTextSnapshotAndCloseAction()
-            {
-                // Get the existing editor snapshot (if this is already open in an editor),
-                // otherwise create a new snapshot that we can display.
-                var snapshot = _sourceText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot != null)
-                {
-                    return Tuple.Create(snapshot, (Action)null);
-                }
-                
-                return OpenInvisibleEditorAndGetTextSnapshot();
-            }
-
-            private Tuple<ITextSnapshot, Action> OpenInvisibleEditorAndGetTextSnapshot()
-            {
-                var editor = _workspace.OpenInvisibleEditor(this.Document.Id);
-                return Tuple.Create(
-                    editor.TextBuffer.CurrentSnapshot, 
-                    (Action)(() => editor.Dispose()));
             }
         }
     }
