@@ -123,7 +123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     var inlines = GetHighlightedInlines(Presenter, _taggedLineParts);
                     var textBlock = inlines.ToTextBlock(Presenter._typeMap);
 
-                    textBlock.ToolTip = new LazyTip(textBlock, () => CreateToolTip());
+                    textBlock.ToolTip = new LazyTip(textBlock,
+                        () => CreateToolTip(),
+                        () => SetHighlightSpansOnBuffer());
 
                     content = textBlock;
                     return true;
@@ -183,10 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 var textBuffer = _context.GetTextBufferForPreview(Document, _sourceText);
 
-                var key = PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
-                textBuffer.Properties.RemoveProperty(key);
-                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
-                    _sourceReferenceItem.Location.SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
+                SetHighlightSpansOnBuffer();
 
                 var regionSpan = this.GetRegionSpanForReference();
                 var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
@@ -211,6 +210,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var element = content.Create();
 
                 return element;
+            }
+
+            private void SetHighlightSpansOnBuffer()
+            {
+                var textBuffer = _context.GetTextBufferForPreview(Document, _sourceText);
+
+                var key = PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
+                    _sourceReferenceItem.Location.SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
             }
 
             private Span GetRegionSpanForReference()

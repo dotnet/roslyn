@@ -13,11 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
     {
         private readonly Func<ToolTip> _createToolTip;
         private readonly FrameworkElement _element;
+        private readonly Action _refreshContent;
 
-        public LazyTip(FrameworkElement element, Func<ToolTip> createToolTip)
+        public LazyTip(FrameworkElement element, Func<ToolTip> createToolTip, Action refreshContent)
         {
             _element = element;
             _createToolTip = createToolTip;
+            _refreshContent = refreshContent;
 
             element.ToolTipOpening += this.OnToolTipOpening;
             Background = Brushes.Transparent;
@@ -25,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
         private void OnToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            _element.ToolTipOpening -= this.OnToolTipOpening;
+            // _element.ToolTipOpening -= this.OnToolTipOpening;
 
-            if (this.Content == null)
+            if (_element.ToolTip == this)
             {
                 _element.ToolTip = _createToolTip();
                 return;
@@ -35,9 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 //this.Content = content;
                 //return;
             }
-
-            _element.ToolTip = null;
-            e.Handled = true;
+            else
+            {
+                _refreshContent();
+            }
         }
     }
 }
