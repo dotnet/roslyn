@@ -42,7 +42,7 @@ namespace RepoUtil
         /// <summary>
         /// Change the NuGet dependencies in the file to match the new packages.
         /// </summary>
-        internal static bool ChangeDependencies(string filePath, ImmutableDictionary<string, NuGetPackage> changeMap)
+        internal static bool ChangeDependencies(string filePath, ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
         {
             var obj = JObject.Parse(File.ReadAllText(filePath), new JsonLoadSettings() { CommentHandling = CommentHandling.Load });
             var dependencies = (JObject)obj["dependencies"];
@@ -56,7 +56,7 @@ namespace RepoUtil
             {
                 var currentPackage = ParseDependency(prop);
                 NuGetPackage newPackage;
-                if (!changeMap.TryGetValue(currentPackage.Name, out newPackage))
+                if (!changeMap.TryGetValue(currentPackage, out newPackage))
                 {
                     continue;
                 }

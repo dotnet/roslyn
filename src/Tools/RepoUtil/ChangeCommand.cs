@@ -13,9 +13,6 @@ namespace RepoUtil
 {
     /// <summary>
     /// Responsible for changing the repo to use a new set of NuGet packages.
-    ///
-    /// TODO: change needs to be concious of version.  Can only upgrade the items that have the old 
-    /// version.  Needed to support static packages.
     /// </summary>
     internal sealed class ChangeCommand : ICommand
     {
@@ -140,14 +137,18 @@ namespace RepoUtil
         internal void ChangeAll(IEnumerable<NuGetPackage> packages)
         {
             var changeList = CalculateChanges(packages);
-            var map = ImmutableDictionary<string, NuGetPackage>.Empty.WithComparers(Constants.NugetPackageNameComparer);
+            var map = ImmutableDictionary<NuGetPackage, NuGetPackage>.Empty;
             foreach (var package in changeList)
             {
-                map = map.Add(package.Name, package.NewPackage);
+                map = map.Add(package.OldPackage, package.NewPackage);
             }
             ChangeAllCore(map);
         }
 
+        /// <summary>
+        /// Produce the set of <see cref="NuGetPackageChange"/> values for the set of updated 
+        /// nuget package references.
+        /// </summary>
         private List<NuGetPackageChange> CalculateChanges(IEnumerable<NuGetPackage> packages)
         {
             var map = _repoData
@@ -173,7 +174,7 @@ namespace RepoUtil
         /// <summary>
         /// Change the repo to respect the new version for the specified set of NuGet packages
         /// </summary>
-        private void ChangeAllCore(ImmutableDictionary<string, NuGetPackage> changeMap)
+        private void ChangeAllCore(ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
         {
             ChangeProjectJsonFiles(changeMap);
 
@@ -182,7 +183,7 @@ namespace RepoUtil
             foreach (var cur in _repoData.AllPackages)
             {
                 NuGetPackage newPackage;
-                if (changeMap.TryGetValue(cur.Name, out newPackage))
+                if (changeMap.TryGetValue(cur, out newPackage))
                 {
                     list.Add(newPackage);
                 }
@@ -195,7 +196,7 @@ namespace RepoUtil
             ChangeGeneratedFiles(list);
         }
 
-        private void ChangeProjectJsonFiles(ImmutableDictionary<string, NuGetPackage> changeMap)
+        private void ChangeProjectJsonFiles(ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
         {
             Console.WriteLine("Changing project.json files");
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_repoData.SourcesPath))
