@@ -1,0 +1,87 @@
+{
+    "settings": {
+        "CleanBinaries": {
+            "description": "Cleans out built binaries.",
+            "valueType": "passThrough",
+            "values": [],
+            "defaultValue": "-b"
+        },
+        "CleanLocalPackages": {
+            "description": "Cleans out the local package cache.",
+            "valueType": "passThrough",
+            "values": [],
+            "defaultValue": "-p"
+        },
+        "CleanUserPackages": {
+            "description": "Cleans out the users package cache.",
+            "valueType": "passThrough",
+            "values": [],
+            "defaultValue": "-c"
+        }
+    },
+
+    "commands": {
+        "build": {
+            "alias": {
+            },
+            "defaultValues": {
+                "toolName": "terminal",
+                "Project": "./build",
+                "settings": { }
+            }
+        },
+        "sync": {
+            "alias": { },
+            "defaultValues": {
+                "toolName": "terminal",
+                "Project": "./sync",
+                "settings": { }
+            }
+        },
+        "clean":{
+            "alias":{
+                "b": {
+                    "description": "Deletes the binary output directory.",
+                    "settings": {
+                        "CleanBinaries": "default"
+                    }
+                },
+                "p": {
+                    "description": "Deletes the repo-local nuget package directory.",
+                    "settings": {
+                        "CleanLocalPackages": "default"
+                    }
+                },
+                "c": {
+                    "description": "Deletes the user-local nuget package cache.",
+                    "settings": {
+                        "CleanUserPackages": "default"
+                    }
+                },
+                "all": {
+                    "description": "same as providing all of the above options",
+                    "settings": {
+                        "CleanBinaries": "default",
+                        "CleanLocalPackages": "default",
+                        "CleanUserPackages": "default"
+                    }
+                }
+            },
+            "defaultValues":{
+                "toolName": "terminal",
+                "Project": "./clean",
+                "settings": { }
+            }
+        }      
+    },
+
+    "tools": {
+        "terminal": {
+            "run": {
+                "windows": "cmd",
+                "unix": "sh"
+            },
+            "valueTypes": {}
+        }
+    }
+}

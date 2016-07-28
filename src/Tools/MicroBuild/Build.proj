@@ -17,7 +17,8 @@
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
+    <Exec Command="run clean -c" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
+    <Exec Command="run sync" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
 
     <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" />
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
