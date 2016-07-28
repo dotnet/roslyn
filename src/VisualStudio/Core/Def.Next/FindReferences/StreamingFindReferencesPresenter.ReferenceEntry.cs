@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 using Microsoft.VisualStudio.Text.Editor;
+using System.Linq;
+using System.Windows.Controls;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -100,8 +102,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 case StandardTableKeyNames.Text:
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
 
-                case StandardTableKeyNames2.TextInlines:
-                    return GetHighlightedInlines(Presenter, _taggedLineParts);
+                //case StandardTableKeyNames2.TextInlines:
+                //    return GetHighlightedInlines(Presenter, _taggedLineParts);
 
                 case StandardTableKeyNames2.DefinitionIcon:
                     return _definitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
@@ -112,6 +114,33 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 return null;
             }
+
+
+            internal bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            {
+                if (columnName == StandardTableColumnDefinitions2.LineText)
+                {
+                    var inlines = GetHighlightedInlines(Presenter, _taggedLineParts);
+                    var textBlock = inlines.ToTextBlock(Presenter._typeMap);
+
+                    var toolTipContent = CreateToolTipContent();
+                    var toolTip = new ToolTip { Content = toolTipContent };
+                    textBlock.ToolTip = toolTip;
+
+                    var style = Presenter._presenterStyles.FirstOrDefault(s => !string.IsNullOrEmpty(s.QuickInfoAppearanceCategory));
+                    if (style?.BackgroundBrush != null)
+                    {
+                        toolTip.Background = style.BackgroundBrush;
+                    }
+
+                    content = textBlock;
+                    return true;
+                }
+
+                content = null;
+                return false;
+            }
+
 
             private static IList<System.Windows.Documents.Inline> GetHighlightedInlines(
                 StreamingFindReferencesPresenter presenter,
@@ -143,14 +172,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return inlines;
             }
 
-            internal bool TryCreateToolTip(string columnName, out object toolTip)
-            {
-                Presenter.AssertIsForeground();
+            //internal bool TryCreateToolTip(string columnName, out object toolTip)
+            //{
+            //    Presenter.AssertIsForeground();
 
-                return TryCreateEllision(columnName, out toolTip);
-            }
+            //    return TryCreateEllision(columnName, out toolTip);
+            //}
 
-            private bool TryCreateEllision(string columnName, out object toolTip)
+            private ContentControl CreateToolTipContent()
             {
                 var textBuffer = _context.GetTextBufferForPreview(Document, _sourceText);
 
@@ -164,8 +193,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var contentType = Presenter._contentTypeRegistryService.GetContentType(
                     IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
+
                 var roleSet = Presenter._textEditorFactoryService.CreateTextViewRoleSet(
-                    TextViewRoles.PreviewRole, PredefinedTextViewRoles.Analyzable);
+                    TextViewRoles.PreviewRole,
+                    PredefinedTextViewRoles.Analyzable,
+                    PredefinedTextViewRoles.Document,
+                    PredefinedTextViewRoles.Editable);
 
                 var content = new ElisionBufferDeferredContent(
                     snapshotSpan,
@@ -176,8 +209,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     roleSet);
 
                 var element = content.Create();
-                toolTip = element;
-                return true;
+
+                return element;
             }
 
             private Span GetRegionSpanForReference()

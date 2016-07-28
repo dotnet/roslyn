@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Classification;
 using System.Linq;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -37,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         private readonly ClassificationTypeMap _typeMap;
         private readonly IEditorFormatMapService _formatMapService;
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
+        private readonly IEnumerable<QuickInfoPresenterStyle> _presenterStyles;
 
         [ImportingConstructor]
         public StreamingFindReferencesPresenter(
@@ -48,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             IContentTypeRegistryService contentTypeRegistryService,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
+            [ImportMany] IEnumerable<QuickInfoPresenterStyle> presenterStyles,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _serviceProvider = serviceProvider;
@@ -59,6 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             _textEditorFactoryService = textEditorFactoryService;
             _typeMap = typeMap;
             _formatMapService = formatMapService;
+            _presenterStyles = presenterStyles;
+
             _asyncListener = new AggregateAsynchronousOperationListener(
                 asyncListeners, FeatureAttribute.ReferenceHighlighting);
 

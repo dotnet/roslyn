@@ -35,16 +35,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return _referenceEntries[index].TryGetValue(keyName, out content);
             }
 
-            public override bool TryCreateToolTip(int index, string columnName, out object toolTip)
-            {
-                return this._referenceEntries[index].TryCreateToolTip(columnName, out toolTip);
-            }
-
-            //public override bool TryCreateColumnContent(
-            //    int index, string columnName, bool singleColumnView, out FrameworkElement content)
+            //public override bool TryCreateToolTip(int index, string columnName, out object toolTip)
             //{
-            //    return this._referenceEntries[index].TryCreateColumnContent(columnName, out content);
+            //    return this._referenceEntries[index].TryCreateToolTip(columnName, out toolTip);
             //}
+
+            public override bool TryCreateColumnContent(
+                int index, string columnName, bool singleColumnView, out FrameworkElement content)
+            {
+                return this._referenceEntries[index].TryCreateColumnContent(columnName, out content);
+            }
         }
     }
 }
