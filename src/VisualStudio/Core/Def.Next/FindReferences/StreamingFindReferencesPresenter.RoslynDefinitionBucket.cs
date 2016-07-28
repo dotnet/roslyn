@@ -1,19 +1,21 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using System.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
-        private class RoslynDefinitionBucket : DefinitionBucket
+        private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindReferencesPresenter _presenter;
             private readonly TableDataSourceFindReferencesContext _context;
@@ -31,6 +33,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _presenter = presenter;
                 _context = context;
                 DefinitionItem = definitionItem;
+            }
+
+            public bool TryNavigateTo()
+            {
+                foreach (var location in DefinitionItem.Locations)
+                {
+                    if (location.TryNavigateTo())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             public override bool TryGetValue(string key, out object content)

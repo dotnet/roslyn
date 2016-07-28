@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
@@ -10,7 +12,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Classification;
-using System.Linq;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 

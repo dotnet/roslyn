@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -10,16 +12,12 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
-using System.IO;
 using System.Windows.Media;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Utilities;
-using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 using Microsoft.VisualStudio.Text.Editor;
 using System.Linq;
 using System.Windows.Controls;
