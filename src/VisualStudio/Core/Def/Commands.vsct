@@ -357,8 +357,8 @@
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidVSStd2K" id="ECMD_INSERTCOMMENT" priority="0x0300">
-      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_ADVANCED" />
+    <CommandPlacement guid="guidVSStd2K" id="ECMD_INSERTCOMMENT" priority="0x0900">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_SNIPPETS" />
     </CommandPlacement>
 
     <!-- Add Rename to the editor context menu below the Refactor item. -->
