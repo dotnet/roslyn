@@ -60,20 +60,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
         {
-            using (var stream = new ClientDirectStream(streamName))
+            using (var stream = await DirectStream.GetAsync(streamName, CancellationToken).ConfigureAwait(false))
             {
-                await stream.ConnectAsync(CancellationToken).ConfigureAwait(false);
-
                 using (var writer = new ObjectWriter(stream))
                 {
                     DiagnosticResultSerializer.Serialize(writer, result, CancellationToken);
                 }
 
                 await stream.FlushAsync(CancellationToken).ConfigureAwait(false);
-
-                // TODO: think of a way this is not needed
-                // wait for the other side to finish reading data I sent over
-                stream.WaitForServer();
             }
         }
     }

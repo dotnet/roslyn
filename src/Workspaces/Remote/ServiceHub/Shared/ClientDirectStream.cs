@@ -9,100 +9,114 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// Direct stream between server and client to pass around big chunk of data
-    /// </summary>
-    internal class ClientDirectStream : Stream
+    internal static class DirectStream
     {
-        // 4KB buffer size
-        private const int BUFFERSIZE = 4 * 1024;
-
-        private readonly string _name;
-        private readonly NamedPipeClientStream _pipe;
-        private readonly Stream _stream;
-
-        public ClientDirectStream(string name)
+        public static async Task<Stream> GetAsync(string streamName, CancellationToken cancellationToken)
         {
-            // this type exists so that consumer doesn't need to care about all these arguments/flags to get good performance
-            _name = name;
-            _pipe = new NamedPipeClientStream(".", name, PipeDirection.Out);
-            _stream = new BufferedStream(_pipe, BUFFERSIZE);
-        }
+            var stream = new ClientDirectStream(streamName);
 
-        public string Name => _name;
+            // try to connect direct stream
+            await stream.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
-        public Task ConnectAsync(CancellationToken cancellationToken)
-        {
-            return _pipe.ConnectAsync(cancellationToken);
+            return stream;
         }
 
         /// <summary>
-        /// Wait for server to read all data sent
+        /// Direct stream between server and client to pass around big chunk of data
         /// </summary>
-        public void WaitForServer()
+        private class ClientDirectStream : Stream
         {
-            _pipe.WaitForPipeDrain();
-        }
+            // 4KB buffer size
+            private const int BUFFERSIZE = 4 * 1024;
 
-        public override long Position
-        {
-            get { return _stream.Position; }
-            set { _stream.Position = value; }
-        }
+            private readonly string _name;
+            private readonly NamedPipeClientStream _pipe;
+            private readonly Stream _stream;
 
-        public override int ReadTimeout
-        {
-            get { return _stream.ReadTimeout; }
-            set { _stream.ReadTimeout = value; }
-        }
+            public ClientDirectStream(string name)
+            {
+                // this type exists so that consumer doesn't need to care about all these arguments/flags to get good performance
+                _name = name;
+                _pipe = new NamedPipeClientStream(".", name, PipeDirection.Out);
+                _stream = new BufferedStream(_pipe, BUFFERSIZE);
+            }
 
-        public override int WriteTimeout
-        {
-            get { return _stream.WriteTimeout; }
-            set { _stream.WriteTimeout = value; }
-        }
+            public string Name => _name;
 
-        public override bool CanRead => _stream.CanRead;
-        public override bool CanSeek => _stream.CanSeek;
-        public override bool CanWrite => _stream.CanWrite;
-        public override long Length => _stream.Length;
-        public override bool CanTimeout => _stream.CanTimeout;
+            public Task ConnectAsync(CancellationToken cancellationToken)
+            {
+                return _pipe.ConnectAsync(cancellationToken);
+            }
 
-        public override void Flush() => _stream.Flush();
-        public override Task FlushAsync(CancellationToken cancellationToken) => _stream.FlushAsync(cancellationToken);
+            public override long Position
+            {
+                get { return _stream.Position; }
+                set { _stream.Position = value; }
+            }
 
-        public override long Seek(long offset, SeekOrigin origin) => _stream.Seek(offset, origin);
-        public override void SetLength(long value) => _stream.SetLength(value);
+            public override int ReadTimeout
+            {
+                get { return _stream.ReadTimeout; }
+                set { _stream.ReadTimeout = value; }
+            }
 
-        public override int ReadByte() => _stream.ReadByte();
-        public override void WriteByte(byte value) => _stream.WriteByte(value);
+            public override int WriteTimeout
+            {
+                get { return _stream.WriteTimeout; }
+                set { _stream.WriteTimeout = value; }
+            }
 
-        public override int Read(byte[] buffer, int offset, int count) => _stream.Read(buffer, offset, count);
-        public override void Write(byte[] buffer, int offset, int count) => _stream.Write(buffer, offset, count);
+            public override bool CanRead => _stream.CanRead;
+            public override bool CanSeek => _stream.CanSeek;
+            public override bool CanWrite => _stream.CanWrite;
+            public override long Length => _stream.Length;
+            public override bool CanTimeout => _stream.CanTimeout;
 
-        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => _stream.ReadAsync(buffer, offset, count, cancellationToken);
-        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => _stream.WriteAsync(buffer, offset, count, cancellationToken);
+            public override void Flush() => _stream.Flush();
+            public override Task FlushAsync(CancellationToken cancellationToken) => _stream.FlushAsync(cancellationToken);
 
-        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => _stream.BeginRead(buffer, offset, count, callback, state);
-        public override int EndRead(IAsyncResult asyncResult) => _stream.EndRead(asyncResult);
+            public override long Seek(long offset, SeekOrigin origin) => _stream.Seek(offset, origin);
+            public override void SetLength(long value) => _stream.SetLength(value);
 
-        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => _stream.BeginWrite(buffer, offset, count, callback, state);
-        public override void EndWrite(IAsyncResult asyncResult) => _stream.EndWrite(asyncResult);
+            public override int ReadByte() => _stream.ReadByte();
+            public override void WriteByte(byte value) => _stream.WriteByte(value);
 
-        public override void Close() => _stream.Close();
+            public override int Read(byte[] buffer, int offset, int count) => _stream.Read(buffer, offset, count);
+            public override void Write(byte[] buffer, int offset, int count) => _stream.Write(buffer, offset, count);
 
-        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => _stream.ReadAsync(buffer, offset, count, cancellationToken);
+            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => _stream.WriteAsync(buffer, offset, count, cancellationToken);
 
-        protected override void Dispose(bool disposing) => _stream.Dispose();
+            public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => _stream.BeginRead(buffer, offset, count, callback, state);
+            public override int EndRead(IAsyncResult asyncResult) => _stream.EndRead(asyncResult);
 
-        public override object InitializeLifetimeService()
-        {
-            throw new NotSupportedException();
-        }
+            public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => _stream.BeginWrite(buffer, offset, count, callback, state);
+            public override void EndWrite(IAsyncResult asyncResult) => _stream.EndWrite(asyncResult);
 
-        public override ObjRef CreateObjRef(Type requestedType)
-        {
-            throw new NotSupportedException();
+            public override void Close() => _stream.Close();
+
+            public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
+
+            protected override void Dispose(bool disposing)
+            {
+                // TODO: think of a way to get rid of this
+                //
+                // it being here is okay since only way to get client stream to be
+                // here is either we are done or connection is closed.
+                _pipe.WaitForPipeDrain();
+
+                _stream.Dispose();
+            }
+
+            public override object InitializeLifetimeService()
+            {
+                throw new NotSupportedException();
+            }
+
+            public override ObjRef CreateObjRef(Type requestedType)
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }

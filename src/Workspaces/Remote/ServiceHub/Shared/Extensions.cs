@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal static class Extensions
+    internal static partial class Extensions
     {
         public static async Task InvokeAsync(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,

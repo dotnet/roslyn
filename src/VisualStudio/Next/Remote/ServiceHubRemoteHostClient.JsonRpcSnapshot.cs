@@ -132,10 +132,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     {
                         var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
 
-                        using (var stream = new ClientDirectStream(streamName))
+                        using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                         {
-                            await stream.ConnectAsync(_source.Token).ConfigureAwait(false);
-
                             using (var writer = new ObjectWriter(stream))
                             {
                                 writer.WriteInt32(serviceId);
@@ -148,10 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                             }
 
                             await stream.FlushAsync(_source.Token).ConfigureAwait(false);
-
-                            // TODO: think of a way this is not needed
-                            // wait for the other side to finish reading data I sent over
-                            stream.WaitForServer();
                         }
                     }
                     catch (IOException)
