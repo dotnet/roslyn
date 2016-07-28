@@ -754,15 +754,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The names can be null if no names were supplied to any arguments.
         ''' </summary>
         Public Shared Function MethodOrPropertyInvocationOverloadResolution(
-                                                                             group As BoundMethodOrPropertyGroup,
-                                                                             arguments As ImmutableArray(Of BoundExpression),
-                                                                             argumentNames As ImmutableArray(Of String),
-                                                                             binder As Binder,
-                                                                             callerInfoOpt As VisualBasicSyntaxNode,
-                                                           <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                                    Optional includeEliminatedCandidates As Boolean = False,
-                                                                    Optional forceExpandedForm As Boolean = False
-                                                                           ) As OverloadResolutionResult
+            group As BoundMethodOrPropertyGroup,
+            arguments As ImmutableArray(Of BoundExpression),
+            argumentNames As ImmutableArray(Of String),
+            binder As Binder,
+            callerInfoOpt As VisualBasicSyntaxNode,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            Optional includeEliminatedCandidates As Boolean = False,
+            Optional forceExpandedForm As Boolean = False
+        ) As OverloadResolutionResult
 
             If group.Kind = BoundKind.MethodGroup Then
                 Dim methodGroup = DirectCast(group, BoundMethodGroup)
@@ -793,12 +793,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Perform overload resolution on the given method group, with the given arguments.
         ''' </summary>
         Public Shared Function QueryOperatorInvocationOverloadResolution(
-                                                                          methodGroup As BoundMethodGroup,
-                                                                          arguments As ImmutableArray(Of BoundExpression),
-                                                                          binder As Binder,
-                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                                 Optional includeEliminatedCandidates As Boolean = False
-                                                                        ) As OverloadResolutionResult
+            methodGroup As BoundMethodGroup,
+            arguments As ImmutableArray(Of BoundExpression),
+            binder As Binder,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            Optional includeEliminatedCandidates As Boolean = False
+        ) As OverloadResolutionResult
             Return MethodInvocationOverloadResolution(
                         methodGroup,
                         arguments,
@@ -817,32 +817,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The names can be null if no names were supplied to any arguments.
         ''' </summary>
         Public Shared Function MethodInvocationOverloadResolution(
-                                                                   methodGroup As BoundMethodGroup,
-                                                                   arguments As ImmutableArray(Of BoundExpression),
-                                                                   argumentNames As ImmutableArray(Of String),
-                                                                   binder As Binder,
-                                                                   callerInfoOpt As VisualBasicSyntaxNode,
-                                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                          Optional includeEliminatedCandidates As Boolean = False,
-                                                          Optional delegateReturnType As TypeSymbol = Nothing,
-                                                          Optional delegateReturnTypeReferenceBoundNode As BoundNode = Nothing,
-                                                          Optional lateBindingIsAllowed As Boolean = True,
-                                                          Optional isQueryOperatorInvocation As Boolean = False,
-                                                          Optional forceExpandedForm As Boolean = False
-                                                                 ) As OverloadResolutionResult
+            methodGroup As BoundMethodGroup,
+            arguments As ImmutableArray(Of BoundExpression),
+            argumentNames As ImmutableArray(Of String),
+            binder As Binder,
+            callerInfoOpt As VisualBasicSyntaxNode,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            Optional includeEliminatedCandidates As Boolean = False,
+            Optional delegateReturnType As TypeSymbol = Nothing,
+            Optional delegateReturnTypeReferenceBoundNode As BoundNode = Nothing,
+            Optional lateBindingIsAllowed As Boolean = True,
+            Optional isQueryOperatorInvocation As Boolean = False,
+            Optional forceExpandedForm As Boolean = False
+        ) As OverloadResolutionResult
 
             Debug.Assert(methodGroup.ResultKind = LookupResultKind.Good OrElse methodGroup.ResultKind = LookupResultKind.Inaccessible)
 
             Dim typeArguments = If(methodGroup.TypeArgumentsOpt IsNot Nothing, methodGroup.TypeArgumentsOpt.Arguments, ImmutableArray(Of TypeSymbol).Empty)
 
             ' To simplify code later
-            If typeArguments.IsDefault Then typeArguments = ImmutableArray(Of TypeSymbol).Empty
-            If arguments.IsDefault Then arguments = ImmutableArray(Of BoundExpression).Empty
+            If typeArguments.IsDefault Then
+                typeArguments = ImmutableArray(Of TypeSymbol).Empty
+            End If
+
+            If arguments.IsDefault Then
+                arguments = ImmutableArray(Of BoundExpression).Empty
+            End If
 
             Dim candidates = ArrayBuilder(Of CandidateAnalysisResult).GetInstance()
-            Dim instanceCandidates = ArrayBuilder(Of Candidate).GetInstance()
-            Dim curriedCandidates = ArrayBuilder(Of Candidate).GetInstance()
-            Dim methods = methodGroup.Methods
+            Dim instanceCandidates As ArrayBuilder(Of Candidate) = ArrayBuilder(Of Candidate).GetInstance()
+            Dim curriedCandidates As ArrayBuilder(Of Candidate) = ArrayBuilder(Of Candidate).GetInstance()
+            Dim methods As ImmutableArray(Of MethodSymbol) = methodGroup.Methods
 
             If Not methods.IsDefault Then
                 ' Create MethodCandidates for ordinary methods and ExtensionMethodCandidates
@@ -858,7 +863,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression) = Nothing
 
-            Dim applicableNarrowingCandidateCount = 0, applicableInstanceCandidateCount = 0
+            Dim applicableNarrowingCandidateCount As Integer = 0
+            Dim applicableInstanceCandidateCount As Integer = 0
 
             ' First collect instance methods.
             If instanceCandidates.Count > 0 Then
@@ -2775,16 +2781,16 @@ Bailout:
         ''' !!! Everything we flag as an error here, Binder.ReportOverloadResolutionFailureForASingleCandidate should detect as well. !!!
         ''' </summary>
         Private Shared Sub MatchArguments(
-                                           methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-                                     ByRef candidate As CandidateAnalysisResult,
-                                           arguments As ImmutableArray(Of BoundExpression),
-                                           argumentNames As ImmutableArray(Of String),
-                                           binder As Binder,
-                         <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-                                           callerInfoOpt As VisualBasicSyntaxNode,
-                                           forceExpandedForm As Boolean,
-                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-                                        )
+            methodOrPropertyGroup As BoundMethodOrPropertyGroup,
+            ByRef candidate As CandidateAnalysisResult,
+            arguments As ImmutableArray(Of BoundExpression),
+            argumentNames As ImmutableArray(Of String),
+            binder As Binder,
+            <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+            callerInfoOpt As VisualBasicSyntaxNode,
+            forceExpandedForm As Boolean,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        )
 
             Debug.Assert(Not arguments.IsDefault)
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
@@ -3002,7 +3008,7 @@ Bailout:
                     defaultArgument = binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
-                        'Debug.Assert(Not diagnostics.AsEnumerable().Any())
+                        Debug.Assert(Not diagnostics.AsEnumerable().Any())
 
                         ' Mark these as compiler generated so they are ignored by later phases. For example,
                         ' these bound nodes will mess up the incremental binder cache, because they use the 
@@ -3398,20 +3404,20 @@ Bailout:
         ''' This method is destructive to content of the [group] parameter.
         ''' </remarks>
         Private Shared Sub CollectOverloadedCandidates(
-                                                        binder As Binder,
-                                                        results As ArrayBuilder(Of CandidateAnalysisResult),
-                                                        group As ArrayBuilder(Of Candidate),
-                                                        typeArguments As ImmutableArray(Of TypeSymbol),
-                                                        arguments As ImmutableArray(Of BoundExpression),
-                                                        argumentNames As ImmutableArray(Of String),
-                                                        delegateReturnType As TypeSymbol,
-                                                        delegateReturnTypeReferenceBoundNode As BoundNode,
-                                                        includeEliminatedCandidates As Boolean,
-                                                        isQueryOperatorInvocation As Boolean,
-                                                        forceExpandedForm As Boolean,
-                                      <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-                                                      )
+            binder As Binder,
+            results As ArrayBuilder(Of CandidateAnalysisResult),
+            group As ArrayBuilder(Of Candidate),
+            typeArguments As ImmutableArray(Of TypeSymbol),
+            arguments As ImmutableArray(Of BoundExpression),
+            argumentNames As ImmutableArray(Of String),
+            delegateReturnType As TypeSymbol,
+            delegateReturnTypeReferenceBoundNode As BoundNode,
+            includeEliminatedCandidates As Boolean,
+            isQueryOperatorInvocation As Boolean,
+            forceExpandedForm As Boolean,
+            <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        )
             Debug.Assert(results IsNot Nothing)
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
 
@@ -3586,13 +3592,13 @@ Bailout:
         End Structure
 
         Private Shared Function DoQuickApplicabilityCheck(
-                                                           candidate As Candidate,
-                                                           typeArguments As ImmutableArray(Of TypeSymbol),
-                                                           arguments As ImmutableArray(Of BoundExpression),
-                                                           isQueryOperatorInvocation As Boolean,
-                                                           forceExpandedForm As Boolean,
-                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-                                                         ) As QuickApplicabilityInfo
+            candidate As Candidate,
+            typeArguments As ImmutableArray(Of TypeSymbol),
+            arguments As ImmutableArray(Of BoundExpression),
+            isQueryOperatorInvocation As Boolean,
+            forceExpandedForm As Boolean,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        ) As QuickApplicabilityInfo
 
             If isQueryOperatorInvocation AndAlso DirectCast(candidate.UnderlyingSymbol, MethodSymbol).IsSub Then
                 ' Subs are never considered as candidates for Query Operators, but method group might have subs in it. 
@@ -3663,18 +3669,18 @@ Bailout:
         End Function
 
         Private Shared Sub CollectOverloadedCandidate(
-                                                       results As ArrayBuilder(Of CandidateAnalysisResult),
-                                                       candidate As QuickApplicabilityInfo,
-                                                       typeArguments As ImmutableArray(Of TypeSymbol),
-                                                       arguments As ImmutableArray(Of BoundExpression),
-                                                       argumentNames As ImmutableArray(Of String),
-                                                       delegateReturnType As TypeSymbol,
-                                                       delegateReturnTypeReferenceBoundNode As BoundNode,
-                                                       includeEliminatedCandidates As Boolean,
-                                                       binder As Binder,
-                                     <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-                                                     )
+            results As ArrayBuilder(Of CandidateAnalysisResult),
+            candidate As QuickApplicabilityInfo,
+            typeArguments As ImmutableArray(Of TypeSymbol),
+            arguments As ImmutableArray(Of BoundExpression),
+            argumentNames As ImmutableArray(Of String),
+            delegateReturnType As TypeSymbol,
+            delegateReturnTypeReferenceBoundNode As BoundNode,
+            includeEliminatedCandidates As Boolean,
+            binder As Binder,
+            <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        )
             Select Case candidate.State
                 Case CandidateAnalysisResultState.HasUnsupportedMetadata
                     If includeEliminatedCandidates Then results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.HasUnsupportedMetadata))

@@ -95,14 +95,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' It considers return type, name, parameters, calling convention, and custom modifiers.
         ''' </summary>
         Public Shared ReadOnly RuntimeMethodSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(
-                                         considerName:=True,
-                                         considerReturnType:=True,
-                                         considerTypeConstraints:=False,
-                                         considerByRef:=True,
-                                         considerCallingConvention:=True,
-                                         considerCustomModifiers:=True
-                                       )
+            New MethodSignatureComparer(considerName:=True,
+                                        considerReturnType:=True,
+                                        considerTypeConstraints:=False,
+                                        considerByRef:=True,
+                                        considerCallingConvention:=True,
+                                        considerCustomModifiers:=True)
 
         ''' <summary>
         ''' This instance is used to compare all aspects.
@@ -239,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #End If
 
-        '' Compare the "unqualified" part of the method name (no explicit part)
+        ' Compare the "unqualified" part of the method name (no explicit part)
         Private ReadOnly _considerName As Boolean
 
         ' Compare the type symbols of the return types
@@ -354,11 +352,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Detailed comparison functions"
         Public Shared Function DetailedCompare(
-                                                method1 As MethodSymbol,
-                                                method2 As MethodSymbol,
-                                                comparisons As SymbolComparisonResults,
-                                       Optional stopIfAny As SymbolComparisonResults = 0
-                                              ) As SymbolComparisonResults
+            method1 As MethodSymbol,
+            method2 As MethodSymbol,
+            comparisons As SymbolComparisonResults,
+            Optional stopIfAny As SymbolComparisonResults = 0
+         ) As SymbolComparisonResults
 
             Dim results As SymbolComparisonResults = Nothing
 
@@ -367,7 +365,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If (comparisons And SymbolComparisonResults.ArityMismatch) <> 0 Then
                 If method1.Arity <> method2.Arity Then
                     results = results Or SymbolComparisonResults.ArityMismatch
-                    If (stopIfAny And SymbolComparisonResults.ArityMismatch) <> 0 Then GoTo Done
+                    If (stopIfAny And SymbolComparisonResults.ArityMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 
@@ -389,7 +389,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                 typeSubstitution2.Value,
                                                                 comparisons
                                                               )
-                If (stopIfAny And results) <> 0 Then GoTo Done
+                If (stopIfAny And results) <> 0 Then
+                    GoTo Done
+                End If
 
             End If
 
@@ -397,21 +399,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 results = results Or DetailedParameterCompare(method1.Parameters, typeSubstitution1,
                                                               method2.Parameters, typeSubstitution2,
                                                               comparisons, stopIfAny)
-                If (stopIfAny And results) <> 0 Then GoTo Done
+                If (stopIfAny And results) <> 0 Then
+                    GoTo Done
+                End If
 
             End If
 
             If (comparisons And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
                 If method1.CallingConvention <> method2.CallingConvention Then
                     results = results Or SymbolComparisonResults.CallingConventionMismatch
-                    If (stopIfAny And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then GoTo Done
+                    If (stopIfAny And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 
             If (comparisons And SymbolComparisonResults.VarargMismatch) <> 0 Then
                 If method1.IsVararg <> method2.IsVararg Then
                     results = results Or SymbolComparisonResults.VarargMismatch
-                    If (stopIfAny And SymbolComparisonResults.VarargMismatch) <> 0 Then GoTo Done
+                    If (stopIfAny And SymbolComparisonResults.VarargMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 
@@ -425,7 +433,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If ((results And SymbolComparisonResults.ArityMismatch) = 0) AndAlso
                     Not HaveSameConstraints(method1, typeSubstitution1.Value, method2, typeSubstitution2.Value) Then
                     results = results Or SymbolComparisonResults.ConstraintMismatch
-                    If (stopIfAny And SymbolComparisonResults.ConstraintMismatch) <> 0 Then GoTo Done
+                    If (stopIfAny And SymbolComparisonResults.ConstraintMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 
@@ -433,7 +443,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If (comparisons And SymbolComparisonResults.NameMismatch) <> 0 Then
                 If Not IdentifierComparison.Equals(method1.Name, method2.Name) Then
                     results = results Or SymbolComparisonResults.NameMismatch
-                    If (stopIfAny And SymbolComparisonResults.NameMismatch) <> 0 Then GoTo Done
+                    If (stopIfAny And SymbolComparisonResults.NameMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 
@@ -505,15 +517,21 @@ Done:
 
             If Not longerParameters.IsDefault Then
                 results = results Or SymbolComparisonResults.TotalParameterCountMismatch
-                If (stopIfAny And SymbolComparisonResults.TotalParameterCountMismatch) <> 0 Then GoTo Done
+                If (stopIfAny And SymbolComparisonResults.TotalParameterCountMismatch) <> 0 Then
+                    GoTo Done
+                End If
 
                 For i As Integer = commonParamCount To longerParameters.Length - 1
                     If longerParameters(i).IsOptional Then
                         results = results Or SymbolComparisonResults.OptionalParameterMismatch
-                        If (stopIfAny And SymbolComparisonResults.OptionalParameterMismatch) <> 0 Then GoTo Done
+                        If (stopIfAny And SymbolComparisonResults.OptionalParameterMismatch) <> 0 Then
+                            GoTo Done
+                        End If
                     Else
                         results = results Or SymbolComparisonResults.RequiredExtraParameterMismatch
-                        If (stopIfAny And SymbolComparisonResults.RequiredExtraParameterMismatch) <> 0 Then GoTo Done
+                        If (stopIfAny And SymbolComparisonResults.RequiredExtraParameterMismatch) <> 0 Then
+                            GoTo Done
+                        End If
                     End If
                 Next
             End If
@@ -544,7 +562,9 @@ Done:
 
                     If param1.IsOptional <> param2.IsOptional Then
                         results = results Or SymbolComparisonResults.OptionalParameterMismatch
-                        If (stopIfAny And SymbolComparisonResults.OptionalParameterMismatch) <> 0 Then GoTo Done
+                        If (stopIfAny And SymbolComparisonResults.OptionalParameterMismatch) <> 0 Then
+                            GoTo Done
+                        End If
                     End If
 
                     If checkTypes Then
@@ -580,19 +600,25 @@ Done:
                         ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
                                (type1 <> type2 OrElse param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
                             results = results Or SymbolComparisonResults.CustomModifierMismatch
-                            If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then GoTo Done
+                            If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
+                                GoTo Done
+                            End If
                         End If
                     End If
 
                     If param1.IsByRef <> param2.IsByRef Then
                         results = results Or SymbolComparisonResults.ParameterByrefMismatch
-                        If (stopIfAny And SymbolComparisonResults.ParameterByrefMismatch) <> 0 Then GoTo Done
+                        If (stopIfAny And SymbolComparisonResults.ParameterByrefMismatch) <> 0 Then
+                            GoTo Done
+                        End If
                     End If
 
                     If (comparisons And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
                         If param1.IsParamArray <> param2.IsParamArray Then
                             results = results Or SymbolComparisonResults.ParamArrayMismatch
-                            If (stopIfAny And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then GoTo Done
+                            If (stopIfAny And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
+                                GoTo Done
+                            End If
                         End If
                     End If
 
