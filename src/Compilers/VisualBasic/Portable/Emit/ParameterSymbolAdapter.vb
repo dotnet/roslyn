@@ -13,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
             Get
-                Return CustomModifiers.As(Of Cci.ICustomModifier)
+                Return Me.CustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property IParameterTypeInformationIsByReference As Boolean Implements IParameterTypeInformation.IsByReference
             Get
-                Return IsByRef
+                Return Me.IsByRef
             End Get
         End Property
 
@@ -31,24 +31,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
             Get
-                Return CountOfCustomModifiersPrecedingByRef
+                Return Me.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements IParameterListEntry.Index
             Get
-                Return CType(Ordinal, UShort)
+                Return CType(Me.Ordinal, UShort)
             End Get
         End Property
 
         Private Function IParameterDefinition_GetDefaultValue(context As EmitContext) As IMetadataConstant Implements IParameterDefinition.GetDefaultValue
             CheckDefinitionInvariant()
-            Return GetMetadataConstantValue(context)
+            Return Me.GetMetadataConstantValue(context)
         End Function
 
         Friend Function GetMetadataConstantValue(context As EmitContext) As IMetadataConstant
-            If HasMetadataConstantValue Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Type, Me.ExplicitDefaultConstantValue.Value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            If Me.HasMetadataConstantValue Then
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultConstantValue.Value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Else
                 Return Nothing
             End If
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
                 If HasExplicitDefaultValue Then
-                    Dim value = ExplicitDefaultConstantValue
+                    Dim value = Me.ExplicitDefaultConstantValue
                     Return Not (value.Discriminator = ConstantValueTypeDiscriminator.DateTime OrElse value.Discriminator = ConstantValueTypeDiscriminator.Decimal)
                 End If
                 Return False
@@ -68,49 +68,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IParameterDefinition_HasDefaultValue As Boolean Implements IParameterDefinition.HasDefaultValue
             Get
                 CheckDefinitionInvariant()
-                Return HasMetadataConstantValue
+                Return Me.HasMetadataConstantValue
             End Get
         End Property
 
         Private ReadOnly Property IParameterDefinitionIsOptional As Boolean Implements IParameterDefinition.IsOptional
             Get
                 CheckDefinitionInvariant()
-                Return IsMetadataOptional
+                Return Me.IsMetadataOptional
             End Get
         End Property
 
         Friend Overridable ReadOnly Property IsMetadataOptional As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return IsOptional OrElse GetAttributes.Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
+                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
             End Get
         End Property
 
         Private ReadOnly Property IParameterDefinitionIsIn As Boolean Implements IParameterDefinition.IsIn
             Get
                 CheckDefinitionInvariant()
-                Return IsMetadataIn
+                Return Me.IsMetadataIn
             End Get
         End Property
 
         Private ReadOnly Property IParameterDefinitionIsOut As Boolean Implements IParameterDefinition.IsOut
             Get
                 CheckDefinitionInvariant()
-                Return IsMetadataOut
+                Return Me.IsMetadataOut
             End Get
         End Property
 
         Private ReadOnly Property IParameterDefinitionIsMarshalledExplicitly As Boolean Implements IParameterDefinition.IsMarshalledExplicitly
             Get
                 CheckDefinitionInvariant()
-                Return IsMarshalledExplicitly
+                Return Me.IsMarshalledExplicitly
             End Get
         End Property
 
         Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return MarshallingInformation IsNot Nothing
+                Return Me.MarshallingInformation IsNot Nothing
             End Get
         End Property
 
@@ -150,11 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
-            Debug.Assert(IsDefinitionOrDistinct())
+            Debug.Assert(Me.IsDefinitionOrDistinct())
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            If IsDefinition AndAlso (ContainingModule = moduleBeingBuilt.SourceModule) Then
+            If Me.IsDefinition AndAlso (Me.ContainingModule = moduleBeingBuilt.SourceModule) Then
                 Return Me
             End If
 
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
-                Return MetadataName
+                Return Me.MetadataName
             End Get
         End Property
     End Class
