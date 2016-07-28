@@ -76,6 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Cases:
+            //   (C)(this) -> (C)this
+            if (node.IsParentKind(SyntaxKind.CastExpression) && expression.IsKind(SyntaxKind.ThisExpression))
+            {
+                return true;
+            }
+
+            // Cases:
             //   y((x)) -> y(x)
             if (node.IsParentKind(SyntaxKind.Argument) && ((ArgumentSyntax)node.Parent).Expression == node)
             {

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
-  <Import Project="..\..\..\..\build\Targets\VSL.Versions.targets" />
 
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
@@ -14,10 +13,13 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.props" />
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.targets" />
 
+  <ItemGroup>
+    <ProjectReference Include="..\MicrosoftVisualStudioInteractiveWindow\Microsoft.VisualStudio.InteractiveWindow.vsmanproj" />
+  </ItemGroup>
+
   <Target Name="BeforeBuild">
     <MSBuild Projects="MicrosoftCodeAnalysisExpressionEvaluator\Microsoft.CodeAnalysis.ExpressionEvaluator.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.swixproj" Targets="Build" />
-    <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioInteractiveWindow\Microsoft.CodeAnalysis.VisualStudioInteractiveWindow.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioSetupInteractive\Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioSetupNext\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.swixproj" Targets="Build" />
@@ -26,9 +28,9 @@
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudioInteractiveWindow.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
+    <MergeManifest Include="$(OutputPath)Microsoft.VisualStudio.InteractiveWindow.json" />
   </ItemGroup>
 </Project>

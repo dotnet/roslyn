@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
@@ -20,15 +22,15 @@ namespace Microsoft.CodeAnalysis.FindReferences
         private sealed class SymbolDefinitionLocation : DefinitionLocation
         {
             private readonly Workspace _workspace;
-            private readonly ProjectId _referencingProjectId;
             private readonly SymbolKey _symbolKey;
+            private readonly AssemblyIdentity _symbolAssemblyIdentity;
             private readonly ImmutableArray<TaggedText> _originationParts;
 
-            public SymbolDefinitionLocation(ISymbol definition, Project project)
+            public SymbolDefinitionLocation(Solution solution, ISymbol definition)
             {
-                _workspace = project.Solution.Workspace;
-                _referencingProjectId = project.Id;
+                _workspace = solution.Workspace;
                 _symbolKey = definition.GetSymbolKey();
+                _symbolAssemblyIdentity = definition.ContainingAssembly?.Identity;
                 _originationParts = GetOriginationParts(definition);
             }
 
@@ -47,9 +49,15 @@ namespace Microsoft.CodeAnalysis.FindReferences
 
             private bool TryNavigateTo(Func<ISymbol, Project, ISymbolNavigationService, bool> action)
             {
-                var symbol = ResolveSymbolInCurrentSolution();
-                var referencingProject = _workspace.CurrentSolution.GetProject(_referencingProjectId);
-                if (symbol == null || referencingProject == null)
+                var projectAndSymbol = ResolveSymbolInCurrentSolution();
+                if (projectAndSymbol == null)
+                {
+                    return false;
+                }
+
+                var project = projectAndSymbol.Value.Item1;
+                var symbol = projectAndSymbol.Value.Item2;
+                if (symbol == null || project == null)
                 {
                     return false;
                 }
@@ -60,15 +68,23 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 }
 
                 var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                return action(symbol, referencingProject, navigationService);
+                return action(symbol, project, navigationService);
             }
 
-            private ISymbol ResolveSymbolInCurrentSolution()
+            private ValueTuple<Project, ISymbol>? ResolveSymbolInCurrentSolution()
             {
-                var compilation = _workspace.CurrentSolution.GetProject(_referencingProjectId)
-                                                            .GetCompilationAsync(CancellationToken.None)
-                                                            .WaitAndGetResult(CancellationToken.None);
-                return _symbolKey.Resolve(compilation).Symbol;
+                var project = _workspace.CurrentSolution
+                    .ProjectsWithReferenceToAssembly(_symbolAssemblyIdentity)
+                    .FirstOrDefault();
+
+                if (project == null)
+                {
+                    return null;
+                }
+
+                var compilation = project.GetCompilationAsync(CancellationToken.None)
+                                         .WaitAndGetResult(CancellationToken.None);
+                return ValueTuple.Create(project, _symbolKey.Resolve(compilation).Symbol);
             }
         }
     }

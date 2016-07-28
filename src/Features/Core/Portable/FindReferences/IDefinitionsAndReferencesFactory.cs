@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             var definition = referencedSymbol.Definition;
 
-            var definitionLocations = ConvertLocations(solution, referencedSymbol);
+            var definitionLocations = ConvertDefinitionLocations(solution, definition);
             var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
 
             return new DefinitionItem(
@@ -142,10 +142,9 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 definition.ShouldShowWithNoReferenceLocations());
         }
 
-        private static ImmutableArray<DefinitionLocation> ConvertLocations(
-            Solution solution, ReferencedSymbol referencedSymbol)
+        private static ImmutableArray<DefinitionLocation> ConvertDefinitionLocations(
+            Solution solution, ISymbol definition)
         {
-            var definition = referencedSymbol.Definition;
             var result = ImmutableArray.CreateBuilder<DefinitionLocation>();
 
             // If it's a namespace, don't create any normal lcoation.  Namespaces
@@ -157,12 +156,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 {
                     if (location.IsInMetadata)
                     {
-                        var firstSourceReferenceLocation = referencedSymbol.Locations.FirstOrNullable();
-                        if (firstSourceReferenceLocation != null)
-                        {
-                            result.Add(DefinitionLocation.CreateSymbolLocation(
-                                definition, firstSourceReferenceLocation.Value.Document.Project));
-                        }
+                        result.Add(DefinitionLocation.CreateSymbolLocation(solution, definition));
                     }
                     else if (location.IsInSource)
                     {

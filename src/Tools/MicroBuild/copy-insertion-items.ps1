@@ -19,11 +19,11 @@ try
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json",
-        "Microsoft.CodeAnalysis.VisualStudioInteractiveWindow.json",
         "Microsoft.CodeAnalysis.LanguageServices.vsman",
         "Microsoft.CodeAnalysis.Compilers.json",
         "Microsoft.CodeAnalysis.Compilers.vsix",
-        "Microsoft.CodeAnalysis.Compilers.vsman")
+        "Microsoft.CodeAnalysis.Compilers.vsman",
+        "Microsoft.VisualStudio.InteractiveWindow.json")
     $baseDestPath = join-path $binariesPath "Insertion"
     if (-not (test-path $baseDestPath))
     {
