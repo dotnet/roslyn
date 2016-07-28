@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RepoUtil
 {
-    internal class ProduceUtil
+    internal class ProducesCommand : ICommand
     {
         private readonly RepoConfig _repoConfig;
         private readonly string _sourcesPath;
 
-        internal ProduceUtil(RepoConfig repoConfig, string sourcesPath)
+        internal ProducesCommand(RepoConfig repoConfig, string sourcesPath)
         {
             _repoConfig = repoConfig;
             _sourcesPath = sourcesPath;
         }
 
-        internal void Go()
+        public bool Run(TextWriter writer, string[] args)
         {
             foreach (var fileName in NuSpecUtil.GetNuSpecFiles(_sourcesPath))
             {
@@ -27,8 +28,10 @@ namespace RepoUtil
                 }
 
                 var id = NuSpecUtil.GetId(fileName.FullPath);
-                Console.WriteLine(id);
+                writer.WriteLine(id);
             }
+
+            return true;
         }
     }
 }

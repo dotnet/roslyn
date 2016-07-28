@@ -12,7 +12,7 @@ namespace RepoUtil
     /// <summary>
     /// This utility is used to verify the repo is in a consistent state with respect to NuGet references. 
     /// </summary>
-    internal sealed class VerifyUtil
+    internal sealed class VerifyCommand : ICommand
     {
         private struct NuGetReferenceSource
         {
@@ -30,19 +30,14 @@ namespace RepoUtil
         private readonly RepoConfig _repoConfig;
         private readonly Dictionary<string, NuGetReferenceSource> _floatingPackageMap = new Dictionary<string, NuGetReferenceSource>(StringComparer.Ordinal);
 
-        internal VerifyUtil(RepoConfig repoConfig, string sourcesPath)
+        internal VerifyCommand(RepoConfig repoConfig, string sourcesPath)
         {
             _repoConfig = repoConfig;
             _sourcesPath = sourcesPath;
         }
 
-        internal static bool Go(RepoConfig repoConfig, string sourcesPath)
-        {
-            var util = new VerifyUtil(repoConfig, sourcesPath);
-            return util.Go();
-        }
-
-        private bool Go()
+        // TODO: stop using Console.WriteLine
+        public bool Run(TextWriter writer, string[] args)
         {
             return VerifyPackages();
         }

@@ -4,27 +4,28 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RepoUtil
 {
-    internal sealed class ConsumesUtil
+    internal sealed class ConsumesCommand : ICommand
     {
         private readonly RepoData _repoData;
 
-        internal ConsumesUtil(RepoData repoData)
+        internal ConsumesCommand(RepoData repoData)
         {
             _repoData = repoData;
         }
 
-        internal static string Go(RepoConfig repoConfig, string sourcesPath)
+        public bool Run(TextWriter writer, string[] args)
         {
-            var repoData = RepoData.Create(repoConfig, sourcesPath);
-            var util = new ConsumesUtil(repoData);
-            var obj = util.GoCore();
-            return obj.ToString(Formatting.Indented);
+            var obj = GoCore();
+            var text = obj.ToString(Formatting.Indented);
+            writer.WriteLine(text);
+            return true;
         }
 
         private JObject GoCore()

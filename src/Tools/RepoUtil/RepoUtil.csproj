@@ -25,22 +25,24 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChangeUtil.cs" />
+    <Compile Include="ChangeCommand.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="ConsumesUtil.cs" />
+    <Compile Include="ConsumesCommand.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="FileName.cs" />
     <Compile Include="GenerateData.cs" />
+    <Compile Include="ICommand.cs" />
     <Compile Include="JsonTypes.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="NuGetPackageChange.cs" />
     <Compile Include="NuSpecUtil.cs" />
-    <Compile Include="ProduceUtil.cs" />
+    <Compile Include="ProducesCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectJsonUtil.cs" />
     <Compile Include="RepoConfig.cs" />
     <Compile Include="RepoData.cs" />
-    <Compile Include="VerifyUtil.cs" />
+    <Compile Include="UsageCommand.cs" />
+    <Compile Include="VerifyCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

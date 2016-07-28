@@ -12,22 +12,12 @@ namespace RepoUtil
     {
         private sealed class ParsedArgs
         {
-            internal Mode Mode { get; set; } = Mode.Usage;
             internal string RepoDataPath { get; set; }
             internal string SourcesPath { get; set; }
             internal string[] RemainingArgs { get; set; }
         }
 
-        private enum Mode
-        {
-            Usage,
-            Verify,
-            Consumes,
-            Change,
-            Produces,
-        }
-
-        internal static readonly string[] ProjectJsonFileRelativeNames = Array.Empty<string>();
+        private delegate ICommand CreateCommand(RepoConfig repoConfig, string sourcesPath);
 
         internal static int Main(string[] args)
         {
@@ -37,119 +27,112 @@ namespace RepoUtil
         private static bool Run(string[] args)
         {
             ParsedArgs parsedArgs;
-            if (!TryParseCommandLine(args, out parsedArgs))
+            CreateCommand func;
+            if (!TryParseCommandLine(args, out parsedArgs, out func))
             {
                 return false;
             }
 
             var repoConfig = RepoConfig.ReadFrom(parsedArgs.RepoDataPath);
-            switch (parsedArgs.Mode)
-            {
-                case Mode.Usage:
-                    Usage();
-                    return true;
-                case Mode.Verify:
-                    return VerifyUtil.Go(repoConfig, parsedArgs.SourcesPath);
-                case Mode.Consumes:
-                    {
-                        Console.WriteLine(ConsumesUtil.Go(repoConfig, parsedArgs.SourcesPath));
-                        return true;
-                    }
-                case Mode.Change:
-                    {
-                        var repoData = RepoData.Create(repoConfig, parsedArgs.SourcesPath);
-                        var util = new ChangeUtil(repoData);
-                        return util.Run(Console.Out, parsedArgs.RemainingArgs);
-                    }
-                case Mode.Produces:
-                    {
-                        var util = new ProduceUtil(repoConfig, parsedArgs.SourcesPath);
-                        util.Go();
-                        return true;
-                    }
-                default:
-                    throw new Exception("Unrecognized mode");
-            }
+            var command = func(repoConfig, parsedArgs.SourcesPath);
+            return command.Run(Console.Out, parsedArgs.RemainingArgs);
         }
 
-        // TODO: don't use dashes here.
-        private static bool TryParseCommandLine(string[] args, out ParsedArgs parsedArgs)
+        private static bool TryParseCommandLine(string[] args, out ParsedArgs parsedArgs, out CreateCommand func)
         {
+            func = null;
             parsedArgs = new ParsedArgs();
 
             // Setup the default values
             var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory)));
             parsedArgs.SourcesPath = Path.GetDirectoryName(binariesPath);
-            parsedArgs.Mode = Mode.Usage;
             parsedArgs.RepoDataPath = Path.Combine(AppContext.BaseDirectory, "RepoData.json");
 
-            var allGood = true;
-            var done = false;
             var index = 0;
-            while (index < args.Length && !done)
+            if (!TryParseCommon(args, ref index, parsedArgs))
             {
-                var arg = args[index];
-                switch (arg.ToLower())
-                {
-                    case "-sourcesPath":
-                        {
-                            if (index + 1 < args.Length)
-                            {
-                                parsedArgs.SourcesPath = args[index + 1];
-                                index += 2;
-                            }
-                            else
-                            {
-                                Console.WriteLine($"The -sourcesPath switch needs a value");
-                                index++;
-                                allGood = false;
-                            }
-                            break;
-                        }
-                    case "verify":
-                        parsedArgs.Mode = Mode.Verify;
-                        index++;
-                        done = true;
-                        break;
-                    case "consumes":
-                        parsedArgs.Mode = Mode.Consumes;
-                        index++;
-                        done = true;
-                        break;
-                    case "change":
-                        parsedArgs.Mode = Mode.Change;
-                        index++;
-                        done = true;
-                        break;
-                    case "produces":
-                        parsedArgs.Mode = Mode.Produces;
-                        index++;
-                        done = true;
-                        break;
-                    default:
-                        Console.Write($"Option {arg} is unrecognized");
-                        allGood = false;
-                        index++;
-                        break;
-                }
+                return false;
+            }
+
+            if (!TryParseCommand(args, ref index, out func))
+            {
+                return false;
             }
 
             parsedArgs.RemainingArgs = index >= args.Length
                 ? Array.Empty<string>()
                 : args.Skip(index).ToArray();
-
-            return allGood;
+            return true;
         }
 
-        private static void Usage()
+        private static bool TryParseCommon(string[] args, ref int index, ParsedArgs parsedArgs)
         {
-            var text = @"
-  verify: check the state of the repo
-  consumes: output the conent consumed by this repo
-  produces: output the content produced by this repo
-  change: change the dependencies.
-";
-            Console.Write(text);
+            while (index < args.Length)
+            {
+                var arg = args[index];
+                if (arg[0] != '-')
+                {
+                    return true;
+                }
+
+                index++;
+                switch (arg.ToLower())
+                {
+                    case "-sourcesPath":
+                        {
+                            if (index < args.Length)
+                            {
+                                parsedArgs.SourcesPath = args[index];
+                                index++;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"The -sourcesPath switch needs a value");
+                                return false;
+                            }
+                            break;
+                        }
+                    default:
+                        Console.Write($"Option {arg} is unrecognized");
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool TryParseCommand(string[] args, ref int index, out CreateCommand func)
+        {
+            func = null;
+
+            if (index >= args.Length)
+            {
+                Console.WriteLine("Need a command to run");
+                return false;
+            }
+
+            var name = args[index];
+            switch (name)
+            {
+                case "verify":
+                    func = (c, s) => new VerifyCommand(c, s);
+                    break;
+                case "consumes":
+                    func = (c, s) => new ConsumesCommand(RepoData.Create(c, s));
+                    break;
+                case "change":
+                    func = (c, s) => new ChangeCommand(RepoData.Create(c, s));
+                    break;
+                case "produces":
+                    func = (c, s) => new ProducesCommand(c, s);
+                    break;
+                default:
+                    Console.Write($"Command {name} is not recognized");
+                    return false;
+            }
+
+            index++;
+            return true;
         }
     }
 }

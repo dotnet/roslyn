@@ -14,19 +14,31 @@ namespace RepoUtil
     /// <summary>
     /// Responsible for changing the repo to use a new set of NuGet packages.
     /// </summary>
-    internal sealed class ChangeUtil
+    internal sealed class ChangeCommand : ICommand
     {
         private readonly RepoData _repoData;
 
-        internal ChangeUtil(RepoData repoData)
+        internal ChangeCommand(RepoData repoData)
         {
             _repoData = repoData;
+        }
+
+        public bool Run(TextWriter writer, string[] args)
+        {
+            List<NuGetPackage> changes;
+            if (!TryParseChangeSource(writer, args, out changes))
+            {
+                return false;
+            }
+
+            ChangeAll(changes);
+            return true;
         }
 
         /// <summary>
         /// Parse out the arguments that can be provided to the 'change' command.
         /// </summary>
-        public static bool TryParseChangeSource(TextWriter writer, string[] args, out List<NuGetPackage> changes)
+        private static bool TryParseChangeSource(TextWriter writer, string[] args, out List<NuGetPackage> changes)
         {
             changes = new List<NuGetPackage>();
             var allGood = true;
@@ -117,18 +129,6 @@ namespace RepoUtil
 
             writer.WriteLine($"Unable to parse package {packageLine}");
             return false;
-        }
-
-        internal bool Run(TextWriter writer, string[] args)
-        {
-            List<NuGetPackage> changes;
-            if (!TryParseChangeSource(writer, args, out changes))
-            {
-                return false;
-            }
-
-            ChangeAll(changes);
-            return true;
         }
 
         /// <summary>
