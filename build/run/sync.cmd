@@ -1,7 +1,7 @@
 @echo off
 @setlocal
 
-set RoslynRoot=%~dp0
+set RoslynRoot=%~dp0\..\..\
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
 
 :ParseArguments
@@ -32,6 +32,7 @@ if "%RestoreFast%" == "" (
     popd
 )
 
+echo NUGET EXE: %NugetExe%
 echo Restoring packages: Toolsets
 call %NugetExe% restore "%RoslynRoot%build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
@@ -68,5 +69,5 @@ echo Error loading NuGet.exe information %ERRORLEVEL%
 exit /b 1
 
 :Usage
-@echo Usage: Restore.cmd /clean [Solution File]
+@echo Usage: sync.cmd /clean [Solution File]
 exit /b 1
