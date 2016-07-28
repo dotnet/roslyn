@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -36,6 +37,36 @@ namespace Microsoft.CodeAnalysis.Execution
         /// this hide how each data is serialized to bits
         /// </summary>
         public abstract Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken);
+    }
+
+    /// <summary>
+    /// <see cref="ChecksumObjectWithChildren"/>  indicates this type is collection of checksums.
+    /// 
+    /// <see cref="Asset"/> represents actual data (leaf node of hierarchical checksum tree) 
+    /// </summary>
+    internal abstract class ChecksumObjectWithChildren : ChecksumObject
+    {
+        private readonly Serializer _serializer;
+
+        public ChecksumObjectWithChildren(Serializer serializer, string kind, params object[] children) :
+            base(CreateChecksum(kind, children), kind)
+        {
+            _serializer = serializer;
+
+            Children = children;
+        }
+
+        public object[] Children { get; }
+
+        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            return _serializer.SerializeChecksumObjectWithChildrenAsync(this, writer, cancellationToken);
+        }
+
+        private static Checksum CreateChecksum(string kind, object[] children)
+        {
+            return Checksum.Create(kind, children.Select(c => c is Checksum ? c : ((ChecksumCollection)c).Checksum).Cast<Checksum>());
+        }
     }
 
     // TODO: Kind might not actually needed. see whether we can get rid of this

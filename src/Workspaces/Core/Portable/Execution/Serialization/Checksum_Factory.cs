@@ -41,27 +41,6 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public static Checksum Create(string kind, Checksum checksum1, Checksum checksum2)
-        {
-            using (var pool = Creator.CreateList(checksum1, checksum2))
-            {
-                return Create(kind, pool.Object);
-            }
-        }
-
-        public static Checksum Create(
-            string kind,
-            Checksum checksum1, Checksum checksum2, Checksum checksum3, Checksum checksum4,
-            Checksum checksum5, Checksum checksum6, Checksum checksum7, Checksum checksum8)
-        {
-            using (var pool = Creator.CreateList(
-                checksum1, checksum2, checksum3, checksum4,
-                checksum5, checksum6, checksum7, checksum8))
-            {
-                return Create(kind, pool.Object);
-            }
-        }
-
         public static Checksum Create<T>(string kind, ImmutableArray<T> objects) where T : ChecksumObject
         {
             using (var pool = Creator.CreateList<Checksum>())

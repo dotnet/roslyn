@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
-                Assert.Equal(solutionId.Projects.Objects.Length, 0);
+                Assert.Equal(solutionId.Projects.Count, 0);
             }
         }
 
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
-                Assert.Equal(solutionId.Projects.Objects.Length, 1);
-                VerifySnapshotInService(snapshotService, solutionId.Projects.ToProjectObjects(snapshotService).Objects[0], 0, 0, 0, 0, 0);
+                Assert.Equal(solutionId.Projects.Count, 1);
+                VerifySnapshotInService(snapshotService, solutionId.Projects.ToProjectObjects(snapshotService)[0], 0, 0, 0, 0, 0);
             }
         }
 
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
-                Assert.Equal(solutionId.Projects.Objects.Length, 1);
-                VerifySnapshotInService(snapshotService, solutionId.Projects.ToProjectObjects(snapshotService).Objects[0], 1, 0, 0, 0, 0);
+                Assert.Equal(solutionId.Projects.Count, 1);
+                VerifySnapshotInService(snapshotService, solutionId.Projects.ToProjectObjects(snapshotService)[0], 1, 0, 0, 0, 0);
             }
         }
 
@@ -130,11 +130,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 VerifyChecksumInService(snapshotService, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                 VerifyChecksumObjectInService(snapshotService, solutionId.Projects);
 
-                Assert.Equal(solutionId.Projects.Objects.Length, 2);
+                Assert.Equal(solutionId.Projects.Count, 2);
 
                 var projects = solutionId.Projects.ToProjectObjects(snapshotService);
-                VerifySnapshotInService(snapshotService, projects.Objects[0], 1, 1, 1, 1, 1);
-                VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
+                VerifySnapshotInService(snapshotService, projects[0], 1, 1, 1, 1, 1);
+                VerifySnapshotInService(snapshotService, projects[1], 1, 0, 0, 0, 0);
             }
         }
 
@@ -236,11 +236,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     VerifyChecksumInService(snapshotService, solutionId1.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                     VerifyChecksumObjectInService(snapshotService, solutionId1.Projects);
 
-                    Assert.Equal(solutionId1.Projects.Objects.Length, 2);
+                    Assert.Equal(solutionId1.Projects.Count, 2);
 
                     var projects = solutionId1.Projects.ToProjectObjects(snapshotService);
-                    VerifySnapshotInService(snapshotService, projects.Objects[0], 1, 1, 1, 1, 1);
-                    VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
+                    VerifySnapshotInService(snapshotService, projects[0], 1, 1, 1, 1, 1);
+                    VerifySnapshotInService(snapshotService, projects[1], 1, 0, 0, 0, 0);
                 }
 
                 // update solution
@@ -256,11 +256,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         VerifyChecksumInService(snapshotService, solutionId2.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo);
                         VerifyChecksumObjectInService(snapshotService, solutionId2.Projects);
 
-                        Assert.Equal(solutionId2.Projects.Objects.Length, 2);
+                        Assert.Equal(solutionId2.Projects.Count, 2);
 
                         var projects = solutionId2.Projects.ToProjectObjects(snapshotService);
-                        VerifySnapshotInService(snapshotService, projects.Objects[0], 2, 1, 1, 1, 1);
-                        VerifySnapshotInService(snapshotService, projects.Objects[1], 1, 0, 0, 0, 0);
+                        VerifySnapshotInService(snapshotService, projects[0], 2, 1, 1, 1, 1);
+                        VerifySnapshotInService(snapshotService, projects[1], 1, 0, 0, 0, 0);
                     }
 
                     // make sure solutionSnapshots are changed
@@ -271,8 +271,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.False(object.ReferenceEquals(solutionId1.Info, solutionId2.Info));
 
                     // make sure projectSnapshots are changed
-                    var projectId1 = solutionId1.Projects.ToProjectObjects(snapshotService).Objects[0];
-                    var projectId2 = solutionId2.Projects.ToProjectObjects(snapshotService).Objects[0];
+                    var projectId1 = solutionId1.Projects.ToProjectObjects(snapshotService)[0];
+                    var projectId2 = solutionId2.Projects.ToProjectObjects(snapshotService)[0];
 
                     Assert.False(object.ReferenceEquals(projectId1, projectId2));
                     Assert.False(object.ReferenceEquals(projectId1.Documents, projectId2.Documents));
@@ -286,14 +286,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     // actual elements are same
                     Assert.True(object.ReferenceEquals(projectId1.CompilationOptions, projectId2.CompilationOptions));
                     Assert.True(object.ReferenceEquals(projectId1.ParseOptions, projectId2.ParseOptions));
-                    Assert.True(object.ReferenceEquals(projectId1.Documents.Objects[0], projectId2.Documents.Objects[0]));
-                    Assert.True(object.ReferenceEquals(projectId1.ProjectReferences.Objects[0], projectId2.ProjectReferences.Objects[0]));
-                    Assert.True(object.ReferenceEquals(projectId1.MetadataReferences.Objects[0], projectId2.MetadataReferences.Objects[0]));
-                    Assert.True(object.ReferenceEquals(projectId1.AnalyzerReferences.Objects[0], projectId2.AnalyzerReferences.Objects[0]));
-                    Assert.True(object.ReferenceEquals(projectId1.AdditionalDocuments.Objects[0], projectId2.AdditionalDocuments.Objects[0]));
+                    Assert.True(object.ReferenceEquals(projectId1.Documents[0], projectId2.Documents[0]));
+                    Assert.True(object.ReferenceEquals(projectId1.ProjectReferences[0], projectId2.ProjectReferences[0]));
+                    Assert.True(object.ReferenceEquals(projectId1.MetadataReferences[0], projectId2.MetadataReferences[0]));
+                    Assert.True(object.ReferenceEquals(projectId1.AnalyzerReferences[0], projectId2.AnalyzerReferences[0]));
+                    Assert.True(object.ReferenceEquals(projectId1.AdditionalDocuments[0], projectId2.AdditionalDocuments[0]));
 
                     // project unchanged are same
-                    Assert.True(object.ReferenceEquals(solutionId1.Projects.Objects[1], solutionId2.Projects.Objects[1]));
+                    Assert.True(object.ReferenceEquals(solutionId1.Projects[1], solutionId2.Projects[1]));
                 }
             }
         }
@@ -308,8 +308,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = new Serializer(workspace.Services);
-            var trees = new ChecksumTreeCollection();
-            var assetBuilder = new AssetBuilder(trees.CreateChecksumTree(workspace.CurrentSolution));
+            var trees = new ChecksumTreeNodeCacheCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNodeCache(workspace.CurrentSolution));
 
             var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
@@ -398,10 +398,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionInfo = await GetValueAsync<SolutionChecksumObjectInfo>(service, snapshot.SolutionChecksum.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
-            foreach (var projectSnapshot in snapshot.SolutionChecksum.Projects.ToProjectObjects(service).Objects)
+            foreach (var projectSnapshot in snapshot.SolutionChecksum.Projects.ToProjectObjects(service))
             {
                 var documents = new List<DocumentInfo>();
-                foreach (var documentSnapshot in projectSnapshot.Documents.ToDocumentObjects(service).Objects)
+                foreach (var documentSnapshot in projectSnapshot.Documents.ToDocumentObjects(service))
                 {
                     var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo).ConfigureAwait(false);
                     var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
@@ -419,27 +419,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 var p2p = new List<ProjectReference>();
-                foreach (var checksum in projectSnapshot.ProjectReferences.Objects)
+                foreach (var checksum in projectSnapshot.ProjectReferences)
                 {
                     var reference = await GetValueAsync<ProjectReference>(service, checksum, WellKnownChecksumObjects.ProjectReference).ConfigureAwait(false);
                     p2p.Add(reference);
                 }
                 var metadata = new List<MetadataReference>();
-                foreach (var checksum in projectSnapshot.MetadataReferences.Objects)
+                foreach (var checksum in projectSnapshot.MetadataReferences)
                 {
                     var reference = await GetValueAsync<MetadataReference>(service, checksum, WellKnownChecksumObjects.MetadataReference).ConfigureAwait(false);
                     metadata.Add(reference);
                 }
 
                 var analyzers = new List<AnalyzerReference>();
-                foreach (var checksum in projectSnapshot.AnalyzerReferences.Objects)
+                foreach (var checksum in projectSnapshot.AnalyzerReferences)
                 {
                     var reference = await GetValueAsync<AnalyzerReference>(service, checksum, WellKnownChecksumObjects.AnalyzerReference).ConfigureAwait(false);
                     analyzers.Add(reference);
                 }
 
                 var additionals = new List<DocumentInfo>();
-                foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.ToDocumentObjects(service).Objects)
+                foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.ToDocumentObjects(service))
                 {
                     var documentInfo = await GetValueAsync<DocumentChecksumObjectInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo).ConfigureAwait(false);
                     var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);

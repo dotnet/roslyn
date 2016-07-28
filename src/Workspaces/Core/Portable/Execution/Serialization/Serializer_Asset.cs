@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal partial class Serializer
     {
-        public void Serialize(SolutionChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSolutionSnapshotInfo(SolutionChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Serialize(info.Id, writer, cancellationToken);
+            SerializeSolutionId(info.Id, writer, cancellationToken);
 
             // TODO: figure out a way to send version info over as well.
             //       right now, version get updated automatically, so 2 can't be exactly match
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Execution
             return new SolutionChecksumObjectInfo(solutionId, VersionStamp.Create(), filePath);
         }
 
-        public void Serialize(ProjectChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeProjectSnapshotInfo(ProjectChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Serialize(info.Id, writer, cancellationToken);
+            SerializeProjectId(info.Id, writer, cancellationToken);
 
             // TODO: figure out a way to send version info over as well
             // info.Version.WriteTo(writer);
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.Execution
             return new ProjectChecksumObjectInfo(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath);
         }
 
-        public void Serialize(DocumentChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeDocumentSnapshotInfo(DocumentChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Serialize(info.Id, writer, cancellationToken);
+            SerializeDocumentId(info.Id, writer, cancellationToken);
 
             writer.WriteString(info.Name);
             writer.WriteArray(info.Folders.ToArray());
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new DocumentChecksumObjectInfo(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
         }
 
-        public void Serialize(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSourceText(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public void Serialize(string language, CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeCompilationOptions(string language, CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return service.ReadCompilationOptionsFrom(reader, cancellationToken);
         }
 
-        public void Serialize(string language, ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeParseOptions(string language, ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.Execution
             return service.ReadParseOptionsFrom(reader, cancellationToken);
         }
 
-        public void Serialize(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Serialize(reference.ProjectId, writer, cancellationToken);
+            SerializeProjectId(reference.ProjectId, writer, cancellationToken);
             writer.WriteArray(reference.Aliases.ToArray());
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
         }
 
-        public void Serialize(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             HostSerializationService.WriteTo(reference, writer, cancellationToken);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return HostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
         }
 
-        public void Serialize(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             HostSerializationService.WriteTo(reference, writer, cancellationToken);
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return HostSerializationService.ReadAnalyzerReferenceFrom(reader, cancellationToken);
         }
 
-        public void Serialize(SolutionId solutionId, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSolutionId(SolutionId solutionId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteArray(solutionId.Id.ToByteArray());
             writer.WriteString(solutionId.DebugName);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return SolutionId.CreateFromSerialized(guid, debugName);
         }
 
-        public static void Serialize(ProjectId projectId, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void SerializeProjectId(ProjectId projectId, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteArray(projectId.Id.ToByteArray());
             writer.WriteString(projectId.DebugName);
@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.Execution
             return ProjectId.CreateFromSerialized(guid, debugName);
         }
 
-        public static void Serialize(DocumentId documentId, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void SerializeDocumentId(DocumentId documentId, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            Serialize(documentId.ProjectId, writer, cancellationToken);
+            SerializeProjectId(documentId.ProjectId, writer, cancellationToken);
 
             writer.WriteArray(documentId.Id.ToByteArray());
             writer.WriteString(documentId.DebugName);

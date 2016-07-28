@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             writer.WriteInt32(diagnostics.Count);
             foreach (var kv in diagnostics)
             {
-                Serializer.Serialize(kv.Key, writer, cancellationToken);
+                Serializer.SerializeDocumentId(kv.Key, writer, cancellationToken);
                 serializer.WriteTo(writer, kv.Value, cancellationToken);
             }
         }

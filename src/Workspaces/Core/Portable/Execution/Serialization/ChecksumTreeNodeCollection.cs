@@ -9,9 +9,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// This is collection of hierarchical checksum trees
+    /// This is collection of checksum tree node cache
     /// </summary>
-    internal class ChecksumTreeCollection
+    internal class ChecksumTreeNodeCacheCollection
     {
         /// <summary>
         /// global asset is an asset which life time is same as host
@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly ConcurrentDictionary<object, Asset> _globalAssets;
 
         /// <summary>
-        /// map from solution checksum to its hierarchical checksum tree root
+        /// map from solution checksum scope to its root of checksum treenode cache
         /// </summary>
-        private readonly ConcurrentDictionary<ChecksumScope, MyChecksumTree> _checksumTrees;
+        private readonly ConcurrentDictionary<ChecksumScope, Cache> _treeNodeCaches;
 
-        public ChecksumTreeCollection()
+        public ChecksumTreeNodeCacheCollection()
         {
             _globalAssets = new ConcurrentDictionary<object, Asset>(concurrencyLevel: 2, capacity: 10);
-            _checksumTrees = new ConcurrentDictionary<ChecksumScope, MyChecksumTree>(concurrencyLevel: 2, capacity: 10);
+            _treeNodeCaches = new ConcurrentDictionary<ChecksumScope, Cache>(concurrencyLevel: 2, capacity: 10);
 
-            // TODO: currently only red node we are holding in this tree is Solution. create SolutionState so
+            // TODO: currently only red node we are holding in this cache is Solution. create SolutionState so
             //       that we don't hold onto any red nodes (such as Document/Project)
         }
 
@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.Execution
             _globalAssets.TryRemove(value, out asset);
         }
 
-        public ChecksumTree CreateChecksumTree(Solution solution)
+        public ChecksumTreeNodeCache CreateRootTreeNodeCache(Solution solution)
         {
-            return new MyChecksumTree(this, solution);
+            return new Cache(this, solution);
         }
 
         public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
         {
             // search snapshots we have
-            foreach (var tree in _checksumTrees.Values)
+            foreach (var cache in _treeNodeCaches.Values)
             {
-                var checksumObject = tree.TryGetChecksumObject(checksum, cancellationToken);
+                var checksumObject = cache.TryGetChecksumObject(checksum, cancellationToken);
                 if (checksumObject != null)
                 {
                     return checksumObject;
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
         {
-            foreach (var tree in _checksumTrees.Values)
+            foreach (var cache in _treeNodeCaches.Values)
             {
-                var entry = tree.TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                var entry = cache.TryGetChecksumObjectEntry(key, kind, cancellationToken);
                 if (entry != null)
                 {
                     return entry;
@@ -107,44 +107,47 @@ namespace Microsoft.CodeAnalysis.Execution
             return null;
         }
 
-        public void RegisterSnapshot(ChecksumScope snapshot, ChecksumTree tree)
+        public void RegisterSnapshot(ChecksumScope snapshot, ChecksumTreeNodeCache cache)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
-            Contract.ThrowIfFalse(_checksumTrees.TryAdd(snapshot, (MyChecksumTree)tree));
+            Contract.ThrowIfFalse(_treeNodeCaches.TryAdd(snapshot, (Cache)cache));
         }
 
         public void UnregisterSnapshot(ChecksumScope snapshot)
         {
             // calling it multiple times for same snapshot is not allowed.
-            MyChecksumTree dummy;
-            Contract.ThrowIfFalse(_checksumTrees.TryRemove(snapshot, out dummy));
+            Cache dummy;
+            Contract.ThrowIfFalse(_treeNodeCaches.TryRemove(snapshot, out dummy));
         }
 
         /// <summary>
-        /// Each hierarchical checksum object has 1 corresponding checksum tree.
+        /// Each checksum object with children has 1 corresponding checksum treenode cache.
         /// 
-        /// in tree, it will either have assets or sub tree for child hierarchical checksum objects.
+        /// in cahce, it will either have assets or sub tree caches for checksum object with children
         /// 
         /// think this as a node in syntax tree, asset as token in the tree.
         /// </summary>
-        private sealed class MyChecksumTree : ChecksumTree
+        private sealed class Cache : ChecksumTreeNodeCache
         {
-            private readonly ChecksumTreeCollection _owner;
+            private readonly ChecksumTreeNodeCacheCollection _owner;
 
             // some of data (checksum) in this cache can be moved into object itself if we decide to do so.
             // this is cache since we can always rebuild these.
+            //
+            // key is green node such as DoucmentState and value is cache of checksome objects 
+            // associated with the green node
             private readonly ConcurrentDictionary<object, ChecksumObjectCache> _cache;
 
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
-            public MyChecksumTree(ChecksumTreeCollection owner, Solution solution) :
+            public Cache(ChecksumTreeNodeCacheCollection owner, Solution solution) :
                 base(solution)
             {
                 _owner = owner;
                 _cache = new ConcurrentDictionary<object, ChecksumObjectCache>(concurrencyLevel: 2, capacity: 1);
 
-                // TODO: specialize root checksum tree vs all sub tree.
+                // TODO: specialize root checksum tree node cache vs all sub tree node cache
             }
 
             public override void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
@@ -166,19 +169,19 @@ namespace Microsoft.CodeAnalysis.Execution
 
                     if (entry.TryGetValue(checksum, out checksumObject))
                     {
-                        // this tree has information for the checksum
+                        // this cache has information for the checksum
                         return checksumObject;
                     }
 
-                    var tree = entry.TryGetSubTree();
-                    if (tree == null)
+                    var cache = entry.TryGetSubTreeNodeCache();
+                    if (cache == null)
                     {
-                        // this entry doesn't have sub tree.
+                        // this entry doesn't have sub tree cache
                         continue;
                     }
 
-                    // ask its sub trees
-                    checksumObject = tree.TryGetChecksumObject(checksum, cancellationToken);
+                    // ask its sub tree cache
+                    checksumObject = cache.TryGetChecksumObject(checksum, cancellationToken);
                     if (checksumObject != null)
                     {
                         // found one
@@ -192,32 +195,32 @@ namespace Microsoft.CodeAnalysis.Execution
                     return asset;
                 }
 
-                // this tree has no reference to the given checksum
+                // this cache has no reference to the given checksum
                 return null;
             }
 
             public ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
             {
-                // find snapshot tree that contains given key, kind tuple.
+                // find sub tree node cache that contains given key, kind tuple.
                 ChecksumObjectCache self;
                 ChecksumObject checksumObject;
                 if (_cache.TryGetValue(key, out self) &&
                     self.TryGetValue(kind, out checksumObject))
                 {
-                    // this tree owns it
+                    // this cache owns it
                     return self;
                 }
 
                 foreach (var entry in _cache.Values)
                 {
-                    var tree = entry.TryGetSubTree();
+                    var tree = entry.TryGetSubTreeNodeCache();
                     if (tree == null)
                     {
-                        // this entry doesn't have sub tree.
+                        // this entry doesn't have sub tree cache.
                         continue;
                     }
 
-                    // ask its sub trees
+                    // ask its sub trees cache
                     var subEntry = tree.TryGetChecksumObjectEntry(key, kind, cancellationToken);
                     if (subEntry != null)
                     {
@@ -226,17 +229,17 @@ namespace Microsoft.CodeAnalysis.Execution
                     }
                 }
 
-                // this tree has no reference to the given checksum
+                // this cache has no reference to the given checksum
                 return null;
             }
 
-            public override async Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
+            public override async Task<TChecksumObject> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TChecksumObject>(
                 TKey key, TValue value, string kind,
                 Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
             {
                 return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) =>
                 {
-                    var snapshotBuilder = new SnapshotBuilder(GetChecksumTree(key));
+                    var snapshotBuilder = new SnapshotBuilder(GetOrCreateSubTreeNodeCache(key));
                     var assetBuilder = new AssetBuilder(this);
 
                     return valueGetterAsync(v, k, snapshotBuilder, assetBuilder, c);
@@ -291,10 +294,10 @@ namespace Microsoft.CodeAnalysis.Execution
                 return entry.Add(checksumObject);
             }
 
-            private ChecksumTree GetChecksumTree<TKey>(TKey key)
+            private ChecksumTreeNodeCache GetOrCreateSubTreeNodeCache<TKey>(TKey key)
             {
                 var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
-                return entry.GetOrCreateChecksumTree(_owner, Solution);
+                return entry.GetOrCreateSubTreeNodeCache(_owner, Solution);
             }
 
             internal void TestOnly_ClearCache()
@@ -314,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             private ChecksumObject _checksumObject;
 
-            private MyChecksumTree _lazyChecksumTree;
+            private Cache _lazyChecksumTree;
             private ConcurrentDictionary<string, ChecksumObject> _lazyKindToChecksumObjectMap;
             private ConcurrentDictionary<Checksum, ChecksumObject> _lazyChecksumToChecksumObjectMap;
 
@@ -390,19 +393,19 @@ namespace Microsoft.CodeAnalysis.Execution
                 return false;
             }
 
-            public MyChecksumTree TryGetSubTree()
+            public Cache TryGetSubTreeNodeCache()
             {
                 return _lazyChecksumTree;
             }
 
-            public MyChecksumTree GetOrCreateChecksumTree(ChecksumTreeCollection owner, Solution solution)
+            public Cache GetOrCreateSubTreeNodeCache(ChecksumTreeNodeCacheCollection owner, Solution solution)
             {
                 if (_lazyChecksumTree != null)
                 {
                     return _lazyChecksumTree;
                 }
 
-                Interlocked.CompareExchange(ref _lazyChecksumTree, new MyChecksumTree(owner, solution), null);
+                Interlocked.CompareExchange(ref _lazyChecksumTree, new Cache(owner, solution), null);
                 return _lazyChecksumTree;
             }
 
@@ -424,18 +427,18 @@ namespace Microsoft.CodeAnalysis.Execution
     }
 
     /// <summary>
-    /// Base type for checksum tree. we currently have 2 implementation.
+    /// Base type for checksum tree node cache. we currently have 2 implementation.
     /// 
     /// one that used for hierarchical tree, one that is used to create one off asset
     /// from asset builder such as additional or global asset which is not part of
     /// hierarchical checksum tree
     /// </summary>
-    internal abstract class ChecksumTree
+    internal abstract class ChecksumTreeNodeCache
     {
         public readonly Solution Solution;
         public readonly Serializer Serializer;
 
-        protected ChecksumTree(Solution solution)
+        protected ChecksumTreeNodeCache(Solution solution)
         {
             Solution = solution;
             Serializer = new Serializer(solution.Workspace.Services);
@@ -443,19 +446,20 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public abstract void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken);
 
-        public abstract Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
+        // TResult since Task doesn't allow covariant
+        public abstract Task<TResult> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TResult>(
             TKey key, TValue value, string kind,
-            Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync,
+            Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TResult>> valueGetterAsync,
             CancellationToken cancellationToken)
             where TKey : class
-            where TChecksumObject : HierarchicalChecksumObject;
+            where TResult : ChecksumObjectWithChildren;
 
-
-        public abstract Task<TAsset> GetOrCreateAssetAsync<TKey, TValue, TAsset>(
+        // TResult since Task doesn't allow covariant
+        public abstract Task<TResult> GetOrCreateAssetAsync<TKey, TValue, TResult>(
             TKey key, TValue value, string kind,
-            Func<TValue, string, CancellationToken, Task<TAsset>> valueGetterAsync,
+            Func<TValue, string, CancellationToken, Task<TResult>> valueGetterAsync,
             CancellationToken cancellationToken)
             where TKey : class
-            where TAsset : Asset;
+            where TResult : Asset;
     }
 }

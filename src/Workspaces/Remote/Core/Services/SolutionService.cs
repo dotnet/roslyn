@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObjectInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
-            foreach (var projectChecksum in solutionChecksumObject.Projects.Objects)
+            foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
                 var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
 
                 var documents = new List<DocumentInfo>();
-                foreach (var documentChecksum in projectSnapshot.Documents.Objects)
+                foreach (var documentChecksum in projectSnapshot.Documents)
                 {
                     var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var p2p = new List<ProjectReference>();
-                foreach (var checksum in projectSnapshot.ProjectReferences.Objects)
+                foreach (var checksum in projectSnapshot.ProjectReferences)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var metadata = new List<MetadataReference>();
-                foreach (var checksum in projectSnapshot.MetadataReferences.Objects)
+                foreach (var checksum in projectSnapshot.MetadataReferences)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var analyzers = new List<AnalyzerReference>();
-                foreach (var checksum in projectSnapshot.AnalyzerReferences.Objects)
+                foreach (var checksum in projectSnapshot.AnalyzerReferences)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var additionals = new List<DocumentInfo>();
-                foreach (var documentChecksum in projectSnapshot.AdditionalDocuments.Objects)
+                foreach (var documentChecksum in projectSnapshot.AdditionalDocuments)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

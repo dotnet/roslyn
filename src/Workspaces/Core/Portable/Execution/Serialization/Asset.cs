@@ -10,10 +10,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// Asset represents actual data. <see cref="HierarchicalChecksumObject"/> represents
-    /// collections of these data.
+    /// Asset represents actual data. <see cref="ChecksumObjectWithChildren"/> represents
+    /// collections of checksums of these data.
     /// 
-    /// in hierarchical checksum tree, asset is leaf node, and hierarchicalChecksumObject
+    /// in hierarchical checksum tree, <see cref="Asset"/>  is leaf node, and <see cref="ChecksumObjectWithChildren"/> 
     /// is node that has children
     /// </summary>
     internal abstract class Asset : ChecksumObject
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            _serializer.Serialize(_reference, writer, cancellationToken);
+            _serializer.SerializeMetadataReference(_reference, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
         }
     }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            _serializer.Serialize(_reference, writer, cancellationToken);
+            _serializer.SerializeAnalyzerReference(_reference, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
         }
     }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var text = await _state.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO: make TextDocumentState to implement ISupportTemporaryStorage?
-            _serializer.Serialize(_state.Storage as ITemporaryStorageWithName, text, writer, cancellationToken);
+            _serializer.SerializeSourceText(_state.Storage as ITemporaryStorageWithName, text, writer, cancellationToken);
         }
     }
 }

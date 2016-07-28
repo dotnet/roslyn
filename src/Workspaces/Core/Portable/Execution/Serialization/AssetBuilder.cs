@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Execution
     internal struct AssetBuilder
     {
         private readonly Serializer _serializer;
-        private readonly ChecksumTree _checksumTree;
+        private readonly ChecksumTreeNodeCache _checksumTree;
 
-        public AssetBuilder(Solution solution) : this(new AssetOnlyChecksumTree(solution))
+        public AssetBuilder(Solution solution) : this(new AssetOnlyTreeNodeCache(solution))
         {
         }
 
-        public AssetBuilder(ChecksumTree checksumTree)
+        public AssetBuilder(ChecksumTreeNodeCache checksumTree)
         {
             _checksumTree = checksumTree;
             _serializer = checksumTree.Serializer;
@@ -74,37 +74,37 @@ namespace Microsoft.CodeAnalysis.Execution
         private Task<Asset> CreateSolutionChecksumObjectInfoAsync(SolutionChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<SolutionChecksumObjectInfo>(info, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<SolutionChecksumObjectInfo>(info, kind, _serializer.SerializeSolutionSnapshotInfo));
         }
 
         private Task<Asset> CreateProjectChecksumObjectInfoAsync(ProjectChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<ProjectChecksumObjectInfo>(info, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<ProjectChecksumObjectInfo>(info, kind, _serializer.SerializeProjectSnapshotInfo));
         }
 
         private Task<Asset> CreateDocumentChecksumObjectInfoAsync(DocumentChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<DocumentChecksumObjectInfo>(info, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<DocumentChecksumObjectInfo>(info, kind, _serializer.SerializeDocumentSnapshotInfo));
         }
 
         private Task<Asset> CreateCompilationOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new LanguageSpecificAsset<CompilationOptions>(project.Language, project.CompilationOptions, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new LanguageSpecificAsset<CompilationOptions>(project.Language, project.CompilationOptions, kind, _serializer.SerializeCompilationOptions));
         }
 
         private Task<Asset> CreateParseOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new LanguageSpecificAsset<ParseOptions>(project.Language, project.ParseOptions, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new LanguageSpecificAsset<ParseOptions>(project.Language, project.ParseOptions, kind, _serializer.SerializeParseOptions));
         }
 
         private Task<Asset> CreateProjectReferenceAsync(ProjectReference reference, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<ProjectReference>(reference, kind, _serializer.Serialize));
+            return Task.FromResult<Asset>(new Asset<ProjectReference>(reference, kind, _serializer.SerializeProjectReference));
         }
 
         private Task<Asset> CreateMetadataReferenceAsync(MetadataReference reference, string kind, CancellationToken cancellationToken)
@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.Execution
             return SourceCodeKind.Regular;
         }
 
-        private sealed class AssetOnlyChecksumTree : ChecksumTree
+        private sealed class AssetOnlyTreeNodeCache : ChecksumTreeNodeCache
         {
-            public AssetOnlyChecksumTree(Solution solution) :
+            public AssetOnlyTreeNodeCache(Solution solution) :
                 base(solution)
             {
             }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 Contract.Fail("shouldn't be called");
             }
 
-            public override Task<TChecksumObject> GetOrCreateHierarchicalChecksumObjectAsync<TKey, TValue, TChecksumObject>(
+            public override Task<TChecksumObject> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TChecksumObject>(
                 TKey key, TValue value, string kind,
                 Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
             {

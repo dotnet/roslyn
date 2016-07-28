@@ -1,123 +1,83 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
     /// this represents hierarchical checksum of solution
     /// </summary>
-    internal class SolutionChecksumObject : HierarchicalChecksumObject
+    internal class SolutionChecksumObject : ChecksumObjectWithChildren
     {
         public const string Name = nameof(SolutionChecksumObject);
 
-        public readonly Checksum Info;
-        public readonly ChecksumCollection Projects;
-
-        internal SolutionChecksumObject(Serializer serializer, Checksum info, ChecksumCollection projects) :
-            base(serializer, Checksum.Create(Name, info, projects.Checksum), Name)
+        public SolutionChecksumObject(Serializer serializer, params object[] children) :
+            base(serializer, Name, children)
         {
-            Info = info;
-            Projects = projects;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            return Serializer.SerializeAsync(this, writer, cancellationToken);
-        }
+        public Checksum Info => (Checksum)Children[0];
+        public ChecksumCollection Projects => (ChecksumCollection)Children[1];
     }
 
-    internal class ProjectChecksumObject : HierarchicalChecksumObject
+    internal class ProjectChecksumObject : ChecksumObjectWithChildren
     {
         public const string Name = nameof(ProjectChecksumObject);
 
-        public readonly Checksum Info;
-        public readonly Checksum CompilationOptions;
-        public readonly Checksum ParseOptions;
-
-        public readonly ChecksumCollection Documents;
-
-        public readonly ChecksumCollection ProjectReferences;
-        public readonly ChecksumCollection MetadataReferences;
-        public readonly ChecksumCollection AnalyzerReferences;
-
-        public readonly ChecksumCollection AdditionalDocuments;
-
-        public ProjectChecksumObject(
-            Serializer serializer,
-            Checksum info, Checksum compilationOptions, Checksum parseOptions,
-            ChecksumCollection documents,
-            ChecksumCollection projectReferences,
-            ChecksumCollection metadataReferences,
-            ChecksumCollection analyzerReferences,
-            ChecksumCollection additionalDocuments) :
-            base(serializer, Checksum.Create(
-                Name,
-                info, compilationOptions, parseOptions,
-                documents.Checksum, projectReferences.Checksum, metadataReferences.Checksum,
-                analyzerReferences.Checksum, additionalDocuments.Checksum), Name)
+        public ProjectChecksumObject(Serializer serializer, params object[] children) :
+            base(serializer, Name, children)
         {
-            Info = info;
-            CompilationOptions = compilationOptions;
-            ParseOptions = parseOptions;
-
-            Documents = documents;
-
-            ProjectReferences = projectReferences;
-            MetadataReferences = metadataReferences;
-            AnalyzerReferences = analyzerReferences;
-
-            AdditionalDocuments = additionalDocuments;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            return Serializer.SerializeAsync(this, writer, cancellationToken);
-        }
+        public Checksum Info => (Checksum)Children[0];
+        public Checksum CompilationOptions => (Checksum)Children[1];
+        public Checksum ParseOptions => (Checksum)Children[2];
+
+        public ChecksumCollection Documents => (ChecksumCollection)Children[3];
+
+        public ChecksumCollection ProjectReferences => (ChecksumCollection)Children[4];
+        public ChecksumCollection MetadataReferences => (ChecksumCollection)Children[5];
+        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[6];
+
+        public ChecksumCollection AdditionalDocuments => (ChecksumCollection)Children[7];
     }
 
-    internal class DocumentChecksumObject : HierarchicalChecksumObject
+    internal class DocumentChecksumObject : ChecksumObjectWithChildren
     {
         public const string Name = nameof(DocumentChecksumObject);
 
-        public readonly Checksum Info;
-        public readonly Checksum Text;
-
-        public DocumentChecksumObject(Serializer serializer, Checksum info, Checksum text) :
-            base(serializer, Checksum.Create(Name, info, text), Name)
+        public DocumentChecksumObject(Serializer serializer, params object[] children) :
+            base(serializer, Name, children)
         {
-            Info = info;
-            Text = text;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            Serializer.Serialize(this, writer, cancellationToken);
-            return SpecializedTasks.EmptyTask;
-        }
+        public Checksum Info => (Checksum)Children[0];
+        public Checksum Text => (Checksum)Children[1];
     }
 
     /// <summary>
     /// Collection of checksums of checksum objects.
     /// </summary>
-    internal class ChecksumCollection : HierarchicalChecksumObject
+    internal class ChecksumCollection : ChecksumObjectWithChildren, IEnumerable<Checksum>
     {
-        public readonly ImmutableArray<Checksum> Objects;
-
-        public ChecksumCollection(Serializer serializer, ImmutableArray<Checksum> objects, string kind) :
-            base(serializer, Checksum.Create(kind, (IEnumerable<Checksum>)objects), kind)
+        public ChecksumCollection(Serializer serializer, string kind, object[] children) :
+            base(serializer, kind, children)
         {
-            Objects = objects;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public int Count => Children.Length;
+
+        public Checksum this[int index] => (Checksum)Children[index];
+
+        IEnumerator IEnumerable.GetEnumerator() => Children.GetEnumerator();
+
+        public IEnumerator<Checksum> GetEnumerator()
         {
-            Serializer.Serialize(this, writer, cancellationToken);
-            return SpecializedTasks.EmptyTask;
+            foreach (var child in Children)
+            {
+                yield return (Checksum)child;
+            }
         }
     }
 }

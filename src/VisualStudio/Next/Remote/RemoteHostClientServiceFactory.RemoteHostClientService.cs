@@ -147,6 +147,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
+                lock(_gate)
+                {
+                    if (_shutdownCancellationTokenSource.IsCancellationRequested)
+                    {
+                        // we are shutting down
+                        return;
+                    }
+                }
+
                 // crash right away when connection is closed
                 FatalError.Report(new Exception("Connection to remote host closed"));
             }

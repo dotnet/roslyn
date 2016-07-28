@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Execution
             switch (kind)
             {
                 case SolutionChecksumObject.Name:
-                    return (T)(object)DeserializeSolutionChecksumObject(reader, cancellationToken);
+                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
                 case ProjectChecksumObject.Name:
-                    return (T)(object)DeserializeProjectChecksumObject(reader, cancellationToken);
+                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
                 case DocumentChecksumObject.Name:
-                    return (T)(object)DeserializeDocumentChecksumObject(reader, cancellationToken);
+                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
 
                 case WellKnownChecksumObjects.Projects:
                 case WellKnownChecksumObjects.Documents:
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 case WellKnownChecksumObjects.ProjectReferences:
                 case WellKnownChecksumObjects.MetadataReferences:
                 case WellKnownChecksumObjects.AnalyzerReferences:
-                    return (T)(object)DeserializeChecksumCollection(reader, cancellationToken);
+                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
 
                 case WellKnownChecksumObjects.SolutionChecksumObjectInfo:
                     return (T)(object)DeserializeSolutionSnapshotInfo(reader, cancellationToken);

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly SnapshotJsonRpcClient _snapshotClient;
 
             // communication channel related to service information
-            private readonly JsonRpcClient _serviceClient;
+            private readonly ServiceJsonRpcClient _serviceClient;
 
             // close connection when cancellation has raised
             private readonly CancellationTokenRegistration _cancellationRegistration;

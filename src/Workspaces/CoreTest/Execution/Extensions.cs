@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,30 +14,41 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
 {
     internal static class Extensions
     {
-        public static ChecksumCollectionWithActualData<ProjectChecksumObject> ToProjectObjects(this ChecksumCollection collection, ISolutionChecksumService service)
+        public static ChecksumObjectCollection<ProjectChecksumObject> ToProjectObjects(this ChecksumCollection collection, ISolutionChecksumService service)
         {
             Contract.ThrowIfFalse(collection.Kind == WellKnownChecksumObjects.Projects);
-            return new ChecksumCollectionWithActualData<ProjectChecksumObject>(service, collection);
+            return new ChecksumObjectCollection<ProjectChecksumObject>(service, collection);
         }
 
-        public static ChecksumCollectionWithActualData<DocumentChecksumObject> ToDocumentObjects(this ChecksumCollection collection, ISolutionChecksumService service)
+        public static ChecksumObjectCollection<DocumentChecksumObject> ToDocumentObjects(this ChecksumCollection collection, ISolutionChecksumService service)
         {
             Contract.ThrowIfFalse(collection.Kind == WellKnownChecksumObjects.Documents || collection.Kind == WellKnownChecksumObjects.TextDocuments);
-            return new ChecksumCollectionWithActualData<DocumentChecksumObject>(service, collection);
+            return new ChecksumObjectCollection<DocumentChecksumObject>(service, collection);
         }
     }
 
     /// <summary>
-    /// this is a helper collection for unit test. just packaging checksum collection with actual items
+    /// this is a helper collection for unit test. just packaging checksum collection with actual items.
+    /// 
+    /// unlike ChecksumObjectWithChildren which can only have checksum or checksumCollection as its child, this lets another checksumObjectWithChildren as child as well
     /// </summary>
-    internal class ChecksumCollectionWithActualData<T> : ChecksumObject where T : ChecksumObject
+    internal class ChecksumObjectCollection<T> : ChecksumObject, IEnumerable<T> where T : ChecksumObject
     {
-        public ChecksumCollectionWithActualData(ISolutionChecksumService service, ChecksumCollection collection) : base(collection.Checksum, collection.Kind)
+        public ImmutableArray<T> Children { get; }
+
+        public ChecksumObjectCollection(ISolutionChecksumService service, ChecksumCollection collection) : base(collection.Checksum, collection.Kind)
         {
-            Objects = ImmutableArray.CreateRange(collection.Objects.Select(c => (T)service.GetChecksumObject(c, CancellationToken.None)));
+            Children = ImmutableArray.CreateRange(collection.Select(c => (T)service.GetChecksumObject(c, CancellationToken.None)));
         }
 
-        public ImmutableArray<T> Objects { get; }
+        public int Count => Children.Length;
+
+        public T this[int index] => Children[index];
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        // somehow, ImmutableArray<T>.Enumerator doesn't implement IEnumerator<T>
+        public IEnumerator<T> GetEnumerator() => Children.Select(t => t).GetEnumerator();
 
         public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
