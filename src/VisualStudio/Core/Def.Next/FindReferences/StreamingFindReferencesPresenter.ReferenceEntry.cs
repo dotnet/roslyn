@@ -14,9 +14,13 @@ using System.IO;
 using System.Windows.Media;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Utilities;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -24,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
     {
         private class ReferenceEntry
         {
-            private readonly StreamingFindReferencesPresenter _presenter;
+            private readonly TableDataSourceFindReferencesContext _context;
             private readonly VisualStudioWorkspaceImpl _workspace;
 
             private readonly RoslynDefinitionBucket _definitionBucket;
@@ -33,19 +37,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
             private readonly TaggedTextAndHighlightSpan _taggedLineParts;
-            private readonly TaggedTextAndHighlightSpan _taggedRegionParts;
 
             public ReferenceEntry(
-                StreamingFindReferencesPresenter presenter,
+                TableDataSourceFindReferencesContext context,
                 VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,
                 SourceReferenceItem sourceReferenceItem,
                 Guid projectGuid,
                 SourceText sourceText,
-                TaggedTextAndHighlightSpan taggedLineParts,
-                TaggedTextAndHighlightSpan taggedRegionParts)
+                TaggedTextAndHighlightSpan taggedLineParts)
             {
-                _presenter = presenter;
+                _context = context;
 
                 _workspace = workspace;
                 _definitionBucket = definitionBucket;
@@ -54,39 +56,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
                 _taggedLineParts = taggedLineParts;
-                _taggedRegionParts = taggedRegionParts;
             }
+
+            private StreamingFindReferencesPresenter Presenter => _context.Presenter;
 
             public bool TryGetValue(string keyName, out object content)
             {
                 content = GetValue(keyName);
                 return content != null;
             }
-
-            //internal bool TryCreateColumnContent(string columnName, out FrameworkElement element)
-            //{
-            //    if (columnName == StandardTableKeyNames2.TextInlines)
-            //    {
-            //        var backgroundBrush = _presenter._formatMapService.GetEditorFormatMap("tooltip").GetProperties("MarkerFormatDefinition/HighlightedReference")["BackgroundColor"];
-
-            //        var textBlock = _taggedParts.TaggedText.ToTextBlock(_presenter._typeMap,
-            //            (run, taggedText, position) =>
-            //            {
-            //                if (position == _taggedParts.HighlightSpan.Start)
-            //                {
-            //                    run.SetValue(
-            //                        System.Windows.Documents.TextElement.BackgroundProperty,
-            //                        backgroundBrush);
-            //                }
-            //            });
-
-            //        element = textBlock;
-            //        return true;
-            //    }
-
-            //    element = null;
-            //    return false;
-            //}
 
             private DocumentLocation Location => _sourceReferenceItem.Location;
             private Document Document => Location.Document;
@@ -97,18 +75,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 switch (keyName)
                 {
                 case StandardTableKeyNames.DocumentName:
-                    var projectFilePath = Document.Project.FilePath;
-                    var documentPath = Document.FilePath;
-                    var projectDirectory = Path.GetDirectoryName(projectFilePath);
+                    return Document.FilePath;
+                    //var projectFilePath = Document.Project.FilePath;
+                    //var documentPath = Document.FilePath;
+                    //var projectDirectory = Path.GetDirectoryName(projectFilePath);
 
-                    if (documentPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
-                    {
-                        documentPath = documentPath.Substring(projectDirectory.Length);
-                        documentPath = documentPath.TrimStart('\\', '/');
-                    }
+                    //if (documentPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
+                    //{
+                    //    documentPath = documentPath.Substring(projectDirectory.Length);
+                    //    documentPath = documentPath.TrimStart('\\', '/');
+                    //}
 
-                    return documentPath;
-                //                    return Document.FilePath;
+                    //return documentPath;
+
                 case StandardTableKeyNames.Line:
                     return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
                 case StandardTableKeyNames.Column:
@@ -119,11 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return _boxedProjectGuid;
 
                 case StandardTableKeyNames.Text:
-                // case StandardTableKeyNames.FullText:
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
 
                 case StandardTableKeyNames2.TextInlines:
-                    return GetHighlightedInlines(_presenter, _taggedLineParts);
+                    return GetHighlightedInlines(Presenter, _taggedLineParts);
 
                 case StandardTableKeyNames2.DefinitionIcon:
                     return _definitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
@@ -167,16 +145,53 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             internal bool TryCreateToolTip(string columnName, out object toolTip)
             {
-                var highlightedInlines = GetHighlightedInlines(_presenter, _taggedRegionParts, "text");
-                var textBlock = highlightedInlines.ToTextBlock(_presenter._typeMap, "text");
+                Presenter.AssertIsForeground();
 
-                TextOptions.SetTextFormattingMode(textBlock, TextFormattingMode.Ideal);
-                var transform = new ScaleTransform(0.75, 0.75);
-                transform.Freeze();
-                textBlock.LayoutTransform = transform;
+                return TryCreateEllision(columnName, out toolTip);
+            }
 
-                toolTip = textBlock;
+            private bool TryCreateEllision(string columnName, out object toolTip)
+            {
+                var textBuffer = _context.GetTextBufferForPreview(Document, _sourceText);
+
+                var key = PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
+                    _sourceReferenceItem.Location.SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
+
+                var regionSpan = this.GetRegionSpanForReference();
+                var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
+
+                var contentType = Presenter._contentTypeRegistryService.GetContentType(
+                    IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
+                var roleSet = Presenter._textEditorFactoryService.CreateTextViewRoleSet(
+                    TextViewRoles.PreviewRole, PredefinedTextViewRoles.Analyzable);
+
+                var content = new ElisionBufferDeferredContent(
+                    snapshotSpan,
+                    Presenter._projectionBufferFactoryService,
+                    Presenter._editorOptionsFactoryService,
+                    Presenter._textEditorFactoryService,
+                    contentType,
+                    roleSet);
+
+                var element = content.Create();
+                toolTip = element;
                 return true;
+            }
+
+            private Span GetRegionSpanForReference()
+            {
+                const int AdditionalLineCountPerSide = 3;
+
+                var referenceSpan = this._sourceReferenceItem.Location.SourceSpan;
+                var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+
+                return Span.FromBounds(
+                    _sourceText.Lines[firstLineNumber].Start,
+                    _sourceText.Lines[lastLineNumber].End);
             }
         }
     }

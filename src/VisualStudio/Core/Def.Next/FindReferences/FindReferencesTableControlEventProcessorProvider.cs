@@ -1,14 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Text.Tagging;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.VisualStudio.Text;
+using System.Collections.Generic;
+using Roslyn.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
+    //[Export(typeof(IViewTaggerProvider))]
+    //[TagType(typeof(TextMarkerTag))]
+    //[ContentType("text")]
+    //// [ContentType(ContentTypeNames.VisualBasicContentType)]
+    ////[ContentType(WellKnownContentTypeNames)]
+    //internal partial class DiagnosticsSquiggleTaggerProvider : IViewTaggerProvider
+    //{
+    //    public static readonly object Key = new object();
+
+    //    public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    //    {
+    //        return new Tagger(buffer) as ITagger<T>;
+    //    }
+
+    //    private class Tagger : ITagger<TextMarkerTag>
+    //    {
+    //        private readonly ITextBuffer buffer;
+
+    //        public Tagger(ITextBuffer buffer)
+    //        {
+    //            this.buffer = buffer;
+    //        }
+
+    //        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+    //        public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    //        {
+    //            return SpecializedCollections.EmptyEnumerable<ITagSpan<TextMarkerTag>>();
+    //        }
+    //    }
+    //}
+
+
     //[Export(typeof(ITableControlEventProcessorProvider)), Shared]
     //[DataSourceType(StreamingFindReferencesPresenter.RoslynFindReferencesTableDataSourceSourceTypeIdentifier)]
     //[DataSource(StreamingFindReferencesPresenter.RoslynFindReferencesTableDataSourceIdentifier)]
@@ -22,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
     ////  names or predefined orders(such as Priority or StandardTableControlEventProcessors).
     ////  You can ignore it or use[Order(After = Priority.Default, Before = StandardTableControlEventProcessors.Default)]
     //// </remarks>
-    
+
     //[CLSCompliant(false)]
 
 

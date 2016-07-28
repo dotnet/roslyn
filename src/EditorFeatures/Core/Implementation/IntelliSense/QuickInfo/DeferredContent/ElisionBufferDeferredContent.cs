@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Windows;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Utilities;
+using System.Windows;
 using System.Windows.Controls;
-using System;
+using System.Windows.Media;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
@@ -23,17 +23,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
+        private readonly IContentType _contentType;
+        private readonly ITextViewRoleSet _roleSet;
 
         public ElisionBufferDeferredContent(
             SnapshotSpan span,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService)
+            ITextEditorFactoryService textEditorFactoryService,
+            IContentType contentType = null,
+            ITextViewRoleSet roleSet = null)
         {
             _span = span;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
+            _contentType = contentType;
+            _roleSet = roleSet;
         }
 
         public ContentControl Create()
@@ -45,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         private IWpfTextView CreateView(ITextBuffer buffer)
         {
-            var view = _textEditorFactoryService.CreateTextView(
-                buffer, _textEditorFactoryService.NoRoles);
+            var view = _textEditorFactoryService.CreateTextView(buffer, 
+                _roleSet ?? _textEditorFactoryService.NoRoles);
 
             view.SizeToFit();
             view.Background = Brushes.Transparent;
@@ -60,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private IElisionBuffer CreateBuffer()
         {
             return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
-                            _editorOptionsFactoryService.GlobalOptions, _span);
+                _editorOptionsFactoryService.GlobalOptions, _contentType, _span);
         }
     }
 }

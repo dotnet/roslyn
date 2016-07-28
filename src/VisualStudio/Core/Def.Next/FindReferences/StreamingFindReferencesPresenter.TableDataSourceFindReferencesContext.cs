@@ -16,6 +16,9 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -28,8 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
 
-            private readonly StreamingFindReferencesPresenter _presenter;
+            public readonly StreamingFindReferencesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
+
+            private readonly Dictionary<Document, ValueTuple<ITextBuffer, PreviewWorkspace>> _documentToPreviewWorkspace = 
+                new Dictionary<Document, ValueTuple<ITextBuffer, PreviewWorkspace>>();
 
             // Lock which protects _definitionToBucketTask, _entries, _lastSnapshot and _currentVersionNumber
             private readonly object _gate = new object();
@@ -55,11 +61,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 presenter.AssertIsForeground();
 
-                _presenter = presenter;
+                Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
 
                 // If the window is closed, cancel any work we're doing.
-                _findReferencesWindow.Closed += (s, e) => CancelSearch();
+                _findReferencesWindow.Closed += (s, e) => CancelSearchAndCleanUpResources();
 
                 // Remove any existing sources in the window.  
                 foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
@@ -71,14 +77,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 findReferencesWindow.Manager.AddSource(this);
             }
 
-            private void CancelSearch()
+            private void CancelSearchAndCleanUpResources()
             {
+                Presenter.AssertIsForeground();
+
                 _cancellationTokenSource.Cancel();
+
+                foreach (var bufferAndWorkspace in _documentToPreviewWorkspace.Values)
+                {
+                    bufferAndWorkspace.Item2.Dispose();
+                }
+
+                _documentToPreviewWorkspace.Clear();
             }
 
             internal void OnSubscriptionDisposed()
             {
-                CancelSearch();
+                CancelSearchAndCleanUpResources();
             }
 
             public override CancellationToken CancellationToken => _cancellationTokenSource.Token;
@@ -131,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // that data, so instead we just fire off the async work to get the text
                     // and use it.  Because we're starting some async work, let the test harness
                     // know so that it doesn't verify results until this completes.
-                    using (var token = _presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
+                    using (var token = Presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
                         await OnReferenceFoundAsync(reference).ConfigureAwait(false);
                     }
@@ -175,6 +190,41 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 NotifySinksOfChangedVersion();
             }
 
+            internal ITextBuffer GetTextBufferForPreview(
+                Document document, SourceText sourceText)
+            {
+                Presenter.AssertIsForeground();
+
+                ValueTuple<ITextBuffer, PreviewWorkspace> bufferAndWorkspace;
+                if (!_documentToPreviewWorkspace.TryGetValue(document, out bufferAndWorkspace))
+                {
+                    var textBuffer = CreateNewBuffer(document, sourceText);
+
+                    var newDocument = document.WithText(textBuffer.AsTextContainer().CurrentText);
+
+                    var workspace = new PreviewWorkspace(newDocument.Project.Solution);
+                    workspace.OpenDocument(newDocument.Id);
+
+                    bufferAndWorkspace = ValueTuple.Create(textBuffer, workspace);
+                    _documentToPreviewWorkspace.Add(document, bufferAndWorkspace);
+                }
+
+                return bufferAndWorkspace.Item1;
+            }
+
+            private ITextBuffer CreateNewBuffer(Document document, SourceText sourceText)
+            {
+                Presenter.AssertIsForeground();
+
+                // is it okay to create buffer from threads other than UI thread?
+                var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+                var contentType = contentTypeService.GetDefaultContentType();
+
+                return Presenter._textBufferFactoryService.CreateTextBuffer(
+                    sourceText.ToString(), contentType);
+            }
+
+
             private async Task<ReferenceEntry> CreateReferenceEntryAsync(
                 RoslynDefinitionBucket definitionBucket, SourceReferenceItem referenceItem, CancellationToken cancellationToken)
             {
@@ -199,14 +249,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var referenceSpan = referenceItem.Location.SourceSpan;
                 var lineSpan = GetLineSpanForReference(sourceText, referenceSpan);
-                var regionSpan = GetRegionSpanForReference(sourceText, referenceSpan);
 
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
-                var taggedRegionParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, regionSpan, cancellationToken).ConfigureAwait(false);
 
                 return new ReferenceEntry(
-                    _presenter, workspace, definitionBucket, referenceItem, 
-                    projectGuid.Value, sourceText, taggedLineParts, taggedRegionParts);
+                    this, workspace, definitionBucket, referenceItem, 
+                    projectGuid.Value, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -256,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     RoslynDefinitionBucket bucket;
                     if (!_definitionToBucket.TryGetValue(definition, out bucket))
                     {
-                        bucket = new RoslynDefinitionBucket(_presenter, this, definition);
+                        bucket = new RoslynDefinitionBucket(Presenter, this, definition);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -321,7 +369,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             void IDisposable.Dispose()
             {
-                CancelSearch();
+                CancelSearchAndCleanUpResources();
             }
 
             #endregion

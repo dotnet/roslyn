@@ -10,6 +10,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Classification;
+using System.Linq;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -30,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
 
         private readonly ClassificationTypeMap _typeMap;
         private readonly IEditorFormatMapService _formatMapService;
@@ -42,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
@@ -50,6 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             _textBufferFactoryService = textBufferFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
+            _contentTypeRegistryService = contentTypeRegistryService;
+
             _textEditorFactoryService = textEditorFactoryService;
             _typeMap = typeMap;
             _formatMapService = formatMapService;
