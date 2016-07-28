@@ -83,13 +83,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Function CreateCompilationUnit(
-                                               optionalTerminator As PunctuationSyntax,
-                                               notClosedIfDirectives As ArrayBuilder(Of IfDirectiveTriviaSyntax),
-                                               notClosedRegionDirectives As ArrayBuilder(Of RegionDirectiveTriviaSyntax),
-                                               haveRegionDirectives As Boolean,
-                                               notClosedExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax
-                                             ) As CompilationUnitSyntax
+        Friend Function CreateCompilationUnit(optionalTerminator As PunctuationSyntax,
+                                              notClosedIfDirectives As ArrayBuilder(Of IfDirectiveTriviaSyntax),
+                                              notClosedRegionDirectives As ArrayBuilder(Of RegionDirectiveTriviaSyntax),
+                                              haveRegionDirectives As Boolean,
+                                              notClosedExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax) As CompilationUnitSyntax
 
             Debug.Assert(optionalTerminator Is Nothing OrElse optionalTerminator.Kind = SyntaxKind.EndOfFileToken)
 

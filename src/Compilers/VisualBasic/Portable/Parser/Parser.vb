@@ -4640,7 +4640,7 @@ checkNullable:
                 '    End If
             End If
 
-                Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
+            Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
         End Function
 
         ' File:Parser.cpp
@@ -6044,7 +6044,7 @@ checkNullable:
         End Function
 
         Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
-            If CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
+            If Me.CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
             Dim b As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
             While (Me.CurrentToken.Kind <> SyntaxKind.EndOfFileToken)
                 b.Add(Me.CurrentToken)
