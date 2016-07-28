@@ -109,6 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
+            Return CaptureOperand(operand, temp, init)
+        End Function
+
+        Private Function CaptureOperand(operand As BoundExpression, <Out> ByRef temp As SynthesizedLocal, <Out> ByRef init As BoundExpression) As BoundExpression
             temp = New SynthesizedLocal(Me._currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)

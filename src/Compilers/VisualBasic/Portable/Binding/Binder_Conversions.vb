@@ -1232,9 +1232,10 @@ DoneWithDiagnostics:
                     Return argument.Kind = BoundKind.Conversion
 
                 Case BoundKind.TupleLiteral
+                    Dim literal = DirectCast(argument, BoundTupleLiteral)
+                    argument = ReclassifyTupleLiteral(convKind, tree, isExplicit, literal, targetType, diagnostics)
 
-                    argument = ReclassifyTupleLiteral(convKind, isExplicit, DirectCast(argument, BoundTupleLiteral), targetType, diagnostics)
-                    Return True
+                    Return argument IsNot literal
 
             End Select
 
@@ -1569,14 +1570,22 @@ DoneWithDiagnostics:
 
         End Function
 
-        Private Function ReclassifyTupleLiteral(convKind As ConversionKind, isExplicit As Boolean, sourceTuple As BoundTupleLiteral, destination As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function ReclassifyTupleLiteral(
+                       convKind As ConversionKind,
+                       tree As VisualBasicSyntaxNode,
+                       isExplicit As Boolean,
+                       sourceTuple As BoundTupleLiteral,
+                       destination As TypeSymbol,
+                       diagnostics As DiagnosticBag) As BoundExpression
+
             ' We have a successful tuple conversion rather than producing a separate conversion node 
             ' which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-            Debug.Assert((convKind = ConversionKind.WideningNullable) = destination.IsNullableType())
+            Dim isNullableTupleConversion = (convKind = ConversionKind.WideningNullable) Or (convKind = ConversionKind.NarrowingNullable)
+            Debug.Assert(Not isNullableTupleConversion OrElse destination.IsNullableType())
 
             Dim destinationWithoutNullable = destination
 
-            If convKind = ConversionKind.WideningNullable Then
+            If isNullableTupleConversion Then
                 destinationWithoutNullable = destination.GetNullableUnderlyingType()
             End If
 
@@ -1589,8 +1598,12 @@ DoneWithDiagnostics:
             End If
 
             Dim arguments = sourceTuple.Arguments
-            Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Length)
 
+            If Not targetType.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
+                Return sourceTuple
+            End If
+
+            Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Length)
             Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = targetType.GetElementTypesOfTupleOrCompatible()
             Debug.Assert(targetElementTypes.Length = arguments.Length, "converting a tuple literal to incompatible type?")
 
@@ -1607,7 +1620,7 @@ DoneWithDiagnostics:
                 convertedArguments.ToImmutableAndFree(),
                 targetType)
 
-            If sourceTuple.Type <> destination Then
+            If sourceTuple.Type <> destination AndAlso convKind <> Nothing Then
                 ' literal cast is applied to the literal 
                 result = New BoundConversion(sourceTuple.Syntax, result, convKind, checked:=False, explicitCastInCode:=isExplicit, type:=destination)
             End If
@@ -1616,7 +1629,7 @@ DoneWithDiagnostics:
             ' even though the literal is already converted to the target type.
             If isExplicit Then
                 result = New BoundConversion(
-                    sourceTuple.Syntax,
+                    tree,
                     result,
                     ConversionKind.Identity,
                     checked:=False,

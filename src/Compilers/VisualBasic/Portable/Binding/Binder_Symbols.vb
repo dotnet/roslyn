@@ -175,6 +175,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 constructedType.CheckConstraints(syntaxArguments, diagnostics)
             End If
 
+            constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
+
             Return constructedType
         End Function
 
