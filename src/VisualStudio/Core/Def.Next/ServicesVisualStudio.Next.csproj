@@ -25,6 +25,7 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
+    <Compile Include="FindReferences\LazyToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />

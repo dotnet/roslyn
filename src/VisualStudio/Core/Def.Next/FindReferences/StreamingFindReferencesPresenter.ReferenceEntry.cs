@@ -123,15 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     var inlines = GetHighlightedInlines(Presenter, _taggedLineParts);
                     var textBlock = inlines.ToTextBlock(Presenter._typeMap);
 
-                    var toolTipContent = CreateToolTipContent();
-                    var toolTip = new ToolTip { Content = toolTipContent };
-                    textBlock.ToolTip = toolTip;
-
-                    var style = Presenter._presenterStyles.FirstOrDefault(s => !string.IsNullOrEmpty(s.QuickInfoAppearanceCategory));
-                    if (style?.BackgroundBrush != null)
-                    {
-                        toolTip.Background = style.BackgroundBrush;
-                    }
+                    textBlock.ToolTip = new LazyTip(textBlock, () => CreateToolTip());
 
                     content = textBlock;
                     return true;
@@ -170,6 +162,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     });
 
                 return inlines;
+            }
+
+            private ToolTip CreateToolTip()
+            {
+                var content = CreateToolTipContent();
+
+                var toolTip = new ToolTip { Content = content };
+
+                var style = Presenter._presenterStyles.FirstOrDefault(s => !string.IsNullOrEmpty(s.QuickInfoAppearanceCategory));
+                if (style?.BackgroundBrush != null)
+                {
+                    toolTip.Background = style.BackgroundBrush;
+                }
+
+                return toolTip;
             }
 
             private ContentControl CreateToolTipContent()
