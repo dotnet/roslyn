@@ -1170,7 +1170,7 @@ d.cs
         [Fact]
         public void LangVersion()
         {
-            const LanguageVersion DefaultVersion = LanguageVersion.CSharp7;
+            LanguageVersion defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
 
             var parsedArgs = DefaultParse(new[] { "/langversion:1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1214,7 +1214,14 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+
+            parsedArgs = DefaultParse(new[] { "/langversion:latest", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS1617: Invalid option 'latest' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("latest").WithLocation(1, 1)
+                );
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso-1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1226,12 +1233,12 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // default value
             parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // override value with iso-1
             parsedArgs = DefaultParse(new[] { "/langversion:6", "/langversion:iso-1", "a.cs" }, _baseDirectory);
@@ -1245,13 +1252,13 @@ d.cs
 
             // override value with default
             parsedArgs = DefaultParse(new[] { "/langversion:6", "/langversion:default", "a.cs" }, _baseDirectory);
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
             parsedArgs.Errors.Verify();
 
             // override value with default
             parsedArgs = DefaultParse(new[] { "/langversion:7", "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // override value with numeric
             parsedArgs = DefaultParse(new[] { "/langversion:iso-2", "/langversion:6", "a.cs" }, _baseDirectory);
@@ -1261,40 +1268,40 @@ d.cs
             //  errors
             parsedArgs = DefaultParse(new[] { "/langversion:iso-3", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso-3"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso1"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:7", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:8", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("8"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/LANGversion:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion: ", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
         }
 
         [Fact]

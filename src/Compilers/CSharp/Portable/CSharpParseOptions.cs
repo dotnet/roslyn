@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpParseOptions(
-            LanguageVersion languageVersion = LanguageVersion.CSharp7,
+            LanguageVersion languageVersion = LanguageVersion.Latest,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
+            : this(languageVersion.MapLatestToVersion(), documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
         {
-            if (!languageVersion.IsValid())
+            if (!LanguageVersion.IsValid())
             {
                 throw new ArgumentOutOfRangeException(nameof(languageVersion));
             }
@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpParseOptions WithLanguageVersion(LanguageVersion version)
         {
+            version = version.MapLatestToVersion();
+
             if (version == this.LanguageVersion)
             {
                 return this;
