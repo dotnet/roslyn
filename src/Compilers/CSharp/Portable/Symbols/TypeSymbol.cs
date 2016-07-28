@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)t != null)
             {
-                var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames) : TypeCompareKind.ConsiderEverything;
+                var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamicAndTupleNames) : TypeCompareKind.ConsiderEverything;
                 if (type.Equals(t, comparison))
                 {
                     return true;
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool IsEqualToOrDerivedFrom(TypeSymbol type, bool ignoreDynamicAndTupleNames, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames) : TypeCompareKind.ConsiderEverything;
+            var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamicAndTupleNames) : TypeCompareKind.ConsiderEverything;
             return this.Equals(type, comparison) || this.IsDerivedFrom(type, ignoreDynamicAndTupleNames, ref useSiteDiagnostics);
         }
 

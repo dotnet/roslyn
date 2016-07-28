@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if ((object)method.OtherPartOfPartial != null && !MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(method, method.OtherPartOfPartial))
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodTupleNameDifference, method.Locations[0], method, method.OtherPartOfPartial);
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
                     }
                 }
             }

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
+        IgnoreDynamicAndTupleNames = 6,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames
     }
 

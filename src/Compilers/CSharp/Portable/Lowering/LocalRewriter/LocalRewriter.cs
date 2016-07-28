@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // statement means that this constraint is not violated).
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             return visited;
         }

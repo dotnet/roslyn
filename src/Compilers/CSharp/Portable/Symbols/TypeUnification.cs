@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
 
-                            var t1Types = nt1.TupleUnderlyingType;
-                            var t2Types = nt2.TupleUnderlyingType;
                             return CanUnifyHelper(new TypeWithModifiers(nt1.TupleUnderlyingType), new TypeWithModifiers(nt2.TupleUnderlyingType), ref substitution);
                         }
 

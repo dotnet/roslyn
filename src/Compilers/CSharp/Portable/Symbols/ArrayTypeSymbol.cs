@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool Equals(ArrayTypeSymbol other)
         {
-            return Equals(other, TypeCompareKind.IgnoreTupleNames);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
         private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison)

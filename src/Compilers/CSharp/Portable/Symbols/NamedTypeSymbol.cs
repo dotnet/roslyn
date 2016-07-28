@@ -715,7 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // The checks above are supposed to handle the vast majority of cases.
-            // More complicated cases are handled in a special helper to make the common case scenario simple/fast
             return EqualsComplicatedCases(other, comparison);
         }
 

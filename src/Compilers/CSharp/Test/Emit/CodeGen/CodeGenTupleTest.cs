@@ -4174,7 +4174,7 @@ class C : I
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,40): error CS8220: The tuple element names in the signature of method 'C.M((string, string))' must match the tuple element names of interface method 'I.M((string, string))'.
+                // (9,40): error CS8220: The tuple element names in the signature of method 'C.M((string, string))' must match the tuple element names of interface method 'I.M((string, string))' (including on the return type).
                 //     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((string, string))", "I.M((string, string))").WithLocation(9, 40)
                 );
@@ -5463,13 +5463,13 @@ class C
             var tuple4 = (TypeSymbol)comp.CreateTupleTypeSymbol((INamedTypeSymbol)tuple1.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b"));
 
             Assert.True(tuple1.Equals(tuple2));
-            Assert.True(tuple1.Equals(tuple2, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.True(tuple1.Equals(tuple2, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             Assert.False(tuple1.Equals(tuple3));
-            Assert.True(tuple1.Equals(tuple3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.True(tuple1.Equals(tuple3, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             Assert.False(tuple1.Equals(tuple4));
-            Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamicAndTupleNames));
         }
 
         [Fact]
@@ -8304,15 +8304,15 @@ class D : C, I<(int a, int b), (int c, int d)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (9,49): error CS8220: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))' (including on the return type).
+                //     public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M(((int, int), (int, int)))", "I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))").WithLocation(9, 49),
                 // (17,54): error CS8218: 'D.M(((int a, int b), (int b, int a)))': cannot change tuple element names when overriding inherited member 'C.M(((int, int), (int, int)))'
                 //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "C.M(((int, int), (int, int)))").WithLocation(17, 54),
-                // (17,54): error CS8220: The tuple element names in the signature of method 'D.M(((int a, int b), (int b, int a)))' must match the tuple element names of interface method 'I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))'.
+                // (17,54): error CS8220: The tuple element names in the signature of method 'D.M(((int a, int b), (int b, int a)))' must match the tuple element names of interface method 'I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))' (including on the return type).
                 //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))").WithLocation(17, 54),
-                // (9,49): error CS8220: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))'.
-                //     public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M(((int, int), (int, int)))", "I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))").WithLocation(9, 49)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))").WithLocation(17, 54)
                 );
         }
 
@@ -8676,11 +8676,11 @@ class C
         {
             Assert.True(tuple.Equals(tuple));
             Assert.True(tuple.Equals(tuple, TypeCompareKind.ConsiderEverything));
-            Assert.True(tuple.Equals(tuple, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.True(tuple.Equals(tuple, TypeCompareKind.IgnoreDynamicAndTupleNames));
             Assert.False(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
             Assert.False(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.ConsiderEverything));
-            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             var members = tuple.GetMembers();
 
@@ -10413,16 +10413,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2"));
@@ -10432,20 +10432,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
 
@@ -10465,16 +10465,16 @@ namespace System
                                                   ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "i", "h"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10486,21 +10486,21 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
                                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item9", "Item8"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
 
                 var t9 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10519,12 +10519,12 @@ namespace System
 
                 Assert.False(t1.Equals(t11));
                 AssertTupleTypeMembersEquality(t1, t11);
-                Assert.True(t1.Equals(t11, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t11.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t11, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t11.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
                 AssertTestDisplayString(t11.GetMembers(),
                     "System.Int32 ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item1",
@@ -10576,12 +10576,12 @@ namespace System
 
                 Assert.False(t1.Equals(t12));
                 AssertTupleTypeMembersEquality(t1, t12);
-                Assert.True(t1.Equals(t12, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t12.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t12, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t12.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
                 AssertTestDisplayString(t12.GetMembers(),
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item1",
@@ -10647,16 +10647,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("c", "b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3"));
@@ -10666,20 +10666,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item3", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
-                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
         }
@@ -15610,16 +15610,16 @@ public class C : I0
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8220: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))'.
+                // (12,13): error CS8220: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
                 //     void I0.M2((int notA, int notB) z) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M2").WithArguments("C.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(12, 13),
-                // (13,32): error CS8220: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()'.
+                // (13,32): error CS8220: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()' (including on the return type).
                 //     (int notMissing, int b) I0.MR1() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR1").WithArguments("C.MR1()", "I0.MR1()").WithLocation(13, 32),
-                // (14,29): error CS8220: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()'.
+                // (14,29): error CS8220: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()' (including on the return type).
                 //     (int notA, int notB) I0.MR2() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR2").WithArguments("C.MR2()", "I0.MR2()").WithLocation(14, 29),
-                // (11,13): error CS8220: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))'.
+                // (11,13): error CS8220: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))' (including on the return type).
                 //     void I0.M1((int notMissing, int b) z) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M1").WithArguments("C.M1((int notMissing, int b))", "I0.M1((int, int b))").WithLocation(11, 13),
                 // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR2()'
@@ -15790,10 +15790,10 @@ public class D2 : D1, I0<(int notA, int notB)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (20,17): error CS8220: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
+                // (20,17): error CS8220: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))' (including on the return type).
                 //     public void set((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("D1.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(20, 17),
-                // (19,33): error CS8220: The tuple element names in the signature of method 'D1.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()'.
+                // (19,33): error CS8220: The tuple element names in the signature of method 'D1.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()' (including on the return type).
                 //     public (int notA, int notB) get() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("D1.get()", "I0<(int a, int b)>.get()").WithLocation(19, 33),
                 // (25,10): error CS0540: 'D2.I0<(int a, int b)>.set((int a, int b))': containing type does not implement interface 'I0<(int a, int b)>'
@@ -15826,10 +15826,10 @@ public partial class C
             comp.VerifyDiagnostics(
                 // (4,18): error CS8221: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int a, int b) x);
-                Diagnostic(ErrorCode.ERR_PartialMethodTupleNameDifference, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
                 // (5,18): error CS8221: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
                 //     partial void M2((int a, int b) x);
-                Diagnostic(ErrorCode.ERR_PartialMethodTupleNameDifference, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
                 );
         }
 

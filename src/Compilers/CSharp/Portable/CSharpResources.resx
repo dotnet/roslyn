@@ -1225,7 +1225,7 @@
     <value>The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</value>
   </data>
   <data name="ERR_ImplBadTupleNames" xml:space="preserve">
-    <value>The tuple element names in the signature of method '{0}' must match the tuple element names of interface method '{1}'.</value>
+    <value>The tuple element names in the signature of method '{0}' must match the tuple element names of interface method '{1}' (including on the return type).</value>
   </data>
   <data name="ERR_DottedTypeNameNotFoundInAgg" xml:space="preserve">
     <value>The type name '{0}' does not exist in the type '{1}'</value>
@@ -2054,7 +2054,7 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodMustHaveLatent" xml:space="preserve">
     <value>No defining declaration found for implementing declaration of partial method '{0}'</value>
   </data>
-  <data name="ERR_PartialMethodTupleNameDifference" xml:space="preserve">
+  <data name="ERR_PartialMethodInconsistentTupleNames" xml:space="preserve">
     <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
   </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">

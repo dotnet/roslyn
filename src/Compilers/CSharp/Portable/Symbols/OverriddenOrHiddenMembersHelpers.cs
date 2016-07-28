@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hiddenBuilder = hiddenAndRelatedBuilder;
             }
 
-            Debug.Assert(overriddenMembers.IsDefaultOrEmpty);
+            Debug.Assert(overriddenMembers.IsEmpty);
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
             return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);

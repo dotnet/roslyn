@@ -1379,11 +1379,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantChangeTupleNamesOnOverride = 8218,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8219,
         ERR_ImplBadTupleNames = 8220,
-        ERR_PartialMethodTupleNameDifference = 8221,
+        ERR_PartialMethodInconsistentTupleNames = 8221,
 
         #endregion tuple diagnostics introduced in C# 7
 
-        // huge gap here; available 8216-8889
+        // huge gap here; available 8222-8889
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
         ERR_AutoPropertyCannotBeRefReturning = 8890,

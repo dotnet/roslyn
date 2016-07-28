@@ -739,8 +739,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool TupleNamesMatchIgnoringOtherDifferences(Symbol member1, Symbol member2)
         {
-            return MemberSignatureComparer.CSharpWithTupleNamesComparer.Equals(member1, member2) ||
-                !MemberSignatureComparer.CSharpWithoutTupleNamesComparer.Equals(member1, member2);
+            return CSharpWithTupleNamesComparer.Equals(member1, member2) ||
+                !CSharpWithoutTupleNamesComparer.Equals(member1, member2);
         }
     }
 }

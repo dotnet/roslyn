@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 resultType = typeWithDynamic;
             }
 
-            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreTupleNames)); // Same custom modifiers as source type.
+            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
             Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic and tuple names as destination type.
             return resultType;
         }
