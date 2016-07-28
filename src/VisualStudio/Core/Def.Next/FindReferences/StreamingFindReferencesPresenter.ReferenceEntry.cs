@@ -172,13 +172,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return inlines;
             }
 
-            //internal bool TryCreateToolTip(string columnName, out object toolTip)
-            //{
-            //    Presenter.AssertIsForeground();
-
-            //    return TryCreateEllision(columnName, out toolTip);
-            //}
-
             private ContentControl CreateToolTipContent()
             {
                 var textBuffer = _context.GetTextBufferForPreview(Document, _sourceText);

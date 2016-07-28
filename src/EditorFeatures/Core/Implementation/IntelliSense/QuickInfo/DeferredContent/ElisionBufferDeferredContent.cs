@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentType _contentType;
         private readonly ITextViewRoleSet _roleSet;
-        private readonly Brush _backgroundBrush;
 
         public ElisionBufferDeferredContent(
             SnapshotSpan span,
@@ -33,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
-            ITextViewRoleSet roleSet = null,
-            Brush backgroundBrush = null)
+            ITextViewRoleSet roleSet = null)
         {
             _span = span;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -42,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             _textEditorFactoryService = textEditorFactoryService;
             _contentType = contentType;
             _roleSet = roleSet ?? _textEditorFactoryService.NoRoles;
-            _backgroundBrush = backgroundBrush ?? Brushes.Transparent;
         }
 
         public ContentControl Create()
@@ -58,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 buffer, _roleSet);
 
             view.SizeToFit();
-            view.Background = _backgroundBrush;
+            view.Background = Brushes.Transparent;
 
             // Zoom out a bit to shrink the text.
             view.ZoomLevel *= 0.75;
