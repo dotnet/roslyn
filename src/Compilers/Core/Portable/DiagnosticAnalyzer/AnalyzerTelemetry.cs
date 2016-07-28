@@ -91,5 +91,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             _actionCounts = actionCounts;
             ExecutionTime = executionTime;
         }
+
+        /// <summary>
+        /// Create telemetry info for a specific analyzer, such as count of registered actions, the total execution time, etc.
+        /// </summary>
+        public AnalyzerTelemetryInfo(
+            int compilationStartActionsCount,
+            int compilationEndActionsCount,
+            int compilationActionsCount,
+            int syntaxTreeActionsCount,
+            int semanticModelActionsCount,
+            int symbolActionsCount,
+            int syntaxNodeActionsCount,
+            int codeBlockStartActionsCount,
+            int codeBlockEndActionsCount,
+            int codeBlockActionsCount,
+            int operationActionsCount,
+            int operationBlockStartActionsCount,
+            int operationBlockEndActionsCount,
+            int operationBlockActionsCount,
+            TimeSpan executionTime)
+        {
+            _actionCounts = new AnalyzerActionCounts(
+                compilationStartActionsCount,
+                compilationEndActionsCount,
+                compilationActionsCount,
+                syntaxTreeActionsCount,
+                semanticModelActionsCount,
+                symbolActionsCount,
+                syntaxNodeActionsCount,
+                codeBlockStartActionsCount,
+                codeBlockEndActionsCount,
+                codeBlockActionsCount,
+                operationActionsCount,
+                operationBlockStartActionsCount,
+                operationBlockEndActionsCount,
+                operationBlockActionsCount);
+
+            ExecutionTime = executionTime;
+        }
     }
 }
