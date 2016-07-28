@@ -2,7 +2,6 @@
   "supports": { },
   "dependencies": {
     "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
-    "Microsoft.VisualStudio.Editor": "14.3.25407",
     "Microsoft.VisualStudio.ImageCatalog": "14.3.25407",
     "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
     "Microsoft.VisualStudio.Shell.Design": "14.3.25407",
