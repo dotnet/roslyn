@@ -1426,5 +1426,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
+
+        // gap here; available 8149-8499
+
+        #region diagnostics for instrumentation
+
+        ERR_InvalidInstrumentationKind = 8501,
+
+        #endregion
     }
 }

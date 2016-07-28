@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_InvalidFileAlignment { get; }
         public abstract int ERR_InvalidSubsystemVersion { get; }
         public abstract int ERR_InvalidOutputName { get; }
+        public abstract int ERR_InvalidInstrumentationKind { get; }
 
         // reference manager:
         public abstract int ERR_MetadataFileNotAssembly { get; }

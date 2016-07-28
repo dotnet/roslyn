@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -153,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
-            Dim instrument As String = ""
+            Dim instrument As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
@@ -550,7 +551,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            instrument = value
+                            Select Case value.ToLower()
+                                Case "testcoverage"
+                                    instrument.Add(InstrumentationKind.TestCoverage)
+                                Case Else
+                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidInstrumentationKind, value)
+                            End Select
+
                             Continue For
 
                         Case "recurse"
@@ -1338,7 +1345,7 @@ lVbRuntimePlus:
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
                 runtimeMetadataVersion:=Nothing,
-                instrument:=instrument)
+                instrument:=instrument.ToImmutableAndFree())
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)

@@ -4418,8 +4418,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)
- /instrument:options           Sets instrumentation options.
-                               If empty instrumentation is disabled.
+ /instrument:TestCoverage      Produce an assembly instrumented to collect
+                               coverage information
  /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
 
                         - ERRORS AND WARNINGS -
@@ -4940,5 +4940,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
     <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
   </data>
 </root>

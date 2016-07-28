@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.RuntimeMetadataVersion),
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
-                nameof(EmitOptions.Instrument));
+                nameof(EmitOptions.InstrumentationKinds));
         }
     }
 }

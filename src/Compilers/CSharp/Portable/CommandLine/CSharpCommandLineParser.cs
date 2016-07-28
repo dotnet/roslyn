@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
-            string instrument = "";
+            ArrayBuilder<InstrumentationKind> instrument = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             bool optionsEnded = false;
@@ -312,7 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                instrument = value;
+                                switch (value.ToLower())
+                                {
+                                    case "testcoverage":
+                                        instrument.Add(InstrumentationKind.TestCoverage);
+                                        break;
+
+                                    default:
+                                        AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidInstrumentationKind, value);
+                                        break;
+                                }
                             }
 
                             continue;
@@ -1253,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fileAlignment: fileAlignment,
                 subsystemVersion: subsystemVersion,
                 runtimeMetadataVersion: runtimeMetadataVersion,
-                instrument: instrument
+                instrument: instrument.ToImmutableAndFree()
             );
 
             // add option incompatibility errors if any

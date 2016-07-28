@@ -113,8 +113,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void InstrumentTestNamesFlag()
         {
             var csc = new Csc();
-            csc.Instrument = "Instrument.This.Flag";
-            Assert.Equal("/instrument:Instrument.This.Flag", csc.GenerateResponseFileContents());
+            csc.Instrument = null;
+            Assert.Equal(string.Empty, csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Instrument = "TestCoverage";
+            Assert.Equal("/instrument:TestCoverage", csc.GenerateResponseFileContents());
         }
 
         [Fact]

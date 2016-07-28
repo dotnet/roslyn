@@ -5498,6 +5498,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid instrumentation kind: {0}.
+        /// </summary>
+        internal static string ERR_InvalidInstrumentationKind {
+            get {
+                return ResourceManager.GetString("ERR_InvalidInstrumentationKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The line number specified for #line directive is missing or invalid.
         /// </summary>
         internal static string ERR_InvalidLineNumber {

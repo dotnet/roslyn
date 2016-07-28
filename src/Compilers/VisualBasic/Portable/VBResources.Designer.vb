@@ -5964,6 +5964,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid instrumentation kind: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidInstrumentationKind() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidInstrumentationKind", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Only the &apos;Async&apos; or &apos;Iterator&apos; modifier is valid on a lambda..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidLambdaModifier() As String

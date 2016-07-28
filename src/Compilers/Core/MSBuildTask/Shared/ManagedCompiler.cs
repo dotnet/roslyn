@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
         
         /// <summary>
-        /// An instrument flag that specifies instrumentation settings.
+        /// An instrument flag that specifies instrumentation kind.
         /// </summary>
         public string Instrument
         {

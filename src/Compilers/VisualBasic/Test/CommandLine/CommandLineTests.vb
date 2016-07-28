@@ -422,31 +422,43 @@ a.vb
             Dim args As VisualBasicCommandLineArguments
 
             args = DefaultParse({}, _baseDirectory)
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
 
             args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
 
             args = DefaultParse({"/instrument:""""", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
 
             args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
 
             args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
 
-            args = DefaultParse({"/instrument:Test.Flag.Name", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test.Flag.Name", args.EmitOptions.Instrument)
+            args = DefaultParse({"/instrument:InvalidOption", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
 
-            args = DefaultParse({"/instrument:""Test Flag.Name""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/instrument:None", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("None").WithLocation(1, 1)})
+            Assert.Equal(ImmutableHashSet(Of InstrumentationKind).Empty, args.EmitOptions.InstrumentationKinds)
+
+            args = DefaultParse({"/instrument:TestCoverage", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test Flag.Name", args.EmitOptions.Instrument)
+            Assert.Equal({InstrumentationKind.TestCoverage}, args.EmitOptions.InstrumentationKinds)
+
+            args = DefaultParse({"/instrument:""TestCoverage""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal({InstrumentationKind.TestCoverage}, args.EmitOptions.InstrumentationKinds)
+
+            args = DefaultParse({"/instrument:""TESTCOVERAGE""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal({InstrumentationKind.TestCoverage}, args.EmitOptions.InstrumentationKinds)
         End Sub
 
         <Fact>

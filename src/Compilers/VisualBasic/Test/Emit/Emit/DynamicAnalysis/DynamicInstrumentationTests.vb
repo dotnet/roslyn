@@ -1598,7 +1598,7 @@ End Class
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrument(InstrumentationKind.TestCoverage))
             For Each Diagnostic As Diagnostic In diagnostics
                 If Diagnostic.Code = ERRID.ERR_MissingRuntimeHelper AndAlso Diagnostic.Arguments(0).Equals("System.Guid.Parse") Then
                     Return
@@ -1613,7 +1613,7 @@ End Class
         End Function
 
         Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
-            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, additionalRefs:=s_refs, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument("Test.Flag"))
+            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, additionalRefs:=s_refs, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument(InstrumentationKind.TestCoverage))
         End Function
 
         Private Shared ReadOnly s_refs As MetadataReference() = New MetadataReference() {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}
