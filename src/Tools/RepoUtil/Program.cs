@@ -10,6 +10,14 @@ namespace RepoUtil
 {
     internal static class Program
     {
+        private sealed class ParsedArgs
+        {
+            internal Mode Mode { get; set; } = Mode.Usage;
+            internal string RepoDataPath { get; set; }
+            internal string SourcesPath { get; set; }
+            internal string[] RemainingArgs { get; set; }
+        }
+
         private enum Mode
         {
             Usage,
@@ -27,37 +35,35 @@ namespace RepoUtil
         }
 
         private static bool Run(string[] args)
-        { 
-            string sourcesPath;
-            Mode mode;
-            if (!TryParseCommandLine(args, out mode, out sourcesPath))
+        {
+            ParsedArgs parsedArgs;
+            if (!TryParseCommandLine(args, out parsedArgs))
             {
                 return false;
             }
 
-            var repoConfig = RepoConfig.ReadFrom(Path.Combine(AppContext.BaseDirectory, "RepoData.json"));
-            switch (mode)
+            var repoConfig = RepoConfig.ReadFrom(parsedArgs.RepoDataPath);
+            switch (parsedArgs.Mode)
             {
                 case Mode.Usage:
                     Usage();
                     return true;
                 case Mode.Verify:
-                    return VerifyUtil.Go(repoConfig, sourcesPath);
+                    return VerifyUtil.Go(repoConfig, parsedArgs.SourcesPath);
                 case Mode.Consumes:
                     {
-                        Console.WriteLine(ConsumesUtil.Go(repoConfig, sourcesPath));
+                        Console.WriteLine(ConsumesUtil.Go(repoConfig, parsedArgs.SourcesPath));
                         return true;
                     }
                 case Mode.Change:
                     {
-                        var repoData = RepoData.Create(repoConfig, sourcesPath);
+                        var repoData = RepoData.Create(repoConfig, parsedArgs.SourcesPath);
                         var util = new ChangeUtil(repoData);
-                        util.ChangeAll();
-                        return true;
+                        return util.Run(Console.Out, parsedArgs.RemainingArgs);
                     }
                 case Mode.Produces:
                     {
-                        var util = new ProduceUtil(repoConfig, sourcesPath);
+                        var util = new ProduceUtil(repoConfig, parsedArgs.SourcesPath);
                         util.Go();
                         return true;
                     }
@@ -66,44 +72,55 @@ namespace RepoUtil
             }
         }
 
-        private static void Usage()
-        {
-            var text = @"
-  -verify: check the state of the repo
-  -consumes: output the conent consumed by this repo
-  -change: change the dependencies.
-";
-            Console.Write(text);
-        }
-
         // TODO: don't use dashes here.
-        private static bool TryParseCommandLine(string[] args, out Mode mode, out string sourcesPath)
+        private static bool TryParseCommandLine(string[] args, out ParsedArgs parsedArgs)
         {
-            var allGood = true;
-            var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory)));
-            sourcesPath = Path.GetDirectoryName(binariesPath);
-            mode = Mode.Usage;
+            parsedArgs = new ParsedArgs();
 
+            // Setup the default values
+            var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory)));
+            parsedArgs.SourcesPath = Path.GetDirectoryName(binariesPath);
+            parsedArgs.Mode = Mode.Usage;
+            parsedArgs.RepoDataPath = Path.Combine(AppContext.BaseDirectory, "RepoData.json");
+
+            var allGood = true;
+            var done = false;
             var index = 0;
-            while (index < args.Length)
+            while (index < args.Length && !done)
             {
                 var arg = args[index];
                 switch (arg.ToLower())
                 {
-                    case "-verify":
-                        mode = Mode.Verify;
+                    case "-sourcesPath":
+                        {
+                            if (index + 1 < args.Length)
+                            {
+                                parsedArgs.SourcesPath = args[index + 1];
+                                index += 2;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"The -sourcesPath switch needs a value");
+                                index++;
+                                allGood = false;
+                            }
+                            break;
+                        }
+                    case "verify":
+                        parsedArgs.Mode = Mode.Verify;
+                        index++;
+                        done = true;
+                        break;
+                    case "consumes":
+                        parsedArgs.Mode = Mode.Consumes;
                         index++;
                         break;
-                    case "-consumes":
-                        mode = Mode.Consumes;
+                    case "change":
+                        parsedArgs.Mode = Mode.Change;
                         index++;
                         break;
-                    case "-change":
-                        mode = Mode.Change;
-                        index++;
-                        break;
-                    case "-produces":
-                        mode = Mode.Produces;
+                    case "produces":
+                        parsedArgs.Mode = Mode.Produces;
                         index++;
                         break;
                     default:
@@ -114,7 +131,22 @@ namespace RepoUtil
                 }
             }
 
+            parsedArgs.RemainingArgs = index >= args.Length
+                ? Array.Empty<string>()
+                : args.Skip(index).ToArray();
+
             return allGood;
+        }
+
+        private static void Usage()
+        {
+            var text = @"
+  verify: check the state of the repo
+  consumes: output the conent consumed by this repo
+  produces: output the content produced by this repo
+  change: change the dependencies.
+";
+            Console.Write(text);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -22,18 +23,112 @@ namespace RepoUtil
             _repoData = repoData;
         }
 
-        internal void ChangeAll()
+        /// <summary>
+        /// Parse out the arguments that can be provided to the 'change' command.
+        /// </summary>
+        public static bool TryParseChangeSource(TextWriter writer, string[] args, out List<NuGetPackage> changes)
         {
-            // TODO: actually take an URL
-            var list = new List<NuGetPackage>();
-            foreach (var line in File.ReadAllLines(@"e:\temp\test.txt"))
+            changes = new List<NuGetPackage>();
+            var allGood = false;
+            var index = 0;
+            while (index < args.Length && allGood)
             {
-                var item = line.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                var package = new NuGetPackage(item[0], item[1]);
-                list.Add(package);
+                var arg = args[index];
+                index++;
+
+                switch (arg.ToLower())
+                {
+                    case "-version":
+                        if (index < args.Length)
+                        {
+                            allGood = TryParseVersionSource(writer, args[index], changes);
+                            index++;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"The -version switch needs a value");
+                            allGood = false;
+                        }
+                        break;
+                    default:
+                        if (!TryParsePackage(writer, arg, changes))
+                        {
+                            allGood = false;
+                        }
+                        break;
+                }
             }
 
-            ChangeAll(list);
+            return allGood;
+        }
+
+        /// <summary>
+        /// Parse out a file that has the format used on the dotnet/versions repo.  Essentially every entry in the file
+        /// will be a package name, space, version.
+        /// </summary>
+        private static bool TryParseVersionSource(TextWriter writer, string path, List<NuGetPackage> changes)
+        {
+            try
+            {
+                foreach (var line in File.ReadAllLines(path))
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        continue;
+                    }
+
+                    if (!TryParsePackage(writer, line, changes))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                writer.WriteLine($"Error parsing {path}: {ex.ToString()}");
+                writer.WriteLine(ex.StackTrace);
+                changes = null;
+                return false;
+            }
+        }
+
+        private static bool TryParsePackage(TextWriter writer, string packageLine, List<NuGetPackage> changes)
+        {
+            var match = Regex.Match(packageLine, @"([^\s]*)\s*(.*)");
+            if (match.Success)
+            {
+                var package = new NuGetPackage(
+                    match.Groups[1].Value,
+                    match.Groups[2].Value);
+                changes.Add(package);
+                return true;
+            }
+
+            match = Regex.Match(packageLine, @"([^\s]*)\s*-\s*(.*)");
+            if (match.Success)
+            {
+                var package = new NuGetPackage(
+                    match.Groups[1].Value,
+                    match.Groups[2].Value);
+                changes.Add(package);
+                return true;
+            }
+
+            writer.WriteLine($"Unable to parse package {packageLine}");
+            return false;
+        }
+
+        internal bool Run(TextWriter writer, string[] args)
+        {
+            List<NuGetPackage> changes;
+            if (!TryParseChangeSource(writer, args, out changes))
+            {
+                return false;
+            }
+
+            ChangeAll(changes);
+            return true;
         }
 
         /// <summary>
