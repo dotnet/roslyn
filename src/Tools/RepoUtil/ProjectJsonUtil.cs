@@ -44,7 +44,7 @@ namespace RepoUtil
         /// </summary>
         internal static bool ChangeDependencies(string filePath, ImmutableDictionary<string, NuGetPackage> changeMap)
         {
-            var obj = JObject.Parse(File.ReadAllText(filePath));
+            var obj = JObject.Parse(File.ReadAllText(filePath), new JsonLoadSettings() { CommentHandling = CommentHandling.Load });
             var dependencies = (JObject)obj["dependencies"];
             if (dependencies == null)
             {

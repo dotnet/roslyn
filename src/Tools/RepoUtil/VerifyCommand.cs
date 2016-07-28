@@ -36,13 +36,12 @@ namespace RepoUtil
             _sourcesPath = sourcesPath;
         }
 
-        // TODO: stop using Console.WriteLine
         public bool Run(TextWriter writer, string[] args)
         {
-            return VerifyPackages();
+            return VerifyPackages(writer);
         }
 
-        private bool VerifyPackages()
+        private bool VerifyPackages(TextWriter writer)
         {
             var allGood = false;
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_sourcesPath))
@@ -52,14 +51,14 @@ namespace RepoUtil
                 {
                     if (_repoConfig.StaticPackages.Any(x => x.Name == nugetRef.Name))
                     {
-                        if (!VerifyStaticPackage(nugetRef, fileName))
+                        if (!VerifyStaticPackage(writer, nugetRef, fileName))
                         {
                             allGood = false;
                         }
                     }
                     else
                     {
-                        if (!VerifyFloatingPackage(nugetRef, fileName))
+                        if (!VerifyFloatingPackage(writer, nugetRef, fileName))
                         {
                             allGood = false;
                         }
@@ -70,7 +69,7 @@ namespace RepoUtil
             return allGood;
         }
 
-        private bool VerifyFloatingPackage(NuGetPackage nugetRef, FileName fileName)
+        private bool VerifyFloatingPackage(TextWriter writer, NuGetPackage nugetRef, FileName fileName)
         {
             NuGetReferenceSource source;
             if (_floatingPackageMap.TryGetValue(nugetRef.Name, out source))
@@ -80,9 +79,9 @@ namespace RepoUtil
                     return true;
                 }
 
-                Console.WriteLine($"Package {nugetRef.Name} version differs in:");
-                Console.WriteLine($"\t{fileName} at {nugetRef.Version}");
-                Console.WriteLine($"\t{source.FileName} at {source.NuGetReference.Version}");
+                writer.WriteLine($"Package {nugetRef.Name} version differs in:");
+                writer.WriteLine($"\t{fileName} at {nugetRef.Version}");
+                writer.WriteLine($"\t{source.FileName} at {source.NuGetReference.Version}");
                 return false;
             }
 
@@ -90,13 +89,13 @@ namespace RepoUtil
             return true;
         }
 
-        private bool VerifyStaticPackage(NuGetPackage nugetRef, FileName fileName)
+        private bool VerifyStaticPackage(TextWriter writer, NuGetPackage nugetRef, FileName fileName)
         {
             Debug.Assert(_repoConfig.StaticPackagesMap.ContainsKey(nugetRef.Name));
             var versions = _repoConfig.StaticPackagesMap[nugetRef.Name];
             if (!versions.Contains(nugetRef.Version))
             {
-                Console.WriteLine($"Package {nugetRef.Name} at version {nugetRef.Version} in {fileName} is not a valid version");
+                writer.WriteLine($"Package {nugetRef.Name} at version {nugetRef.Version} in {fileName} is not a valid version");
                 return false;
             }
 

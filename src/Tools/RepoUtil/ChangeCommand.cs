@@ -13,6 +13,9 @@ namespace RepoUtil
 {
     /// <summary>
     /// Responsible for changing the repo to use a new set of NuGet packages.
+    ///
+    /// TODO: change needs to be concious of version.  Can only upgrade the items that have the old 
+    /// version.  Needed to support static packages.
     /// </summary>
     internal sealed class ChangeCommand : ICommand
     {
