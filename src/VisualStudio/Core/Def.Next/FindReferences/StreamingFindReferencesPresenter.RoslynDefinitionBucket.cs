@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 StreamingFindReferencesPresenter presenter,
                 TableDataSourceFindReferencesContext context,
                 DefinitionItem definitionItem)
-                : base(name: "",
+                : base(name: definitionItem.DisplayParts.JoinText() + " " + definitionItem.GetHashCode(),
                        sourceTypeIdentifier: context.SourceTypeIdentifier,
                        identifier: context.Identifier)
             {
