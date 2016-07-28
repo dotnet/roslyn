@@ -133,6 +133,7 @@
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
     <Compile Include="CodeActions\MoveType\BasicMoveTypeTestsBase.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.ActionCountTests.vb" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.vb" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.vb" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />

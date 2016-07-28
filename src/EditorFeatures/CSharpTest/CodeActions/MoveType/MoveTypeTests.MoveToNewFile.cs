@@ -9,6 +9,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestMissing_OnMatchingFileName()
+        {
+            var code =
+@"[||]class test1 { }";
+
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestMissing_Nested_OnMatchingFileName_Simple()
+        {
+            var code =
+@"class outer
+{ 
+    [||]class test1 { }
+}";
+
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestMatchingFileName_CaseSensitive()
+        {
+            var code =
+@"[||]class Test1 { }";
+
+            await TestActionCountAsync(code, count: 2);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestForSpans1()
         {
             var code =
@@ -275,6 +305,43 @@ class Class2 { }";
     }
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypeToNewFile_Simple_DottedName()
+        {
+            var code =
+@"namespace N1
+{
+    class Class1 
+    {
+        [||]class Class2 { }
+    }
+    
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    partial class Class1
+    {
+
+    }
+}";
+
+            var expectedDocumentName = "Class1.Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]

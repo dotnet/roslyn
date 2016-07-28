@@ -15,7 +15,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-        Public Async Function TypeNameMatchesFileName_RenameFile() As Task
+        Public Async Function TestMissing_TypeNameMatchesFileName_RenameFile() As Task
             ' testworkspace creates files Like test1.cs, test2.cs And so on.. 
             ' so type name matches filename here And rename file action should Not be offered.
             Dim code =
@@ -28,7 +28,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-        Public Async Function MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile() As Task
+        Public Async Function TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile() As Task
             Dim code =
 <File>
 [||]Class Class1

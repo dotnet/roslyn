@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     {
         private class RenameFileEditor : Editor
         {
-            public RenameFileEditor(TService service, State state, CancellationToken cancellationToken)
-                : base(service, state, cancellationToken)
+            public RenameFileEditor(TService service, State state, string fileName, CancellationToken cancellationToken)
+                : base(service, state, fileName, cancellationToken)
             {
             }
 
@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solution = SemanticDocument.Document.Project.Solution;
                 var text = SemanticDocument.Text;
                 var oldDocumentId = SemanticDocument.Document.Id;
-                var newDocumentId = DocumentId.CreateNewId(SemanticDocument.Document.Project.Id, State.TargetFileNameCandidate);
+                var newDocumentId = DocumentId.CreateNewId(SemanticDocument.Document.Project.Id, FileName);
 
                 // currently, document rename is accomplished by a remove followed by an add.
                 // the workspace takes care of resolving conflicts if the document name is not unique in the project
                 // by adding numeric suffixes to the new document being added.
                 var newSolution = solution.RemoveDocument(oldDocumentId);
-                newSolution = newSolution.AddDocument(newDocumentId, State.TargetFileNameCandidate, text);
+                newSolution = newSolution.AddDocument(newDocumentId, FileName, text);
 
                 return new CodeActionOperation[]
                 {

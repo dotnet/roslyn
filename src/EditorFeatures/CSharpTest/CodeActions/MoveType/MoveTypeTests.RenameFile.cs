@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TypeNameMatchesFileName_RenameFile()
+        public async Task TestMissing_TypeNameMatchesFileName_RenameFile()
         {
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
             // so type name matches filename here and rename file action should not be offered.
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
+        public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
         {
             var code =
 @"[||]class Class1 { }
@@ -74,6 +74,34 @@ class Class2 { }";
 [||]class Class2 { }";
 
             var expectedDocumentName = "Class2.cs";
+
+            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task NestedFile_Simple_RenameFile()
+        {
+            var code =
+@"class OuterType
+{
+    [||]class InnerType { }
+}";
+
+            var expectedDocumentName = "InnerType.cs";
+
+            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task NestedFile_DottedName_RenameFile()
+        {
+            var code =
+@"class OuterType
+{
+    [||]class InnerType { }
+}";
+
+            var expectedDocumentName = "OuterType.InnerType.cs";
 
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }

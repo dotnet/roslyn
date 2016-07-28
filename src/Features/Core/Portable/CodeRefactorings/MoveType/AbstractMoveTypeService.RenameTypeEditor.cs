@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     {
         private class RenameTypeEditor : Editor
         {
-            public RenameTypeEditor(TService service, State state, CancellationToken cancellationToken)
-                : base(service, state, cancellationToken)
+            public RenameTypeEditor(TService service, State state, string fileName, CancellationToken cancellationToken)
+                : base(service, state, fileName, cancellationToken)
             {
             }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // if no such conflicts exist, proceed with RenameSymbolAsync.
                 var solution = SemanticDocument.Document.Project.Solution;
                 var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
-                var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, State.DocumentName, SemanticDocument.Document.Options, CancellationToken).ConfigureAwait(false);
+                var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, FileName, SemanticDocument.Document.Options, CancellationToken).ConfigureAwait(false);
                 return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(newSolution));
             }
         }
