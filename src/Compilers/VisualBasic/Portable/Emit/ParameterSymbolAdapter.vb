@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property HasMetadataConstantValue As Boolean
             Get
                 CheckDefinitionInvariant()
-                If HasExplicitDefaultValue Then
+                If Me.HasExplicitDefaultValue Then
                     Dim value = Me.ExplicitDefaultConstantValue
                     Return Not (value.Discriminator = ConstantValueTypeDiscriminator.DateTime OrElse value.Discriminator = ConstantValueTypeDiscriminator.Decimal)
                 End If
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return Me.MarshallingInformation IsNot Nothing
+                Return MarshallingInformation IsNot Nothing
             End Get
         End Property
 
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IParameterDefinitionMarshallingDescriptor As ImmutableArray(Of Byte) Implements IParameterDefinition.MarshallingDescriptor
             Get
                 CheckDefinitionInvariant()
-                Return MarshallingDescriptor
+                Return Me.MarshallingDescriptor
             End Get
         End Property
 
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            If Me.IsDefinition AndAlso (Me.ContainingModule = moduleBeingBuilt.SourceModule) Then
+            If Me.IsDefinition AndAlso Me.ContainingModule = moduleBeingBuilt.SourceModule Then
                 Return Me
             End If
 
