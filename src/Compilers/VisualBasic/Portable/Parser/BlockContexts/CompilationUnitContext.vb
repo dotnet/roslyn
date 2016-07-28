@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(parser As Parser)
             MyBase.New(SyntaxKind.CompilationUnit, Nothing, Nothing)
+
             Me.Parser = parser
             _statements = _parser._pool.Allocate(Of StatementSyntax)()
             _state = SyntaxKind.OptionStatement
