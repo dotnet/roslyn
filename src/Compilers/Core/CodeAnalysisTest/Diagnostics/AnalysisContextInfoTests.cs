@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
@@ -16,7 +18,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void InitializeTest()
         {
             var code = @"class C { void M() { return; } }";
-            var compilation = CreateCompilation(code);
+            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
+                .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
+            var compilation = CreateCompilation(code, parseOptions: parseOptions);
 
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockAction));
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockStartAction));
@@ -93,12 +97,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isEnabledByDefault: true);
         }
 
-        private static Compilation CreateCompilation(string source)
+        private static Compilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
         {
             string fileName = "Test.cs";
             string projectName = "TestProject";
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName);
+            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName, options: parseOptions);
 
             return CSharpCompilation.Create(
                 projectName,

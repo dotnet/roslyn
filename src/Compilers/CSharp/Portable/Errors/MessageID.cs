@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureReplace = MessageBase + 12712,
         IDS_FeatureOutVar = MessageBase + 12713,
+
+        IDS_FeatureIOperation = MessageBase + 12714,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -162,7 +164,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
         internal static string RequiredFeature(this MessageID feature)
         {
-            return null;
+            switch (feature)
+            {
+                case MessageID.IDS_FeatureIOperation:
+                    return "IOperation";
+                default:
+                    return null;
+            }
         }
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)

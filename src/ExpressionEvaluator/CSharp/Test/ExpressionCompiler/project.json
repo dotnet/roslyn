@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.VisualStudio.Debugger.Engine": "14.3.25420",
+    "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422"
   },
   "frameworks": {
     "net46": { }

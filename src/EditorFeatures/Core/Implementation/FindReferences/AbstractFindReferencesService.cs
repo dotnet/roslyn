@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -16,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal abstract partial class AbstractFindReferencesService : IFindReferencesService
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _referenceSymbolPresenters;
+        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
         private readonly IEnumerable<IFindReferencesResultProvider> _externalReferencesProviders;
 
         protected AbstractFindReferencesService(
-            IEnumerable<IReferencedSymbolsPresenter> referenceSymbolPresenters,
+            IEnumerable<IDefinitionsAndReferencesPresenter> referenceSymbolPresenters,
             IEnumerable<INavigableItemsPresenter> navigableItemPresenters,
             IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
         {
@@ -156,10 +157,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             if (result != null && result.Item1 != null)
             {
-                var searchSolution = result.Item2;
+                var solution = result.Item2;
+                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var definitionsAndReferences = factory.CreateDefinitionsAndReferences(
+                    solution, result.Item1);
+
                 foreach (var presenter in _referenceSymbolPresenters)
                 {
-                    presenter.DisplayResult(searchSolution, result.Item1);
+                    presenter.DisplayResult(definitionsAndReferences);
                     return true;
                 }
             }

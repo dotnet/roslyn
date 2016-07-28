@@ -1,7 +1,7 @@
 {
   "supports": {},
   "dependencies": {
-    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60706-02"
+    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60723-01"
   },
   "frameworks": {
     ".NETPortable,Version=v4.5,Profile=Profile7": {}
