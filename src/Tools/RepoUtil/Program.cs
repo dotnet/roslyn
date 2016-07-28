@@ -114,14 +114,17 @@ namespace RepoUtil
                     case "consumes":
                         parsedArgs.Mode = Mode.Consumes;
                         index++;
+                        done = true;
                         break;
                     case "change":
                         parsedArgs.Mode = Mode.Change;
                         index++;
+                        done = true;
                         break;
                     case "produces":
                         parsedArgs.Mode = Mode.Produces;
                         index++;
+                        done = true;
                         break;
                     default:
                         Console.Write($"Option {arg} is unrecognized");

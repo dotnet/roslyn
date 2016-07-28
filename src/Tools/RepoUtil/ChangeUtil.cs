@@ -29,7 +29,7 @@ namespace RepoUtil
         public static bool TryParseChangeSource(TextWriter writer, string[] args, out List<NuGetPackage> changes)
         {
             changes = new List<NuGetPackage>();
-            var allGood = false;
+            var allGood = true;
             var index = 0;
             while (index < args.Length && allGood)
             {
