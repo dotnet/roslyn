@@ -40,8 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
                         ImmutableDictionary(Of String, String).Empty)
 
+            ' We test the mapped value, _languageVersion, rather than tha parameter, languageVersion,
+            ' which has Not had "Latest" mapped to the latest version yet.
             If Not _languageVersion.IsValid Then
-                Throw New ArgumentOutOfRangeException(NameOf(_languageVersion))
+                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
 
             If Not kind.IsValid Then

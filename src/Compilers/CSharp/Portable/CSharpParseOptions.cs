@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             IEnumerable<string> preprocessorSymbols = null)
             : this(languageVersion.MapLatestToVersion(), documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
         {
+            // We test the mapped value, LanguageVersion, rather than tha parameter, languageVersion,
+            // which has not had "Latest" mapped to the latest version yet.
             if (!LanguageVersion.IsValid())
             {
                 throw new ArgumentOutOfRangeException(nameof(languageVersion));
