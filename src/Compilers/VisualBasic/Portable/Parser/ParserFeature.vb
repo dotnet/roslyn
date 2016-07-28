@@ -93,9 +93,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.ImplicitDefaultValueOnOptionalParameter
                     Return LanguageVersion.VBvNext
 
-                Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return LanguageVersion.VBvnext
-
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
