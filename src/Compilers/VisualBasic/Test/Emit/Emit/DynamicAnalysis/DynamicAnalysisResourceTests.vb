@@ -368,6 +368,118 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TestMethodSpansWithAttributes()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                       ' Method 0
+        Fred()
+    End Sub
+
+    <System.Obsolete()>
+    Sub Fred()                              ' Method 1
+    End Sub
+
+    Sub New()                               ' Method 2
+        x = 12
+    End Sub
+End Module
+
+Class c
+    <System.Security.SecurityCritical>
+    Public Sub New(x As Integer)                            ' Method 3
+    End Sub
+
+    <System.Security.SecurityCritical>
+    Sub New()                                               ' Method 4
+    End Sub
+
+    <System.Obsolete>
+    Public Sub Fred()                                       ' Method 5
+        Return
+    End Sub
+
+    <System.Obsolete>
+    Function Barney() As Integer                            ' Method 6
+        Return 12
+    End Function
+
+    <System.Obsolete>
+    Shared Sub New()                                        ' Method 7
+    End Sub
+
+    <System.Obsolete>
+    Public Shared Operator +(a As c, b As c) As c           ' Method 8
+        Return a
+    End Operator
+
+    Property P1 As Integer
+        <System.Security.SecurityCritical>
+        Get                                                 ' Method 9
+            Return 10
+        End Get
+        <System.Security.SecurityCritical>
+        Set(value As Integer)                               ' Method 10
+        End Set
+    End Property
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            VerifySpans(reader, reader.Methods(0),
+                        "(3,4)-(5,11)",
+                        "(4,8)-(4,14)")
+
+            VerifySpans(reader, reader.Methods(1),
+                        "(8,4)-(9,11)")
+
+            VerifySpans(reader, reader.Methods(2),
+                        "(11,4)-(13,11)",
+                        "(12,8)-(12,14)")
+
+            VerifySpans(reader, reader.Methods(3),
+                        "(18,4)-(19,11)")
+
+            VerifySpans(reader, reader.Methods(4),
+                        "(22,4)-(23,11)")
+
+            VerifySpans(reader, reader.Methods(5),
+                        "(26,4)-(28,11)",
+                        "(27,8)-(27,14)")
+
+            VerifySpans(reader, reader.Methods(6),
+                        "(31,4)-(33,16)",
+                        "(32,8)-(32,17)")
+
+            VerifySpans(reader, reader.Methods(7),
+                        "(36,4)-(37,11)")
+
+            VerifySpans(reader, reader.Methods(8),
+                        "(40,4)-(42,16)",
+                        "(41,8)-(41,16)")
+
+            VerifySpans(reader, reader.Methods(9),
+                        "(46,8)-(48,15)",
+                        "(47,12)-(47,21)")
+
+            VerifySpans(reader, reader.Methods(10),
+                        "(50,8)-(51,15)")
+        End Sub
+
+        <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(ExampleSource)

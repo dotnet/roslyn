@@ -69,7 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _methodBodyFactory = methodBodyFactory
 
             ' The first point indicates entry into the method and has the span of the method definition.
-            _methodEntryInstrumentation = AddAnalysisPoint(methodBody.Syntax, methodBodyFactory)
+            Dim bodySyntax As VisualBasicSyntaxNode = methodBody.Syntax
+            _methodEntryInstrumentation = AddAnalysisPoint(bodySyntax, SkipAttributes(bodySyntax), methodBodyFactory)
         End Sub
 
         Public Overrides Function CreateBlockPrologue(trueOriginal As BoundBlock, original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
@@ -231,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function CollectDynamicAnalysis(original As BoundStatement, rewritten As BoundStatement) As BoundStatement
             ' Instrument the statement using a factory with the same syntax as the statement, so that the instrumentation appears to be part of the statement.
             Dim statementFactory As New SyntheticBoundNodeFactory(_methodBodyFactory.TopLevelMethod, _method, original.Syntax, _methodBodyFactory.CompilationState, _diagnostics)
-            Dim analysisPoint As BoundStatement = AddAnalysisPoint(SyntaxForSpan(original), statementFactory)
+            Dim analysisPoint As BoundStatement = AddAnalysisPoint(SyntaxForSpan(original), Nothing, statementFactory)
             Return If(rewritten IsNot Nothing, statementFactory.StatementList(analysisPoint, rewritten), analysisPoint)
         End Function
 
@@ -249,17 +250,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _debugDocumentProvider.Invoke(path, basePath:="")
         End Function
 
-        Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
+        Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, alternateStartSpan As Text.TextSpan?, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
+
+            Dim endSpan As FileLinePositionSpan = syntaxForSpan.GetLocation().GetMappedLineSpan()
+            Dim startSpan As FileLinePositionSpan = If(alternateStartSpan.HasValue, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateStartSpan.Value), endSpan)
+
             ' Add an entry in the spans array.
-
-            Dim location As Location = syntaxForSpan.GetLocation()
-            Dim spanPosition As FileLinePositionSpan = location.GetMappedLineSpan()
-
             Dim spansIndex As Integer = _spansBuilder.Count
-            _spansBuilder.Add(New SourceSpan(GetSourceDocument(syntaxForSpan, spanPosition), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character))
+            _spansBuilder.Add(New SourceSpan(GetSourceDocument(syntaxForSpan, startSpan), startSpan.StartLinePosition.Line, startSpan.StartLinePosition.Character, endSpan.EndLinePosition.Line, endSpan.EndLinePosition.Character))
 
             ' Generate "_payload(pointIndex) = True".
-
             Dim payloadCell As BoundArrayAccess = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload, isLValue:=False), isLValue:=True, indices:=ImmutableArray.Create(Of BoundExpression)(statementFactory.Literal(spansIndex)))
             Return statementFactory.Assignment(payloadCell, statementFactory.Literal(True))
         End Function
@@ -295,6 +295,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetCreatePayload(compilation As VisualBasicCompilation, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             Return DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, syntax, diagnostics), MethodSymbol)
+        End Function
+
+        Private Shared Function SkipAttributes(node As VisualBasicSyntaxNode) As Text.TextSpan?
+            Select Case node.Kind()
+                Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock
+                    Dim methodSyntax As MethodStatementSyntax = DirectCast(node, MethodBlockSyntax).SubOrFunctionStatement
+                    Return SkipAttributes(methodSyntax.AttributeLists, methodSyntax.Modifiers, methodSyntax.SubOrFunctionKeyword)
+
+                Case SyntaxKind.PropertyBlock
+                    Dim propertySyntax As PropertyStatementSyntax = DirectCast(node, PropertyBlockSyntax).PropertyStatement
+                    Return SkipAttributes(propertySyntax.AttributeLists, propertySyntax.Modifiers, propertySyntax.PropertyKeyword)
+
+                Case SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock
+                    Dim accessorSyntax As AccessorStatementSyntax = DirectCast(node, AccessorBlockSyntax).AccessorStatement
+                    Return SkipAttributes(accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.AccessorKeyword)
+
+                Case SyntaxKind.ConstructorBlock
+                    Dim constructorSyntax As SubNewStatementSyntax = DirectCast(node, ConstructorBlockSyntax).SubNewStatement
+                    Return SkipAttributes(constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.SubKeyword)
+
+                Case SyntaxKind.OperatorBlock
+                    Dim operatorSyntax As OperatorStatementSyntax = DirectCast(node, OperatorBlockSyntax).OperatorStatement
+                    Return SkipAttributes(operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword)
+
+            End Select
+
+            Return Nothing
+        End Function
+
+        Private Shared Function SkipAttributes(attributes As SyntaxList(Of AttributeListSyntax), modifiers As SyntaxTokenList, keyword As SyntaxToken) As Text.TextSpan?
+            If attributes.Count > 0 Then
+                Return If(modifiers.Node IsNot Nothing, modifiers.Span, keyword.Span)
+            End If
+
+            Return Nothing
         End Function
     End Class
 End Namespace

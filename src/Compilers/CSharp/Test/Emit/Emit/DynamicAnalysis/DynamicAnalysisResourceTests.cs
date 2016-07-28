@@ -244,6 +244,127 @@ public class C
         }
 
         [Fact]
+        public void TestMethodSpansWithAttributes()
+        {
+            string source = @"
+using System;
+using System.Security;
+
+public class C
+{
+    static int x;
+
+    public static void Main()                       // Method 0
+    {
+        Fred();
+    }
+            
+    [Obsolete()]
+    static void Fred()                              // Method 1
+    {
+    }
+
+    static C()                                      // Method 2
+    {
+        x = 12;
+    }
+
+    [Obsolete()]
+    public C()                                      // Method 3
+    {
+    }
+
+    int Wilma
+    {
+        [SecurityCritical]
+        get { return 12; }                          // Method 4 
+    }
+
+    [Obsolete()]
+    int Betty => 13;                                // Method 5
+
+    [SecurityCritical]
+    int Pebbles()                                   // Method 6
+    {
+        return 3;
+    }
+
+    [SecurityCritical]
+    ref int BamBam(ref int x)                       // Method 7
+    {
+        return ref x;
+    }
+
+    [SecurityCritical]                              // Method 8
+    C(int x)
+    {
+    }
+
+    [Obsolete()]
+    public int Barney => 13;                        // Method 9
+
+    [SecurityCritical]
+    public static C operator +(C a, C b)            // Method 10
+    {
+        return a;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            VerifyDocuments(reader, reader.Documents,
+                @"'C:\myproject\doc1.cs' A2-A4-F7-A4-E2-11-AB-FF-E1-61-3E-4D-2B-9F-C1-75-B8-2A-40-A2 (SHA1)");
+
+            Assert.Equal(14, reader.Methods.Length);
+
+            VerifySpans(reader, reader.Methods[0],
+                "(8,4)-(11,5)",
+                "(10,8)-(10,15)");
+
+            VerifySpans(reader, reader.Methods[1],
+                "(14,4)-(16,5)");
+
+            VerifySpans(reader, reader.Methods[2],
+                "(18,4)-(21,5)",
+                "(20,8)-(20,15)");
+
+            VerifySpans(reader, reader.Methods[3],
+                "(24,4)-(26,5)");
+
+            VerifySpans(reader, reader.Methods[4],
+                "(31,8)-(31,26)",
+                "(31,14)-(31,24)");
+
+            VerifySpans(reader, reader.Methods[5],
+                "(35,4)-(35,20)",
+                "(35,17)-(35,19)");
+
+            VerifySpans(reader, reader.Methods[6],
+                "(38,4)-(41,5)",
+                "(40,8)-(40,17)");
+
+            VerifySpans(reader, reader.Methods[7],
+                "(44,4)-(47,5)",
+                "(46,8)-(46,21)");
+
+            VerifySpans(reader, reader.Methods[8],
+                "(50,4)-(52,5)");
+
+            VerifySpans(reader, reader.Methods[9],
+                "(55,4)-(55,28)",
+                "(55,25)-(55,27)");
+
+            VerifySpans(reader, reader.Methods[10],
+                "(58,4)-(61,5)",
+                "(60,8)-(60,17)");
+        }
+
+        [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
             var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
