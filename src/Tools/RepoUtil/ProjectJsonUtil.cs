@@ -129,10 +129,9 @@ namespace RepoUtil
             return allGood;
         }
 
-        // TODO: Need to include our toolset files not named project.json.
         internal static IEnumerable<string> GetProjectJsonFiles(string sourcesPath)
         {
-            return Directory.EnumerateFiles(sourcesPath, "project.json", SearchOption.AllDirectories);
+            return Directory.EnumerateFiles(sourcesPath, "*project.json", SearchOption.AllDirectories);
         }
     }
 }

@@ -37,7 +37,9 @@ namespace RepoUtil
 
         public bool Run(TextWriter writer, string[] args)
         {
-            return VerifyProjectJsonContents(writer);
+            return
+                VerifyProjectJsonContents(writer) &&
+                VerifyRepoConfig(writer);
         }
 
         /// <summary>
@@ -79,6 +81,32 @@ namespace RepoUtil
                         writer.WriteLine($"The versions must be the same or one must be explicitly listed as fixed in RepoData.json");
                         allGood = false;
                     }
+                }
+            }
+
+            return allGood;
+        }
+
+        /// <summary>
+        /// Verify that all of the data contained in the repo configuration is valid.  In particular that it hasn't gotten
+        /// stale and referring to invalid packages.
+        /// </summary>
+        /// <param name="writer"></param>
+        private bool VerifyRepoConfig(TextWriter writer)
+        {
+            writer.WriteLine($"Verifying RepoData.json");
+            var packages = ProjectJsonUtil
+                .GetProjectJsonFiles(_sourcesPath)
+                .SelectMany(x => ProjectJsonUtil.GetDependencies(x));
+            var set = new HashSet<NuGetPackage>(packages);
+            var allGood = true;
+
+            foreach (var package in _repoConfig.FixedPackages)
+            {
+                if (!set.Contains(package))
+                {
+                    writer.WriteLine($"Error: Fixed package {package.Name} - {package.Version} is not used anywhere");
+                    allGood = false;
                 }
             }
 
