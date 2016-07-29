@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
             for (int i = 0; i < count; i++)
             {
-                if (!myFields[i].Type.Equals(otherFields[i].Type, comparison & ~TypeCompareKind.IgnoreTupleNames))
+                if (!myFields[i].Type.Equals(otherFields[i].Type, comparison))
                 {
                     return false;
                 }

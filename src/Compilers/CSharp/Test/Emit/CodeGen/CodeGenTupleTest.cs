@@ -16098,5 +16098,35 @@ public class C : Base2
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M()", "Base2.M()").WithLocation(4, 32)
                 );
         }
+
+        [Fact]
+        public void TupleNamesInAnonymousTypes()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        var x1 = new { Tuple = (a: 1, b: 2) };
+        var x2 = new { Tuple = (c: 1, 2) };
+        x2 = x1;
+        System.Console.Write(x1.Tuple.a);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = nodes.OfType<VariableDeclaratorSyntax>().First();
+            Assert.Equal("<anonymous type: (System.Int32 a, System.Int32 b) Tuple> x1", model.GetDeclaredSymbol(x1).ToTestDisplayString());
+
+            var x2 = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
+            Assert.Equal("<anonymous type: (System.Int32 c, System.Int32) Tuple> x2", model.GetDeclaredSymbol(x2).ToTestDisplayString());
+        }
     }
 }
