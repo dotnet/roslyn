@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using System.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {

@@ -28,6 +28,8 @@
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\LazyToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationReferenceEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.NoneFoundReferenceEntry.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
