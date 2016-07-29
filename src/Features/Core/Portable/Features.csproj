@@ -224,10 +224,9 @@
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
     <Compile Include="FindReferences\DefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionLocation.cs" />
-    <Compile Include="FindReferences\DefinitionLocation.DocumentDefinitionLocation.cs" />
-    <Compile Include="FindReferences\DefinitionLocation.NonNavigatingDefinitionLocation.cs" />
-    <Compile Include="FindReferences\DefinitionLocation.SymbolDefinitionLocation.cs" />
+    <Compile Include="FindReferences\DefinitionItem.DocumentLocationDefinitionItem.cs" />
+    <Compile Include="FindReferences\DefinitionItem.NonNavigatingDefinitionItem.cs" />
+    <Compile Include="FindReferences\DefinitionItem.SymbolDefinitionItem.cs" />
     <Compile Include="FindReferences\DefinitionsAndReferences.cs" />
     <Compile Include="FindReferences\DocumentLocation.cs" />
     <Compile Include="FindReferences\IDefinitionsAndReferencesFactory.cs" />

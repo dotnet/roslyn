@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -195,6 +194,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (other == null)
             {
                 return 1;
+            }
+
+            if (this.GlyphIndex != other.GlyphIndex)
+            {
+                // references come after anything else.
+                if (this.GlyphIndex == ReferenceGlyphIndex)
+                {
+                    return 1;
+                }
+                else if (other.GlyphIndex == ReferenceGlyphIndex)
+                {
+                    return -1;
+                }
             }
 
             int compare = LogicalStringComparer.Instance.Compare(_filePath, _filePath);
