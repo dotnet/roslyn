@@ -4,13 +4,11 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Inter
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
-    internal partial class AbstractLegacyProject : ICompilerOptionsHostObject
+    internal abstract partial class AbstractLegacyProject : AbstractProject, IAnalyzerHost
     {
-        int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
+        public void AddAdditionalFile(string additionalFilePath)
         {
-            SetArgumentsAndUpdateOptions(compilerOptions);
-            supported = true;
-            return VSConstants.S_OK;
+            AddAdditionalFile(additionalFilePath, getIsInCurrentContext: document => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
         }
     }
 }

@@ -8,10 +8,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
-    internal sealed partial class CPSProject : AbstractProject, IProjectContext
+    internal sealed partial class CPSProject : AbstractProject, IWorkspaceProjectContext
     {
         #region Project properties
-        string IProjectContext.DisplayName
+        string IWorkspaceProjectContext.DisplayName
         {
             get
             {
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        string IProjectContext.ProjectFilePath
+        string IWorkspaceProjectContext.ProjectFilePath
         {
             get
             {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        Guid IProjectContext.Guid
+        Guid IWorkspaceProjectContext.Guid
         {
             get
             {
@@ -48,25 +48,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        string IProjectContext.ProjectType
+        bool IWorkspaceProjectContext.LastDesignTimeBuildSucceeded
         {
             get
             {
-                return base.ProjectType;
+                return _lastDesignTimeBuildSucceeded;
             }
             set
             {
-                base.ProjectType = value;
+                _lastDesignTimeBuildSucceeded = value;
             }
         }
         #endregion
-        
-        #region Options
-        public void SetCommandLineArguments(CommandLineArguments commandLineArguments)
-        {
-            SetArgumentsAndUpdateOptions(commandLineArguments);
 
-            // If outputPath has changed, then invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project.
+        #region Options
+        public void SetCommandLineArguments(string commandLineForOptions)
+        {
+            var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
+            PostSetCommandLineArguments(commandLineArguments);
+        }
+
+        private void PostSetCommandLineArguments(CommandLineArguments commandLineArguments)
+        {
+            // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project, if required.
             if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
             {
                 var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
@@ -88,12 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             base.RemoveMetadataReference(referencePath);
         }
 
-        public void AddProjectReference(IProjectContext project, MetadataReferenceProperties properties)
+        public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
         {
+            var abstractProject = GetAbstractProject(project);
+
             // AbstractProject and ProjectTracker track project references using the project bin output path.
             // Setting the command line arguments should have already set the output file name and folder.
             // We fetch this output path to add the reference.
-            var referencedProject = this.ProjectTracker.GetProject(project.Id);
+            var referencedProject = this.ProjectTracker.GetProject(abstractProject.Id);
             var binPathOpt = referencedProject.TryGetBinOutputPath();
             if (!string.IsNullOrEmpty(binPathOpt))
             {
@@ -101,20 +107,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        public void RemoveProjectReference(IProjectContext project)
+        public void RemoveProjectReference(IWorkspaceProjectContext project)
         {
-            foreach (var projectReference in GetCurrentProjectReferences())
+            var referencedProject = GetAbstractProject(project);
+
+            // AbstractProject and ProjectTracker track project references using the project bin output path.
+            // We fetch this output path to remove the reference.
+            var binPathOpt = referencedProject.TryGetBinOutputPath();
+            if (!string.IsNullOrEmpty(binPathOpt))
             {
-                if (projectReference.ProjectId.Equals(project.Id))
-                {
-                    RemoveProjectReference(projectReference);
-                    return;
-                }
+                base.RemoveMetadataReference(binPathOpt);
             }
+        }
+
+        private AbstractProject GetAbstractProject(IWorkspaceProjectContext project)
+        {
+            var abstractProject = project as AbstractProject;
+            if (abstractProject == null)
+            {
+                throw new ArgumentException("Unsupported project kind", nameof(project));
+            }
+
+            return abstractProject;
         }
         #endregion
 
-        #region Source files
+        #region Files
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => isInCurrentContext, folderNames: folderNames.ToImmutableArrayOrEmpty());
@@ -123,6 +141,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveSourceFile(string filePath)
         {
             RemoveFile(filePath);
+        }
+
+        public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
+        {
+            AddAdditionalFile(filePath, getIsInCurrentContext: _ => isInCurrentContext);
+        }
+
+        #endregion
+
+        #region IDisposable
+        public void Dispose()
+        {
+            Disconnect();
         }
         #endregion
     }

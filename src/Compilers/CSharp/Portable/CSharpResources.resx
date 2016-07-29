@@ -4408,10 +4408,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly|portable}
-                               Specify debugging type ('full' is default, and 
-                               enables attaching a debugger to a running 
-                               program. 'portable' is a cross-platform format)
+ /debug:{full|pdbonly|portable|embedded}
+                               Specify debugging type ('full' is default, 
+                               'portable' is a cross-platform format,
+                               'embedded' is a cross-platform format embedded into 
+                               the target .dll or .exe)
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)

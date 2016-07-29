@@ -247,6 +247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             this.CommandLineArgs.Add("/debug:full");
                         }
+                        else if (string.Equals(_debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                        }
+                        else if (string.Equals(_debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
+                        }
                     }
 
                     if (!string.IsNullOrWhiteSpace(_platform))

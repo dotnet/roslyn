@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
 
-            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: new MemoryStream());
+            var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
+
+            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream);
         }
 
         [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]

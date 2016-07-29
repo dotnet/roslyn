@@ -21,6 +21,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
                 var project2 = CreateCSharpCPSProject(environment, "project2", commandLineArguments: @"/out:c:\project2.dll");
                 var project3 = CreateCSharpCPSProject(environment, "project3", commandLineArguments: @"/out:c:\project3.dll");
+                var project4 = CreateCSharpCPSProject(environment, "project4");
 
                 // Add project reference
                 project3.AddProjectReference(project1, new MetadataReferenceProperties());
@@ -28,13 +29,25 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Add project reference as metadata reference: since this is known to be the output path of project1, the metadata reference is converted to a project reference
                 project3.AddMetadataReference(@"c:\project2.dll", new MetadataReferenceProperties());
 
+                // Add project reference with no output path
+                project3.AddProjectReference(project4, new MetadataReferenceProperties());
+
                 // Add metadata reference
                 var metadaRefFilePath = @"c:\someAssembly.dll";
                 project3.AddMetadataReference(metadaRefFilePath, new MetadataReferenceProperties(embedInteropTypes: true));
 
                 Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
                 Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
+                Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project4.Id));
                 Assert.True(project3.GetCurrentMetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
+
+                // Change output path for project reference and verify the reference.
+                project4.SetCommandLineArguments(@"/out:C:\project4.dll");
+                Assert.Equal(@"C:\project4.dll", project4.TryGetBinOutputPath());
+
+                // This is currently broken by https://github.com/dotnet/roslyn/issues/12707
+                // Reverse the below assert to Assert.True once the above bug is fixed.
+                Assert.False(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project4.Id));
 
                 // Remove project reference
                 project3.RemoveProjectReference(project1);
@@ -49,9 +62,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.False(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
                 Assert.False(project3.GetCurrentMetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
 
-                project3.Disconnect();
-                project2.Disconnect();
-                project1.Disconnect();
+                project1.Dispose();
+                project2.Dispose();
+                project4.Dispose();
+                project3.Dispose();
             }
         }
 
@@ -60,19 +74,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void AddRemoveAnalyzerReference_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (var project = CreateCSharpCPSProject(environment, "project1"))
             {
-                var project = CreateCSharpCPSProject(environment, "project1");
-
                 // Add analyzer reference
                 var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
-                project.AddAnalyzerAssembly(analyzerAssemblyFullPath);
+                project.AddAnalyzerReference(analyzerAssemblyFullPath);
                 Assert.True(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
 
                 // Remove analyzer reference
-                project.RemoveAnalyzerAssembly(analyzerAssemblyFullPath);
+                project.RemoveAnalyzerReference(analyzerAssemblyFullPath);
                 Assert.False(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
-
-                project.Disconnect();
             }
         }
     }
