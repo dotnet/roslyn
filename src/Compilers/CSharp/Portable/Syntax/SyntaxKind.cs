@@ -553,5 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Please start with 9040 if you add more kinds below.
 
         DeclarationExpression = 9040,
+        RefExpression = 9050,
+        RefType = 9051,
     }
 }

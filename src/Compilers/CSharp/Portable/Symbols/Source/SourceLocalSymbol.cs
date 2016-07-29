@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourceLocalSymbol(
             Symbol containingSymbol,
             Binder binder,
-            RefKind refKind,
+            bool allowRefKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.binder = binder;
             this._containingSymbol = containingSymbol;
             this._identifierToken = identifierToken;
-            this._refKind = refKind;
-            this._typeSyntax = typeSyntax;
+            this._typeSyntax = allowRefKind ? typeSyntax.SkipRef(out this._refKind) : typeSyntax;
             this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
@@ -98,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new SourceLocalSymbol(containingSymbol, binder, RefKind.None, closestTypeSyntax, identifierToken, kind);
+                return new SourceLocalSymbol(containingSymbol, binder, false, closestTypeSyntax, identifierToken, kind);
             }
         }
 
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
             Binder binder,
-            RefKind refKind,
+            bool allowRefKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
@@ -119,14 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (declarationExpression.Type().IsVar)
                     {
-                        return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
+                        return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind);
                     }
                 }
 
-                return new SourceLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
+                return new SourceLocalSymbol(containingSymbol, binder, allowRefKind, typeSyntax, identifierToken, declarationKind);
             }
 
-            return new LocalWithInitializer(containingSymbol, binder, refKind, typeSyntax, identifierToken, initializer, declarationKind);
+            return new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -254,7 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                declType = typeBinder.BindType(_typeSyntax, diagnostics, out isVar);
+                RefKind refKind;
+                declType = typeBinder.BindType(_typeSyntax.SkipRef(out refKind), diagnostics, out isVar);
             }
 
             if (isVar)
@@ -423,12 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public LocalWithInitializer(
                 Symbol containingSymbol,
                 Binder binder,
-                RefKind refKind,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 EqualsValueClauseSyntax initializer,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, binder, true, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
                 Debug.Assert(initializer != null);
@@ -439,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // byref locals with initializers are assumed not returnable unless proven otherwise
                 // NOTE: if we assumed returnable, then self-referring initializer could result in 
                 //       a randomly changing returnability when initializer is bound concurrently.
-                _returnable = refKind == RefKind.None;
+                _returnable = this.RefKind == RefKind.None;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -563,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, binder, false, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 _collection = collection;
@@ -585,11 +584,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public PossiblyImplicitlyTypedOutVarLocalSymbol(
                 Symbol containingSymbol,
                 Binder binder,
-                RefKind refKind,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind)
-            : base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
+            : base(containingSymbol, binder, true, typeSyntax, identifierToken, declarationKind)
             {
 #if DEBUG
                 DeclarationExpressionSyntax declarationExpression;
@@ -648,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind)
-            : base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
+            : base(containingSymbol, binder, false, typeSyntax, identifierToken, declarationKind)
             {
 #if DEBUG
                 SyntaxNode parent;

@@ -293,6 +293,16 @@
       <summary>Creates an OmittedTypeArgumentSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="RefTypeSyntax" Base="TypeSyntax">
+    <TypeComment>
+      <summary>The ref modifier of a method's return value or a local.</summary>
+    </TypeComment>
+    <Kind Name="RefType"/>
+    <Field Name="RefKeyword" Type="SyntaxToken">
+      <Kind Name="RefKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+  </Node>
   <!-- Expressions -->
   <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
@@ -1245,12 +1255,6 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the "ref" keyword if present.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <PropertyComment>
         <summary>SyntaxNode representing the body of the lambda expression.</summary>
@@ -1262,6 +1266,13 @@
     <FactoryComment>
       <summary>Creates an SimpleLambdaExpressionSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="RefExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="RefExpression"/>
+    <Field Name="RefKeyword" Type="SyntaxToken">
+      <Kind Name="RefKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
   </Node>
   <Node Name="ParenthesizedLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="ParenthesizedLambdaExpression"/>
@@ -1281,12 +1292,6 @@
       <Kind Name="EqualsGreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing equals greater than.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the "ref" keyword if present.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
@@ -1771,9 +1776,6 @@
   <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalFunctionStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="ReturnType" Type="TypeSyntax"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
@@ -1799,9 +1801,6 @@
       <PropertyComment>
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
@@ -1846,9 +1845,6 @@
     <Kind Name="EqualsValueClause"/>
     <Field Name="EqualsToken" Type="SyntaxToken">
       <Kind Name="EqualsToken"/>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
@@ -1957,9 +1953,6 @@
     <Field Name="ReturnKeyword" Type="SyntaxToken">
       <Kind Name="ReturnKeyword"/>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -2031,9 +2024,6 @@
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
@@ -2883,12 +2873,6 @@
       </PropertyComment>
       <Kind Name="DelegateKeyword"/>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "ref" keyword if present.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="ReturnType" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the return type.</summary>
@@ -3139,9 +3123,6 @@
     <Kind Name="MethodDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="ReturnType" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the return type syntax.</summary>
@@ -3362,9 +3343,6 @@
     <Kind Name="PropertyDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Type" Type="TypeSyntax" Override="true"/>
     <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken">
@@ -3387,9 +3365,6 @@
     <Kind Name="ArrowExpressionClause" />
     <Field Name="ArrowToken" Type="SyntaxToken">
       <Kind Name="EqualsGreaterThanToken" />
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword" />
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
@@ -3414,9 +3389,6 @@
     <Kind Name="IndexerDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Type" Type="TypeSyntax" Override="true"/>
     <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
     <Field Name="ThisKeyword" Type="SyntaxToken">
@@ -3565,9 +3537,6 @@
       <PropertyComment>
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </Node>

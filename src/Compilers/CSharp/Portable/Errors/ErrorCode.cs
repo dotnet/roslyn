@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MustHaveRefReturn = 8895,
         ERR_RefReturnMustHaveIdentityConversion = 8896,
         ERR_CloseUnimplementedInterfaceMemberWrongRefReturn = 8897,
-        ERR_VoidReturningMethodCannotReturnByRef = 8898,
+        // 8898,
         ERR_BadIteratorReturnRef = 8899,
         ERR_BadRefReturnExpressionTree = 8900,
         ERR_RefReturningCallInExpressionTree = 8901,

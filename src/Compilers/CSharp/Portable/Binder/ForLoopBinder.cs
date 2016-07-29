@@ -29,12 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!declaration.IsDeconstructionDeclaration)
                 {
-                    var refKind = _syntax.RefKeyword.Kind().GetRefKind();
-
                     foreach (var variable in declaration.Variables)
                     {
-                        var localSymbol = MakeLocal(refKind,
-                                                    declaration,
+                        var localSymbol = MakeLocal(declaration,
                                                     variable,
                                                     LocalDeclarationKind.ForInitializerVariable);
                         locals.Add(localSymbol);

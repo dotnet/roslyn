@@ -848,24 +848,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private RefKind ExpressionRefKind
-        {
-            get
-            {
-                var syntax = UnboundLambda.Syntax;
-                switch (syntax.Kind())
-                {
-                    default:
-                    case SyntaxKind.SimpleLambdaExpression:
-                        return ((SimpleLambdaExpressionSyntax)syntax).RefKeyword.Kind().GetRefKind();
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                        return ((ParenthesizedLambdaExpressionSyntax)syntax).RefKeyword.Kind().GetRefKind();
-                    case SyntaxKind.AnonymousMethodExpression:
-                        return Microsoft.CodeAnalysis.RefKind.None;
-                }
-            }
-        }
-
         public override Location ParameterLocation(int index)
         {
             Debug.Assert(HasSignature && 0 <= index && index < ParameterCount);
@@ -908,8 +890,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.IsExpressionLambda)
             {
-                var refKind = this.ExpressionRefKind;
-                var body = (ExpressionSyntax)this.Body;
+                var refKind = CodeAnalysis.RefKind.None;
+                var body = ((ExpressionSyntax)this.Body).SkipRef(out refKind);
                 return lambdaBodyBinder.BindLambdaExpressionAsBlock(refKind, body, diagnostics);
             }
             else
