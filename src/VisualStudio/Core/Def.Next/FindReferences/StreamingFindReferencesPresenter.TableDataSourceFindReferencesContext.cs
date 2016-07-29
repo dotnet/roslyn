@@ -113,6 +113,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             #region FindReferencesContext overrides.
 
+            public override void SetSearchLabel(string displayName)
+            {
+                var labelProperty = _findReferencesWindow.GetType().GetProperty("Label");
+                if (labelProperty != null)
+                {
+                    labelProperty.SetValue(_findReferencesWindow, displayName);
+                }
+            }
+
             public override void OnStarted()
             {
                 foreach (var subscription in _subscriptions)

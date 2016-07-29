@@ -205,6 +205,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;
 
+            var displayName = GetDisplayName(symbol);
+            context.SetSearchLabel(displayName);
+
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
