@@ -2464,40 +2464,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-            // SPEC: * If among the remaining candidate types there is a unique type V to
-            // SPEC:   which there is an implicit conversion from all the other candidate
-            // SPEC:   types, then the parameter is fixed to V.
-            TypeSymbol best = null;
-            foreach (var candidate in candidates)
-            {
-                foreach (var candidate2 in candidates)
+                // SPEC: * If among the remaining candidate types there is a unique type V to
+                // SPEC:   which there is an implicit conversion from all the other candidate
+                // SPEC:   types, then the parameter is fixed to V.
+                TypeSymbol best = null;
+                foreach (var candidate in candidates)
                 {
-                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                    foreach (var candidate2 in candidates)
                     {
-                        goto OuterBreak;
-                    }
-                }
-
-                if ((object)best == null)
-                {
-                    best = candidate;
-                }
-                else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
-                {
-                    if (candidate.IsTupleType)
-                    {
-                        best = candidate.TupleUnderlyingType;
-                        break;
+                        if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                        {
+                            goto OuterBreak;
+                        }
                     }
 
-                    // SPEC: 4.7 The Dynamic Type
-                    //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-                    //
-                    // This rule doesn't have to be implemented explicitly due to special handling of 
-                    // conversions from dynamic in ImplicitConversionExists helper.
-                    // 
-                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
-                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+                    if ((object)best == null)
+                    {
+                        best = candidate;
+                    }
+                    else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    {
+                        if (candidate.IsTupleType)
+                        {
+                            best = candidate.TupleUnderlyingType;
+                            break;
+                        }
+
+                        // SPEC: 4.7 The Dynamic Type
+                        //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                        //
+                        // This rule doesn't have to be implemented explicitly due to special handling of 
+                        // conversions from dynamic in ImplicitConversionExists helper.
+                        // 
+                        Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                        Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
                         // best candidate is not unique
                         return false;
