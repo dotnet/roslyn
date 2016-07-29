@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Make sure custom modifiers and bounds are the same.
-            if (!comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 var mod = this.CustomModifiers;
                 var otherMod = other.CustomModifiers;

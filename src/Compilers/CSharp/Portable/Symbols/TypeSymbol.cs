@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(implicitImpl, interfaceMember))
+            if (!MemberSignatureComparer.DifferOnlyInTupleNames(implicitImpl, interfaceMember))
             {
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
             }

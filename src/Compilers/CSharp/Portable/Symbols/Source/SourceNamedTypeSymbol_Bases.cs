@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (@interface.Equals(seenInterface, TypeCompareKind.IgnoreTupleNames))
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, this);
+                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, seenInterface, this);
                             break;
                         }
                     }

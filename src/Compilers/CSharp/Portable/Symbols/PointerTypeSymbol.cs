@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (!comparison.HasFlag(TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 // Make sure custom modifiers are the same.
                 var mod = this.CustomModifiers;

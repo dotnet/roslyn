@@ -2380,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
                     }
-                    else if ((object)method.OtherPartOfPartial != null && !MemberSignatureComparer.TupleNamesMatchIgnoringOtherDifferences(method, method.OtherPartOfPartial))
+                    else if ((object)method.OtherPartOfPartial != null && !MemberSignatureComparer.DifferOnlyInTupleNames(method, method.OtherPartOfPartial))
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
                     }

@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// `int M()`                vs. `string M()`              | no  | no  |   match   |
         ///
         /// </summary>
-        internal static bool TupleNamesMatchIgnoringOtherDifferences(Symbol member1, Symbol member2)
+        internal static bool DifferOnlyInTupleNames(Symbol member1, Symbol member2)
         {
             return CSharpWithTupleNamesComparer.Equals(member1, member2) ||
                 !CSharpWithoutTupleNamesComparer.Equals(member1, member2);

@@ -15721,9 +15721,9 @@ public class C3 : I0<int>, I0<int> { }
                 // (4,39): error CS0528: 'I0<(int a, int b)>' is already listed in interface list
                 // public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<(int a, int b)>").WithArguments("I0<(int a, int b)>").WithLocation(4, 39),
-                // (3,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C1'.
+                // (3,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "C1").WithLocation(3, 14)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
                 );
         }
 
@@ -15847,12 +15847,12 @@ public partial class D : I0<(int a, int b)> { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // (3,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class C : I0<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "C").WithLocation(3, 22),
-                // (3,22): error CS8219: 'I0<(int, int)>' is already listed in interface list with different tuple element names, on type 'C'.
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(3, 22),
+                // (3,22): error CS8219: 'I0<(int, int)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class C : I0<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "C").WithLocation(3, 22)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "I0<(int a, int b)>", "C").WithLocation(3, 22)
                 );
         }
 
@@ -15893,9 +15893,9 @@ public class D : I1, I3 { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in interface list with different tuple element names, on type 'C'.
+                // (7,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C : I1, I2 { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "C").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(7, 14)
                 );
         }
 

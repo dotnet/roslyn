@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            if (comparison.HasFlag(TypeCompareKind.IgnoreTupleNames) )
+            if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)
             {
                 if (t2?.IsTupleType == true)
                 {
@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Make sure field names are the same.
-            if (!comparison.HasFlag(TypeCompareKind.IgnoreTupleNames))
+            if ((comparison & TypeCompareKind.IgnoreTupleNames) == 0)
             {
                 if (this._elementNames.IsDefault)
                 {
