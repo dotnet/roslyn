@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
     {
         private readonly ImmutableArray<byte> _checkSum;
-        private StrongBox<int> _lazyHash;
+        private int _lazyHash;
 
         public Checksum(byte[] checksum) :
             this(ImmutableArray.Create(checksum))
@@ -25,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Checksum(ImmutableArray<byte> checksum)
         {
-            _lazyHash = null;
+            // 0 means it is not initialized
+            _lazyHash = 0;
+
             _checkSum = checksum;
         }
 
@@ -65,20 +66,26 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override int GetHashCode()
         {
-            if (_lazyHash == null)
+            if (_lazyHash == 0)
             {
-                // lazily calculate hash for checksum
-                var hash = _checkSum.Length;
+                _lazyHash = CalculateHashCode();
+            }
 
-                for (var i = 0; i < _checkSum.Length; i++)
-                {
-                    hash = Hash.Combine((int)_checkSum[i], hash);
-                }
+            return _lazyHash;
+        }
 
-                _lazyHash = new StrongBox<int>(hash);
-            };
+        private int CalculateHashCode()
+        {
+            // lazily calculate hash for checksum
+            var hash = _checkSum.Length;
 
-            return _lazyHash.Value;
+            for (var i = 0; i < _checkSum.Length; i++)
+            {
+                hash = Hash.Combine((int)_checkSum[i], hash);
+            }
+
+            // make sure we never return 0
+            return hash == 0 ? 1 : hash;
         }
 
         public static bool operator ==(Checksum left, Checksum right)

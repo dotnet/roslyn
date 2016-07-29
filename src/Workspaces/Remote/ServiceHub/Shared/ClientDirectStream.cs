@@ -15,10 +15,18 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var stream = new ClientDirectStream(streamName);
 
-            // try to connect direct stream
-            await stream.ConnectAsync(cancellationToken).ConfigureAwait(false);
-
-            return stream;
+            try
+            {
+                // try to connect direct stream
+                await stream.ConnectAsync(cancellationToken).ConfigureAwait(false);
+                return stream;
+            }
+            catch
+            {
+                // make sure we dispose stream in case ConnectAsync failed
+                stream.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -37,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // this type exists so that consumer doesn't need to care about all these arguments/flags to get good performance
                 _name = name;
-                _pipe = new NamedPipeClientStream(".", name, PipeDirection.Out);
+                _pipe = new NamedPipeClientStream(serverName: ".", pipeName: name, direction: PipeDirection.Out);
                 _stream = new BufferedStream(_pipe, BUFFERSIZE);
             }
 
