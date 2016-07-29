@@ -26,19 +26,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private class NonRecursiveTokenDeleteRewriter : NonRecursiveSyntaxRewriter
+        private class NonRecursiveTokenDeleteRewriter : CSharpNonRecursiveSyntaxRewriter
         {
-            protected override SyntaxToken TransformToken(SyntaxToken token)
+            public override SyntaxToken VisitToken(SyntaxToken original, SyntaxToken rewritten)
             {
-                return SyntaxFactory.MissingToken(token.Kind());
+                return SyntaxFactory.MissingToken(rewritten.Kind());
             }
         }
 
-        private class NonRecursiveIdentityRewriter : NonRecursiveSyntaxRewriter
+        private class NonRecursiveIdentityRewriter : CSharpNonRecursiveSyntaxRewriter
         {
         }
 
-        internal class ToStringVisitor : NonRecursiveSyntaxWalker
+        internal class ToStringVisitor : CSharpNonRecursiveSyntaxWalker
         {
             StringBuilder sb;
 
@@ -49,10 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 return this.sb.ToString();
             }
 
-            public override Chunk VisitToken(SyntaxToken token)
+            public override void VisitToken(SyntaxToken token)
             {
                 sb.Append(token.ToFullString());
-                return base.VisitToken(token);
             }
         }
 

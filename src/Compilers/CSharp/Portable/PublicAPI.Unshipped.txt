@@ -1,3 +1,16 @@
+Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter
+Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.CSharpNonRecursiveSyntaxRewriter(bool visitIntoStructuredTrivia = false) -> void
+Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.Original.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.Rewrite(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitNode(Microsoft.CodeAnalysis.SyntaxNode original, Microsoft.CodeAnalysis.SyntaxNode rewritten) -> Microsoft.CodeAnalysis.SyntaxNode
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitToken(Microsoft.CodeAnalysis.SyntaxToken original, Microsoft.CodeAnalysis.SyntaxToken rewritten) -> Microsoft.CodeAnalysis.SyntaxToken
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia original, Microsoft.CodeAnalysis.SyntaxTrivia rewritten) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker
+Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.CSharpNonRecursiveSyntaxWalker() -> void
+override Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
 Microsoft.CodeAnalysis.CSharp.Conversion.IsTupleConversion.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsTupleLiteralConversion.get -> bool
