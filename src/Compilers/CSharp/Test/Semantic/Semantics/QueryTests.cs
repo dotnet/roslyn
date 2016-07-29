@@ -580,7 +580,7 @@ class Program
                  select n1;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
             // (6,29): error CS0103: The name 'nums' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nums").WithArguments("nums")
                 );
@@ -600,7 +600,7 @@ class Program
         var query = from int i in new int[]{ 1 } join null on true equals true select i; //CS1031
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
                 // (8,55): error CS1031: Type expected
                 //         var query = from int i in new int[]{ 1 } join null on true equals true select i; //CS1031
                 Diagnostic(ErrorCode.ERR_TypeExpected, "null"),

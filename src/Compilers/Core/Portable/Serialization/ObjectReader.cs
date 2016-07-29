@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -335,6 +335,18 @@ namespace Roslyn.Utilities
             }
 
             Type elementType = this.ReadType();
+
+            // optimizations for supported array type by binary reader
+            if (elementType == typeof(byte))
+            {
+                return _reader.ReadBytes(length);
+            }
+
+            if (elementType == typeof(char))
+            {
+                return _reader.ReadChars(length);
+            }
+
             Array array = Array.CreateInstance(elementType, length);
             for (int i = 0; i < length; i++)
             {
@@ -353,6 +365,17 @@ namespace Roslyn.Utilities
 
         private Type ReadType(DataKind kind)
         {
+            // optimization for primitive types
+            if (kind == DataKind.UInt8)
+            {
+                return typeof(byte);
+            }
+
+            if (kind == DataKind.Char)
+            {
+                return typeof(char);
+            }
+
             switch (kind)
             {
                 case DataKind.TypeRef_B:
@@ -487,7 +510,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_no_binder_supplied, typeName));
 #endif
         }
 
@@ -496,7 +519,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_it_has_no_deserialization_reader, typeName));
 #endif
         }
     }

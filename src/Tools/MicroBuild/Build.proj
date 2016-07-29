@@ -10,9 +10,6 @@
 
   <!-- Non-official builds / local testing have different defaults -->
   <PropertyGroup Condition="'$(OfficialBuild)' != 'true'">
-    <UploadNugets>false</UploadNugets>
-    <UploadVsixes>false</UploadVsixes>
-    <UploadCoreXTPackages>false</UploadCoreXTPackages>
     <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
     <SignRoslynArgs>-test</SignRoslynArgs>
     <PublishAssetsArgs>-test</PublishAssetsArgs>
@@ -20,7 +17,7 @@
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
 
     <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" />
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
@@ -32,7 +29,7 @@
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
 
-    <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' == ''" />
+    <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
 
     <!-- Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
          and ready to be inserted -->

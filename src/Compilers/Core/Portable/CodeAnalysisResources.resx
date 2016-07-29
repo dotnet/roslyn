@@ -321,6 +321,9 @@
   <data name="StreamMustSupportWrite" xml:space="preserve">
     <value>Stream must be writable.</value>
   </data>
+  <data name="PdbStreamUnexpectedWhenEmbedding" xml:space="preserve">
+    <value>PDB stream should not be given when embedding PDB into the PE stream.</value>
+  </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
   </data>
@@ -513,8 +516,8 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
-  <data name="TupleNamesAllOrNone" xml:space="preserve">
-    <value>If names are used in a tuple type, then there must be the same number of names and elements.</value>
+  <data name="TupleElementNameCountMismatch" xml:space="preserve">
+    <value>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</value>
   </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>
@@ -524,5 +527,8 @@
   </data>
   <data name="TupleUnderlyingTypeMustBeTupleCompatible" xml:space="preserve">
     <value>The underlying type for a tuple must be tuple-compatible.</value>
+  </data>
+  <data name="IOperationFeatureDisabled" xml:space="preserve">
+    <value>Feature 'IOperation' is disabled.</value>
   </data>
 </root>

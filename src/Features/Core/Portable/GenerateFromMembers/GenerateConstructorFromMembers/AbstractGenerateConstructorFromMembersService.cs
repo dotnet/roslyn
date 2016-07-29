@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMemb
         {
         }
 
-        public async Task<IGenerateConstructorFromMembersResult> GenerateConstructorFromMembersAsync(
+        public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructor, cancellationToken))
@@ -29,12 +30,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMemb
                     var state = State.Generate((TService)this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
                     if (state != null)
                     {
-                        return new GenerateConstructorFromMembersResult(
-                            CreateCodeRefactoring(info.SelectedDeclarations, GetCodeActions(document, state)));
+                        return GetCodeActions(document, state).AsImmutableOrNull();
                     }
                 }
 
-                return GenerateConstructorFromMembersResult.Failure;
+                return default(ImmutableArray<CodeAction>);
             }
         }
 

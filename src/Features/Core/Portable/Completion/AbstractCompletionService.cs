@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
             if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))
             {
-                return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
+                return Task.FromResult(string.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, insertionText));
             }
 
             return SpecializedTasks.Default<string>();

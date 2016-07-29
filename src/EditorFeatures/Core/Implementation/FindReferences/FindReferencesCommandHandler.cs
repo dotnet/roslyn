@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler :
         ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _presenters;
+        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _presenters;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> presenters)
+            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> presenters)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(presenters);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
         {
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FindReferences,
-                message: EditorFeaturesResources.FindingReferences,
+                title: EditorFeaturesResources.Find_References,
+                message: EditorFeaturesResources.Finding_references,
                 action: context =>
             {
                 Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                             {
                                 foreach (var presenter in _presenters)
                                 {
-                                    presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
+                                    presenter.DisplayResult(DefinitionsAndReferences.Empty);
                                     return;
                                 }
                             }

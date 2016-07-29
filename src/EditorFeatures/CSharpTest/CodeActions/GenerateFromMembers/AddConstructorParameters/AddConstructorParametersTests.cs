@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.AddConstructorParameters;
+using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParameters;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -57,7 +57,7 @@ index: 1);
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-string.Format(FeaturesResources.AddParametersTo, "Program", "bool"),
+string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"),
 index: 0);
         }
 
@@ -66,7 +66,7 @@ index: 0);
         {
             await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-string.Format(FeaturesResources.AddOptionalParametersTo, "Program", "bool"),
+string.Format(FeaturesResources.Add_optional_parameters_to_0_1, "Program", "bool"),
 index: 1);
         }
 

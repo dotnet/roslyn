@@ -2605,6 +2605,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
         End Function
 
+        Protected Overrides Function CommonCreateAnonymousTypeSymbol(
+                memberTypes As ImmutableArray(Of ITypeSymbol),
+                memberNames As ImmutableArray(Of String)) As INamedTypeSymbol
+
+            Dim i = 0
+            For Each t In memberTypes
+                t.EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(memberTypes)}({i})")
+
+                i = i + 1
+            Next
+
+            Dim fields = memberTypes.SelectAsArray(
+                Function(type, index, loc) New AnonymousTypeField(memberNames(index), DirectCast(type, TypeSymbol), loc), Location.None)
+
+            Dim descriptor = New AnonymousTypeDescriptor(fields, Location.None, isImplicitlyDeclared:=False)
+            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
+        End Function
+
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
             Get
                 Throw New NotSupportedException(VBResources.ThereIsNoDynamicTypeInVB)
@@ -2649,6 +2667,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
+        End Function
+
+        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
+            Dim tree = Me.SyntaxTrees.FirstOrDefault()
+            If tree Is Nothing Then
+                Return False
+            End If
+
+            Dim options = DirectCast(tree.Options, VisualBasicParseOptions)
+            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
+
+            Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
 #End Region
 

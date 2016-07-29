@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 
-            return new SuggestedActionSet(fixAllSuggestedActions.ToImmutable(), title: EditorFeaturesResources.FixAllOccurrencesIn);
+            return new SuggestedActionSet(fixAllSuggestedActions.ToImmutable(), title: EditorFeaturesResources.Fix_all_occurrences_in);
         }
 
         public string GetDiagnosticID()

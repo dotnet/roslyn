@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             // There should only be one code action
             Assert.Equal(1, actions.Count);
 
-            Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), actions[0].Title);
 
             if (invokeAction)
             {

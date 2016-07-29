@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 {
                     symbol = (symbol as IAliasSymbol).Target;
                 }
-                else if (symbol.IsConstructor())
+                else if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
                 {
                     symbol = symbol.ContainingType;
                 }

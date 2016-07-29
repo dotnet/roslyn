@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -10,20 +8,19 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractRecommendationServiceBasedCompletionProvider : AbstractSymbolCompletionProvider
     {
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
         }
 
-        protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(string displayText, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             var rules = GetCompletionItemRules(symbols, context, preselect);
@@ -71,14 +68,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 contextPosition: context.Position,
-                descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: matchPriority,
                 rules: rules);
         }
 
-        protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, AbstractSyntaxContext context, bool preselect);
+        protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect);
 
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
 

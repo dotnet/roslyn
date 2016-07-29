@@ -118,34 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, result, canThrow:=True)
             End If
 
-            Return MarkInitializerSequencePoint(result, node.Syntax)
-        End Function
-
-        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode) As BoundStatement
-            Debug.Assert(syntax.IsKind(SyntaxKind.ModifiedIdentifier))
-            Debug.Assert(syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
-
-            If Not GenerateDebugInfo Then
-                Return rewrittenStatement
+            If Instrument(node) Then
+                result = _instrumenter.InstrumentLocalInitialization(node, result)
             End If
 
-            Dim modifiedIdentifier = DirectCast(syntax, ModifiedIdentifierSyntax)
-            If modifiedIdentifier.ArrayBounds IsNot Nothing Then
-                ' Dim [|a(1)|], b(1) As Integer
-                Return New BoundSequencePoint(syntax, rewrittenStatement)
-            End If
-
-            Dim declarator = DirectCast(syntax.Parent, VariableDeclaratorSyntax)
-            If declarator.Names.Count > 1 Then
-                Debug.Assert(declarator.AsClause.IsKind(SyntaxKind.AsNewClause))
-
-                ' Dim [|a|], b As New C()
-                Return New BoundSequencePoint(syntax, rewrittenStatement)
-            End If
-
-            ' Dim [|a = 1|]
-            ' Dim [|a As New C()|]
-            Return New BoundSequencePoint(declarator, rewrittenStatement)
+            Return result
         End Function
 
         Private Function CreateBackingFieldsForStaticLocal(localSymbol As LocalSymbol, hasInitializer As Boolean) As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField)
@@ -248,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   Nothing,
                                   flag.Type)
 
-            Dim conditionalFlagInit = RewriteIfStatement(syntax, syntax, flagIsNothing, interlockedCompareExchangeFlagWithNewInstance.ToStatement(), Nothing, generateDebugInfo:=False)
+            Dim conditionalFlagInit = RewriteIfStatement(syntax, flagIsNothing, interlockedCompareExchangeFlagWithNewInstance.ToStatement(), Nothing, instrumentationTargetOpt:=Nothing)
 
             statements.Add(conditionalFlagInit)
 
@@ -309,15 +286,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                           ctorIncompleteInitialization.ContainingType))
 
             Dim conditionalValueInit =
-                RewriteIfStatement(syntax, syntax,
+                RewriteIfStatement(syntax,
                                    flagStateIsZero,
                                    New BoundStatementList(syntax, ImmutableArray.Create(flagStateAssignTwo, rewrittenInitialization)),
-                                   RewriteIfStatement(syntax, syntax,
+                                   RewriteIfStatement(syntax,
                                                       flagStateIsTwo,
                                                       throwIncompleteInitialization,
                                                       Nothing,
-                                                      generateDebugInfo:=False),
-                                   generateDebugInfo:=False)
+                                                      instrumentationTargetOpt:=Nothing),
+                                   instrumentationTargetOpt:=Nothing)
 
             Dim locals As ImmutableArray(Of LocalSymbol)
             Dim statementsInTry As ImmutableArray(Of BoundStatement)

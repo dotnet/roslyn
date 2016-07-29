@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private string ToString(IEnumerable<SymbolDisplayPart> list)
+        private string ToString(IEnumerable<TaggedText> list)
         {
             return string.Concat(list.Select(i => i.ToString()));
         }

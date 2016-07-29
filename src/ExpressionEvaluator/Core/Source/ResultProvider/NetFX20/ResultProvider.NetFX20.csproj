@@ -21,7 +21,7 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
       <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
@@ -36,7 +36,7 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\SharedCollections\ObjectPool`1.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">
@@ -67,6 +67,13 @@
     <Compile Include="..\SystemHelpers.cs">
       <Link>Helpers\SystemHelpers.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
+      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
+      <Name>Concord</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />

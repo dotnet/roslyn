@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
                     notificationService.SendNotification(
-                        EditorFeaturesResources.RenameOperationWasCancelled,
-                        EditorFeaturesResources.RenameSymbol,
+                        EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
+                        EditorFeaturesResources.Rename_Symbol,
                         NotificationSeverity.Error);
 
                     return true;
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // deal with the state machine.
 
                 var undoHistory = _undoHistoryRegistry.RegisterHistory(_stateMachine.Buffer);
-                using (var localUndoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.TextBufferChange))
+                using (var localUndoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Text_Buffer_Change))
                 {
                     var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: true);
                     localUndoTransaction.AddUndo(undoPrimitiveBefore);
@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         var notificationService = workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
-                            EditorFeaturesResources.RenameOperationWasNotProperlyCompleted,
-                            EditorFeaturesResources.RenameSymbol,
+                            EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
+                            EditorFeaturesResources.Rename_Symbol,
                             NotificationSeverity.Information);
                     }
 

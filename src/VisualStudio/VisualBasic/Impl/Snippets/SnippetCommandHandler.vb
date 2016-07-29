@@ -60,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 bstrKinds:=Nothing,
                 iCountKinds:=0,
                 fIncludeNULLKind:=1,
-                bstrPrefixText:=BasicVSResources.InsertSnippet,
+                bstrPrefixText:=BasicVSResources.Insert_Snippet,
                 bstrCompletionChar:=">"c)
 
         End Sub

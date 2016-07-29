@@ -5,8 +5,6 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class GenerateDefaultConstructorItem
@@ -15,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _destinationTypeSymbolKey As SymbolKey
 
         Public Sub New(destinationTypeSymbolKey As SymbolKey)
-            MyBase.New(VBEditorResources.NavigationItemNew,
+            MyBase.New(VBEditorResources.New_,
                        Glyph.MethodPublic)
 
             _destinationTypeSymbolKey = destinationTypeSymbolKey
@@ -37,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 ' When sticking on the comments, we don't want the ' in the localized string
                 ' lest we try localizing the comment character itself
-                statement = statement.WithLeadingTrivia(endOfLineTrivia, SyntaxFactory.CommentTrivia("' " & VBEditorResources.ThisCallIsRequiredByTheDesigner), endOfLineTrivia)
-                statement = statement.WithTrailingTrivia(endOfLineTrivia, endOfLineTrivia, SyntaxFactory.CommentTrivia("' " & VBEditorResources.AddAnyInitializationAfter), endOfLineTrivia, endOfLineTrivia)
+                statement = statement.WithLeadingTrivia(endOfLineTrivia, SyntaxFactory.CommentTrivia("' " & VBEditorResources.This_call_is_required_by_the_designer), endOfLineTrivia)
+                statement = statement.WithTrailingTrivia(endOfLineTrivia, endOfLineTrivia, SyntaxFactory.CommentTrivia("' " & VBEditorResources.Add_any_initialization_after_the_InitializeComponent_call), endOfLineTrivia, endOfLineTrivia)
                 statements.Add(statement)
             End If
 

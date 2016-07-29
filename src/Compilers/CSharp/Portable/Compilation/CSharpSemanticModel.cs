@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (IsOutVarType(expression, out parent))
             {
-                return TypeFromLocal(((ArgumentSyntax)parent).Declaration, cancellationToken);
+                return TypeFromLocal((VariableDeclarationSyntax)parent, cancellationToken);
             }
             else if (SyntaxFacts.IsDeconstructionType(expression, out parent))
             {
@@ -555,15 +555,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Figures out if this expression is a type in an out-var ArgumentSyntax .
+        /// Figures out if this expression is a type in an out-var ArgumentSyntax.
         /// Outputs the VariableDeclarationSyntax directly containing it, if that is the case.
         /// </summary>
         private static bool IsOutVarType(ExpressionSyntax expression, out SyntaxNode parent)
         {
-            return (parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
-                     ((VariableDeclarationSyntax)parent).Type == expression &&
-                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument &&
-                     ((ArgumentSyntax)parent).Type == expression;
+            parent = null;
+            var variableDeclaration = expression.Parent as VariableDeclarationSyntax;
+            var enclosingDeclaration = variableDeclaration?.Parent as DeclarationExpressionSyntax;
+            if (enclosingDeclaration?.Parent?.Kind() != SyntaxKind.Argument)
+            {
+                return false;
+            }
+
+            parent = variableDeclaration;
+            return variableDeclaration.Type == expression;
         }
 
         /// <summary>
@@ -2701,6 +2707,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given an out variable declaration expression, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node of the labeled statement.</param>
@@ -4588,6 +4602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.DeclarationPattern:
                     return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
+                case SyntaxKind.DeclarationExpression:
+                    return this.GetDeclaredSymbol((DeclarationExpressionSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:

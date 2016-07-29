@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.3.25407"
   },
   "frameworks": {
     "net46": { }

@@ -82,45 +82,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)containingModule != null);
 
             ImmutableArray<string> elementNames;
-            // First check if the type is an interface. Interface implementations
-            // currently don't record tuple names in an attribute
-            // TODO(https://github.com/dotnet/roslyn/issues/12347)
-            if (metadataType.IsInterfaceType())
-            {
-                elementNames = default(ImmutableArray<string>);
-                var decoder = new TupleTypeDecoder(elementNames, containingModule.ContainingAssembly);
-                return decoder.DecodeNamedType((NamedTypeSymbol)metadataType);
-            }
+            var hasTupleElementNamesAttribute = containingModule
+                .Module
+                .HasTupleElementNamesAttribute(targetSymbolToken, out elementNames);
 
-            if (containingModule.Module.HasTupleElementNamesAttribute(targetSymbolToken, out elementNames))
+            // If we have the TupleElementNamesAttribute, but no names, that's
+            // bad metadata
+            if (hasTupleElementNamesAttribute && elementNames.IsDefaultOrEmpty)
             {
-                var decoder = new TupleTypeDecoder(elementNames, containingModule.ContainingAssembly);
-                try
-                {
-                    var decoded = decoder.DecodeType(metadataType);
-                    if (decoder._namesIndex == 0 && decoded.ContainsTuple())
-                    {
-                        return decoded;
-                    }
-                    // If not all of the names have been used, the metadata is bad
-                }
-                catch (InvalidOperationException)
-                {
-                    // Indicates that the tuple info in the attribute didn't match
-                    // the type. Bad metadata.
-                }
-                // Bad metadata
                 return new UnsupportedMetadataTypeSymbol();
             }
 
-            // No TupleElementNamesAttribute, check if it's a tuple nonetheless
-            if (metadataType.IsTupleCompatible())
+            var decoder = new TupleTypeDecoder(elementNames,
+                                               containingModule.ContainingAssembly);
+            try
             {
-                return TupleTypeSymbol.Create((NamedTypeSymbol)metadataType);
+                var decoded = decoder.DecodeType(metadataType);
+                // If not all of the names have been used, the metadata is bad
+                if (!hasTupleElementNamesAttribute ||
+                    decoder._namesIndex == 0)
+                {
+                    return decoded;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // Indicates that the tuple info in the attribute didn't match
+                // the type. Bad metadata.
             }
 
-            // Not a tuple
-            return metadataType;
+            // Bad metadata
+            return new UnsupportedMetadataTypeSymbol();
         }
 
         private TypeSymbol DecodeType(TypeSymbol type)
@@ -130,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.ErrorType:
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:
+                case SymbolKind.PointerType:
                     return type;
 
                 case SymbolKind.NamedType:
@@ -287,23 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 throw new InvalidOperationException();
             }
 
-            // Check to see if any of the elements are null or if they're
-            // all null
+            // Check to see if all the elements are null
             var start = _namesIndex - numberOfElements;
             bool allNull = true;
-            bool anyNull = false;
 
             for (int i = 0; i < numberOfElements; i++)
             {
-                if (_elementNames[start + i] == null)
-                {
-                    anyNull = true;
-                    if (!allNull)
-                    {
-                        break;
-                    }
-                }
-                else
+                if (_elementNames[start + i] != null)
                 {
                     allNull = false;
                 }
@@ -313,12 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 _namesIndex = start;
                 return default(ImmutableArray<string>);
-            }
-
-            // All tuples must either have names or none may
-            if (anyNull)
-            {
-                throw new InvalidOperationException();
             }
 
             var builder = ArrayBuilder<string>.GetInstance(numberOfElements);

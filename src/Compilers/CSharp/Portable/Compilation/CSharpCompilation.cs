@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncQueue<CompilationEvent> eventQueue = null)
             : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
         {
-            _wellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
+            WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
             this.builtInOperators = new BuiltInOperators(this);
@@ -2291,8 +2291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
+            var emitOptions = moduleBeingBuilt.EmitOptions;
 
-            if (moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
+            if (emitOptions.EmitMetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2310,7 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
+                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
                     return false;
                 }
@@ -2776,7 +2777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
             }
 
-            CheckTupleElementNames(elementTypes.Length, elementNames);
+            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames);
 
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
@@ -2794,25 +2795,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Check that if any names are provided, their number matches the expected cardinality and they are not null.
+        /// Check that if any names are provided, and their number matches the expected cardinality.
+        /// Returns a normalized version of the element names (empty array if all the names are null).
         /// </summary>
-        private static void CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        private static ImmutableArray<string> CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
         {
             if (!elementNames.IsDefault)
             {
                 if (elementNames.Length != cardinality)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
+                    throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
                 }
 
-                for (int i = 0; i < elementNames.Length; i++)
+                if (elementNames.All(n => n == null))
                 {
-                    if ((object)elementNames[i] == null)
-                    {
-                        throw new ArgumentNullException($"{nameof(elementNames)}[{i}]");
-                    }
+                    return default(ImmutableArray<string>);
                 }
             }
+
+            return elementNames;
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames)
@@ -2830,9 +2831,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
             }
 
-            CheckTupleElementNames(cardinality, elementNames);
+            elementNames = CheckTupleElementNames(cardinality, elementNames);
 
             return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
+        }
+
+        protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+        {
+            for (int i = 0, n = memberTypes.Length; i < n; i++)
+            {
+                memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
+            }
+
+            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
+            var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
+
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);
         }
 
         protected override ITypeSymbol CommonDynamicType
@@ -2958,6 +2973,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
+        }
+        
+        internal override bool IsIOperationFeatureEnabled()
+        {
+            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
+            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
         }
 
         private class SymbolSearcher

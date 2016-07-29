@@ -32,7 +32,7 @@ namespace Microsoft.Cci
 
         #region IGenericParameter Members
 
-        public IEnumerable<ITypeReference> GetConstraints(EmitContext context)
+        public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
             return _parentParameter.GetConstraints(context);
         }

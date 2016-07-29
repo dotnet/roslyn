@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 for (int i = 0; i < types.Length; i++)
                 {
-                    var name = hasNames ? SyntaxFactory.IdentifierName(names[i]) : null;
+                    var name = (hasNames && names[i] != null) ? SyntaxFactory.IdentifierName(names[i]) : null;
                     list = list.Add(SyntaxFactory.TupleElement(types[i].GenerateTypeSyntax(), name));
                 }
 

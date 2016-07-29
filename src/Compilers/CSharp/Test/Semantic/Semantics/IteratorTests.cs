@@ -339,5 +339,73 @@ namespace RoslynYield
             Assert.NotNull(yieldNode);
             Assert.Equal(SyntaxKind.YieldBreakStatement, yieldNode.Kind());
         }
+
+        [Fact]
+        [WorkItem(11649, "https://github.com/dotnet/roslyn/issues/11649")]
+        public void IteratorRewriterShouldNotRewriteBaseMethodWrapperSymbol()
+        {
+            var text =
+@"using System.Collections.Generic;
+
+class Base
+{
+    protected virtual IEnumerable<int> M()
+    {
+        yield break;
     }
+
+    class D : Base
+    {
+        protected override IEnumerable<int> M()
+        {
+            base.M(); // the rewriting of D.M() synthesizes a BaseMethodWrapperSymbol for this base call, with return type IEnumerable,
+                      // but it should not in turn be lowered by the IteratorRewriter
+            yield break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll);
+            comp.VerifyEmitDiagnostics(); // without the fix for bug 11649, the compilation would fail emitting
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        [WorkItem(11649, "https://github.com/dotnet/roslyn/issues/11649")]
+        public void IteratorRewriterShouldNotRewriteBaseMethodWrapperSymbol2()
+        {
+            var source =
+@"using System.Collections.Generic;
+
+class Base
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(string.Join("","", new D().M()));
+    }
+
+    protected virtual IEnumerable<int> M()
+    {
+        yield return 1;
+        yield return 2;
+        yield break;
+    }
+
+    class D : Base
+    {
+        protected override IEnumerable<int> M()
+        {
+            yield return 0;
+            foreach (var n in base.M())
+            {
+                yield return n;
+            }
+            yield return 3;
+            yield break;
+        }
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "0,1,2,3", options: TestOptions.DebugExe);
+            comp.Compilation.VerifyDiagnostics();
+        }
+   }
 }

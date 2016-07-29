@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(MakeTablesBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
+            : base(MakeTablesBuilder(previousGeneration), null, null, context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -389,6 +389,8 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             return _methodSpecIndex.Rows;
         }
+
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
 
         protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {

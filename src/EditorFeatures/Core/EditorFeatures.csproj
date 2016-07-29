@@ -83,7 +83,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
@@ -299,7 +298,7 @@
     <Compile Include="Host\IPreviewPaneService.cs" />
     <Compile Include="Host\INavigableItemsPresenter.cs" />
     <Compile Include="Host\IPreviewDialogService.cs" />
-    <Compile Include="Host\IReferencedSymbolsPresenter.cs" />
+    <Compile Include="Host\IDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Host\IWaitContext.cs" />
     <Compile Include="Host\IWaitIndicator.cs" />
     <Compile Include="IBraceMatchingService.cs" />
@@ -705,8 +704,7 @@
     <Compile Include="Shared\Extensions\SnapshotPointExtensions.cs" />
     <Compile Include="Shared\Extensions\SnapshotSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\SpanExtensions.cs" />
-    <Compile Include="Shared\Extensions\SymbolDisplayPartExtensions.cs" />
-    <Compile Include="Shared\Extensions\SymbolDisplayPartExtensions_2.cs" />
+    <Compile Include="Shared\Extensions\TaggedTextExtensions.cs" />
     <Compile Include="Shared\Extensions\TextChangeExtensions.cs" />
     <Compile Include="Shared\Extensions\WorkspaceExtensions.cs" />
     <Compile Include="Shared\Options\ComponentOnOffOptions.cs" />

@@ -151,6 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
+            Dim instrument As String = ""
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -539,6 +540,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
+                        Case "instrument"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<string>")
+                                Continue For
+                            End If
+
+                            instrument = value
+                            Continue For
+
                         Case "recurse"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
@@ -611,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If value IsNot Nothing Then
                                 Select Case value.ToLower()
                                     Case "full", "pdbonly"
-                                        debugInformationFormat = DebugInformationFormat.Pdb
+                                        debugInformationFormat = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
                                     Case "portable"
                                         debugInformationFormat = DebugInformationFormat.PortablePdb
                                     Case "embedded"
@@ -1282,7 +1293,8 @@ lVbRuntimePlus:
                 baseAddress:=baseAddress,
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
-                runtimeMetadataVersion:=Nothing)
+                runtimeMetadataVersion:=Nothing,
+                instrument:=instrument)
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
