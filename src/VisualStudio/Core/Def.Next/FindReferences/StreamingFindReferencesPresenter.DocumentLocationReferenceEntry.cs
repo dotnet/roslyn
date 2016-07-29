@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -140,7 +142,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var textBuffer = CreateNewBuffer();
 
                 // Create the actual tooltip around the region of that text buffer we want to show.
-                var toolTip = CreateToolTip(textBuffer);
+                var toolTip = new ToolTip
+                {
+                    Content = CreateToolTipContent(textBuffer),
+                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
+                };
 
                 // Create a preview workspace for this text buffer and open it's corresponding 
                 // document.  That way we'll get nice things like classification as well as the
@@ -150,21 +156,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 workspace.OpenDocument(newDocument.Id);
 
                 return new DisposableToolTip(toolTip, workspace);
-            }
-
-            private ToolTip CreateToolTip(ITextBuffer textBuffer)
-            {
-                var content = CreateToolTipContent(textBuffer);
-
-                var toolTip = new ToolTip { Content = content };
-
-                var style = Presenter._presenterStyles.FirstOrDefault(s => !string.IsNullOrEmpty(s.QuickInfoAppearanceCategory));
-                if (style?.BackgroundBrush != null)
-                {
-                    toolTip.Background = style.BackgroundBrush;
-                }
-
-                return toolTip;
             }
 
             private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
