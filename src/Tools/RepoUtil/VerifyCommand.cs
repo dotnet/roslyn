@@ -37,27 +37,33 @@ namespace RepoUtil
 
         public bool Run(TextWriter writer, string[] args)
         {
+            List<NuGetPackage> allPackages;
+            if (!VerifyProjectJsonContents(writer, out allPackages))
+            {
+                return false;
+            }
+
             return
-                VerifyProjectJsonContents(writer) &&
-                VerifyRepoConfig(writer);
+                VerifyRepoConfig(writer) &&
+                VerifyGeneratedFiles(writer, allPackages);
         }
 
         /// <summary>
         /// Verify the packages listed in project.json are well formed.  Packages should all either have the same version or 
         /// be explicitly fixed in the config file.
         /// </summary>
-        private bool VerifyProjectJsonContents(TextWriter writer)
+        private bool VerifyProjectJsonContents(TextWriter writer, out List<NuGetPackage> allPackages)
         {
             writer.WriteLine($"Verifying project.json contents");
             var allGood = true;
-            var staticPackageSet = new HashSet<NuGetPackage>(_repoConfig.FixedPackages);
+            var fixedPackageSet = new HashSet<NuGetPackage>(_repoConfig.FixedPackages);
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_sourcesPath))
             {
                 var fileName = FileName.FromFullPath(_sourcesPath, filePath);
                 foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
-                    if (staticPackageSet.Contains(package))
+                    if (fixedPackageSet.Contains(package))
                     {
                         continue;
                     }
@@ -84,6 +90,12 @@ namespace RepoUtil
                 }
             }
 
+            allPackages = floatingPackageMap
+                .Values
+                .Select(x => x.NuGetPackage)
+                .Concat(fixedPackageSet)
+                .OrderBy(x => x.Name)
+                .ToList();
             return allGood;
         }
 
@@ -111,6 +123,33 @@ namespace RepoUtil
             }
 
             return allGood;
+        }
+
+        private bool VerifyGeneratedFiles(TextWriter writer, List<NuGetPackage> allPackages)
+        {
+            var allGood = true;
+            writer.WriteLine($"Verifying generated files");
+            if (_repoConfig.MSBuildGenerateData.HasValue)
+            {
+                var data = _repoConfig.MSBuildGenerateData.Value;
+                var packages = GenerateUtil.GetFilteredPackages(data, allPackages);
+                var fileName = new FileName(_sourcesPath, data.RelativeFileName);
+                var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
+                var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
+                if (actualContent != expectedContent)
+                {
+                    writer.WriteLine($"{fileName.RelativePath} does not have the expected contents");
+                    allGood = false;
+                }
+            }
+
+            if (!allGood)
+            {
+                writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil.change"" to correct");
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,6 +17,7 @@ namespace RepoUtil
     internal static class GenerateUtil
     {
         internal static XNamespace MSBuildNamespace { get; } = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
+        internal static Encoding Encoding { get; } = Encoding.UTF8;
 
         /// <summary>
         /// Get the subset of packages which match the specified filter for the generated file.
@@ -30,10 +32,32 @@ namespace RepoUtil
         internal static void WriteMSBuildContent(FileName fileName, IEnumerable<NuGetPackage> packages)
         {
             Console.WriteLine($"Generating MSBuild props file {fileName}");
-            var doc = GenerateMSBuildXml(packages);
-            using (var writer = XmlWriter.Create(fileName.FullPath, new XmlWriterSettings() { Indent = true }))
+            using (var stream = File.OpenWrite(fileName.FullPath))
             {
-                doc.WriteTo(writer);
+                WriteMSBuildContent(stream, packages);
+            }
+        }
+
+        private static void WriteMSBuildContent(Stream stream, IEnumerable<NuGetPackage> packages)
+        {
+            using (var writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true, Encoding = Encoding }))
+            {
+                var document = GenerateMSBuildXml(packages);
+                document.WriteTo(writer);
+            }
+        }
+
+        internal static string GenerateMSBuildContent(IEnumerable<NuGetPackage> allPackages)
+        {
+            using (var stream = new MemoryStream())
+            {
+                WriteMSBuildContent(stream, allPackages);
+
+                stream.Position = 0;
+                using (var reader = new StreamReader(stream, Encoding))
+                {
+                    return reader.ReadToEnd();
+                }
             }
         }
 
@@ -45,6 +69,7 @@ namespace RepoUtil
             var ns = MSBuildNamespace;
             var doc = new XDocument(new XElement(ns + "Project"));
             doc.Root.Add(new XAttribute("ToolsVersion", "4.0"));
+            doc.Root.Add(new XComment(@"Generated file, do not directly edit.  Run ""RepoUtil change"" to regenerate"));
 
             var group = new XElement(ns + "PropertyGroup");
             foreach (var package in allPackages)
