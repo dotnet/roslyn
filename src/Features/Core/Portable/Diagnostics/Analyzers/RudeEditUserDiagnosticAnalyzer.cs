@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class RudeEditDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return RudeEditDiagnosticDescriptors.AllDescriptors;
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => RudeEditDiagnosticDescriptors.AllDescriptors;
+        public bool MustRunInProc => true;
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {

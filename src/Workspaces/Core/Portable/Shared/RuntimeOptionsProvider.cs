@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     [ExportOptionProvider, Shared]
     internal class RuntimeOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(RuntimeOptions.FullSolutionAnalysis, RuntimeOptions.FullSolutionAnalysisInfoBarShown);
+        private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
+            RuntimeOptions.FullSolutionAnalysis,
+            RuntimeOptions.FullSolutionAnalysisInfoBarShown);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }
