@@ -48,7 +48,7 @@ namespace RepoUtil
         {
             writer.WriteLine($"Verifying project.json contents");
             var allGood = true;
-            var staticPackageSet = new HashSet<NuGetPackage>(_repoConfig.StaticPackages);
+            var staticPackageSet = new HashSet<NuGetPackage>(_repoConfig.FixedPackages);
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_sourcesPath))
             {

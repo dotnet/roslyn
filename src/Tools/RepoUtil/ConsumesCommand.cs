@@ -31,20 +31,20 @@ namespace RepoUtil
         private JObject GoCore()
         {
             var obj = new JObject();
-            obj.Add(GetStaticPackages());
+            obj.Add(GetFixedPackages());
             obj.Add(GetBuildPackages());
             obj.Add(GetToolsetPackages());
             return obj;
         }
 
-        private JProperty GetStaticPackages()
+        private JProperty GetFixedPackages()
         {
             var obj = new JObject();
-            foreach (var pair in _repoData.StaticPackagesMap.OrderBy(x => x.Key))
+            foreach (var pair in _repoData.FixedPackagesMap.OrderBy(x => x.Key))
             {
                 obj.Add(GetProperty(pair.Key, pair.Value));
             }
-            return new JProperty("static", obj);
+            return new JProperty("fixed", obj);
         }
 
         private JProperty GetBuildPackages()

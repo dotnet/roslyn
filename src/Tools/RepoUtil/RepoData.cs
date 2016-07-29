@@ -16,9 +16,9 @@ namespace RepoUtil
         internal ImmutableArray<NuGetPackage> FloatingBuildPackages { get; }
         internal ImmutableArray<NuGetPackage> FloatingToolsetPackages { get; }
         internal ImmutableArray<NuGetPackage> FloatingPackages { get; }
-        internal ImmutableArray<NuGetPackage> StaticPackages => RepoConfig.StaticPackages;
+        internal ImmutableArray<NuGetPackage> FixedPackages => RepoConfig.FixedPackages;
         internal ImmutableArray<NuGetPackage> AllPackages { get; }
-        internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap => RepoConfig.StaticPackagesMap;
+        internal ImmutableDictionary<string, ImmutableArray<string>> FixedPackagesMap => RepoConfig.FixedPackagesMap;
 
         internal RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetPackage> floatingPackages)
         {
@@ -35,7 +35,7 @@ namespace RepoUtil
             FloatingPackages = floatingPackages
                 .OrderBy(x => x.Name)
                 .ToImmutableArray();
-            AllPackages = Combine(FloatingBuildPackages, FloatingToolsetPackages, StaticPackages);
+            AllPackages = Combine(FloatingBuildPackages, FloatingToolsetPackages, FixedPackages);
         }
 
         private static ImmutableArray<NuGetPackage> Combine(params ImmutableArray<NuGetPackage>[] args)
@@ -47,7 +47,7 @@ namespace RepoUtil
         }
 
         /// <summary>
-        /// The raw RepoData contains only the static + toolset packages that we need to track.  This method will examine the current
+        /// The raw RepoData contains only the fixed + toolset packages that we need to track.  This method will examine the current
         /// state of the repo and add in the current data.
         /// </summary>
         internal static RepoData Create(RepoConfig config, string sourcesPath)
@@ -57,7 +57,7 @@ namespace RepoUtil
             {
                 foreach (var nuget in ProjectJsonUtil.GetDependencies(fileName))
                 {
-                    if (config.StaticPackagesMap.ContainsKey(nuget.Name))
+                    if (config.FixedPackagesMap.ContainsKey(nuget.Name))
                     {
                         continue;
                     }

@@ -13,7 +13,7 @@ namespace RepoUtil
     /// <summary>
     /// Packages in the repo fall into the following groups:
     /// 
-    /// Static Packages:
+    /// Fixed Packages:
     /// 
     /// These are packages which should never change.  In other words if there was a scenario where a new version of the 
     /// package was available the reference should not update to the new version.  For all time it should remain at the 
@@ -37,27 +37,28 @@ namespace RepoUtil
     /// </summary>
     internal class RepoConfig
     {
-        internal ImmutableArray<NuGetPackage> StaticPackages { get; }
-        internal ImmutableDictionary<string, ImmutableArray<string>> StaticPackagesMap { get; }
+        internal ImmutableArray<NuGetPackage> FixedPackages { get; }
+        // TODO: is this map needed?
+        internal ImmutableDictionary<string, ImmutableArray<string>> FixedPackagesMap { get; }
         internal ImmutableArray<string> ToolsetPackages { get; }
         internal ImmutableArray<Regex> NuSpecExcludes { get; }
         internal GenerateData? MSBuildGenerateData { get; }
 
         internal RepoConfig(
-            IEnumerable<NuGetPackage> staticPackages, 
+            IEnumerable<NuGetPackage> fixedPackages, 
             IEnumerable<string> toolsetPackages, 
             IEnumerable<Regex> nuspecExcludes,
             GenerateData? msbuildGenerateData)
         {
             MSBuildGenerateData = msbuildGenerateData;
-            StaticPackages = staticPackages.OrderBy(x => x.Name).ToImmutableArray();
+            FixedPackages = fixedPackages.OrderBy(x => x.Name).ToImmutableArray();
             NuSpecExcludes = nuspecExcludes.ToImmutableArray();
 
             // TODO: Validate duplicate names in the floating lists
             ToolsetPackages = toolsetPackages.OrderBy(x => x).ToImmutableArray();
 
             var map = new Dictionary<string, List<string>>();
-            foreach (var nugetRef in staticPackages)
+            foreach (var nugetRef in fixedPackages)
             {
                 List<string> list;
                 if (!map.TryGetValue(nugetRef.Name, out list))
@@ -69,10 +70,10 @@ namespace RepoUtil
                 list.Add(nugetRef.Version);
             }
 
-            StaticPackagesMap = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+            FixedPackagesMap = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
             foreach (var pair in map)
             {
-                StaticPackagesMap = StaticPackagesMap.Add(pair.Key, pair.Value.ToImmutableArray());
+                FixedPackagesMap = FixedPackagesMap.Add(pair.Key, pair.Value.ToImmutableArray());
             }
         }
 
@@ -80,22 +81,22 @@ namespace RepoUtil
         {
             // Need to track any file that has dependencies
             var obj = JObject.Parse(File.ReadAllText(jsonFilePath));
-            var staticPackages = (JObject)obj["staticPackages"];
-            var staticPackagesList = ImmutableArray.CreateBuilder<NuGetPackage>();
-            foreach (var prop in staticPackages.Properties())
+            var fixedPackages = (JObject)obj["fixedPackages"];
+            var fixedPackagesList = ImmutableArray.CreateBuilder<NuGetPackage>();
+            foreach (var prop in fixedPackages.Properties())
             {
                 if (prop.Value.Type == JTokenType.String)
                 {
                     var version = (string)prop.Value;
                     var nugetRef = new NuGetPackage(prop.Name, version);
-                    staticPackagesList.Add(nugetRef);
+                    fixedPackagesList.Add(nugetRef);
                 }
                 else
                 {
                     foreach (var version in ((JArray)prop.Value).Values<string>())
                     {
                         var nugetRef = new NuGetPackage(prop.Name, version);
-                        staticPackagesList.Add(nugetRef);
+                        fixedPackagesList.Add(nugetRef);
                     }
                 }
             }
@@ -118,7 +119,7 @@ namespace RepoUtil
             }
 
             return new RepoConfig(
-                staticPackagesList,
+                fixedPackagesList,
                 toolsetPackages,
                 nuspecExcludes,
                 msbuildGenerateData);

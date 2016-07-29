@@ -43,7 +43,6 @@
     <Compile Include="ChangeCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ConsumesCommand.cs" />
-    <Compile Include="Data.cs" />
     <Compile Include="FileName.cs" />
     <Compile Include="GenerateData.cs" />
     <Compile Include="GenerateUtil.cs" />
