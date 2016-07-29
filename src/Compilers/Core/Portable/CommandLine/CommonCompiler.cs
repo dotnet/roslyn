@@ -513,8 +513,10 @@ namespace Microsoft.CodeAnalysis
 
                         if (success)
                         {
+                            bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
+
                             using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath))
-                            using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
+                            using (var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
                             {
                                 success = compilation.SerializeToPeStream(
                                     moduleBeingBuilt,

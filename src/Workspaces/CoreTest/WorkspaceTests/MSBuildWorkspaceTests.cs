@@ -1385,6 +1385,20 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_CSharp_DebugType_Portable()
+        {
+            CreateCSharpFilesWith("DebugType", "portable");
+            AssertOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_CSharp_DebugType_Embedded()
+        {
+            CreateCSharpFilesWith("DebugType", "embedded");
+            AssertOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_CSharp_OutputKind_DynamicallyLinkedLibrary()
         {
             CreateCSharpFilesWith("OutputType", "Library");
@@ -1556,6 +1570,20 @@ class C1
         public void TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
         {
             CreateVBFilesWith("DebugType", "pdbonly");
+            AssertVBOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_VisualBasic_DebugType_Portable()
+        {
+            CreateVBFilesWith("DebugType", "portable");
+            AssertVBOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_VisualBasic_DebugType_Embedded()
+        {
+            CreateVBFilesWith("DebugType", "embedded");
             AssertVBOptions(0, options => options.Errors.Length);
         }
 

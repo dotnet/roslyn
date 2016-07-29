@@ -394,6 +394,16 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                             this.CommandLineArgs.Add("/debug:full");
                             return true;
                         }
+                        else if (string.Equals(debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                            return true;
+                        }
+                        else if (string.Equals(debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
+                            return true;
+                        }
                     }
 
                     return false;

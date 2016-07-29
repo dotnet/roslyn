@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -139,6 +141,115 @@ class C
                             break;
                     }
                 }
+            }
+        }
+
+        [Fact]
+        public void EmbeddedPortablePdb()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source, "foo.cs"), options: TestOptions.DebugDll);
+
+            var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath(@"a/b/c/d.pdb"));
+
+            using (var peReader = new PEReader(peBlob))
+            {
+                var entries = peReader.ReadDebugDirectory();
+
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+
+                var codeView = entries[0];
+                var embedded = entries[1];
+
+                // EmbeddedPortablePdb entry:
+                Assert.Equal(0x0100, embedded.MajorVersion);
+                Assert.Equal(0x0100, embedded.MinorVersion);
+                Assert.Equal(0u, embedded.Stamp);
+
+                BlobContentId pdbId;
+                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
+                {
+                    var mdReader = embeddedMetadataProvider.GetMetadataReader();
+                    AssertEx.Equal(new[] { "foo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
+
+                    pdbId = new BlobContentId(mdReader.DebugMetadataHeader.Id);
+                }
+
+                // CodeView entry:
+                var codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView);
+                Assert.Equal(0x0100, codeView.MajorVersion);
+                Assert.Equal(0x504D, codeView.MinorVersion);
+                Assert.Equal(pdbId.Stamp, codeView.Stamp);
+                Assert.Equal(pdbId.Guid, codeViewData.Guid);
+                Assert.Equal("d.pdb", codeViewData.Path);
+            }
+        }
+
+        [Fact]
+        public void EmbeddedPortablePdb_Deterministic()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source, "foo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
+
+            var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithPdbFilePath(@"a/b/c/d.pdb"));
+
+            using (var peReader = new PEReader(peBlob))
+            {
+                var entries = peReader.ReadDebugDirectory();
+
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+
+                var codeView = entries[0];
+                var reproducible = entries[1];
+                var embedded = entries[2];
+
+                // EmbeddedPortablePdb entry:
+                Assert.Equal(0x0100, embedded.MajorVersion);
+                Assert.Equal(0x0100, embedded.MinorVersion);
+                Assert.Equal(0u, embedded.Stamp);
+
+                BlobContentId pdbId;
+                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
+                {
+                    var mdReader = embeddedMetadataProvider.GetMetadataReader();
+                    AssertEx.Equal(new[] { "foo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
+
+                    pdbId = new BlobContentId(mdReader.DebugMetadataHeader.Id);
+                }
+
+                // CodeView entry:
+                var codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView);
+                Assert.Equal(0x0100, codeView.MajorVersion);
+                Assert.Equal(0x504D, codeView.MinorVersion);
+                Assert.Equal(pdbId.Stamp, codeView.Stamp);
+                Assert.Equal(pdbId.Guid, codeViewData.Guid);
+                Assert.Equal("d.pdb", codeViewData.Path);
+
+                // Reproducible entry:
+                Assert.Equal(0, reproducible.MajorVersion);
+                Assert.Equal(0, reproducible.MinorVersion);
+                Assert.Equal(0U, reproducible.Stamp);
+                Assert.Equal(0, reproducible.DataSize);
             }
         }
     }
