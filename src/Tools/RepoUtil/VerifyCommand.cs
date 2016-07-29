@@ -14,21 +14,20 @@ namespace RepoUtil
     /// </summary>
     internal sealed class VerifyCommand : ICommand
     {
-        private struct NuGetReferenceSource
+        private struct NuGetPackageSource
         {
-            internal NuGetPackage NuGetReference { get; }
+            internal NuGetPackage NuGetPackage { get; }
             internal FileName FileName { get; }
 
-            internal NuGetReferenceSource(NuGetPackage nugetRef, FileName fileName)
+            internal NuGetPackageSource(NuGetPackage package, FileName fileName)
             {
-                NuGetReference = nugetRef;
+                NuGetPackage = package;
                 FileName = fileName;
             }
         }
 
         private readonly string _sourcesPath;
         private readonly RepoConfig _repoConfig;
-        private readonly Dictionary<string, NuGetReferenceSource> _floatingPackageMap = new Dictionary<string, NuGetReferenceSource>(StringComparer.Ordinal);
 
         internal VerifyCommand(RepoConfig repoConfig, string sourcesPath)
         {
@@ -38,69 +37,52 @@ namespace RepoUtil
 
         public bool Run(TextWriter writer, string[] args)
         {
-            return VerifyPackages(writer);
+            return VerifyProjectJsonContents(writer);
         }
 
-        private bool VerifyPackages(TextWriter writer)
+        /// <summary>
+        /// Verify the packages listed in project.json are well formed.  Packages should all either have the same version or 
+        /// be explicitly fixed in the config file.
+        /// </summary>
+        private bool VerifyProjectJsonContents(TextWriter writer)
         {
-            var allGood = false;
+            writer.WriteLine($"Verifying project.json contents");
+            var allGood = true;
+            var staticPackageSet = new HashSet<NuGetPackage>(_repoConfig.StaticPackages);
+            var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_sourcesPath))
             {
                 var fileName = FileName.FromFullPath(_sourcesPath, filePath);
-                foreach (var nugetRef in ProjectJsonUtil.GetDependencies(filePath))
+                foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
-                    if (_repoConfig.StaticPackages.Any(x => x.Name == nugetRef.Name))
+                    if (staticPackageSet.Contains(package))
                     {
-                        if (!VerifyStaticPackage(writer, nugetRef, fileName))
-                        {
-                            allGood = false;
-                        }
+                        continue;
                     }
-                    else
+
+                    NuGetPackageSource source;
+
+                    // If this is the first time we've seen the package then record where it was found.  Need the source
+                    // information to provide better error messages later.
+                    if (!floatingPackageMap.TryGetValue(package.Name, out source))
                     {
-                        if (!VerifyFloatingPackage(writer, nugetRef, fileName))
-                        {
-                            allGood = false;
-                        }
+                        source = new NuGetPackageSource(package, fileName);
+                        floatingPackageMap.Add(package.Name, source);
+                        continue;
+                    }
+
+                    if (source.NuGetPackage != package)
+                    {
+                        writer.WriteLine($"Error! Package {package.Name} has different versions:");
+                        writer.WriteLine($"\t{fileName} at {package.Version}");
+                        writer.WriteLine($"\t{source.FileName} at {source.NuGetPackage.Version}");
+                        writer.WriteLine($"The versions must be the same or one must be explicitly listed as fixed in RepoData.json");
+                        allGood = false;
                     }
                 }
             }
 
             return allGood;
         }
-
-        private bool VerifyFloatingPackage(TextWriter writer, NuGetPackage nugetRef, FileName fileName)
-        {
-            NuGetReferenceSource source;
-            if (_floatingPackageMap.TryGetValue(nugetRef.Name, out source))
-            {
-                if (source.NuGetReference.Version == nugetRef.Version)
-                {
-                    return true;
-                }
-
-                writer.WriteLine($"Package {nugetRef.Name} version differs in:");
-                writer.WriteLine($"\t{fileName} at {nugetRef.Version}");
-                writer.WriteLine($"\t{source.FileName} at {source.NuGetReference.Version}");
-                return false;
-            }
-
-            _floatingPackageMap.Add(nugetRef.Name, new NuGetReferenceSource(nugetRef, fileName));
-            return true;
-        }
-
-        private bool VerifyStaticPackage(TextWriter writer, NuGetPackage nugetRef, FileName fileName)
-        {
-            Debug.Assert(_repoConfig.StaticPackagesMap.ContainsKey(nugetRef.Name));
-            var versions = _repoConfig.StaticPackagesMap[nugetRef.Name];
-            if (!versions.Contains(nugetRef.Version))
-            {
-                writer.WriteLine($"Package {nugetRef.Name} at version {nugetRef.Version} in {fileName} is not a valid version");
-                return false;
-            }
-
-            return true;
-        }
-
     }
 }

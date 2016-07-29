@@ -213,44 +213,10 @@ namespace RepoUtil
             var msbuildData = _repoData.RepoConfig.MSBuildGenerateData;
             if (msbuildData.HasValue)
             {
-                GenerateMSBuild(msbuildData.Value, allPackages);
+                var fileName = new FileName(_repoData.SourcesPath, msbuildData.Value.RelativeFileName);
+                var packages = GenerateUtil.GetFilteredPackages(msbuildData.Value, allPackages);
+                GenerateUtil.WriteMSBuildContent(fileName, packages);
             }
-        }
-
-        private void GenerateMSBuild(GenerateData data, IEnumerable<NuGetPackage> allPackages)
-        {
-            Console.WriteLine($"Generating MSBuild props file {data.RelativeFileName}");
-            var doc = GenerateMSBuildXml(data, allPackages);
-            var fileName = new FileName(_repoData.SourcesPath, data.RelativeFileName);
-            using (var writer = XmlWriter.Create(fileName.FullPath, new XmlWriterSettings() { Indent = true }))
-            {
-                doc.WriteTo(writer);
-            }
-        }
-
-        /// <summary>
-        /// Generate the MSBuild props file which contains named values for the NuGet versions.
-        /// </summary>
-        private XDocument GenerateMSBuildXml(GenerateData data, IEnumerable<NuGetPackage> allPackages)
-        {
-            var ns = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
-            var doc = new XDocument(new XElement(ns + "Project"));
-            doc.Root.Add(new XAttribute("ToolsVersion", "4.0"));
-
-            var group = new XElement(ns + "PropertyGroup");
-            foreach (var package in allPackages)
-            {
-                if (data.Packages.Any(x => x.IsMatch(package.Name)))
-                {
-                    var name = package.Name.Replace(".", "") + "Version";
-                    var elem = new XElement(ns + name);
-                    elem.Value = package.Version;
-                    group.Add(elem);
-                }
-            }
-
-            doc.Root.Add(group);
-            return doc;
         }
     }
 }
