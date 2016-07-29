@@ -2,15 +2,16 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 {
     /// <summary>
     /// This holds onto diagnostics for a specific version of project snapshot
     /// in a way each kind of diagnostics can be queried fast.
     /// </summary>
-    internal struct AnalysisResult
+    internal struct DiagnosticAnalysisResult
     {
         public readonly bool FromBuild;
         public readonly ProjectId ProjectId;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
         private readonly ImmutableArray<DiagnosticData> _others;
 
-        public AnalysisResult(ProjectId projectId, VersionStamp version) : this(
+        public DiagnosticAnalysisResult(ProjectId projectId, VersionStamp version) : this(
                 projectId, version,
                 documentIds: ImmutableHashSet<DocumentId>.Empty,
                 syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
         }
 
-        public AnalysisResult(
+        public DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
         {
             ProjectId = projectId;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _others = default(ImmutableArray<DiagnosticData>);
         }
 
-        public AnalysisResult(
+        public DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
@@ -79,6 +80,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // do after all fields are assigned.
             DocumentIds = DocumentIds ?? CreateDocumentIds();
             IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
+        }
+
+        public DiagnosticAnalysisResult(DiagnosticAnalysisResultBuilder builder) :
+            this(builder.Project.Id, builder.Version,
+                builder.SyntaxLocals, builder.SemanticLocals, builder.NonLocals, builder.Others,
+                builder.DocumentIds, fromBuild: false)
+        {
         }
 
         // aggregated form means it has aggregated information but no actual data.
@@ -109,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return ImmutableArray<DiagnosticData>.Empty;
         }
 
-        public AnalysisResult ToAggregatedForm()
+        public DiagnosticAnalysisResult ToAggregatedForm()
         {
-            return new AnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
+            return new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
         }
 
         private T ReturnIfNotDefault<T>(T value)
