@@ -15,13 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.CastExpression);
 
-        public override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-        {
-            get
-            {
-                return s_kindsOfInterest;
-            }
-        }
+        public override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
         protected override bool IsUnnecessaryCast(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {

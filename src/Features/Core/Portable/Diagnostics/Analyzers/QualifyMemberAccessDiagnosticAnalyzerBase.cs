@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
             s_descriptorQualifyMemberAccessWarning,
             s_descriptorQualifyMemberAccessError);
 
+        public bool MustRunInProc => true;
+
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
         public override void Initialize(AnalysisContext context)
