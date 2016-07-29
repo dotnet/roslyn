@@ -21,4 +21,3 @@ Before working through the walkthroughs below, you should first familiarize your
 * Getting Started - Syntax Transformation ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Transformation) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Transformation))
 
 ## Analyzers and Code Fixes
-* How To Write an Analyzer and Code Fix ([VB](https://github.com/dotnet/roslyn/wiki/How-To-Write-a-Visual-Basic-Analyzer-and-Code-Fix) | [C#](https://github.com/dotnet/roslyn/wiki/How-To-Write-a-C%23-Analyzer-and-Code-Fix))
