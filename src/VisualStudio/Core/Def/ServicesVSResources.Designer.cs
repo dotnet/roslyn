@@ -362,6 +362,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connection to remote host has been lost. some features might stop working or start working in proc. do you want to recover remote host?.
+        /// </summary>
+        internal static string Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start_working_in_proc_do_you_want_to_recover_remote_host {
+            get {
+                return ResourceManager.GetString("Connection_to_remote_host_has_been_lost_some_features_might_stop_working_or_start" +
+                        "_working_in_proc_do_you_want_to_recover_remote_host", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find location of folder on disk.
         /// </summary>
         internal static string Could_not_find_location_of_folder_on_disk {
