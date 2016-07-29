@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         // Applicable SymbolKind list is limited due to https://github.com/dotnet/roslyn/issues/8753. 
         // We would prefer to respond to the names of all symbols.
-        private static readonly ImmutableArray<SymbolKind> _symbolKinds = new[] 
+        private static readonly ImmutableArray<SymbolKind> _symbolKinds = new[]
             {
                 SymbolKind.Event,
                 SymbolKind.Field,
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }.ToImmutableArray();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorNamingStyle);
+        public bool MustRunInProc => true;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             if (preferences.TryGetApplicableRule(context.Symbol, categorizationService, out applicableRule))
             {
                 string failureReason;
-                if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden && 
+                if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
                     !applicableRule.IsNameCompliant(context.Symbol.Name, out failureReason))
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
