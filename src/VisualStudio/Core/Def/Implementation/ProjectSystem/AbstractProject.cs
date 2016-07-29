@@ -29,6 +29,7 @@ using VsHierarchyPropID = Microsoft.VisualStudio.Shell.VsHierarchyPropID;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
     {
         internal static object RuleSetErrorId = new object();
@@ -97,13 +98,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
             string projectSystemName,
             string projectFilePath,
-            Guid projectGuid,
-            string projectTypeGuid,
             IVsHierarchy hierarchy,
             string language,
+            Guid projectGuid,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt = null)
         {
             Contract.ThrowIfNull(projectSystemName);
 
@@ -111,7 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Language = language;
             Hierarchy = hierarchy;
             Guid = projectGuid;
-            ProjectType = projectTypeGuid;
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
@@ -122,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             ProjectSystemName = projectSystemName;
             Workspace = visualStudioWorkspaceOpt;
+            CommandLineParserService = commandLineParserServiceOpt;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSourceOpt;
 
             UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
@@ -177,6 +178,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ProjectId Id { get; }
 
         public string Language { get; }
+
+        private ICommandLineParserService CommandLineParserService { get; }
 
         public IVsHierarchy Hierarchy { get; }
 
@@ -244,9 +247,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected IContentTypeRegistryService ContentTypeRegistryService { get; }
 
         /// <summary>
-        /// Flag indicating if the design time build has succeeded for current project state.
+        /// Flag indicating if the latest design time build has succeeded for current project state.
         /// </summary>
-        protected abstract bool DesignTimeBuildStatus { get; }
+        protected abstract bool LastDesignTimeBuildSucceeded { get; }
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
@@ -278,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                 additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
 
-            return info.WithHasAllInformation(hasAllInformation: DesignTimeBuildStatus);
+            return info.WithHasAllInformation(hasAllInformation: LastDesignTimeBuildSucceeded);
         }
 
         protected ImmutableArray<string> GetStrongNameKeyPaths()
@@ -372,8 +375,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _analyzers.ContainsKey(fullPath);
         }
 
-        protected CompilationOptions CurrentCompilationOptions { get; private set; }
-        protected ParseOptions CurrentParseOptions { get; private set; }
+        // internal for testing purposes.
+        internal CompilationOptions CurrentCompilationOptions { get; private set; }
+        internal ParseOptions CurrentParseOptions { get; private set; }
 
         /// <summary>
         /// Returns a map from full path to <see cref="VisualStudioAnalyzer"/>.
@@ -583,8 +587,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
                 VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
 
-                RemoveAnalyzerAssembly(analyzer.FullPath);
-                AddAnalyzerAssembly(analyzer.FullPath);                
+                RemoveAnalyzerReference(analyzer.FullPath);
+                AddAnalyzerReference(analyzer.FullPath);                
             }));
         }
 
