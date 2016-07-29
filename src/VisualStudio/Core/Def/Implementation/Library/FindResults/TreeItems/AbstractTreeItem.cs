@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
     internal abstract class AbstractTreeItem
     {
+        protected static int ReferenceGlyphIndex = Glyph.Reference.GetGlyphIndex();
+
         public IList<AbstractTreeItem> Children { get; protected set; }
         public ushort GlyphIndex { get; protected set; }
 
