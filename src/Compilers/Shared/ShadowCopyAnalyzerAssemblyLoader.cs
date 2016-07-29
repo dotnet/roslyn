@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis
         /// will shadow-copy assemblies.
         /// </summary>
         private string _shadowCopyDirectory;
+        private string _shadowCopyMutexName;
         private Mutex _shadowCopyDirectoryMutex;
 
         /// <summary>
@@ -41,14 +42,19 @@ namespace Microsoft.CodeAnalysis
                 _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
             }
 
+            _shadowCopyDirectory = Path.Combine(_baseDirectory, Guid.NewGuid().ToString("N").ToLowerInvariant());
+            _shadowCopyMutexName = GetMutexName(_shadowCopyDirectory);
+
             Task.Run((Action)DeleteLeftoverDirectories);
         }
+
+        public string MutexName => _shadowCopyMutexName;
 
         private void DeleteLeftoverDirectories()
         {
             foreach (var subDirectory in Directory.EnumerateDirectories(_baseDirectory))
             {
-                string name = Path.GetFileName(subDirectory).ToLowerInvariant();
+                string name = GetMutexName(subDirectory);
                 Mutex mutex = null;
                 try
                 {
@@ -77,9 +83,9 @@ namespace Microsoft.CodeAnalysis
 
         protected override Assembly LoadImpl(string fullPath)
         {
-            if (_shadowCopyDirectory == null)
+            if (_shadowCopyDirectoryMutex == null)
             {
-                _shadowCopyDirectory = CreateUniqueDirectoryForProcess();
+                CreateUniqueDirectoryForProcess();
             }
 
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
@@ -167,16 +173,16 @@ namespace Microsoft.CodeAnalysis
             return directory;
         }
 
-        private string CreateUniqueDirectoryForProcess()
+        private string GetMutexName(string directory)
         {
-            string guid = Guid.NewGuid().ToString("N").ToLowerInvariant();
-            string directory = Path.Combine(_baseDirectory, guid);
+            return Path.GetFileName(directory).ToLowerInvariant();
+        }
 
-            _shadowCopyDirectoryMutex = new Mutex(initiallyOwned: false, name: guid);
+        private void CreateUniqueDirectoryForProcess()
+        {
+            _shadowCopyDirectoryMutex = new Mutex(initiallyOwned: false, name: _shadowCopyMutexName);
 
-            Directory.CreateDirectory(directory);
-
-            return directory;
+            Directory.CreateDirectory(_shadowCopyDirectory);
         }
     }
 }

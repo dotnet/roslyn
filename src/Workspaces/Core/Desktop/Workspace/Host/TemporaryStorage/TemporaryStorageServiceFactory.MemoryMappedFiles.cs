@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
@@ -13,120 +11,17 @@ namespace Microsoft.CodeAnalysis.Host
     internal partial class TemporaryStorageServiceFactory
     {
         /// <summary>
-        /// Rather than creating a separate MemoryMappedFile for every string/stream we need to persist,
-        /// use several large MemoryMappedFile 'arenas' that contain multiple buffers each.
+        /// Our own abstraction on top of memory map file so that we can have shared views over mmf files. 
+        /// Otherwise, each view has minimum size of 64K due to requirement forced by windows.
         /// 
-        /// Group buffers by size to simplify fragmentation and complexity of this memory management code.
-        /// Currently, anything larger than 256KB will get its own MemoryMappedFile.
-        /// 
-        /// When opening Roslyn.sln and doing a full initialization through Solution Navigator, we get
-        /// 8000+ requests.  Since the minimum OS allocation for a memory mapped file is rounded up to 
-        /// 64KB, this would map ~500MB alone, not counting the additional space needed for files > 64KB.
-        /// Using the strategy below for the same scenario, we create only 90 4MB arenas which hold all but
-        /// 104 buffers that are larger than 256KB.  So we avoid creating ~7500 MemoryMappedFile objects
-        /// and save roughly 400MB of fragmentation when compared to the simple one MemoryMappedFile per
-        /// request approach.
-        /// 
-        /// The MemoryMappedFileManager, MemoryMappedFileArena, and MemoryMappedInfo classes all
-        /// have very tight coupling in the current implementation.
+        /// most of our view will have short lifetime, but there are cases where view might live a bit longer such as
+        /// metadata dll shadow copy. shared view will help those cases.
         /// </summary>
-        internal class MemoryMappedFileManager
-        {
-            private const int SmallFileMaxBytes = 1024 * 2;
-            private const int MediumFileMaxBytes = 1024 * 8;
-            private const int LargeFileMaxBytes = 1024 * 32;
-            private const int HugeFileMaxBytes = 1024 * 256;
-
-            private readonly List<MemoryMappedFileArena> _smallFileStorage = new List<MemoryMappedFileArena>();
-            private readonly List<MemoryMappedFileArena> _mediumFileStorage = new List<MemoryMappedFileArena>();
-            private readonly List<MemoryMappedFileArena> _largeFileStorage = new List<MemoryMappedFileArena>();
-            private readonly List<MemoryMappedFileArena> _hugeFileStorage = new List<MemoryMappedFileArena>();
-
-            // Ugh.  We need to keep a strong reference to our allocated arenas.  Otherwise, when we remove instances
-            // from the storage lists above, the only references left are MemoryMappedInfo instances.  If 
-            // these all happen to end up on the finalizer thread, the underlying MemoryMappedFile SafeHandle will also
-            // be finalized.  This invalidates the handle and when we try to reuse this arena by putting it back on a 
-            // storage list, we'll hit an exception trying to access an invalid handle.
-            private readonly List<MemoryMappedFileArena> _allocatedArenas = new List<MemoryMappedFileArena>();
-
-            public MemoryMappedFileManager()
-            {
-                Contract.Assert(MemoryMappedFileArena.MemoryMappedFileArenaSize % SmallFileMaxBytes == 0);
-                Contract.Assert(MemoryMappedFileArena.MemoryMappedFileArenaSize % MediumFileMaxBytes == 0);
-                Contract.Assert(MemoryMappedFileArena.MemoryMappedFileArenaSize % LargeFileMaxBytes == 0);
-                Contract.Assert(MemoryMappedFileArena.MemoryMappedFileArenaSize % HugeFileMaxBytes == 0);
-            }
-
-            public MemoryMappedInfo CreateViewInfo(long size)
-            {
-                List<MemoryMappedFileArena> storage = null;
-                int allocationSize;
-
-                if (size <= SmallFileMaxBytes)
-                {
-                    storage = _smallFileStorage;
-                    allocationSize = SmallFileMaxBytes;
-                }
-                else if (size <= MediumFileMaxBytes)
-                {
-                    storage = _mediumFileStorage;
-                    allocationSize = MediumFileMaxBytes;
-                }
-                else if (size <= LargeFileMaxBytes)
-                {
-                    storage = _largeFileStorage;
-                    allocationSize = LargeFileMaxBytes;
-                }
-                else if (size <= HugeFileMaxBytes)
-                {
-                    storage = _hugeFileStorage;
-                    allocationSize = HugeFileMaxBytes;
-                }
-                else
-                {
-                    // The requested size is larger than HugeFileMaxBytes, give it its own MemoryMappedFile
-                    return new MemoryMappedInfo(MemoryMappedFile.CreateNew(CreateUniqueName(size), size), size);
-                }
-
-                // Lock this list since we may be inserting a new element.  MemoryMappedFileArena may also
-                // add/remove items from the list.  To avoid deadlocks, lock on this List<MemoryMappedFileArena>
-                // first, then MemoryMappedFileArena.gate, and lock allocatedArenas last of all.
-                lock (storage)
-                {
-                    if (storage.Count == 0)
-                    {
-                        var arena = new MemoryMappedFileArena(this, storage, allocationSize);
-                        storage.Add(arena);
-                        lock (_allocatedArenas)
-                        {
-                            _allocatedArenas.Add(arena);
-                        }
-                    }
-
-                    return storage[0].CreateMemoryMappedViewInfo(size);
-                }
-            }
-
-            public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
-
-            public void FreeArena(MemoryMappedFileArena memoryMappedFileArena)
-            {
-                lock (_allocatedArenas)
-                {
-                    _allocatedArenas.Remove(memoryMappedFileArena);
-                }
-            }
-        }
-
         internal sealed class MemoryMappedInfo : IDisposable
         {
-            private readonly MemoryMappedFile _memoryMappedFile;
-            private readonly long _offset;
+            private readonly string _name;
             private readonly long _size;
-            private readonly MemoryMappedFileArena _containingArena;
+            private readonly MemoryMappedFile _memoryMappedFile;
 
             /// <summary>
             /// ref count of stream given out
@@ -138,18 +33,33 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             private MemoryMappedViewAccessor _accessor;
 
-            public MemoryMappedInfo(MemoryMappedFile memoryMappedFile, long size) : this(memoryMappedFile, 0, size, null) { }
-
-            public MemoryMappedInfo(MemoryMappedFile memoryMappedFile, long offset, long size, MemoryMappedFileArena containingArena)
+            public MemoryMappedInfo(long size)
             {
-                _memoryMappedFile = memoryMappedFile;
-                _offset = offset;
+                _name = CreateUniqueName(size);
                 _size = size;
-                _containingArena = containingArena;
+
+                _memoryMappedFile = MemoryMappedFile.CreateNew(_name, size);
 
                 _streamCount = 0;
                 _accessor = null;
             }
+
+            public MemoryMappedInfo(string name, long size)
+            {
+                _name = name;
+                _size = size;
+
+                _memoryMappedFile = MemoryMappedFile.OpenExisting(_name);
+
+                _streamCount = 0;
+                _accessor = null;
+            }
+
+            /// <summary>
+            /// Name and Size of memory map file
+            /// </summary>
+            public string Name => _name;
+            public long Size => _size;
 
             /// <summary>
             /// Caller is responsible for disposing the returned stream.
@@ -162,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_streamCount == 0)
                     {
-                        _accessor = _memoryMappedFile.CreateViewAccessor(_offset, _size, MemoryMappedFileAccess.Read);
+                        _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
                     }
 
                     _streamCount++;
@@ -179,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewStream is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
-                    return _memoryMappedFile.CreateViewStream(_offset, _size, MemoryMappedFileAccess.Write);
+                    return _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.Write);
                 }
             }
 
@@ -223,17 +133,13 @@ namespace Microsoft.CodeAnalysis.Host
                     _accessor = null;
                 }
 
-                // Dispose the memoryMappedFile if we own it, otherwise 
-                // notify our containingArena that this offset is available
-                // for someone else 
-                if (_containingArena == null)
-                {
-                    _memoryMappedFile.Dispose();
-                }
-                else
-                {
-                    _containingArena.FreeSegment(_offset);
-                }
+                // Dispose the memoryMappedFile
+                _memoryMappedFile.Dispose();
+            }
+
+            public static string CreateUniqueName(long size)
+            {
+                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
             }
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
@@ -427,82 +333,6 @@ namespace Microsoft.CodeAnalysis.Host
                     accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
                     ptr += accessor.PointerOffset;
                     return ptr;
-                }
-            }
-        }
-
-        internal class MemoryMappedFileArena
-        {
-            // Use a 4 MB default arena size, we'll only have a fraction of that
-            // mapped into our address space at any given time.
-            public const int MemoryMappedFileArenaSize = 4 * 1024 * 1024;
-
-            private readonly MemoryMappedFileManager _manager;
-            private readonly List<MemoryMappedFileArena> _containingList;
-            private readonly MemoryMappedFile _memoryMappedFile;
-
-            // The byte offsets into memoryMappedFile that are available for allocations
-            private readonly Stack<long> _freeSegmentOffsets;
-            private readonly int _segmentCount;
-            private readonly object _gate = new object();
-
-            public MemoryMappedFileArena(MemoryMappedFileManager manager, List<MemoryMappedFileArena> containingList, int allocationSize)
-            {
-                Contract.Assert(containingList.Count == 0, "should only create a new arena when the containing list is empty");
-                _manager = manager;
-                _containingList = containingList;
-                _memoryMappedFile = MemoryMappedFile.CreateNew(MemoryMappedFileManager.CreateUniqueName(allocationSize), MemoryMappedFileArenaSize, MemoryMappedFileAccess.ReadWrite);
-                _freeSegmentOffsets = new Stack<long>(Enumerable.Range(0, MemoryMappedFileArenaSize / allocationSize).Select(x => (long)x * allocationSize));
-                _segmentCount = _freeSegmentOffsets.Count;
-            }
-
-            public void FreeSegment(long offset)
-            {
-                int count;
-                lock (_gate)
-                {
-                    _freeSegmentOffsets.Push(offset);
-                    count = _freeSegmentOffsets.Count;
-                }
-
-                if (count == 1)
-                {
-                    // This arena has room for allocations now, so add it back to the list.
-                    lock (_containingList)
-                    {
-                        _containingList.Add(this);
-                    }
-                }
-                else if (count == _segmentCount)
-                {
-                    // this arena is no longer in use.
-                    lock (_containingList)
-                    {
-                        lock (_gate)
-                        {
-                            // re-check to make sure no-one allocated after we released the lock
-                            if (_freeSegmentOffsets.Count == _segmentCount)
-                            {
-                                _containingList.Remove(this);
-                                _manager.FreeArena(this);
-                            }
-                        }
-                    }
-                }
-            }
-
-            internal MemoryMappedInfo CreateMemoryMappedViewInfo(long size)
-            {
-                lock (_gate)
-                {
-                    var result = new MemoryMappedInfo(_memoryMappedFile, _freeSegmentOffsets.Pop(), size, this);
-                    if (_freeSegmentOffsets.IsEmpty())
-                    {
-                        // containingList should already be locked by our caller. 
-                        _containingList.Remove(this);
-                    }
-
-                    return result;
                 }
             }
         }
