@@ -6,6 +6,7 @@
     <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
     <BinariesPath>$(ProjectDir)Binaries\$(Configuration)</BinariesPath>
     <RoslynMyGetApiKey Condition="'$(RoslynMyGetApiKey)' == ''">"no key"</RoslynMyGetApiKey>
+    <PublishVsMan>true</PublishVsMan>
   </PropertyGroup>
 
   <!-- Non-official builds / local testing have different defaults -->
@@ -14,6 +15,7 @@
     <SignRoslynArgs>-test</SignRoslynArgs>
     <PublishAssetsArgs>-test</PublishAssetsArgs>
     <CopyInsertionFileArgs>-test</CopyInsertionFileArgs>
+    <PublishVsMan>true</PublishVsMan>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -27,7 +29,7 @@
     <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
-    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
+    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="FinalizeValidate=$(PublishVsMan)"/>
 
     <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
 
