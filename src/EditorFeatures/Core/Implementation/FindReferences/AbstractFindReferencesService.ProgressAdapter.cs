@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public void OnDefinitionFound(ISymbol definition)
             {
-                _context.OnDefinitionFound(
-                    GetDefinitionItem(definition),
-                    definition.ShouldShowWithNoReferenceLocations());
+                _context.OnDefinitionFound(GetDefinitionItem(definition));
             }
 
             public void OnReferenceFound(ISymbol definition, ReferenceLocation location)

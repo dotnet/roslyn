@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public virtual void OnDefinitionFound(
-            DefinitionItem definition, bool shouldDisplayWithNoReferences)
+        public virtual void OnDefinitionFound(DefinitionItem definition)
         {
         }
 

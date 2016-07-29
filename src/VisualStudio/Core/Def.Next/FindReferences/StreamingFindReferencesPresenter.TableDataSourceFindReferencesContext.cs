@@ -38,8 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly Dictionary<Document, ValueTuple<ITextBuffer, PreviewWorkspace>> _documentToPreviewWorkspace = 
                 new Dictionary<Document, ValueTuple<ITextBuffer, PreviewWorkspace>>();
 
-            // Lock which protects _definitionToBucketTask, _entries, _lastSnapshot and _currentVersionNumber
+            // Lock which protects _definitionToShoudlShowWithoutReferences, 
+            // _definitionToBucket, _entries, _lastSnapshot and CurrentVersionNumber
             private readonly object _gate = new object();
+
+            private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -131,13 +134,59 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public override void OnCompleted()
             {
+                CreateMissingReferenceEntries();
+
                 foreach (var subscription in _subscriptions)
                 {
                     subscription.TableDataSink.IsStable = true;
                 }
             }
 
-            public async override void OnReferenceFound(SourceReferenceItem reference)
+            private void CreateMissingReferenceEntries()
+            {
+                // Go through and add dummy entries for any definitions that 
+                // that we didn't find any references for.
+
+                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor();
+                foreach (var definition in definitions)
+                {
+                    OnReferenceFound(definition,
+                        (db, c) => Task.FromResult<ReferenceEntry>(new NoneFoundReferenceEntry(db)));
+                }
+            }
+
+            private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor()
+            {
+                lock (_gate)
+                {
+                    var seenDefinitions = this._referenceEntries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
+                    var q = from definition in _definitions
+                            where !seenDefinitions.Contains(definition) &&
+                                  definition.DisplayIfNoReferences
+                            select definition;
+
+                    return ImmutableArray.CreateRange(q);
+                }
+            }
+
+            public override void OnDefinitionFound(DefinitionItem definition)
+            {
+                lock (_gate)
+                {
+                    _definitions.Add(definition);
+                }
+            }
+
+            public override void OnReferenceFound(SourceReferenceItem reference)
+            {
+                OnReferenceFound(
+                    reference.Definition,
+                    (db, c) => CreateReferenceEntryAsync(db, reference.Location, c));
+            }
+
+            private async void OnReferenceFound(
+                DefinitionItem definition,
+                Func<RoslynDefinitionBucket, CancellationToken, Task<ReferenceEntry>> createReferenceEntryAsync)
             {
                 try
                 {
@@ -149,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // know so that it doesn't verify results until this completes.
                     using (var token = Presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
-                        await OnReferenceFoundAsync(reference.Definition, reference.Location).ConfigureAwait(false);
+                        await OnReferenceFoundAsync(definition, createReferenceEntryAsync).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -158,7 +207,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private async Task OnReferenceFoundAsync(
-                DefinitionItem definition, DocumentLocation referenceLocation)
+                DefinitionItem definition, 
+                Func<RoslynDefinitionBucket, CancellationToken, Task<ReferenceEntry>> createReferenceEntryAsync)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
                 cancellationToken.ThrowIfCancellationRequested();
@@ -171,11 +221,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return;
                 }
 
-                // Now make the underlying data object for the reference.
-                //var entryData = await this.TryCreateNavigableItemEntryData(
-                //    referenceItem, isDefinition: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var referenceEntry = await this.CreateReferenceEntryAsync(
-                    definitionBucket, referenceLocation, cancellationToken).ConfigureAwait(false);
+                var referenceEntry = await createReferenceEntryAsync(
+                    definitionBucket, cancellationToken).ConfigureAwait(false);
                 if (referenceEntry == null)
                 {
                     return;
@@ -253,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
 
-                return new ReferenceEntry(
+                return new DocumentLocationReferenceEntry(
                     this, workspace, definitionBucket, documentLocation, 
                     projectGuid.Value, sourceText, taggedLineParts);
             }

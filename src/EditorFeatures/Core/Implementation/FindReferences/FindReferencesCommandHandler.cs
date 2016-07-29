@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -56,33 +57,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             {
                 var snapshot = args.SubjectBuffer.CurrentSnapshot;
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                var streamingService = document?.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
-                var synchronousService = document?.Project.LanguageServices.GetService<IFindReferencesService>();
-
-                var streamingPresenter = _streamingPresenters.FirstOrDefault();
-
-                // See if we're running on a host that can provide streaming results.
-                // We'll both need a FAR service that can stream results to us, and 
-                // a presenter that can accept streamed results.
-                //if (streamingService != null && streamingPresenter != null)
-                //{
-                //    StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
-                //    return;
-                //}
-
-                // Otherwise, either the language doesn't support streaming results,
-                // or the host has no way to present results in a sreaming manner.
-                // Fall back to the old non-streaming approach to finding and presenting 
-                // results.
-                if (synchronousService != null)
+                if (document != null)
                 {
-                    FindReferences(document, synchronousService, caretPosition);
-                    return;
+                    if (TryExecuteCommand(caretPosition, document))
+                    {
+                        return;
+                    }
                 }
             }
 
             nextHandler();
+        }
+
+        private bool TryExecuteCommand(int caretPosition, Document document)
+        {
+            var streamingService = document.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
+            var synchronousService = document.Project.LanguageServices.GetService<IFindReferencesService>();
+
+            var streamingPresenter = _streamingPresenters.FirstOrDefault();
+
+            // See if we're running on a host that can provide streaming results.
+            // We'll both need a FAR service that can stream results to us, and 
+            // a presenter that can accept streamed results.
+            var streamingEnabled = document.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences);
+            if (streamingEnabled && streamingService != null && streamingPresenter != null)
+            {
+                StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
+                return true;
+            }
+
+            // Otherwise, either the language doesn't support streaming results,
+            // or the host has no way to present results in a sreaming manner.
+            // Fall back to the old non-streaming approach to finding and presenting 
+            // results.
+            if (synchronousService != null)
+            {
+                FindReferences(document, synchronousService, caretPosition);
+                return true;
+            }
+
+            return false;
         }
 
         private async void StreamingFindReferences(

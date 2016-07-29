@@ -26,19 +26,75 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
-        private class ReferenceEntry
+        private abstract class ReferenceEntry
+        {
+            public readonly RoslynDefinitionBucket DefinitionBucket;
+
+            protected ReferenceEntry(RoslynDefinitionBucket definitionBucket)
+            {
+                DefinitionBucket = definitionBucket;
+            }
+
+            public bool TryGetValue(string keyName, out object content)
+            {
+                content = GetValue(keyName);
+                return content != null;
+            }
+
+            private object GetValue(string keyName)
+            {
+                switch (keyName)
+                {
+                case StandardTableKeyNames2.Definition:
+                    return DefinitionBucket;
+
+                case StandardTableKeyNames2.DefinitionIcon:
+                    return DefinitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                }
+
+                return GetValueWorker(keyName);
+            }
+
+            protected abstract object GetValueWorker(string keyName);
+
+            public virtual bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            {
+                content = null;
+                return false;
+            }
+        }
+
+        private class NoneFoundReferenceEntry : ReferenceEntry
+        {
+            public NoneFoundReferenceEntry(RoslynDefinitionBucket definitionBucket) 
+                : base(definitionBucket)
+            {
+            }
+
+            protected override object GetValueWorker(string keyName)
+            {
+                switch (keyName)
+                {
+                case StandardTableKeyNames.Text:
+                    return $"No references found to '{DefinitionBucket.DefinitionItem.DisplayParts.JoinText()}'";
+                }
+
+                return null;
+            }
+        }
+
+        private class DocumentLocationReferenceEntry : ReferenceEntry
         {
             private readonly TableDataSourceFindReferencesContext _context;
             private readonly VisualStudioWorkspaceImpl _workspace;
 
-            private readonly RoslynDefinitionBucket _definitionBucket;
             private readonly DocumentLocation _documentLocation;
 
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
             private readonly TaggedTextAndHighlightSpan _taggedLineParts;
 
-            public ReferenceEntry(
+            public DocumentLocationReferenceEntry(
                 TableDataSourceFindReferencesContext context,
                 VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,
@@ -46,11 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 Guid projectGuid,
                 SourceText sourceText,
                 TaggedTextAndHighlightSpan taggedLineParts)
+                : base(definitionBucket)
             {
                 _context = context;
 
                 _workspace = workspace;
-                _definitionBucket = definitionBucket;
                 _documentLocation = documentLocation;
 
                 _boxedProjectGuid = projectGuid;
@@ -60,33 +116,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             private StreamingFindReferencesPresenter Presenter => _context.Presenter;
 
-            public bool TryGetValue(string keyName, out object content)
-            {
-                content = GetValue(keyName);
-                return content != null;
-            }
-
             private Document Document => _documentLocation.Document;
             private TextSpan SourceSpan => _documentLocation.SourceSpan;
 
-            private object GetValue(string keyName)
+            protected override object GetValueWorker(string keyName)
             {
                 switch (keyName)
                 {
                 case StandardTableKeyNames.DocumentName:
                     return Document.FilePath;
-                    //var projectFilePath = Document.Project.FilePath;
-                    //var documentPath = Document.FilePath;
-                    //var projectDirectory = Path.GetDirectoryName(projectFilePath);
-
-                    //if (documentPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    documentPath = documentPath.Substring(projectDirectory.Length);
-                    //    documentPath = documentPath.TrimStart('\\', '/');
-                    //}
-
-                    //return documentPath;
-
                 case StandardTableKeyNames.Line:
                     return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
                 case StandardTableKeyNames.Column:
@@ -95,25 +133,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return Document.Project.Name;
                 case StandardTableKeyNames.ProjectGuid:
                     return _boxedProjectGuid;
-
                 case StandardTableKeyNames.Text:
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
-
-                //case StandardTableKeyNames2.TextInlines:
-                //    return GetHighlightedInlines(Presenter, _taggedLineParts);
-
-                case StandardTableKeyNames2.DefinitionIcon:
-                    return _definitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
-
-                case StandardTableKeyNames2.Definition:
-                    return _definitionBucket;
                 }
 
                 return null;
             }
 
-
-            internal bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
