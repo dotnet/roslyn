@@ -89,34 +89,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
-    <InternalsVisibleToTest Include="RoslynETAHost" />
-    <InternalsVisibleToTest Include="RoslynTaoActions" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
-    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
-    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
-    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
-    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
-    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
-    <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
-    <InternalsVisibleToTypeScript Include="CodeAnalysis" />
-    <InternalsVisibleToTypeScript Include="StanCore" />
-    <InternalsVisibleToFSharp Include="FSharp.Editor" />
-    <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
