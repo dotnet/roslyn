@@ -820,6 +820,88 @@ class C : I
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TupleWithCustomModifiersInInterface()
+        {
+            var il = @"
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+
+.assembly '<<GeneratedFileName>>'
+{
+}
+
+.class interface public abstract auto ansi I
+{
+  .method public hidebysig newslot abstract virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          M(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> x) cil managed
+  {
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = ( 01 00 02 00 00 00 01 61 01 62 00 00 )             // .......a.b..
+    .param [1]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = ( 01 00 02 00 00 00 01 63 01 64 00 00 )             // .......c.d..
+  } // end of method I::M
+
+} // end of class I
+";
+
+            var source1 = @"
+class C : I
+{
+    (object a, object b) I.M((object c, object d) x) { return x; }
+}
+";
+            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var comp = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var interfaceMethod = global.GetMember<MethodSymbol>("I.M");
+            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
+
+            Assert.Equal("(System.Object a, System.Object b) I.M((System.Object c, System.Object d) x)", interfaceMethod.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                    interfaceMethod.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+
+            Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object c, System.Object d) x)", classMethod.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                    classMethod.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+
+            var source2 = @"
+class C : I
+{
+    (object a, object b) I.M((object, object) x) { return x; }
+}
+";
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            comp2.VerifyDiagnostics(
+                // (4,28): error CS8220: The tuple element names in the signature of method 'C.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
+                //     (object a, object b) I.M((object, object) x) { return x; }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((object, object))", "I.M((object c, object d))").WithLocation(4, 28),
+                // (2,11): error CS0535: 'C' does not implement interface member 'I.M((object c, object d))'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M((object c, object d))").WithLocation(2, 11)
+                );
+
+            var source3 = @"
+class C : I
+{
+    (object, object) I.M((object c, object d) x) { return x; }
+}
+";
+            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            comp3.VerifyDiagnostics(
+                // (4,24): error CS8220: The tuple element names in the signature of method 'C.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
+                //     (object, object) I.M((object c, object d) x) { return x; }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((object c, object d))", "I.M((object c, object d))").WithLocation(4, 24),
+                // (2,11): error CS0535: 'C' does not implement interface member 'I.M((object c, object d))'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M((object c, object d))").WithLocation(2, 11)
+                );
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_ImplementationReturn()
         {
