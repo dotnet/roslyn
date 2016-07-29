@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -16,29 +15,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// this service will be used to move over snapshot data from client to service hub
     /// </summary>
-    internal class ServiceHubSnapshotService : ServiceHubJsonRpcServiceBase
+    internal partial class SnapshotService
     {
-        private readonly AssetSource _source;
-
-        public ServiceHubSnapshotService(Stream stream, IServiceProvider serviceProvider) :
-            base(stream, serviceProvider)
-        {
-            _source = new ServiceHubAssetSource(Rpc, Logger, CancellationToken);
-        }
-
-        protected override void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            _source.Done();
-        }
-
-        private class ServiceHubAssetSource : AssetSource
+        private class JsonRpcAssetSource : AssetSource
         {
             private readonly JsonRpc _rpc;
             private readonly TraceSource _logger;
             private readonly CancellationToken _assetChannelCancellationToken;
 
-            public ServiceHubAssetSource(JsonRpc rpc, TraceSource logger, CancellationToken assetChannelCancellationToken) :
-                base()
+            public JsonRpcAssetSource(JsonRpc rpc, TraceSource logger, CancellationToken assetChannelCancellationToken)
             {
                 _rpc = rpc;
                 _logger = logger;
