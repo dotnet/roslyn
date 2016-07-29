@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     {
+                        if (type.IsTupleType)
+                        {
+                            return type.TupleUnderlyingType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
+                        }
+
                         bool isDefinition = type.IsDefinition;
 
                         if (!isDefinition)

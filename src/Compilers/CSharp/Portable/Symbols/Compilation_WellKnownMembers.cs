@@ -516,11 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static ImmutableArray<string> Encode(TypeSymbol type)
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();
-                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
-                Debug.Assert(namesBuilder.Any());
 
-                // If none of the tuples have names, return a default array
-                if (namesBuilder.All(name => name == null))
+                if (TryGetNames(type, namesBuilder))
                 {
                     namesBuilder.Free();
                     return default(ImmutableArray<string>);
@@ -532,11 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol stringType)
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();
-                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
-                Debug.Assert(namesBuilder.Any());
 
-                // If none of the tuples have names, return a default array
-                if (namesBuilder.All(name => name == null))
+                if (TryGetNames(type, namesBuilder))
                 {
                     namesBuilder.Free();
                     return default(ImmutableArray<TypedConstant>);
@@ -546,6 +540,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);
                 namesBuilder.Free();
                 return names;
+            }
+
+            private static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            {
+                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
+                Debug.Assert(namesBuilder.Any());
+                return namesBuilder.All(name => name == null);
             }
 
             private static bool AddNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
