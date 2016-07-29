@@ -22,11 +22,12 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Engine\14.3.25420\lib\portable\Microsoft.VisualStudio.Debugger.Engine.dll" />
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Metadata\14.3.25420\lib\portable\Microsoft.VisualStudio.Debugger.Metadata.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
+      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
+      <Name>Concord</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
       <Project>{fa0e905d-ec46-466d-b7b2-3b5557f9428c}</Project>
       <Name>ResultProvider.Portable</Name>

@@ -10,31 +10,35 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindReferences
 {
-    internal partial class DefinitionLocation
+    internal partial class DefinitionItem
     {
         /// <summary>
-        /// Implementation of a <see cref="DefinitionLocation"/> that sits on top of an
+        /// Implementation of a <see cref="DefinitionItem"/> that sits on top of an
         /// <see cref="ISymbol"/>.  In order to not keep anything alive too long, we only
         /// hold onto IDs and Keys.  When the user tries to navigate to an item we will 
         /// attempt to find the symbol again in the current solution snapshot and 
         /// navigate to it there.
         /// </summary>
-        private sealed class SymbolDefinitionLocation : DefinitionLocation
+        private sealed class MetadataDefinitionItem : DefinitionItem
         {
             private readonly Workspace _workspace;
             private readonly SymbolKey _symbolKey;
             private readonly AssemblyIdentity _symbolAssemblyIdentity;
-            private readonly ImmutableArray<TaggedText> _originationParts;
 
-            public SymbolDefinitionLocation(Solution solution, ISymbol definition)
+            public MetadataDefinitionItem(
+                ImmutableArray<string> tags,
+                ImmutableArray<TaggedText> displayParts,
+                bool displayIfNoReferences,
+                Solution solution, ISymbol definition)
+                : base(tags, displayParts,
+                      GetOriginationParts(definition),
+                      ImmutableArray<DocumentLocation>.Empty,
+                      displayIfNoReferences)
             {
                 _workspace = solution.Workspace;
                 _symbolKey = definition.GetSymbolKey();
                 _symbolAssemblyIdentity = definition.ContainingAssembly?.Identity;
-                _originationParts = GetOriginationParts(definition);
             }
-
-            public override ImmutableArray<TaggedText> OriginationParts => _originationParts;
 
             public override bool CanNavigateTo()
             {

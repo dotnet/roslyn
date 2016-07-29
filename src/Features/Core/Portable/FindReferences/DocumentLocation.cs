@@ -48,6 +48,13 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 this.SourceSpan.GetHashCode());
         }
 
+        public bool CanNavigateTo()
+        {
+            var workspace = Document.Project.Solution.Workspace;
+            var service = workspace.Services.GetService<IDocumentNavigationService>();
+            return service.CanNavigateToPosition(workspace, Document.Id, SourceSpan.Start);
+        }
+
         public bool TryNavigateTo()
         {
             var workspace = Document.Project.Solution.Workspace;

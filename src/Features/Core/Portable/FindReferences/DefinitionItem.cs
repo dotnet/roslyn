@@ -8,8 +8,14 @@ namespace Microsoft.CodeAnalysis.FindReferences
     /// <summary>
     /// Information about a symbol's definition that can be displayed in an editor
     /// and used for navigation.
+    /// 
+    /// Standard implmentations can be obtained through the various <see cref="DefinitionItem"/>.Create
+    /// overloads.
+    /// 
+    /// Subclassing is also supported for scenarios that fall outside the bounds of
+    /// these common cases.
     /// </summary>
-    internal sealed class DefinitionItem
+    internal abstract partial class DefinitionItem
     {
         /// <summary>
         /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
@@ -23,9 +29,10 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public ImmutableArray<TaggedText> DisplayParts { get; }
 
         /// <summary>
-        /// The main locations to present in the UI.
+        /// Where the location originally came from (for example, the containing assembly or
+        /// project name).  May be used in the presentation of a definition.
         /// </summary>
-        public DefinitionLocation MainLocation { get; }
+        public ImmutableArray<TaggedText> OriginationParts { get; }
 
         /// <summary>
         /// Additional locations to present in the UI.  A definition may have multiple locations 
@@ -45,18 +52,71 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// </summary>
         public bool DisplayIfNoReferences { get; }
 
-        public DefinitionItem(
+        protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            DefinitionLocation mainLocation,
-            ImmutableArray<DocumentLocation> additionalLocations,
-            bool displayIfNoReferences)
+            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<DocumentLocation> additionalLocations = default(ImmutableArray<DocumentLocation>),
+            bool displayIfNoReferences = true)
         {
             Tags = tags;
             DisplayParts = displayParts;
-            MainLocation = mainLocation;
-            AdditionalLocations = additionalLocations;
+            OriginationParts = originationParts.NullToEmpty();
+            AdditionalLocations = additionalLocations.NullToEmpty();
             DisplayIfNoReferences = displayIfNoReferences;
+        }
+
+        public abstract bool CanNavigateTo();
+        public abstract bool TryNavigateTo();
+
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            DocumentLocation location,
+            ImmutableArray<DocumentLocation> additionalLocations = default(ImmutableArray<DocumentLocation>),
+            bool displayIfNoReferences = true)
+        {
+            return new DocumentLocationDefinitionItem(
+                tags, displayParts, additionalLocations, displayIfNoReferences, location);
+        }
+
+        internal static DefinitionItem CreateMetadataDefinition(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            Solution solution, ISymbol symbol,
+            bool displayIfNoReferences = true)
+        {
+            return new MetadataDefinitionItem(
+                tags, displayParts, displayIfNoReferences, solution, symbol);
+        }
+
+        public static DefinitionItem CreateNonNavigableItem(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
+            bool displayIfNoReferences = true)
+        {
+            return new NonNavigatingDefinitionItem(
+                tags, displayParts, originationParts, displayIfNoReferences);
+        }
+
+        internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
+        {
+            // We don't show an origination location for a namespace because it can span over
+            // both metadata assemblies and source projects.
+            //
+            // Otherwise show the assembly this symbol came from as the Origination of
+            // the DefinitionItem.
+            if (symbol.Kind != SymbolKind.Namespace)
+            {
+                var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                if (!string.IsNullOrWhiteSpace(assemblyName))
+                {
+                    return ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
+                }
+            }
+
+            return ImmutableArray<TaggedText>.Empty;
         }
     }
 }

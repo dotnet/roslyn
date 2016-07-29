@@ -1690,10 +1690,10 @@
   </Node>
   <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="WhenClause" />
-    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="WhenKeyword" Type="SyntaxToken">
       <Kind Name="WhenKeyword"/>
     </Field>
-    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
+    <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindReferences;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         private string CreateDisplayText()
         {
             var displayString = _definitionItem.DisplayParts.JoinText();
-            var referenceCount = this.Children.Count;
+            var referenceCount = this.Children.Count(i => i.GlyphIndex == ReferenceGlyphIndex);
 
             var referenceCountDisplay = referenceCount == 1
                 ? ServicesVSResources._1_reference
@@ -38,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             // results that tell us about their definition location, but not any additional
             // reference.  We don't want to say '0' references in that case as that can
             // be misleading.
-            var hasOrigination = _definitionItem.MainLocation.OriginationParts.Length > 0;
+            var hasOrigination = _definitionItem.OriginationParts.Length > 0;
             return hasOrigination
-                ? $"[{_definitionItem.MainLocation.OriginationParts.JoinText()}] {displayString} ({referenceCountDisplay})"
+                ? $"[{_definitionItem.OriginationParts.JoinText()}] {displayString} ({referenceCountDisplay})"
                 : referenceCount > 0
                     ? $"{displayString} ({referenceCountDisplay})"
                     : displayString;
@@ -48,14 +49,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         public override int GoToSource()
         {
-            return _definitionItem.MainLocation.TryNavigateTo()
+            return _definitionItem.TryNavigateTo()
                 ? VSConstants.S_OK
                 : VSConstants.E_FAIL;
         }
 
         public override bool CanGoToDefinition()
         {
-            return _definitionItem.MainLocation.CanNavigateTo();
+            return _definitionItem.CanNavigateTo();
         }
     }
 }

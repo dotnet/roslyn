@@ -52,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                     Dim actualDefinitions = GetFileNamesAndSpans(
                         context.Definitions.Where(AddressOf context.ShouldShow).
-                                            OfType(Of DefinitionLocation.DocumentDefinitionLocation).
-                                            Select(Function(d) d.Location))
+                                            OfType(Of DefinitionItem.DocumentLocationDefinitionItem).
+                                            SelectMany(Function(d) d.AdditionalLocations.Concat(d.Location)))
 
                     Assert.Equal(expectedDefinitions, actualDefinitions)
 
