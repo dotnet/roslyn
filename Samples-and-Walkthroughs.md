@@ -19,5 +19,5 @@ Before working through the walkthroughs below, you should first familiarize your
 * Getting Started - Syntax Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Analysis))
 * Getting Started - Semantic Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Semantic-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Semantic-Analysis))
 * Getting Started - Syntax Transformation ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Transformation) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Transformation))
-* Getting Started - Writing Custom Analyzers and Code Fixes [C# & VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix)
+* Getting Started - Writing Custom Analyzers and Code Fixes ([C# & VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix))
 
