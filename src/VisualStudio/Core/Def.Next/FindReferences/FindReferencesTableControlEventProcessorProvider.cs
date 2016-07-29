@@ -7,6 +7,12 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
+    /// <summary>
+    /// Event processor that we export so we can control how navigation works in the streaming
+    /// FAR window.  We need this because the FAR window has no way to know how to do things like
+    /// navigate to definitions that are from metadata.  We take control here and handle navigation
+    /// ourselves so that we can do things like navigate to MetadataAsSource.
+    /// </summary>
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StreamingFindReferencesPresenter.RoslynFindReferencesTableDataSourceSourceTypeIdentifier)]
     [DataSource(StreamingFindReferencesPresenter.RoslynFindReferencesTableDataSourceIdentifier)]

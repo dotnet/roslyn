@@ -26,7 +26,8 @@
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
-    <Compile Include="FindReferences\LazyToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DisposableToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationReferenceEntry.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.NoneFoundReferenceEntry.cs" />

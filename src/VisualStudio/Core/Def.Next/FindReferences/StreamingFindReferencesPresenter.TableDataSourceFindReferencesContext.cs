@@ -35,9 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             public readonly StreamingFindReferencesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
 
-            private readonly Dictionary<Document, ValueTuple<ITextBuffer, PreviewWorkspace>> _documentToPreviewWorkspace = 
-                new Dictionary<Document, ValueTuple<ITextBuffer, PreviewWorkspace>>();
-
             // Lock which protects _definitionToShoudlShowWithoutReferences, 
             // _definitionToBucket, _entries, _lastSnapshot and CurrentVersionNumber
             private readonly object _gate = new object();
@@ -69,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _findReferencesWindow = findReferencesWindow;
 
                 // If the window is closed, cancel any work we're doing.
-                _findReferencesWindow.Closed += (s, e) => CancelSearchAndCleanUpResources();
+                _findReferencesWindow.Closed += (s, e) => CancelSearch();
 
                 // Remove any existing sources in the window.  
                 foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
@@ -81,23 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 findReferencesWindow.Manager.AddSource(this);
             }
 
-            private void CancelSearchAndCleanUpResources()
+            private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
-
                 _cancellationTokenSource.Cancel();
-
-                foreach (var bufferAndWorkspace in _documentToPreviewWorkspace.Values)
-                {
-                    bufferAndWorkspace.Item2.Dispose();
-                }
-
-                _documentToPreviewWorkspace.Clear();
             }
 
             internal void OnSubscriptionDisposed()
             {
-                CancelSearchAndCleanUpResources();
+                CancelSearch();
             }
 
             public override CancellationToken CancellationToken => _cancellationTokenSource.Token;
@@ -238,41 +227,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // Let all our subscriptions know that we've updated.
                 NotifySinksOfChangedVersion();
             }
-
-            internal ITextBuffer GetTextBufferForPreview(
-                Document document, SourceText sourceText)
-            {
-                Presenter.AssertIsForeground();
-
-                ValueTuple<ITextBuffer, PreviewWorkspace> bufferAndWorkspace;
-                if (!_documentToPreviewWorkspace.TryGetValue(document, out bufferAndWorkspace))
-                {
-                    var textBuffer = CreateNewBuffer(document, sourceText);
-
-                    var newDocument = document.WithText(textBuffer.AsTextContainer().CurrentText);
-
-                    var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-                    workspace.OpenDocument(newDocument.Id);
-
-                    bufferAndWorkspace = ValueTuple.Create(textBuffer, workspace);
-                    _documentToPreviewWorkspace.Add(document, bufferAndWorkspace);
-                }
-
-                return bufferAndWorkspace.Item1;
-            }
-
-            private ITextBuffer CreateNewBuffer(Document document, SourceText sourceText)
-            {
-                Presenter.AssertIsForeground();
-
-                // is it okay to create buffer from threads other than UI thread?
-                var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
-                var contentType = contentTypeService.GetDefaultContentType();
-
-                return Presenter._textBufferFactoryService.CreateTextBuffer(
-                    sourceText.ToString(), contentType);
-            }
-
 
             private async Task<ReferenceEntry> CreateReferenceEntryAsync(
                 RoslynDefinitionBucket definitionBucket, DocumentLocation documentLocation, CancellationToken cancellationToken)
@@ -417,7 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             void IDisposable.Dispose()
             {
-                CancelSearchAndCleanUpResources();
+                CancelSearch();
             }
 
             #endregion
