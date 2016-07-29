@@ -14,36 +14,49 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.
         /// </summary>
-        private class LazyTip : ContentControl
+        private class LazyToolTip
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
             private readonly Func<DisposableToolTip> _createToolTip;
-            private readonly FrameworkElement _element;
+            private readonly TextBlock _textBlock;
 
             private DisposableToolTip _disposableToolTip;
 
-            public LazyTip(FrameworkElement element,
+            private LazyToolTip(
+                TextBlock textBlock,
                 Func<DisposableToolTip> createToolTip)
             {
                 _foregroundObject.AssertIsForeground();
 
-                _element = element;
+                _textBlock = textBlock;
                 _createToolTip = createToolTip;
-                Background = Brushes.Transparent;
 
-                element.ToolTipOpening += this.OnToolTipOpening;
-                element.ToolTipClosing += this.OnToolTipClosing;
+                // Set ourselves as the tooltip of this text block.  This will let WPF know that 
+                // it should attempt to show tooltips here.  When WPF wants to show the tooltip 
+                // though we'll hear about it "ToolTipOpening".  When that happens, we'll swap
+                // out ourselves with a real tooltip that is lazily created.  When that tooltip
+                // is the dismissed, we'll release the resources associated with it and we'll
+                // reattach ourselves.
+                _textBlock.ToolTip = this;
+
+                textBlock.ToolTipOpening += this.OnToolTipOpening;
+                textBlock.ToolTipClosing += this.OnToolTipClosing;
+            }
+
+            public static void AttachTo(TextBlock textBlock, Func<DisposableToolTip> createToolTip)
+            {
+                new LazyToolTip(textBlock, createToolTip);
             }
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {
                 _foregroundObject.AssertIsForeground();
 
-                Debug.Assert(_element.ToolTip == this);
+                Debug.Assert(_textBlock.ToolTip == this);
                 Debug.Assert(_disposableToolTip == null);
 
                 _disposableToolTip = _createToolTip();
-                _element.ToolTip = _disposableToolTip.ToolTip;
+                _textBlock.ToolTip = _disposableToolTip.ToolTip;
             }
 
             private void OnToolTipClosing(object sender, ToolTipEventArgs e)
@@ -51,9 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _foregroundObject.AssertIsForeground();
 
                 Debug.Assert(_disposableToolTip != null);
-                Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);
+                Debug.Assert(_textBlock.ToolTip == _disposableToolTip.ToolTip);
 
-                _element.ToolTip = this;
+                _textBlock.ToolTip = this;
 
                 _disposableToolTip.Dispose();
                 _disposableToolTip = null;

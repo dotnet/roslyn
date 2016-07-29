@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     var inlines = GetHighlightedInlines(Presenter, _taggedLineParts);
                     var textBlock = inlines.ToTextBlock(Presenter._typeMap);
 
-                    textBlock.ToolTip = new LazyTip(textBlock, CreateDisposableToolTip);
+                    LazyToolTip.AttachTo(textBlock, CreateDisposableToolTip);
 
                     content = textBlock;
                     return true;
