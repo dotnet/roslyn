@@ -1,7 +1,5 @@
 ﻿{
   "dependencies": {
-    "ManagedEsent": "1.9.2.0",
-    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
     "Microsoft.VisualStudio.Shell.15.0-pre": "15.0.25511.2-pre",
     "Microsoft.VisualStudio.Shell.Framework-pre": "15.0.25511-pre",
 	"Microsoft.VisualStudio.Language.Intellisense": "15.0.25123-Dev15Preview",
