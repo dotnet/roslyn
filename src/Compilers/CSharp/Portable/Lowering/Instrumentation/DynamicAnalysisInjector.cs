@@ -213,6 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
+        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        {
+            return AddDynamicAnalysis(original, base.InstrumentBoundPatternSwitchStatement(original, rewritten));
+        }
+
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             return AddDynamicAnalysis(original, base.InstrumentUsingTargetCapture(original, usingTargetCapture));
@@ -302,6 +307,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundKind.SwitchStatement:
                     syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
+                    break;
+                case BoundKind.PatternSwitchStatement:
+                    syntaxForSpan = ((BoundPatternSwitchStatement)statement).Expression.Syntax;
                     break;
                 default:
                     syntaxForSpan = statement.Syntax;

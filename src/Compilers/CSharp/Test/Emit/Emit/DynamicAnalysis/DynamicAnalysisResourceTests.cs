@@ -365,6 +365,65 @@ public class C
         }
 
         [Fact]
+        public void TestPatternSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 0
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);
+    }
+     
+    static string Operate(Person p)                             // Method 1
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Teacher t:
+                return $""Teacher {t.Name} of {t.Subject}"";
+            default:
+                return $""Person {p.Name}"";
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+";
+
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            VerifySpans(reader, reader.Methods[0],
+                "(5,4)-(11,5)",
+                "(7,8)-(7,34)",
+                "(8,8)-(8,24)",
+                "(9,8)-(9,20)",
+                "(10,8)-(10,19)");
+
+            VerifySpans(reader, reader.Methods[1],
+                "(13,4)-(26,5)",
+                "(18,16)-(18,56)",
+                "(20,16)-(20,56)",
+                "(22,16)-(22,58)",
+                "(24,16)-(24,42)",
+                "(15,16)-(15,17)");
+        }
+
+        [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
             var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
