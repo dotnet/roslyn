@@ -23,10 +23,15 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public ImmutableArray<TaggedText> DisplayParts { get; }
 
         /// <summary>
-        /// The locations to present in the UI.  A definition may have multiple locations for cases
-        /// like partial types/members.
+        /// The main locations to present in the UI.
         /// </summary>
-        public ImmutableArray<DefinitionLocation> Locations { get; }
+        public DefinitionLocation MainLocation { get; }
+
+        /// <summary>
+        /// Additional locations to present in the UI.  A definition may have multiple locations 
+        /// for cases like partial types/members.
+        /// </summary>
+        public ImmutableArray<DocumentLocation> AdditionalLocations { get; }
 
         /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
@@ -43,12 +48,14 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<DefinitionLocation> locations,
+            DefinitionLocation mainLocation,
+            ImmutableArray<DocumentLocation> additionalLocations,
             bool displayIfNoReferences)
         {
             Tags = tags;
             DisplayParts = displayParts;
-            Locations = locations;
+            MainLocation = mainLocation;
+            AdditionalLocations = additionalLocations;
             DisplayIfNoReferences = displayIfNoReferences;
         }
     }

@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // know so that it doesn't verify results until this completes.
                     using (var token = Presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
-                        await OnReferenceFoundAsync(reference).ConfigureAwait(false);
+                        await OnReferenceFoundAsync(reference.Definition, reference.Location).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -157,14 +157,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            private async Task OnReferenceFoundAsync(SourceReferenceItem referenceItem)
+            private async Task OnReferenceFoundAsync(
+                DefinitionItem definition, DocumentLocation referenceLocation)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // First find the bucket corresponding to our definition. If we can't find/create 
                 // one, then don't do anything for this reference.
-                var definitionBucket = GetOrCreateDefinitionBucket(referenceItem.Definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition);
                 if (definitionBucket == null)
                 {
                     return;
@@ -174,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 //var entryData = await this.TryCreateNavigableItemEntryData(
                 //    referenceItem, isDefinition: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var referenceEntry = await this.CreateReferenceEntryAsync(
-                    definitionBucket, referenceItem, cancellationToken).ConfigureAwait(false);
+                    definitionBucket, referenceLocation, cancellationToken).ConfigureAwait(false);
                 if (referenceEntry == null)
                 {
                     return;
@@ -227,10 +228,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
 
             private async Task<ReferenceEntry> CreateReferenceEntryAsync(
-                RoslynDefinitionBucket definitionBucket, SourceReferenceItem referenceItem, CancellationToken cancellationToken)
+                RoslynDefinitionBucket definitionBucket, DocumentLocation documentLocation, CancellationToken cancellationToken)
             {
-                var location = referenceItem.Location;
-                var document = location.Document;
+                var document = documentLocation.Document;
 
                 // The FAR system needs to know the guid for the project that a def/reference is 
                 // from.  So we only support this for documents from a VSWorkspace.
@@ -248,13 +248,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var referenceSpan = referenceItem.Location.SourceSpan;
+                var referenceSpan = documentLocation.SourceSpan;
                 var lineSpan = GetLineSpanForReference(sourceText, referenceSpan);
 
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
 
                 return new ReferenceEntry(
-                    this, workspace, definitionBucket, referenceItem, 
+                    this, workspace, definitionBucket, documentLocation, 
                     projectGuid.Value, sourceText, taggedLineParts);
             }
 

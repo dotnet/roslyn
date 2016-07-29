@@ -40,13 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             }
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
-            var definitionLocation = new ExternalDefinitionLocation(
+            var mainLocation = new ExternalDefinitionLocation(
                 _serviceProvider, filePath, lineNumber, charOffset);
 
             return new DefinitionItem(
                 GlyphTags.GetTags(definition.GetGlyph()),
                 displayParts,
-                ImmutableArray.Create<DefinitionLocation>(definitionLocation),
+                mainLocation,
+                additionalLocations: ImmutableArray<DocumentLocation>.Empty,
                 displayIfNoReferences: true);
         }
 

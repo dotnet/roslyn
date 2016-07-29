@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly VisualStudioWorkspaceImpl _workspace;
 
             private readonly RoslynDefinitionBucket _definitionBucket;
-            private readonly SourceReferenceItem _sourceReferenceItem;
+            private readonly DocumentLocation _documentLocation;
 
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 TableDataSourceFindReferencesContext context,
                 VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,
-                SourceReferenceItem sourceReferenceItem,
+                DocumentLocation documentLocation,
                 Guid projectGuid,
                 SourceText sourceText,
                 TaggedTextAndHighlightSpan taggedLineParts)
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 _workspace = workspace;
                 _definitionBucket = definitionBucket;
-                _sourceReferenceItem = sourceReferenceItem;
+                _documentLocation = documentLocation;
 
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
@@ -66,9 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return content != null;
             }
 
-            private DocumentLocation Location => _sourceReferenceItem.Location;
-            private Document Document => Location.Document;
-            private TextSpan SourceSpan => Location.SourceSpan;
+            private Document Document => _documentLocation.Document;
+            private TextSpan SourceSpan => _documentLocation.SourceSpan;
 
             private object GetValue(string keyName)
             {
@@ -93,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 case StandardTableKeyNames.Column:
                     return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
                 case StandardTableKeyNames.ProjectName:
-                    return Location.Document.Project.Name;
+                    return Document.Project.Name;
                 case StandardTableKeyNames.ProjectGuid:
                     return _boxedProjectGuid;
 
@@ -217,14 +216,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var key = PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
                 textBuffer.Properties.RemoveProperty(key);
                 textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
-                    _sourceReferenceItem.Location.SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
+                    SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
             }
 
             private Span GetRegionSpanForReference()
             {
                 const int AdditionalLineCountPerSide = 3;
 
-                var referenceSpan = this._sourceReferenceItem.Location.SourceSpan;
+                var referenceSpan = this.SourceSpan;
                 var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
                 var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
                 var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);

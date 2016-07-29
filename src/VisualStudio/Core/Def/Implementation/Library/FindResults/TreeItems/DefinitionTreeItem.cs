@@ -12,16 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
     internal class DefinitionTreeItem : AbstractTreeItem
     {
         private readonly DefinitionItem _definitionItem;
-        private readonly DefinitionLocation _definitionLocation;
 
         public DefinitionTreeItem(
             DefinitionItem definitionItem,
-            DefinitionLocation definitionLocation,
             ImmutableArray<SourceReferenceTreeItem> referenceItems)
             : base(definitionItem.Tags.GetGlyph().GetGlyphIndex())
         {
             _definitionItem = definitionItem;
-            _definitionLocation = definitionLocation;
 
             this.Children.AddRange(referenceItems);
             this.DisplayText = CreateDisplayText();
@@ -41,9 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             // results that tell us about their definition location, but not any additional
             // reference.  We don't want to say '0' references in that case as that can
             // be misleading.
-            var hasOrigination = _definitionLocation.OriginationParts.Length > 0;
+            var hasOrigination = _definitionItem.MainLocation.OriginationParts.Length > 0;
             return hasOrigination
-                ? $"[{_definitionLocation.OriginationParts.JoinText()}] {displayString} ({referenceCountDisplay})"
+                ? $"[{_definitionItem.MainLocation.OriginationParts.JoinText()}] {displayString} ({referenceCountDisplay})"
                 : referenceCount > 0
                     ? $"{displayString} ({referenceCountDisplay})"
                     : displayString;
@@ -51,14 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         public override int GoToSource()
         {
-            return _definitionLocation.TryNavigateTo()
+            return _definitionItem.MainLocation.TryNavigateTo()
                 ? VSConstants.S_OK
                 : VSConstants.E_FAIL;
         }
 
         public override bool CanGoToDefinition()
         {
-            return _definitionLocation.CanNavigateTo();
+            return _definitionItem.MainLocation.CanNavigateTo();
         }
     }
 }

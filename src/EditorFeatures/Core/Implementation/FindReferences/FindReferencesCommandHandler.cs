@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 // See if we're running on a host that can provide streaming results.
                 // We'll both need a FAR service that can stream results to us, and 
                 // a presenter that can accept streamed results.
-                if (streamingService != null && streamingPresenter != null)
-                {
-                    StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
-                    return;
-                }
+                //if (streamingService != null && streamingPresenter != null)
+                //{
+                //    StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
+                //    return;
+                //}
 
                 // Otherwise, either the language doesn't support streaming results,
                 // or the host has no way to present results in a sreaming manner.

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
@@ -24,19 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         internal IList<AbstractTreeItem> CreateFindReferencesItems(
             DefinitionsAndReferences definitionsAndReferences)
         {
-            var documents = definitionsAndReferences.References.Select(r => r.Location.Document)
-                                                               .WhereNotNull()
-                                                               .ToSet();
+            var definitionDocuments =
+                definitionsAndReferences.Definitions.SelectMany(d => d.AdditionalLocations)
+                                        .Select(loc => loc.Document);
+            var referenceDocuments =
+                definitionsAndReferences.References.Select(r => r.Location.Document);
+
+            var documents = definitionDocuments.Concat(referenceDocuments).WhereNotNull().ToSet();
             var commonPathElements = CountCommonPathElements(documents);
 
-            var query = from d in definitionsAndReferences.Definitions
-                        from i in CreateDefinitionItems(d, definitionsAndReferences, commonPathElements)
-                        select (AbstractTreeItem)i;
-
-            return query.ToList();
+            return definitionsAndReferences.Definitions
+                .Select(d => CreateDefinitionItem(d, definitionsAndReferences, commonPathElements))
+                .ToList<AbstractTreeItem>();
         }
 
-        private ImmutableArray<DefinitionTreeItem> CreateDefinitionItems(
+        private DefinitionTreeItem CreateDefinitionItem(
             DefinitionItem definitionItem,
             DefinitionsAndReferences definitionsAndReferences,
             int commonPathElements)
@@ -44,29 +47,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             var referenceItems = CreateReferenceItems(
                 definitionItem, definitionsAndReferences, commonPathElements);
 
-            return ConvertToDefinitionTreeItems(definitionItem, referenceItems);
+            return ConvertToDefinitionTreeItem(definitionItem, referenceItems, commonPathElements);
         }
 
-        private ImmutableArray<DefinitionTreeItem> ConvertToDefinitionTreeItems(
+        private DefinitionTreeItem ConvertToDefinitionTreeItem(
             DefinitionItem definitionItem,
-            ImmutableArray<SourceReferenceTreeItem> referenceItems)
+            ImmutableArray<SourceReferenceTreeItem> referenceItems,
+            int commonPathElements)
         {
-            var result = ImmutableArray.CreateBuilder<DefinitionTreeItem>();
+            var finalReferenceItems = ImmutableArray.CreateBuilder<SourceReferenceTreeItem>();
 
-            for (int i = 0, n = definitionItem.Locations.Length; i < n; i++)
+            foreach (var additionalLocation in definitionItem.AdditionalLocations)
             {
-                var location = definitionItem.Locations[i];
-
-                // Each definition item may end up as several top nodes (because of partials).
-                // Add the references to the last item actually in the list.
-                var childItems = i == n - 1
-                    ? referenceItems
-                    : ImmutableArray<SourceReferenceTreeItem>.Empty;
-
-                result.Add(new DefinitionTreeItem(definitionItem, location, childItems));
+                finalReferenceItems.Add(new SourceReferenceTreeItem(
+                    additionalLocation.Document,
+                    additionalLocation.SourceSpan,
+                    definitionItem.Tags.GetGlyph().GetGlyphIndex(),
+                    commonPathElements));
             }
 
-            return result.ToImmutable();
+            finalReferenceItems.AddRange(referenceItems);
+
+            return new DefinitionTreeItem(definitionItem, finalReferenceItems.ToImmutable());
         }
 
         private ImmutableArray<SourceReferenceTreeItem> CreateReferenceItems(

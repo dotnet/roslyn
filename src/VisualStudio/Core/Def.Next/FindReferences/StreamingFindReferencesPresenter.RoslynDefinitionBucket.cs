@@ -37,15 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public bool TryNavigateTo()
             {
-                foreach (var location in DefinitionItem.Locations)
-                {
-                    if (location.TryNavigateTo())
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
+                return DefinitionItem.MainLocation.TryNavigateTo();
             }
 
             public override bool TryGetValue(string key, out object content)

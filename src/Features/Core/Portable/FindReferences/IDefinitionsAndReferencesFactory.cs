@@ -146,20 +146,22 @@ namespace Microsoft.CodeAnalysis.FindReferences
             this ISymbol definition,
             Solution solution)
         {
-            var definitionLocations = ConvertDefinitionLocations(solution, definition);
+            var locations = ConvertDefinitionLocations(solution, definition);
             var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
 
             return new DefinitionItem(
                 GlyphTags.GetTags(definition.GetGlyph()),
                 displayParts,
-                definitionLocations,
+                locations.Item1,
+                locations.Item2,
                 definition.ShouldShowWithNoReferenceLocations());
         }
 
-        private static ImmutableArray<DefinitionLocation> ConvertDefinitionLocations(
+        private static ValueTuple<DefinitionLocation, ImmutableArray<DocumentLocation>> ConvertDefinitionLocations(
             Solution solution, ISymbol definition)
         {
-            var result = ImmutableArray.CreateBuilder<DefinitionLocation>();
+            var additionalLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
+            DefinitionLocation mainLocation = null;
 
             // If it's a namespace, don't create any normal lcoation.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -170,29 +172,36 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 {
                     if (location.IsInMetadata)
                     {
-                        result.Add(DefinitionLocation.CreateSymbolLocation(solution, definition));
+                        mainLocation = DefinitionLocation.CreateSymbolLocation(solution, definition);
                     }
                     else if (location.IsVisibleSourceLocation())
                     {
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            result.Add(DefinitionLocation.CreateDocumentLocation(
-                                new DocumentLocation(document, location.SourceSpan)));
+                            var documentLocation = new DocumentLocation(document, location.SourceSpan);
+                            if (mainLocation == null)
+                            {
+                                mainLocation = DefinitionLocation.CreateDocumentLocation(documentLocation);
+                            }
+                            else
+                            {
+                                additionalLocations.Add(documentLocation);
+                            }
                         }
                     }
                 }
             }
 
-            if (result.Count == 0)
+            if (mainLocation == null)
             {
                 // If we got no definition locations, then create a sentinel one
                 // that we can display but which will not allow navigation.
-                result.Add(DefinitionLocation.CreateNonNavigatingLocation(
-                    DefinitionLocation.GetOriginationParts(definition)));
+                mainLocation = DefinitionLocation.CreateNonNavigatingLocation(
+                    DefinitionLocation.GetOriginationParts(definition));
             }
 
-            return result.ToImmutable();
+            return ValueTuple.Create(mainLocation, additionalLocations.ToImmutable());
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(
