@@ -34,20 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             var allDocuments = definitionDocuments.Concat(referenceDocuments).WhereNotNull().ToSet();
             var commonPathElements = CountCommonPathElements(allDocuments);
 
-            return definitionsAndReferences.Definitions
-                .Select(d => CreateDefinitionItem(d, definitionsAndReferences, commonPathElements))
-                .ToList<AbstractTreeItem>();
-        }
+            var query =
+                from d in definitionsAndReferences.Definitions
+                let referenceItems = CreateReferenceItems(d, definitionsAndReferences, commonPathElements)
+                select new DefinitionTreeItem(d, referenceItems);
 
-        private DefinitionTreeItem CreateDefinitionItem(
-            DefinitionItem definitionItem,
-            DefinitionsAndReferences definitionsAndReferences,
-            int commonPathElements)
-        {
-            var referenceItems = CreateReferenceItems(
-                definitionItem, definitionsAndReferences, commonPathElements);
-
-            return new DefinitionTreeItem(definitionItem, referenceItems);
+            return query.ToList<AbstractTreeItem>();
         }
 
         private ImmutableArray<SourceReferenceTreeItem> CreateReferenceItems(
