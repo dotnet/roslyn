@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return new CodeActionOperation[]
                 {
                     new ApplyChangesOperation(newSolution),
-                    new OpenDocumentOperation(newDocumentId)
+                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true)
                 };
             }
         }
