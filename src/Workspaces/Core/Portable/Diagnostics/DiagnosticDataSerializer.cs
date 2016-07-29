@@ -8,11 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 {
     /// <summary>
     /// DiagnosticData serializer
@@ -37,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task<bool> SerializeAsync(object documentOrProject, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                WriteTo(stream, items, cancellationToken);
+                WriteTo(writer, items, cancellationToken);
 
                 var solution = GetSolution(documentOrProject);
                 var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
@@ -65,7 +67,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return default(ImmutableArray<DiagnosticData>);
                 }
 
-                return ReadFrom(stream, documentOrProject, cancellationToken);
+                using (var reader = new ObjectReader(stream))
+                {
+                    return ReadFrom(reader, documentOrProject, cancellationToken);
+                }
             }
         }
 
@@ -81,63 +86,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return storage.WriteStreamAsync(project, key, stream, cancellationToken);
         }
 
-        private void WriteTo(Stream stream, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
+        public void WriteTo(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            writer.WriteInt32(FormatVersion);
+
+            AnalyzerVersion.WriteTo(writer);
+            Version.WriteTo(writer);
+
+            writer.WriteInt32(items.Length);
+
+            foreach (var item in items)
             {
-                writer.WriteInt32(FormatVersion);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                AnalyzerVersion.WriteTo(writer);
-                Version.WriteTo(writer);
+                writer.WriteString(item.Id);
+                writer.WriteString(item.Category);
 
-                writer.WriteInt32(items.Length);
+                writer.WriteString(item.Message);
+                writer.WriteString(item.ENUMessageForBingSearch);
+                writer.WriteString(item.Title);
+                writer.WriteString(item.Description);
+                writer.WriteString(item.HelpLink);
+                writer.WriteInt32((int)item.Severity);
+                writer.WriteInt32((int)item.DefaultSeverity);
+                writer.WriteBoolean(item.IsEnabledByDefault);
+                writer.WriteBoolean(item.IsSuppressed);
+                writer.WriteInt32(item.WarningLevel);
 
-                foreach (var item in items)
+                if (item.HasTextSpan)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    // document state
+                    writer.WriteInt32(item.TextSpan.Start);
+                    writer.WriteInt32(item.TextSpan.Length);
+                }
+                else
+                {
+                    // project state
+                    writer.WriteInt32(0);
+                    writer.WriteInt32(0);
+                }
 
-                    writer.WriteString(item.Id);
-                    writer.WriteString(item.Category);
+                WriteTo(writer, item.DataLocation, cancellationToken);
+                WriteTo(writer, item.AdditionalLocations, cancellationToken);
 
-                    writer.WriteString(item.Message);
-                    writer.WriteString(item.ENUMessageForBingSearch);
-                    writer.WriteString(item.Title);
-                    writer.WriteString(item.Description);
-                    writer.WriteString(item.HelpLink);
-                    writer.WriteInt32((int)item.Severity);
-                    writer.WriteInt32((int)item.DefaultSeverity);
-                    writer.WriteBoolean(item.IsEnabledByDefault);
-                    writer.WriteBoolean(item.IsSuppressed);
-                    writer.WriteInt32(item.WarningLevel);
+                writer.WriteInt32(item.CustomTags.Count);
+                foreach (var tag in item.CustomTags)
+                {
+                    writer.WriteString(tag);
+                }
 
-                    if (item.HasTextSpan)
-                    {
-                        // document state
-                        writer.WriteInt32(item.TextSpan.Start);
-                        writer.WriteInt32(item.TextSpan.Length);
-                    }
-                    else
-                    {
-                        // project state
-                        writer.WriteInt32(0);
-                        writer.WriteInt32(0);
-                    }
-
-                    WriteTo(writer, item.DataLocation, cancellationToken);
-                    WriteTo(writer, item.AdditionalLocations, cancellationToken);
-
-                    writer.WriteInt32(item.CustomTags.Count);
-                    foreach (var tag in item.CustomTags)
-                    {
-                        writer.WriteString(tag);
-                    }
-
-                    writer.WriteInt32(item.Properties.Count);
-                    foreach (var property in item.Properties)
-                    {
-                        writer.WriteString(property.Key);
-                        writer.WriteString(property.Value);
-                    }
+                writer.WriteInt32(item.Properties.Count);
+                foreach (var property in item.Properties)
+                {
+                    writer.WriteString(property.Key);
+                    writer.WriteString(property.Value);
                 }
             }
         }
@@ -203,24 +205,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return storage.ReadStreamAsync(project, key, cancellationToken);
         }
 
-        private ImmutableArray<DiagnosticData> ReadFrom(Stream stream, object documentOrProject, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> ReadFrom(ObjectReader reader, object documentOrProject, CancellationToken cancellationToken)
         {
             var document = documentOrProject as Document;
             if (document != null)
             {
-                return ReadFrom(stream, document.Project, document, cancellationToken);
+                return ReadFrom(reader, document.Project, document, cancellationToken);
             }
 
             var project = (Project)documentOrProject;
-            return ReadFrom(stream, project, null, cancellationToken);
+            return ReadFrom(reader, project, null, cancellationToken);
         }
 
-        private ImmutableArray<DiagnosticData> ReadFrom(Stream stream, Project project, Document document, CancellationToken cancellationToken)
+        private ImmutableArray<DiagnosticData> ReadFrom(ObjectReader reader, Project project, Document document, CancellationToken cancellationToken)
         {
             try
             {
                 using (var pooledObject = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
-                using (var reader = new ObjectReader(stream))
                 {
                     var list = pooledObject.Object;
 
