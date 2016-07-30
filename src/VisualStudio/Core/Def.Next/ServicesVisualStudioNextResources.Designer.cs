@@ -61,6 +61,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External reference found.
+        /// </summary>
+        internal static string External_reference_found {
+            get {
+                return ResourceManager.GetString("External_reference_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No references found to &apos;{0}&apos;.
         /// </summary>
         internal static string No_references_found_to_0 {

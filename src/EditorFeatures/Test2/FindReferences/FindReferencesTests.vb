@@ -142,10 +142,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definitionToShouldShowWithNoReferences(definition)
             End Function
 
-            Public Overrides Sub OnDefinitionFound(definition As DefinitionItem,
-                                                   shouldDisplayWithNoReferences As Boolean)
+            Public Overrides Sub OnDefinitionFound(definition As DefinitionItem)
                 SyncLock gate
-                    Me.definitionToShouldShowWithNoReferences(definition) = shouldDisplayWithNoReferences
+                    Me.definitionToShouldShowWithNoReferences(definition) = definition.DisplayIfNoReferences
                 End SyncLock
             End Sub
 

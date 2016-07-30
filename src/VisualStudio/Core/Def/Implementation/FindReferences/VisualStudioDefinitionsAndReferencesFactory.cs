@@ -85,6 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             private readonly int _lineNumber;
             private readonly int _charOffset;
 
+            internal override bool IsExternal => true;
+
             public ExternalDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,

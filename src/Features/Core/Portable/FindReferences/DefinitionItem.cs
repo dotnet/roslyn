@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// </summary>
         public bool DisplayIfNoReferences { get; }
 
+        internal abstract bool IsExternal { get; }
+
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,

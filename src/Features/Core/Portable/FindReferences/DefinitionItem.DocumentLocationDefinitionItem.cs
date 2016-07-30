@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindReferences
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
         internal sealed class DocumentLocationDefinitionItem : DefinitionItem
         {
             public readonly DocumentLocation Location;
+
+            internal override bool IsExternal => false;
 
             public DocumentLocationDefinitionItem(
                 ImmutableArray<string> tags,

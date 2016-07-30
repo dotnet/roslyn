@@ -172,13 +172,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                     // Create a fake reference to this definition that says 
                     // "no references found to <symbolname>".
-                    var message = string.Format(
-                        ServicesVisualStudioNextResources.No_references_found_to_0,
-                        definition.DisplayParts.JoinText());
                     OnReferenceFound(definition,
                         (db, c) => SimpleMessageReferenceEntry.CreateAsync(
-                            db, message));
+                            db, GetMessage(db.DefinitionItem)));
                 }
+            }
+
+            private static string GetMessage(DefinitionItem definition)
+            {
+                if (definition.IsExternal)
+                {
+                    return ServicesVisualStudioNextResources.External_reference_found;
+                }
+
+                return string.Format(
+                    ServicesVisualStudioNextResources.No_references_found_to_0,
+                    definition.DisplayParts.JoinText());
             }
 
             private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor()
