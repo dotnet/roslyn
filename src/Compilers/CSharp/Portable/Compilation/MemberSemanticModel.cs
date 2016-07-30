@@ -1680,16 +1680,19 @@ done:
             }
 
             // skip up past parens and ref expressions, as we have no bound nodes for them.
-            switch (parent.Kind())
+            while (true)
             {
-                case SyntaxKind.ParenthesizedExpression:
-                case SyntaxKind.RefExpression:
-                    var pp = parent.Parent;
-                    if (pp == null) break;
-                    parent = pp;
-                    break;
-                default:
-                    goto foundParent;
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ParenthesizedExpression:
+                    case SyntaxKind.RefExpression:
+                        var pp = parent.Parent;
+                        if (pp == null) break;
+                        parent = pp;
+                        break;
+                    default:
+                        goto foundParent;
+                }
             }
             foundParent:;
 
