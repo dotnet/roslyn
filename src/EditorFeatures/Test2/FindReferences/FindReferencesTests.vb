@@ -117,18 +117,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Private ReadOnly gate As Object = New Object()
 
             Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
-            Public ReadOnly DefinitionToReferences As MultiDictionary(Of DefinitionItem, SourceReferenceItem) = New MultiDictionary(Of DefinitionItem, SourceReferenceItem)
-
-            Public Iterator Function References() As IEnumerable(Of SourceReferenceItem)
-                For Each kvp In DefinitionToReferences
-                    For Each value In kvp.Value
-                        Yield value
-                    Next
-                Next
-            End Function
+            Public ReadOnly References As List(Of SourceReferenceItem) = New List(Of SourceReferenceItem)()
 
             Public Function ShouldShow(definition As DefinitionItem) As Boolean
-                If DefinitionToReferences(definition).Count > 0 Then
+                If References.Any(Function(r) r.Definition Is definition) Then
                     Return True
                 End If
 
@@ -143,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
                 SyncLock gate
-                    DefinitionToReferences.Add(reference.Definition, reference)
+                    References.Add(reference)
                 End SyncLock
             End Sub
         End Class
