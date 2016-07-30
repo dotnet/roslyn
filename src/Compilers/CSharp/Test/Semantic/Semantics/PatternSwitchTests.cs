@@ -958,21 +958,21 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
-@"0.0d !
+$@"0.0d !
 0.0d !
-double 2.1
+double {2.1}
 1.0d !
 double.NaN !
 double.NaN !
 0.0f !
 0.0f !
-float 2.1
+float {2.1f}
 1.0f !
 float.NaN !
 float.NaN !
 0.0m !
 0.0m !
-decimal 2.1
+decimal {2.1m}
 1.0m !
 null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -1089,28 +1089,28 @@ null";
             compilation.VerifyDiagnostics(
                 // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments("1.01").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments(1.01.ToString()).WithLocation(13, 13),
                 // (34,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case -0.0: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments("0").WithLocation(34, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments((-0.0).ToString()).WithLocation(34, 13),
                 // (35,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
                 //             case -double.NaN: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments("NaN").WithLocation(35, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments((-double.NaN).ToString()).WithLocation(35, 13),
                 // (46,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01f: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments("1.01").WithLocation(46, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments(1.01f.ToString()).WithLocation(46, 13),
                 // (67,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case -0.0f: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments("0").WithLocation(67, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments((-0.0f).ToString()).WithLocation(67, 13),
                 // (68,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
                 //             case -float.NaN: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments("NaN").WithLocation(68, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments((-float.NaN).ToString()).WithLocation(68, 13),
                 // (78,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01m: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments("1.01").WithLocation(78, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments(1.01m.ToString()).WithLocation(78, 13),
                 // (99,13): error CS0152: The switch statement contains multiple cases with the label value '0.0'
                 //             case -0.0m: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments("0.0").WithLocation(99, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments((-0.0m).ToString()).WithLocation(99, 13)
                 );
         }
 
