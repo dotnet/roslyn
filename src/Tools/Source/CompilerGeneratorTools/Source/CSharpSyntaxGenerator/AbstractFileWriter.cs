@@ -154,11 +154,6 @@ namespace CSharpSyntaxGenerator
             return IsNode(typeName) || IsNodeList(typeName) || IsSeparatedNodeList(typeName) || typeName == "SyntaxNodeOrTokenList";
         }
 
-        protected bool IsNodeOrNodeListOrToken(string typeName)
-        {
-            return IsNodeOrNodeList(typeName) || typeName == "SyntaxToken";
-        }
-
         protected static string GetElementType(string typeName)
         {
             if (!typeName.Contains("<"))
