@@ -18,19 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public virtual void OnStarted()
-        {
-        }
-
         public virtual void OnCompleted()
-        {
-        }
-
-        public virtual void OnFindInDocumentStarted(Document document)
-        {
-        }
-
-        public virtual void OnFindInDocumentCompleted(Document document)
         {
         }
 

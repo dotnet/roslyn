@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -103,12 +104,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             Document document, IStreamingFindReferencesService service,
             IStreamingFindReferencesPresenter presenter, int caretPosition)
         {
-            using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
+            try
             {
-                // Let the presented know we're starging a search.  It will give us back
-                // the context object that the FAR service will push results into.
-                var context = presenter.StartSearch();
-                await service.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
+                {
+                    // Let the presented know we're starging a search.  It will give us back
+                    // the context object that the FAR service will push results into.
+                    var context = presenter.StartSearch();
+                    await service.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+
+                    // Note: we don't need to put this in a finally.  The only time we might not hit
+                    // this is if cancellation or another error gets thrown.  In the former case,
+                    // that means that a new search has started.  We don't care about telling the
+                    // context it has completed.  In the latter case somethign wrong has happened
+                    // and we don't want to run any more code code in this particular context.
+                    context.OnCompleted();
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
             }
         }
 

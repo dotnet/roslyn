@@ -30,7 +30,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationReferenceEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.NoneFoundReferenceEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageReferenceEntry.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
@@ -38,6 +38,11 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.ReferenceEntry.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="ServicesVisualStudioNextResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -137,6 +142,12 @@
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ServicesVisualStudioNextResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServicesVisualStudioNextResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

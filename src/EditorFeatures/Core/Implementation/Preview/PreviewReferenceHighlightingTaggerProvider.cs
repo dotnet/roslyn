@@ -8,6 +8,10 @@ using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
+    /// <summary>
+    /// Special tagger we use for previews that is told precisely which spans to
+    /// reference highlight.
+    /// </summary>
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(NavigableHighlightTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]

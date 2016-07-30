@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,9 +16,9 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Completion;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -30,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-            private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
+            private ITableDataSink _tableDataSink;
 
             public readonly StreamingFindReferencesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
@@ -76,6 +75,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 // And add ourselves as the source of results for the window.
                 findReferencesWindow.Manager.AddSource(this);
+
+                // After adding us as the source, the manager should immediately call into us to
+                // tell us what the data sink is.
+                Debug.Assert(_tableDataSink != null);
             }
 
             private void CancelSearch()
@@ -101,12 +104,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public IDisposable Subscribe(ITableDataSink sink)
             {
-                var subscription = new Subscription(this, sink);
-                _subscriptions.Add(subscription);
+                Presenter.AssertIsForeground();
 
-                sink.AddFactory(this, removeAllFactories: true);
+                Debug.Assert(_tableDataSink == null);
+                _tableDataSink = sink;
 
-                return subscription;
+                _tableDataSink.AddFactory(this, removeAllFactories: true);
+                _tableDataSink.IsStable = false;
+
+                return this;
             }
 
             #endregion
@@ -122,25 +128,41 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void OnStarted()
-            {
-                foreach (var subscription in _subscriptions)
-                {
-                    subscription.TableDataSink.IsStable = false;
-                }
-            }
-
             public override void OnCompleted()
             {
-                CreateMissingReferenceEntries();
+                // Now that we know the search is over, create and display any error messages
+                // for definitions that were not found.
+                CreateMissingReferenceEntriesIfNecessary();
+                CreateNoResultsFoundEntryIfNecessary();
 
-                foreach (var subscription in _subscriptions)
+                _tableDataSink.IsStable = true;
+            }
+
+            private void CreateNoResultsFoundEntryIfNecessary()
+            {
+                bool noDefinitions;
+                lock(_gate)
                 {
-                    subscription.TableDataSink.IsStable = true;
+                    noDefinitions = this._definitions.Count == 0;
+                }
+
+                if (noDefinitions)
+                {
+                    // Create a fake definition/reference called "search found no results"
+                    this.OnReferenceFound(NoResultsDefinitionItem,
+                        (db, c) => SimpleMessageReferenceEntry.CreateAsync(
+                            db, ServicesVisualStudioNextResources.Search_found_no_results));
                 }
             }
 
-            private void CreateMissingReferenceEntries()
+            private static DefinitionItem NoResultsDefinitionItem =
+                DefinitionItem.CreateNonNavigableItem(
+                    GlyphTags.GetTags(Glyph.StatusInformation),
+                    ImmutableArray.Create(new TaggedText(
+                        TextTags.Text,
+                        ServicesVisualStudioNextResources.Search_found_no_results)));
+
+            private void CreateMissingReferenceEntriesIfNecessary()
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
@@ -148,8 +170,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var definitions = GetDefinitionsToCreateMissingReferenceItemsFor();
                 foreach (var definition in definitions)
                 {
+                    // Create a fake reference to this definition that says 
+                    // "no references found to <symbolname>".
+                    var message = string.Format(
+                        ServicesVisualStudioNextResources.No_references_found_to_0,
+                        definition.DisplayParts.JoinText());
                     OnReferenceFound(definition,
-                        (db, c) => Task.FromResult<ReferenceEntry>(new NoneFoundReferenceEntry(db)));
+                        (db, c) => SimpleMessageReferenceEntry.CreateAsync(
+                            db, message));
                 }
             }
 
@@ -234,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
 
                 // Let all our subscriptions know that we've updated.
-                NotifySinksOfChangedVersion();
+                _tableDataSink.FactorySnapshotChanged(this);
             }
 
             private async Task<ReferenceEntry> CreateReferenceEntryAsync(
@@ -323,14 +351,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            private void NotifySinksOfChangedVersion()
-            {
-                foreach (var subscription in _subscriptions)
-                {
-                    subscription.TableDataSink.FactorySnapshotChanged(this);
-                }
-            }
-
             public override void ReportProgress(int current, int maximum)
             {
                 //var progress = maximum == 0 ? 0 : ((double)current / maximum);
@@ -374,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 // We didn't have this version.  Notify the sinks that something must have changed
                 // so that they call back into us with the latest version.
-                NotifySinksOfChangedVersion();
+                _tableDataSink.FactorySnapshotChanged(this);
                 return null;
             }
 

@@ -39,12 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 _definitionFactory = s => s.ToDefinitionItem(solution);
             }
 
+            // Do nothing functions.  The streaming far service doesn't care about
+            // any of these.
+            public void OnStarted() { }
+            public void OnCompleted() { }
+            public void OnFindInDocumentStarted(Document document) { }
+            public void OnFindInDocumentCompleted(Document document) { }
+
             // Simple context forwarding functions.
-            public void OnStarted() => _context.OnStarted();
-            public void OnCompleted() => _context.OnCompleted();
             public void ReportProgress(int current, int maximum) => _context.ReportProgress(current, maximum);
-            public void OnFindInDocumentStarted(Document document) => _context.OnFindInDocumentStarted(document);
-            public void OnFindInDocumentCompleted(Document document) => _context.OnFindInDocumentCompleted(document);
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
