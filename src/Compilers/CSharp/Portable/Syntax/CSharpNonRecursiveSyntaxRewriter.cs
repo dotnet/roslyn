@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected SyntaxNode Original { get; private set; }
 
+        protected virtual bool Skip(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewriten)
+        {
+            rewriten = default(SyntaxNodeOrToken);
+            return false;
+        }
+
         public virtual SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
         {
             return ((CSharpSyntaxNode)rewritten).Accept(this);
@@ -81,28 +87,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // deconstruct node into child elements
-                        _children.Clear();
-                        _deconstructor.Deconstruct(node, _children);
-
-                        // add child elements to undeconstructed stack in reverse order so
-                        // the first child gets operated on next
-                        for (int i = _children.Count - 1; i >= 0; i--)
+                        SyntaxNodeOrToken rewriten;
+                        if (this.Skip(node, out rewriten))
                         {
-                            _undeconstructedStack.Push(_children[i]);
+                            _transformedStack.Push(rewriten);
                         }
+                        else
+                        {
+                            // deconstruct node into child elements
+                            _children.Clear();
+                            _deconstructor.Deconstruct(node, _children);
 
-                        // remember the node that will be tranformed later after the children are transformed
-                        _untransformedStack.Push(new UntransformedNode(node, _children.Count, _transformedStack.Count));
+                            // add child elements to undeconstructed stack in reverse order so
+                            // the first child gets operated on next
+                            for (int i = _children.Count - 1; i >= 0; i--)
+                            {
+                                _undeconstructedStack.Push(_children[i]);
+                            }
+
+                            // remember the node that will be tranformed later after the children are transformed
+                            _untransformedStack.Push(new UntransformedNode(node, _children.Count, _transformedStack.Count));
+                        }
                     }
                 }
                 else if (nodeOrToken.IsToken)
                 {
                     // we can transform tokens immediately
                     var original = nodeOrToken.AsToken();
-                    var rewritten = _trivializer.VisitToken(original); // rewrite trivia
-                    var transformed = this.VisitToken(original, rewritten);
-                    _transformedStack.Push(transformed);
+                    SyntaxNodeOrToken rewriten;
+                    if (this.Skip(original, out rewriten))
+                    {
+                        _transformedStack.Push(rewriten);
+                    }
+                    else
+                    {
+                        var rewrittenToken = _trivializer.VisitToken(original); // rewrite trivia
+                        var transformed = this.VisitToken(original, rewrittenToken);
+                        _transformedStack.Push(transformed);
+                    }
                 }
 
                 // transform any nodes that can be transformed now
@@ -163,10 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private List<SyntaxNodeOrToken> _elements;
 
-            public NodeDeconstructor()
-            {
-            }
-
             public void Deconstruct(SyntaxNode node, List<SyntaxNodeOrToken> elements)
             {
                 _elements = elements;
@@ -190,10 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private List<SyntaxNodeOrToken> _elements;
             private int _index;
-
-            public NodeReassembler()
-            {
-            }
 
             public SyntaxNodeOrToken Reassemble(SyntaxNodeOrToken original, List<SyntaxNodeOrToken> rewrittenElements)
             {

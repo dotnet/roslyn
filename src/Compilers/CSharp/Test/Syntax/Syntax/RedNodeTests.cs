@@ -38,6 +38,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
         }
 
+        private class SkippedNonRecursiveRewriter : CSharpNonRecursiveSyntaxRewriter
+        {
+            protected override bool Skip(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewriten)
+            {
+                rewriten = nodeOrToken;
+                return nodeOrToken.IsNode && nodeOrToken.AsNode() is LiteralExpressionSyntax;
+            }
+
+            public int VisitNodeCallsCount { get; private set; }
+
+            public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
+            {
+                this.VisitNodeCallsCount++;
+                return base.VisitNode(original, rewritten);
+            }
+        }
+
+        private class SkippedAndTransformedNonRecursiveRewriter : CSharpNonRecursiveSyntaxRewriter
+        {
+            private SkipLiteralNonRecursiveRewriter _skipRewriter = new SkipLiteralNonRecursiveRewriter();
+
+            protected override bool Skip(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewriten)
+            {
+                if (nodeOrToken.IsNode)
+                {
+                    var value = _skipRewriter.Visit(nodeOrToken.AsNode());
+                    rewriten = _skipRewriter.Rewriten;
+                    return value;
+                }
+
+                rewriten = nodeOrToken;
+                return false;
+            }
+
+            public int VisitNodeCallsCount { get; private set; }
+
+            public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
+            {
+                this.VisitNodeCallsCount++;
+                return base.VisitNode(original, rewritten);
+            }
+
+            private class SkipLiteralNonRecursiveRewriter : CSharpSyntaxVisitor<bool>
+            {
+                public SyntaxNode Rewriten { get; private set; }
+
+                public override bool VisitLiteralExpression(LiteralExpressionSyntax node)
+                {
+                    Rewriten = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0));
+                    return true;
+                }
+            }
+        }
+
         internal class ToStringVisitor : CSharpNonRecursiveSyntaxWalker
         {
             StringBuilder sb;
@@ -80,11 +134,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNonRecursiveFullTreeVisitor()
+        public void TestNonRecursiveWalker()
         {
             string code = "if (a)\r\n  b .  Foo();";
             StatementSyntax statement = SyntaxFactory.ParseStatement(code);
             Assert.Equal(code, new ToStringVisitor().Visit(statement));
+        }
+
+        [Fact]
+        public void TestNonRecursiveRewriterSkip()
+        {
+            string code = "1 + 2 + 3";
+            ExpressionSyntax expression = SyntaxFactory.ParseExpression(code);
+            var skippedNonRecursiveRewriter = new SkippedNonRecursiveRewriter();
+            var newExpression = skippedNonRecursiveRewriter.Visit(expression);
+            Assert.Equal(2, skippedNonRecursiveRewriter.VisitNodeCallsCount);
+            Assert.Equal(expression, newExpression);
+        }
+
+        [Fact]
+        public void TestNonRecursiveRewriterSkipAndTransform()
+        {
+            string code = "1 + 2 + 3";
+            ExpressionSyntax expression = SyntaxFactory.ParseExpression(code);
+            var skippedAndTransformedNonRecursiveRewriter = new SkippedAndTransformedNonRecursiveRewriter();
+            var transformedExpr = skippedAndTransformedNonRecursiveRewriter.Visit(expression);
+            Assert.Equal(2, skippedAndTransformedNonRecursiveRewriter.VisitNodeCallsCount);
+            Assert.Equal("0+ 0+ 0", transformedExpr.ToString());
         }
     }
 }
