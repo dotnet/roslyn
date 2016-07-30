@@ -50,6 +50,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private bool _solutionLoadComplete = false;
 
+        /// <summary>
+        /// False during solution load, and when the solution is partially loaded
+        /// </summary>
+        private bool _solutionIsFullyLoaded = false;
+
         internal IEnumerable<AbstractProject> Projects { get { return _projectMap.Values; } }
 
         IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
@@ -213,13 +218,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments()
+        {
+            _solutionIsFullyLoaded = true;
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments(Projects);
+        }
+
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
         {
-            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            if (_solutionIsFullyLoaded)
             {
-                foreach (var hostState in _workspaceHosts)
+                using (Dispatcher.CurrentDispatcher.DisableProcessing())
                 {
-                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                    foreach (var hostState in _workspaceHosts)
+                    {
+                        hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                    }
                 }
             }
         }
