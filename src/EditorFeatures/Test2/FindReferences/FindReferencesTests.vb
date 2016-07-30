@@ -116,41 +116,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Private ReadOnly gate As Object = New Object()
 
-            Private ReadOnly definitionToShouldShowWithNoReferences As Dictionary(Of DefinitionItem, Boolean) = New Dictionary(Of DefinitionItem, Boolean)
-            Public ReadOnly definitionToReferences As MultiDictionary(Of DefinitionItem, SourceReferenceItem) = New MultiDictionary(Of DefinitionItem, SourceReferenceItem)
-
-            Public ReadOnly Property Definitions As IEnumerable(Of DefinitionItem)
-                Get
-                    Return definitionToShouldShowWithNoReferences.Keys
-                End Get
-            End Property
+            Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
+            Public ReadOnly DefinitionToReferences As MultiDictionary(Of DefinitionItem, SourceReferenceItem) = New MultiDictionary(Of DefinitionItem, SourceReferenceItem)
 
             Public Iterator Function References() As IEnumerable(Of SourceReferenceItem)
-                For Each kvp In definitionToReferences
+                For Each kvp In DefinitionToReferences
                     For Each value In kvp.Value
                         Yield value
                     Next
                 Next
             End Function
 
-
             Public Function ShouldShow(definition As DefinitionItem) As Boolean
-                If definitionToReferences(definition).Count > 0 Then
+                If DefinitionToReferences(definition).Count > 0 Then
                     Return True
                 End If
 
-                Return definitionToShouldShowWithNoReferences(definition)
+                Return definition.DisplayIfNoReferences
             End Function
 
             Public Overrides Sub OnDefinitionFound(definition As DefinitionItem)
                 SyncLock gate
-                    Me.definitionToShouldShowWithNoReferences(definition) = definition.DisplayIfNoReferences
+                    Me.Definitions.Add(definition)
                 End SyncLock
             End Sub
 
             Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
                 SyncLock gate
-                    definitionToReferences.Add(reference.Definition, reference)
+                    DefinitionToReferences.Add(reference.Definition, reference)
                 End SyncLock
             End Sub
         End Class
