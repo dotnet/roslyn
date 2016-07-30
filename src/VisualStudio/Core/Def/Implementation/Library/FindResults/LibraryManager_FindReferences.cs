@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {

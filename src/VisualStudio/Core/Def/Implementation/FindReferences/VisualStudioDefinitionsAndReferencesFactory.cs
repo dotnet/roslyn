@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             _serviceProvider = serviceProvider;
         }
 
-        protected override DefinitionItem GetThirdPartyDefinitionItem(
+        public override DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, ISymbol definition)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();

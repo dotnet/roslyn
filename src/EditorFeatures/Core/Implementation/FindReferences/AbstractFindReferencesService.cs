@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
     internal abstract partial class AbstractFindReferencesService :
-        IFindReferencesService, IStreamingFindReferencesService
+        ForegroundThreadAffinitizedObject, IFindReferencesService, IStreamingFindReferencesService
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
@@ -191,6 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         public async Task FindReferencesAsync(
             Document document, int position, FindReferencesContext context)
         {
+            this.AssertIsForeground();
+
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -208,16 +211,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var displayName = GetDisplayName(symbol);
             context.SetSearchLabel(displayName);
 
+            var progressAdapter = new ProgressAdapter(solution, context);
+
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
+            //
+            // Note: we pass along ConfigureAwait(true) because we need to come back
+            // to the UI thread.  There's more work we need to do once the FAR engine
+            // is done.
             await SymbolFinder.FindReferencesAsync(
                 symbol,
                 solution,
-                progress: new ProgressAdapter(solution, context),
+                progressAdapter,
                 documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(true);
+
+            this.AssertIsForeground();
+
+            // After the FAR engine is done call into any third party extensions to see
+            // if they want to add results.
+            progressAdapter.CallThirdPartyExtensions();
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         /// <summary>
         /// Forwards IFindReferencesProgress calls to a FindRefrencesContext instance.
         /// </summary>
-        private class ProgressAdapter : IFindReferencesProgress
+        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly FindReferencesContext _context;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             /// This dictionary allows us to make that mapping once and then keep it around for
             /// all future callbacks.
             /// </summary>
-            private readonly ConcurrentDictionary<ISymbol, DefinitionItem> _definitionToNavigableItem =
+            private readonly ConcurrentDictionary<ISymbol, DefinitionItem> _definitionToItem =
                 new ConcurrentDictionary<ISymbol, DefinitionItem>(MetadataUnifyingEquivalenceComparer.Instance);
 
             private readonly Func<ISymbol, DefinitionItem> _definitionFactory;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             private DefinitionItem GetDefinitionItem(ISymbol definition)
             {
-                return _definitionToNavigableItem.GetOrAdd(definition, _definitionFactory);
+                return _definitionToItem.GetOrAdd(definition, _definitionFactory);
             }
 
             public void OnDefinitionFound(ISymbol definition)
@@ -71,6 +71,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 if (referenceItem != null)
                 {
                     _context.OnReferenceFound(referenceItem);
+                }
+            }
+
+            public void CallThirdPartyExtensions()
+            {
+                this.AssertIsForeground();
+
+                var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                foreach (var definition in _definitionToItem.Keys)
+                {
+                    var item = factory.GetThirdPartyDefinitionItem(_solution, definition);
+                    if (item != null)
+                    {
+                        _context.OnDefinitionFound(item);
+                    }
                 }
             }
         }

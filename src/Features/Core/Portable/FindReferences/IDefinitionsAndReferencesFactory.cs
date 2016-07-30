@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
     {
         DefinitionsAndReferences CreateDefinitionsAndReferences(
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);
+
+        DefinitionItem GetThirdPartyDefinitionItem(Solution solution, ISymbol definition);
     }
 
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        protected virtual DefinitionItem GetThirdPartyDefinitionItem(
+        public virtual DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, ISymbol definition)
         {
             return null;
