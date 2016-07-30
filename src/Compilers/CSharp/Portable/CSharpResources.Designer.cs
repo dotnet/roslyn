@@ -13364,6 +13364,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tuple literal should probably not use element name &apos;{0}&apos; at this position..
+        /// </summary>
+        internal static string WRN_TupleLiteralNameMismatch {
+            get {
+                return ResourceManager.GetString("WRN_TupleLiteralNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple literal should probably not use a mismatching element name at this position..
+        /// </summary>
+        internal static string WRN_TupleLiteralNameMismatch_Title {
+            get {
+                return ResourceManager.GetString("WRN_TupleLiteralNameMismatch_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; has the same name as the type parameter from outer type &apos;{1}&apos;.
         /// </summary>
         internal static string WRN_TypeParameterSameAsOuterTypeParameter {

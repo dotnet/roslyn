@@ -181,16 +181,8 @@ class X
                     Assert.True(ErrorFacts.IsWarning(errorCode));
                     switch (errorCode)
                     {
-                        case ErrorCode.WRN_MainIgnored:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_DelaySignButNoKey:
                         case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_InvalidVersionFormat:
-                            Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
@@ -198,25 +190,26 @@ class X
                         case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                         case ErrorCode.WRN_RefCultureMismatch:
                         case ErrorCode.WRN_ConflictingMachineAssembly:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_NubExprIsConstBool2:
-                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
-                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_FilterIsConstant:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_PdbLocalNameTooLong:
-                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_AnalyzerCannotBeCreated:
                         case ErrorCode.WRN_NoAnalyzerInAssembly:
                         case ErrorCode.WRN_UnableToLoadAnalyzer:
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
+                        case ErrorCode.WRN_TupleLiteralNameMismatch:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_MainIgnored:
+                        case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
+                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
+                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_PdbLocalNameTooLong:
+                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_InvalidVersionFormat:
+                            Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail

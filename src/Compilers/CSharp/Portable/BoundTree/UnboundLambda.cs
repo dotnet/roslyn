@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, ref useSiteDiagnostics);
+                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, ref useSiteDiagnostics, binder.Compilation);
             }
 
             if (!isAsync)

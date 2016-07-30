@@ -1367,10 +1367,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructWrongCardinality = 8132,
         ERR_CannotDeconstructDynamic = 8133,
         ERR_DeconstructTooFewElements = 8134,
-
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
-
         ERR_TupleElementNamesAttributeMissing = 8137,
         ERR_ExplicitTupleElementNames = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,

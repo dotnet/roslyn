@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 conversions,
                 method,
                 arguments.AsImmutable(),
-                ref useSiteDiagnostics);
+                ref useSiteDiagnostics,
+                compilation);
 
             if (typeArgs.IsDefault)
             {

@@ -2722,7 +2722,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        typeArguments = InferMethodTypeArguments(method, leastOverriddenMethod.ConstructedFrom.TypeParameters, arguments, originalEffectiveParameters, out inferenceError, ref useSiteDiagnostics);
+                        typeArguments = InferMethodTypeArguments(method,
+                                            leastOverriddenMethod.ConstructedFrom.TypeParameters,
+                                            arguments,
+                                            originalEffectiveParameters,
+                                            out inferenceError,
+                                            ref useSiteDiagnostics,
+                                            _binder.Compilation);
                         if (typeArguments.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
@@ -2799,7 +2805,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             out MemberAnalysisResult error,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            Compilation compilation)
         {
             var args = arguments.Arguments.ToImmutable();
 
@@ -2815,7 +2822,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
-                ref useSiteDiagnostics);
+                ref useSiteDiagnostics,
+                compilation);
 
             if (inferenceResult.Success)
             {
@@ -2825,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (arguments.IsExtensionMethodInvocation)
             {
-                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(_binder.Conversions, method, args, ref useSiteDiagnostics);
+                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(_binder.Conversions, method, args, ref useSiteDiagnostics, compilation);
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();

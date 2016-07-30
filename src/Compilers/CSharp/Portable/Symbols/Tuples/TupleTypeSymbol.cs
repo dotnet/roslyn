@@ -376,6 +376,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static void ReportNamesMismatches(ImmutableArray<string> destinationNames, BoundTupleLiteral literal, DiagnosticBag diagnostics)
+        {
+            var sourceNames = literal.ArgumentNamesOpt;
+            if (sourceNames.IsDefault)
+            {
+                return;
+            }
+
+            int sourceLength = sourceNames.Length;
+            bool allMissing = destinationNames.IsDefault;
+            Debug.Assert(destinationNames.IsDefault || destinationNames.Length == sourceLength);
+
+            for (int i = 0; i < sourceLength; i++)
+            {
+                if (sourceNames[i] != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceNames[i]) != 0))
+                {
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Location, sourceNames[i]);
+                }
+            }
+        }
+
         /// <summary>
         /// Find the well-known ValueTuple type of a given arity.
         /// For example, for arity=2:

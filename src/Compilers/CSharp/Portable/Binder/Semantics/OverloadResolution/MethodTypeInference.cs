@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 /*
 SPEC:
@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeSymbol>[] _lowerBounds;
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
+        private readonly Compilation _compilation;
 
         /// <summary>
         /// For error recovery, we allow a mismatch between the number of arguments and parameters
@@ -210,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            Compilation compilation
             )
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
@@ -235,7 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedContainingTypeOfMethod,
                 formalParameterTypes,
                 formalParameterRefKinds,
-                arguments);
+                arguments,
+                compilation);
             return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
 
@@ -254,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol constructedContainingTypeOfMethod,
             ImmutableArray<TypeSymbol> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
-            ImmutableArray<BoundExpression> arguments)
+            ImmutableArray<BoundExpression> arguments,
+            Compilation compilation)
         {
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
@@ -268,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lowerBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
             _dependencies = null;
             _dependenciesDirty = false;
+            _compilation = compilation;
         }
 
 #if DEBUG
@@ -2484,12 +2489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
                     {
-                        if (candidate.IsTupleType)
-                        {
-                            best = candidate.TupleUnderlyingType;
-                            break;
-                        }
-
                         // SPEC: 4.7 The Dynamic Type
                         //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
                         //
@@ -2499,8 +2498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
                         Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        // best candidate is not unique
-                        return false;
+                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _compilation), _compilation);
                     }
 
                     OuterBreak:
@@ -2521,6 +2519,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 candidates.Free();
             }
+        }
+
+        /// <summary>
+        /// Takes the dynamic flags from both types and applies them onto the target.
+        /// </summary>
+        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, TypeSymbol target, Compilation compilation)
+        {
+            // SPEC: 4.7 The Dynamic Type
+            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+            {
+                return target;
+            }
+            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
+            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
+            Debug.Assert(flags1.Length == flags2.Length);
+            ImmutableArray<bool> mergedFlags = flags1.SelectAsArray((f, index, other) => f || other[index], flags2);
+
+            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(target, (AssemblySymbol)compilation.Assembly, RefKind.None, mergedFlags);
+        }
+
+        /// <summary>
+        /// Takes the names from the two types, finds the common names, and applies them onto the target.
+        /// </summary>
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, Compilation compilation)
+        {
+            if (!target.ContainsTuple() ||
+                first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
+                !target.ContainsTupleNames())
+            {
+                return target;
+            }
+
+            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
+            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
+
+            ImmutableArray<string> mergedNames;
+            if (names2.IsDefault)
+            {
+                mergedNames = default(ImmutableArray<string>);
+            }
+            else
+            {
+                Debug.Assert(names1.Length == names2.Length);
+                mergedNames = names1.SelectAsArray((s, index, other) => string.CompareOrdinal(s, other[index]) == 0 ? s : null, names2);
+
+                if (mergedNames.All(n => n == null))
+                {
+                    mergedNames = default(ImmutableArray<string>);
+                }
+            }
+
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, (AssemblySymbol)compilation.Assembly, mergedNames);
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2688,7 +2739,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionsBase conversions,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            Compilation compilation)
         {
             Debug.Assert((object)method != null);
             Debug.Assert(method.Arity > 0);
@@ -2709,7 +2761,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFromMethod.ContainingType,
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
-                arguments);
+                arguments,
+                compilation);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {
