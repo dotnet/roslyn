@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal class ToStringVisitor : CSharpNonRecursiveSyntaxWalker
+        internal class ToStringWalker : CSharpNonRecursiveSyntaxWalker
         {
             StringBuilder sb;
 
@@ -106,6 +106,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public override void VisitToken(SyntaxToken token)
             {
                 sb.Append(token.ToFullString());
+            }
+        }
+
+        internal class CountingWalker : CSharpNonRecursiveSyntaxWalker
+        {
+            public int NodesCount { get; private set; }
+            public int TokensCount { get; private set; }
+
+            public override void VisitNode(SyntaxNode node)
+            {
+                NodesCount++;
+                base.VisitNode(node);
+            }
+
+            public override void VisitToken(SyntaxToken token)
+            {
+                TokensCount++;
+                base.VisitToken(token);
             }
         }
 
@@ -138,7 +156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string code = "if (a)\r\n  b .  Foo();";
             StatementSyntax statement = SyntaxFactory.ParseStatement(code);
-            Assert.Equal(code, new ToStringVisitor().Visit(statement));
+            Assert.Equal(code, new ToStringWalker().Visit(statement));
+        }
+
+        [Fact]
+        public void TestWalkerCount()
+        {
+            string code = "1 + 2 + 3";
+            ExpressionSyntax expression = SyntaxFactory.ParseExpression(code);
+            var countingWalker = new CountingWalker();
+            countingWalker.Visit(expression);
+            Assert.Equal(5, countingWalker.NodesCount);
+            Assert.Equal(5, countingWalker.TokensCount);
         }
 
         [Fact]

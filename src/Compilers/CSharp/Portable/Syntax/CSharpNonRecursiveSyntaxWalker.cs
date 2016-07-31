@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ((CSharpSyntaxNode)n.AsNode()).Accept(this);
+                    this.VisitNode(n.AsNode());
                     var children = n.ChildNodesAndTokens();
                     for (int i = children.Count - 1; i >= 0; i--)
                     {
@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        public virtual void VisitNode(SyntaxNode node)
+        {
+            ((CSharpSyntaxNode)node).Accept(this);
         }
 
         public virtual void VisitToken(SyntaxToken token)
