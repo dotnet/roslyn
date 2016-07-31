@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Visit(SyntaxNode node)
         {
+            int stackStart = _stack.Count;
             _stack.Push(node);
-            while (_stack.Count != 0)
+            while (_stack.Count > stackStart)
             {
                 SyntaxNodeOrToken n = _stack.Pop();
                 if (n.IsToken)
