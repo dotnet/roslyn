@@ -210,13 +210,20 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                     _definitions.Add(definition);
                 }
+
+                foreach (var location in definition.SourceLocations)
+                {
+                    OnReferenceFound(definition,
+                        (db, c) => CreateReferenceEntryAsync(
+                            db, location, isDefinitionLocation: true, cancellationToken: c));
+                }
             }
 
             public override void OnReferenceFound(SourceReferenceItem reference)
             {
-                OnReferenceFound(
-                    reference.Definition,
-                    (db, c) => CreateReferenceEntryAsync(db, reference.Location, c));
+                OnReferenceFound(reference.Definition,
+                    (db, c) => CreateReferenceEntryAsync(
+                        db, reference.Location, isDefinitionLocation: false, cancellationToken: c));
             }
 
             private async void OnReferenceFound(
@@ -275,7 +282,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private async Task<ReferenceEntry> CreateReferenceEntryAsync(
-                RoslynDefinitionBucket definitionBucket, DocumentLocation documentLocation, CancellationToken cancellationToken)
+                RoslynDefinitionBucket definitionBucket, 
+                DocumentLocation documentLocation,
+                bool isDefinitionLocation,
+                CancellationToken cancellationToken)
             {
                 var document = documentLocation.Document;
 
@@ -302,7 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 return new DocumentLocationReferenceEntry(
                     this, workspace, definitionBucket, documentLocation, 
-                    projectGuid.Value, sourceText, taggedLineParts);
+                    isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)

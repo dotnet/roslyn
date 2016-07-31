@@ -42,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentLocation documentLocation,
+                bool isDefinitionLocation,
                 Guid projectGuid,
                 SourceText sourceText,
                 TaggedTextAndHighlightSpan taggedLineParts)
