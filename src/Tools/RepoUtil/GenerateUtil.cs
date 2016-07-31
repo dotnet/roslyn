@@ -22,9 +22,13 @@ namespace RepoUtil
         /// <summary>
         /// Get the subset of packages which match the specified filter for the generated file.
         /// </summary>
-        internal static IEnumerable<NuGetPackage> GetFilteredPackages(GenerateData generateData, IEnumerable<NuGetPackage> allPackages)
+        internal static IEnumerable<NuGetPackage> GetFilteredPackages(GenerateData generateData, RepoData repoData)
         {
-            return allPackages
+            // Fixed packages are never included in generated output.  Doing so would create conflicts because it's
+            // possible for two versions to exist for the same package.  Take for example System.Collections.Immuatble
+            // which is both fixed and floating in Roslyn.
+            return repoData
+                .FloatingPackages
                 .Where(x => generateData.Packages.Any(y => y.IsMatch(x.Name)))
                 .ToList();
         }
@@ -32,7 +36,7 @@ namespace RepoUtil
         internal static void WriteMSBuildContent(FileName fileName, IEnumerable<NuGetPackage> packages)
         {
             Console.WriteLine($"Generating MSBuild props file {fileName}");
-            using (var stream = File.OpenWrite(fileName.FullPath))
+            using (var stream = File.Open(fileName.FullPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
                 WriteMSBuildContent(stream, packages);
             }

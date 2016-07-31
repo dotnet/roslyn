@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,8 +39,6 @@ namespace RepoUtil
     internal class RepoConfig
     {
         internal ImmutableArray<NuGetPackage> FixedPackages { get; }
-        // TODO: is this map needed?
-        internal ImmutableDictionary<string, ImmutableArray<string>> FixedPackagesMap { get; }
         internal ImmutableArray<string> ToolsetPackages { get; }
         internal ImmutableArray<Regex> NuSpecExcludes { get; }
         internal GenerateData? MSBuildGenerateData { get; }
@@ -50,11 +49,10 @@ namespace RepoUtil
             IEnumerable<Regex> nuspecExcludes,
             GenerateData? msbuildGenerateData)
         {
+            Debug.Assert(toolsetPackages.Distinct().Count() == toolsetPackages.Count());
             MSBuildGenerateData = msbuildGenerateData;
             FixedPackages = fixedPackages.OrderBy(x => x.Name).ToImmutableArray();
             NuSpecExcludes = nuspecExcludes.ToImmutableArray();
-
-            // TODO: Validate duplicate names in the floating lists
             ToolsetPackages = toolsetPackages.OrderBy(x => x).ToImmutableArray();
 
             var map = new Dictionary<string, List<string>>();
@@ -68,12 +66,6 @@ namespace RepoUtil
                 }
 
                 list.Add(nugetRef.Version);
-            }
-
-            FixedPackagesMap = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
-            foreach (var pair in map)
-            {
-                FixedPackagesMap = FixedPackagesMap.Add(pair.Key, pair.Value.ToImmutableArray());
             }
         }
 

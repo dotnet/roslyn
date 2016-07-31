@@ -40,9 +40,9 @@ namespace RepoUtil
         private JProperty GetFixedPackages()
         {
             var obj = new JObject();
-            foreach (var pair in _repoData.FixedPackagesMap.OrderBy(x => x.Key))
+            foreach (var package in _repoData.FixedPackages.OrderBy(x => x.Name))
             {
-                obj.Add(GetProperty(pair.Key, pair.Value));
+                obj.Add(GetProperty(package));
             }
             return new JProperty("fixed", obj);
         }

@@ -50,6 +50,7 @@
     <Compile Include="JsonTypes.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="NuGetPackageChange.cs" />
+    <Compile Include="NuGetPackageSource.cs" />
     <Compile Include="NuSpecUtil.cs" />
     <Compile Include="ProducesCommand.cs" />
     <Compile Include="Program.cs" />

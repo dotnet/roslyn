@@ -180,7 +180,7 @@ namespace RepoUtil
 
             // Calculate the new set of packages based on the changed information.
             var list = new List<NuGetPackage>();
-            foreach (var cur in _repoData.AllPackages)
+            foreach (var cur in _repoData.FloatingBuildPackages)
             {
                 NuGetPackage newPackage;
                 if (changeMap.TryGetValue(cur, out newPackage))
@@ -208,13 +208,13 @@ namespace RepoUtil
             }
         }
 
-        private void ChangeGeneratedFiles(IEnumerable<NuGetPackage> allPackages)
+        private void ChangeGeneratedFiles(IEnumerable<NuGetPackage> floatingPackages)
         {
             var msbuildData = _repoData.RepoConfig.MSBuildGenerateData;
             if (msbuildData.HasValue)
             {
                 var fileName = new FileName(_repoData.SourcesPath, msbuildData.Value.RelativeFileName);
-                var packages = GenerateUtil.GetFilteredPackages(msbuildData.Value, allPackages);
+                var packages = GenerateUtil.GetFilteredPackages(msbuildData.Value, _repoData);
                 GenerateUtil.WriteMSBuildContent(fileName, packages);
             }
         }

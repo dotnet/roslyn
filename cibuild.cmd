@@ -89,7 +89,7 @@ powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\sc
 call :TerminateBuildProcesses
 
 REM Verify the state of our project.jsons
-"Binaries\%BuildConfiguration%\RepoUtil\RepoUtil.exe verify" || goto :BuildFailed
+.\Binaries\%BuildConfiguration%\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

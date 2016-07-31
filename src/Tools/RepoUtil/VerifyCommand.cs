@@ -14,18 +14,6 @@ namespace RepoUtil
     /// </summary>
     internal sealed class VerifyCommand : ICommand
     {
-        private struct NuGetPackageSource
-        {
-            internal NuGetPackage NuGetPackage { get; }
-            internal FileName FileName { get; }
-
-            internal NuGetPackageSource(NuGetPackage package, FileName fileName)
-            {
-                NuGetPackage = package;
-                FileName = fileName;
-            }
-        }
-
         private readonly string _sourcesPath;
         private readonly RepoConfig _repoConfig;
 
@@ -37,66 +25,37 @@ namespace RepoUtil
 
         public bool Run(TextWriter writer, string[] args)
         {
-            List<NuGetPackage> allPackages;
-            if (!VerifyProjectJsonContents(writer, out allPackages))
-            {
-                return false;
-            }
-
+            RepoData repoData;
             return
+                VerifyProjectJsonContents(writer, out repoData) &&
                 VerifyRepoConfig(writer) &&
-                VerifyGeneratedFiles(writer, allPackages);
+                VerifyGeneratedFiles(writer, repoData);
         }
 
         /// <summary>
         /// Verify the packages listed in project.json are well formed.  Packages should all either have the same version or 
         /// be explicitly fixed in the config file.
         /// </summary>
-        private bool VerifyProjectJsonContents(TextWriter writer, out List<NuGetPackage> allPackages)
+        private bool VerifyProjectJsonContents(TextWriter writer, out RepoData repoData)
         {
             writer.WriteLine($"Verifying project.json contents");
-            var allGood = true;
-            var fixedPackageSet = new HashSet<NuGetPackage>(_repoConfig.FixedPackages);
-            var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
-            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_sourcesPath))
-            {
-                var fileName = FileName.FromFullPath(_sourcesPath, filePath);
-                foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
+
+            List<NuGetPackageConflict> conflicts;
+            repoData = RepoData.Create(_repoConfig, _sourcesPath, out conflicts);
+            if (conflicts?.Count > 0)
+            { 
+                foreach (var conflict in conflicts)
                 {
-                    if (fixedPackageSet.Contains(package))
-                    {
-                        continue;
-                    }
-
-                    NuGetPackageSource source;
-
-                    // If this is the first time we've seen the package then record where it was found.  Need the source
-                    // information to provide better error messages later.
-                    if (!floatingPackageMap.TryGetValue(package.Name, out source))
-                    {
-                        source = new NuGetPackageSource(package, fileName);
-                        floatingPackageMap.Add(package.Name, source);
-                        continue;
-                    }
-
-                    if (source.NuGetPackage != package)
-                    {
-                        writer.WriteLine($"Error! Package {package.Name} has different versions:");
-                        writer.WriteLine($"\t{fileName} at {package.Version}");
-                        writer.WriteLine($"\t{source.FileName} at {source.NuGetPackage.Version}");
-                        writer.WriteLine($"The versions must be the same or one must be explicitly listed as fixed in RepoData.json");
-                        allGood = false;
-                    }
+                    writer.WriteLine($"Error! Package {conflict.PackageName} has different versions:");
+                    writer.WriteLine($"\t{conflict.Original.FileName} at {conflict.Original.NuGetPackage.Version}");
+                    writer.WriteLine($"\t{conflict.Conflict.FileName} at {conflict.Conflict.NuGetPackage.Version}");
+                    writer.WriteLine($"The versions must be the same or one must be explicitly listed as fixed in RepoData.json");
                 }
+
+                return false;
             }
 
-            allPackages = floatingPackageMap
-                .Values
-                .Select(x => x.NuGetPackage)
-                .Concat(fixedPackageSet)
-                .OrderBy(x => x.Name)
-                .ToList();
-            return allGood;
+            return true;
         }
 
         /// <summary>
@@ -125,14 +84,14 @@ namespace RepoUtil
             return allGood;
         }
 
-        private bool VerifyGeneratedFiles(TextWriter writer, List<NuGetPackage> allPackages)
+        private bool VerifyGeneratedFiles(TextWriter writer, RepoData repoData)
         {
             var allGood = true;
             writer.WriteLine($"Verifying generated files");
             if (_repoConfig.MSBuildGenerateData.HasValue)
             {
                 var data = _repoConfig.MSBuildGenerateData.Value;
-                var packages = GenerateUtil.GetFilteredPackages(data, allPackages);
+                var packages = GenerateUtil.GetFilteredPackages(data, repoData);
                 var fileName = new FileName(_sourcesPath, data.RelativeFileName);
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);

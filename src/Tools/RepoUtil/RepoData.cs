@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,9 +19,8 @@ namespace RepoUtil
         internal ImmutableArray<NuGetPackage> FloatingPackages { get; }
         internal ImmutableArray<NuGetPackage> FixedPackages => RepoConfig.FixedPackages;
         internal ImmutableArray<NuGetPackage> AllPackages { get; }
-        internal ImmutableDictionary<string, ImmutableArray<string>> FixedPackagesMap => RepoConfig.FixedPackagesMap;
 
-        internal RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetPackage> floatingPackages)
+        private RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetPackage> floatingPackages)
         {
             SourcesPath = sourcesPath;
             RepoConfig = config;
@@ -48,28 +48,58 @@ namespace RepoUtil
 
         /// <summary>
         /// The raw RepoData contains only the fixed + toolset packages that we need to track.  This method will examine the current
-        /// state of the repo and add in the current data.
+        /// state of the repo and add in the current data.  If any conflicting package definitions are detected this method 
+        /// will throw.
         /// </summary>
         internal static RepoData Create(RepoConfig config, string sourcesPath)
         {
-            var set = new HashSet<NuGetPackage>();
-            foreach (var fileName in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
+            List<NuGetPackageConflict> conflicts;
+            var repoData = Create(config, sourcesPath, out conflicts);
+            if (conflicts?.Count > 0)
             {
-                foreach (var nuget in ProjectJsonUtil.GetDependencies(fileName))
+                throw new Exception("Creation failed because of conflicting packages");
+            }
+
+            return repoData;
+        }
+
+        internal static RepoData Create(RepoConfig config, string sourcesPath, out List<NuGetPackageConflict> conflicts)
+        {
+            conflicts = null;
+
+            var fixedPackageSet = new HashSet<NuGetPackage>(config.FixedPackages);
+            var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
+            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
+            {
+                var fileName = FileName.FromFullPath(sourcesPath, filePath);
+                foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
-                    if (config.FixedPackagesMap.ContainsKey(nuget.Name))
+                    if (fixedPackageSet.Contains(package))
                     {
                         continue;
                     }
 
-                    set.Add(nuget);
+                    // If this is the first time we've seen the package then record where it was found.  Need the source
+                    // information to provide better error messages later.
+                    var packageSource = new NuGetPackageSource(package, fileName);
+                    NuGetPackageSource originalSource;
+                    if (floatingPackageMap.TryGetValue(package.Name, out originalSource))
+                    {
+                        if (originalSource.NuGetPackage.Version != package.Version)
+                        {
+                            var conflict = new NuGetPackageConflict(original: originalSource, conflict: packageSource);
+                            conflicts = conflicts ?? new List<NuGetPackageConflict>();
+                            conflicts.Add(conflict);
+                        }
+                    }
+                    else
+                    {
+                        floatingPackageMap.Add(package.Name, packageSource);
+                    }
                 }
             }
 
-            return new RepoData(
-                config,
-                sourcesPath,
-                set);
+            return new RepoData(config, sourcesPath, floatingPackageMap.Values.Select(x => x.NuGetPackage));
         }
     }
 }
