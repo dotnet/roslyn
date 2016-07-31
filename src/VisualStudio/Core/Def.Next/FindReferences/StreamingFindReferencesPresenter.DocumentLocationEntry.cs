@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
-        private class DocumentLocationReferenceEntry : ReferenceEntry
+        private class DocumentLocationEntry : Entry
         {
             private readonly TableDataSourceFindReferencesContext _context;
             private readonly VisualStudioWorkspaceImpl _workspace;
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly SourceText _sourceText;
             private readonly TaggedTextAndHighlightSpan _taggedLineParts;
 
-            public DocumentLocationReferenceEntry(
+            public DocumentLocationEntry(
                 TableDataSourceFindReferencesContext context,
                 VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,

@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
                 new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
 
-            private ImmutableList<ReferenceEntry> _referenceEntries = ImmutableList<ReferenceEntry>.Empty;
+            private ImmutableList<Entry> _entries = ImmutableList<Entry>.Empty;
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; private set; }
 
@@ -149,8 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 if (noDefinitions)
                 {
                     // Create a fake definition/reference called "search found no results"
-                    this.OnReferenceFound(NoResultsDefinitionItem,
-                        (db, c) => SimpleMessageReferenceEntry.CreateAsync(
+                    this.OnEntryFound(NoResultsDefinitionItem,
+                        (db, c) => SimpleMessageEntry.CreateAsync(
                             db, ServicesVisualStudioNextResources.Search_found_no_results));
                 }
             }
@@ -172,8 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                     // Create a fake reference to this definition that says 
                     // "no references found to <symbolname>".
-                    OnReferenceFound(definition,
-                        (db, c) => SimpleMessageReferenceEntry.CreateAsync(
+                    OnEntryFound(definition,
+                        (db, c) => SimpleMessageEntry.CreateAsync(
                             db, GetMessage(db.DefinitionItem)));
                 }
             }
@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 lock (_gate)
                 {
-                    var seenDefinitions = this._referenceEntries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
+                    var seenDefinitions = this._entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
                     var q = from definition in _definitions
                             where !seenDefinitions.Contains(definition) &&
                                   definition.DisplayIfNoReferences
@@ -213,22 +213,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 foreach (var location in definition.SourceLocations)
                 {
-                    OnReferenceFound(definition,
-                        (db, c) => CreateReferenceEntryAsync(
+                    OnEntryFound(definition,
+                        (db, c) => CreateDocumentLocationEntryAsync(
                             db, location, isDefinitionLocation: true, cancellationToken: c));
                 }
             }
 
             public override void OnReferenceFound(SourceReferenceItem reference)
             {
-                OnReferenceFound(reference.Definition,
-                    (db, c) => CreateReferenceEntryAsync(
+                OnEntryFound(reference.Definition,
+                    (db, c) => CreateDocumentLocationEntryAsync(
                         db, reference.Location, isDefinitionLocation: false, cancellationToken: c));
             }
 
-            private async void OnReferenceFound(
+            private async void OnEntryFound(
                 DefinitionItem definition,
-                Func<RoslynDefinitionBucket, CancellationToken, Task<ReferenceEntry>> createReferenceEntryAsync)
+                Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
             {
                 try
                 {
@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // know so that it doesn't verify results until this completes.
                     using (var token = Presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
-                        await OnReferenceFoundAsync(definition, createReferenceEntryAsync).ConfigureAwait(false);
+                        await OnEntryFoundAsync(definition, createEntryAsync).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -248,9 +248,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            private async Task OnReferenceFoundAsync(
+            private async Task OnEntryFoundAsync(
                 DefinitionItem definition, 
-                Func<RoslynDefinitionBucket, CancellationToken, Task<ReferenceEntry>> createReferenceEntryAsync)
+                Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
                 cancellationToken.ThrowIfCancellationRequested();
@@ -263,9 +263,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return;
                 }
 
-                var referenceEntry = await createReferenceEntryAsync(
+                var entry = await createEntryAsync(
                     definitionBucket, cancellationToken).ConfigureAwait(false);
-                if (referenceEntry == null)
+                if (entry == null)
                 {
                     return;
                 }
@@ -273,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 lock (_gate)
                 {
                     // Once we can make the new entry, add it to our list.
-                    _referenceEntries = _referenceEntries.Add(referenceEntry);
+                    _entries = _entries.Add(entry);
                     CurrentVersionNumber++;
                 }
 
@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _tableDataSink.FactorySnapshotChanged(this);
             }
 
-            private async Task<ReferenceEntry> CreateReferenceEntryAsync(
+            private async Task<Entry> CreateDocumentLocationEntryAsync(
                 RoslynDefinitionBucket definitionBucket, 
                 DocumentLocation documentLocation,
                 bool isDefinitionLocation,
@@ -310,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
 
-                return new DocumentLocationReferenceEntry(
+                return new DocumentLocationEntry(
                     this, workspace, definitionBucket, documentLocation, 
                     isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
             }
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        _lastSnapshot = new TableEntriesSnapshot(_referenceEntries, CurrentVersionNumber);
+                        _lastSnapshot = new TableEntriesSnapshot(_entries, CurrentVersionNumber);
                     }
 
                     return _lastSnapshot;

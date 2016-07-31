@@ -13,17 +13,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         {
             private readonly int _versionNumber;
 
-            private readonly ImmutableList<ReferenceEntry> _referenceEntries;
+            private readonly ImmutableList<Entry> _entries;
 
-            public TableEntriesSnapshot(ImmutableList<ReferenceEntry> referenceEntries, int versionNumber)
+            public TableEntriesSnapshot(ImmutableList<Entry> entries, int versionNumber)
             {
-                _referenceEntries = referenceEntries;
+                _entries = entries;
                 _versionNumber = versionNumber;
             }
 
             public override int VersionNumber => _versionNumber;
 
-            public override int Count => _referenceEntries.Count;
+            public override int Count => _entries.Count;
 
             public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
             {
@@ -34,18 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public override bool TryGetValue(int index, string keyName, out object content)
             {
-                return _referenceEntries[index].TryGetValue(keyName, out content);
+                return _entries[index].TryGetValue(keyName, out content);
             }
-
-            //public override bool TryCreateToolTip(int index, string columnName, out object toolTip)
-            //{
-            //    return this._referenceEntries[index].TryCreateToolTip(columnName, out toolTip);
-            //}
 
             public override bool TryCreateColumnContent(
                 int index, string columnName, bool singleColumnView, out FrameworkElement content)
             {
-                return this._referenceEntries[index].TryCreateColumnContent(columnName, out content);
+                return this._entries[index].TryCreateColumnContent(columnName, out content);
             }
         }
     }

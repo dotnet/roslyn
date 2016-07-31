@@ -29,13 +29,13 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.DisposableToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationReferenceEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageReferenceEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageEntry.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.ReferenceEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Entry.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="ServicesVisualStudioNextResources.Designer.cs">

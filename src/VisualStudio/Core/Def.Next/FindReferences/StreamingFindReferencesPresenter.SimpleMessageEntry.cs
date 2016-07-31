@@ -6,11 +6,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
-        private class SimpleMessageReferenceEntry : ReferenceEntry
+        private class SimpleMessageEntry : Entry
         {
             private readonly string _message;
 
-            private SimpleMessageReferenceEntry(
+            private SimpleMessageEntry(
                 RoslynDefinitionBucket definitionBucket,
                 string message)
                 : base(definitionBucket)
@@ -18,12 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _message = message;
             }
 
-            public static Task<ReferenceEntry> CreateAsync(
+            public static Task<Entry> CreateAsync(
                 RoslynDefinitionBucket definitionBucket,
                 string message)
             {
-                var referenceEntry = new SimpleMessageReferenceEntry(definitionBucket, message);
-                return Task.FromResult<ReferenceEntry>(referenceEntry);
+                var referenceEntry = new SimpleMessageEntry(definitionBucket, message);
+                return Task.FromResult<Entry>(referenceEntry);
             }
 
             protected override object GetValueWorker(string keyName)

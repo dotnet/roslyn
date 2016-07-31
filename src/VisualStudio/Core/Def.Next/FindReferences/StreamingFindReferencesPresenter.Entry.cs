@@ -9,11 +9,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
-        private abstract class ReferenceEntry
+        private abstract class Entry
         {
             public readonly RoslynDefinitionBucket DefinitionBucket;
 
-            protected ReferenceEntry(RoslynDefinitionBucket definitionBucket)
+            protected Entry(RoslynDefinitionBucket definitionBucket)
             {
                 DefinitionBucket = definitionBucket;
             }
