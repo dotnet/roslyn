@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations();
 
-            var additionalLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
-            DocumentLocation? mainLocation = null;
+            var sourceLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
 
             // If it's a namespace, don't create any normal lcoation.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -175,16 +174,16 @@ namespace Microsoft.CodeAnalysis.FindReferences
                         if (document != null)
                         {
                             var documentLocation = new DocumentLocation(document, location.SourceSpan);
-                            if (mainLocation == null)
+                            if (sourceLocations.Count == 0)
                             {
-                                mainLocation = documentLocation;
+                                sourceLocations.Add(documentLocation);
                             }
                             else
                             {
                                 if (uniqueLocations == null ||
                                     uniqueLocations.Add(documentLocation))
                                 {
-                                    additionalLocations.Add(documentLocation);
+                                    sourceLocations.Add(documentLocation);
                                 }
                             }
                         }
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 }
             }
 
-            if (mainLocation == null)
+            if (sourceLocations.Count == 0)
             {
                 // If we got no definition locations, then create a sentinel one
                 // that we can display but which will not allow navigation.
@@ -203,8 +202,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, mainLocation.Value,
-                additionalLocations.ToImmutable(), displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutable(), displayIfNoReferences);
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(

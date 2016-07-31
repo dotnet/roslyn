@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// Additional locations to present in the UI.  A definition may have multiple locations 
         /// for cases like partial types/members.
         /// </summary>
-        public ImmutableArray<DocumentLocation> AdditionalLocations { get; }
+        public ImmutableArray<DocumentLocation> SourceLocations { get; }
 
         /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
@@ -58,13 +59,13 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
-            ImmutableArray<DocumentLocation> additionalLocations = default(ImmutableArray<DocumentLocation>),
+            ImmutableArray<DocumentLocation> sourceLocations = default(ImmutableArray<DocumentLocation>),
             bool displayIfNoReferences = true)
         {
             Tags = tags;
             DisplayParts = displayParts;
             OriginationParts = originationParts.NullToEmpty();
-            AdditionalLocations = additionalLocations.NullToEmpty();
+            SourceLocations = sourceLocations.NullToEmpty();
             DisplayIfNoReferences = displayIfNoReferences;
         }
 
@@ -74,12 +75,25 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            DocumentLocation location,
-            ImmutableArray<DocumentLocation> additionalLocations = default(ImmutableArray<DocumentLocation>),
+            DocumentLocation sourceLocation,
             bool displayIfNoReferences = true)
         {
+            return Create(tags, displayParts, ImmutableArray.Create(sourceLocation), displayIfNoReferences);
+        }
+
+        public static DefinitionItem Create(
+           ImmutableArray<string> tags,
+           ImmutableArray<TaggedText> displayParts,
+           ImmutableArray<DocumentLocation> sourceLocations,
+           bool displayIfNoReferences = true)
+        {
+            if (sourceLocations.Length == 0)
+            {
+                throw new ArgumentException($"{nameof(sourceLocations)} cannot be empty.");
+            }
+
             return new DocumentLocationDefinitionItem(
-                tags, displayParts, additionalLocations, displayIfNoReferences, location);
+                tags, displayParts, sourceLocations, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(

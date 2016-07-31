@@ -14,25 +14,21 @@ namespace Microsoft.CodeAnalysis.FindReferences
         // internal for testing purposes.
         internal sealed class DocumentLocationDefinitionItem : DefinitionItem
         {
-            public readonly DocumentLocation Location;
-
             internal override bool IsExternal => false;
 
             public DocumentLocationDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
-                ImmutableArray<DocumentLocation> additionalLocations,
-                bool displayIfNoReferences,
-                DocumentLocation location)
+                ImmutableArray<DocumentLocation> sourceLocations,
+                bool displayIfNoReferences)
                 : base(tags, displayParts, 
-                      ImmutableArray.Create(new TaggedText(TextTags.Text, location.Document.Project.Name)),
-                      additionalLocations, displayIfNoReferences)
+                      ImmutableArray.Create(new TaggedText(TextTags.Text, sourceLocations[0].Document.Project.Name)),
+                      sourceLocations, displayIfNoReferences)
             {
-                Location = location;
             }
 
-            public override bool CanNavigateTo() => Location.CanNavigateTo();
-            public override bool TryNavigateTo() => Location.TryNavigateTo();
+            public override bool CanNavigateTo() => SourceLocations[0].CanNavigateTo();
+            public override bool TryNavigateTo() => SourceLocations[0].TryNavigateTo();
         }
     }
 }
