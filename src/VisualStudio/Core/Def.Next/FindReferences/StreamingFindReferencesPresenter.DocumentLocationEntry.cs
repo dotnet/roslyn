@@ -197,7 +197,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     _sourceText.ToString(), contentType);
 
                 // Create an appropriate highlight span on that buffer for the reference.
-                var key = PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
+                var key = _isDefinitionLocation
+                    ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
+                    : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
                 textBuffer.Properties.RemoveProperty(key);
                 textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
                     SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));

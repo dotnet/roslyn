@@ -25,4 +25,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
         }
     }
+
+    [Export(typeof(ITaggerProvider))]
+    [TagType(typeof(NavigableHighlightTag))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [TextViewRole(TextViewRoles.PreviewRole)]
+    internal class PreviewDefinitionHighlightingTaggerProvider
+        : AbstractPreviewTaggerProvider<NavigableHighlightTag>
+    {
+        [ImportingConstructor]
+        public PreviewDefinitionHighlightingTaggerProvider() :
+            base(PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey, DefinitionHighlightTag.Instance)
+        {
+        }
+    }
 }
