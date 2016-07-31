@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.FindReferences;
@@ -15,12 +15,10 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -32,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly VisualStudioWorkspaceImpl _workspace;
 
             private readonly DocumentLocation _documentLocation;
-
+            private readonly bool _isDefinitionLocation;
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
             private readonly TaggedTextAndHighlightSpan _taggedLineParts;
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 _workspace = workspace;
                 _documentLocation = documentLocation;
-
+                _isDefinitionLocation = isDefinitionLocation;
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
                 _taggedLineParts = taggedLineParts;
@@ -88,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
-                    var inlines = GetHighlightedInlines(Presenter, _taggedLineParts);
+                    var inlines = GetHighlightedInlines(Presenter, _taggedLineParts, _isDefinitionLocation);
                     var textBlock = inlines.ToTextBlock(Presenter._typeMap);
 
                     LazyToolTip.AttachTo(textBlock, CreateDisposableToolTip);
@@ -101,22 +99,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return false;
             }
 
-
             private static IList<System.Windows.Documents.Inline> GetHighlightedInlines(
                 StreamingFindReferencesPresenter presenter,
                 TaggedTextAndHighlightSpan taggedTextAndHighlight,
-                string classificationFormatMap = null)
+                bool isDefinition)
             {
+                var propertyId = isDefinition
+                    ? DefinitionHighlightTag.TagId
+                    : ReferenceHighlightTag.TagId;
+
                 var properties = presenter._formatMapService
                                           .GetEditorFormatMap("text")
-                                          .GetProperties("MarkerFormatDefinition/HighlightedReference");
+                                          .GetProperties(propertyId);
                 var highlightBrush = properties["Background"] as Brush;
 
                 var lineParts = taggedTextAndHighlight.TaggedText;
                 var inlines = lineParts.ToInlines(
                     presenter._typeMap,
-                    classificationFormatMap,
-                    (run, taggedText, position) =>
+                    runCallback: (run, taggedText, position) =>
                     {
                         if (highlightBrush != null)
                         {

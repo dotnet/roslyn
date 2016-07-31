@@ -9,6 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
+        /// <summary>
+        /// Represents a single entry (i.e. row) in the ungrouped FAR table.
+        /// </summary>
         private abstract class Entry
         {
             public readonly RoslynDefinitionBucket DefinitionBucket;

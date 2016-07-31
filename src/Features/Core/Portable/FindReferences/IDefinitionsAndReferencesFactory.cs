@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             Solution solution,
             HashSet<DocumentLocation> uniqueLocations = null)
         {
-            var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
+            var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations();
@@ -221,7 +221,14 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 new DocumentLocation(referenceLocation.Document, location.SourceSpan));
         }
 
-        private static readonly SymbolDisplayFormat s_definitionDisplayFormat =
+        private static SymbolDisplayFormat GetFormat(ISymbol definition)
+        {
+            return definition.Kind == SymbolKind.Parameter
+                ? s_parameterDefinitionFormat
+                : s_definitionFormat;
+        }
+
+        private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -239,5 +246,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private static SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
+            .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }
