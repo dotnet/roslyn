@@ -306,7 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // need to speculate as to what 'i' meant if it wasn't part of a local declaration's
             // type.
 
-            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type))
+            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+                name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
                 var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
                 var container = context.SemanticModel.GetSpeculativeTypeInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;

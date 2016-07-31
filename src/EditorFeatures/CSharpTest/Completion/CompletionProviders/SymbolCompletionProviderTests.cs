@@ -6497,6 +6497,19 @@ class Program
             await VerifyItemExistsAsync(markup, "CommandLine");
         }
 
+        [WorkItem(12781, "https://github.com/dotnet/roslyn/issues/12781")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestFieldDeclarationAmbiguity()
+        {
+            var markup = @"
+using System;
+Environment.$$
+var v;
+}";
+
+            await VerifyItemExistsAsync(markup, "CommandLine", sourceCodeKind: SourceCodeKind.Script);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCursorOnClassCloseBrace()
         {
