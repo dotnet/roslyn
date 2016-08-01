@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
         {
-            return nameof(FilePath) + " " + FilePath;
+            return nameof(FilePath) + " = " + FilePath;
         }
 
         /// <summary>
