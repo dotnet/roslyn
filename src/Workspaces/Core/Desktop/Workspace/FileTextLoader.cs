@@ -11,9 +11,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    [System.Diagnostics.DebuggerDisplay("Path = {Path}")]
-    public class FileTextLoader : TextLoader
+    [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay}")]
+    public sealed class DocumentInfo
     {
+
+        private string GetDebuggerDisplay()
+        {
+            return nameof(FilePath) + " " + FilePath;
+        }
+
         private readonly string _path;
         private readonly Encoding _defaultEncoding;
 
