@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     this.VisitToken(n.AsToken());
                 }
-                else
+                else if (!this.Skip(n.AsNode()))
                 {
                     this.VisitNode(n.AsNode());
                     var children = n.ChildNodesAndTokens();
@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        protected virtual bool Skip(SyntaxNode node)
+        {
+            return false;
         }
 
         public virtual void VisitNode(SyntaxNode node)

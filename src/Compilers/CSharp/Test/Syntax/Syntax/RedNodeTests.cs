@@ -127,6 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal class SkippedCountingWalker : CountingWalker
+        {
+            protected override bool Skip(SyntaxNode node)
+            {
+                return node is LiteralExpressionSyntax;
+            }
+        }
+
         [Fact]
         public void TestLongExpression()
         {
@@ -168,6 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             countingWalker.Visit(expression);
             Assert.Equal(5, countingWalker.NodesCount);
             Assert.Equal(5, countingWalker.TokensCount);
+        }
+
+        [Fact]
+        public void TestSkippedWalkerCount()
+        {
+            string code = "1 + 2 + a";
+            ExpressionSyntax expression = SyntaxFactory.ParseExpression(code);
+            var countingWalker = new SkippedCountingWalker();
+            countingWalker.Visit(expression);
+            Assert.Equal(3, countingWalker.NodesCount);
+            Assert.Equal(3, countingWalker.TokensCount);
         }
 
         [Fact]

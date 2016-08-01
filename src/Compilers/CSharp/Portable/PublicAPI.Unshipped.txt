@@ -239,6 +239,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.Skip(Micr
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitNode(Microsoft.CodeAnalysis.SyntaxNode original, Microsoft.CodeAnalysis.SyntaxNode rewritten) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitToken(Microsoft.CodeAnalysis.SyntaxToken original, Microsoft.CodeAnalysis.SyntaxToken rewritten) -> Microsoft.CodeAnalysis.SyntaxToken
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia original, Microsoft.CodeAnalysis.SyntaxTrivia rewritten) -> Microsoft.CodeAnalysis.SyntaxTrivia
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.Skip(Microsoft.CodeAnalysis.SyntaxNode node) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.VisitNode(Microsoft.CodeAnalysis.SyntaxNode node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> void
