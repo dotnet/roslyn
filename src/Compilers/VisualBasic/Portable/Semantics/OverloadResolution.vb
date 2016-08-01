@@ -29,21 +29,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend MustOverride Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate
 
-            ''' <summary>Whether the method is used as extension method vs. called as a static method.</summary>
+            ''' <summary>
+            ''' Whether the method is used as extension method vs. called as a static method.
+            ''' </summary>
             Public Overridable ReadOnly Property IsExtensionMethod As Boolean
                 Get
                     Return False
                 End Get
             End Property
 
-            ''' <summary>Whether the method is used as an operator.</summary>
+            ''' <summary>
+            ''' Whether the method is used as an operator.
+            ''' </summary>
             Public Overridable ReadOnly Property IsOperator As Boolean
                 Get
                     Return False
                 End Get
             End Property
 
-            '''<summary>Whether the method is used in a lifted to nullable form.</summary>
+            '''<summary>
+            '''Whether the method is used in a lifted to nullable form.
+            '''</summary>
             Public Overridable ReadOnly Property IsLifted As Boolean
                 Get
                     Return False
@@ -51,7 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
 
-            ''' <summary>Precedence level for an extension method.</summary>
+            ''' <summary>
+            ''' Precedence level for an extension method.
+            ''' </summary>
             Public Overridable ReadOnly Property PrecedenceLevel As Integer
                 Get
                     Return 0
@@ -68,7 +76,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-
             Public MustOverride ReadOnly Property IsGeneric As Boolean
             Public MustOverride ReadOnly Property ParameterCount As Integer
             Public MustOverride Function Parameters(index As Integer) As ParameterSymbol
@@ -82,14 +89,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ByRef maxCount As Integer,
                 ByRef hasParamArray As Boolean
             )
-
                 maxCount = Me.ParameterCount
                 hasParamArray = False
                 requiredCount = -1
 
                 Dim last = maxCount - 1
 
-                For i = 0 To last
+                For i As Integer = 0 To last Step 1
                     Dim param As ParameterSymbol = Me.Parameters(i)
 
                     If i = last AndAlso param.IsParamArray Then
@@ -717,7 +723,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _remainingCandidatesRequireNarrowingConversion As Boolean
             Public ReadOnly AsyncLambdaSubToFunctionMismatch As ImmutableArray(Of BoundExpression)
 
-
             ' Create an overload resolution result from a full set of results.
             Public Sub New(allResults As ImmutableArray(Of CandidateAnalysisResult), resolutionIsLateBound As Boolean,
                            remainingCandidatesRequireNarrowingConversion As Boolean,
@@ -866,7 +871,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional isQueryOperatorInvocation As Boolean = False,
             Optional forceExpandedForm As Boolean = False
         ) As OverloadResolutionResult
-
             Debug.Assert(methodGroup.ResultKind = LookupResultKind.Good OrElse methodGroup.ResultKind = LookupResultKind.Inaccessible)
 
             Dim typeArguments = If(methodGroup.TypeArgumentsOpt IsNot Nothing, methodGroup.TypeArgumentsOpt.Arguments, ImmutableArray(Of TypeSymbol).Empty)
@@ -3542,7 +3546,7 @@ Bailout:
                 For k As Integer = 0 To ke
                     info = quickInfo(k)
 
-                    If info.Candidate Is Nothing OrElse (info.State = CandidateAnalysisResultState.Ambiguous) Then
+                    If info.Candidate Is Nothing OrElse info.State = CandidateAnalysisResultState.Ambiguous Then
                         Continue For
                     End If
 
@@ -3682,7 +3686,7 @@ Bailout:
             ' If type arguments have been specified, they are matched against the type parameter list. 
             ' If the two lists do not have the same number of elements, the method is not applicable, 
             ' unless the type argument list is empty. 
-            If (typeArguments.Length > 0) AndAlso (candidate.Arity <> typeArguments.Length) Then
+            If typeArguments.Length > 0 AndAlso candidate.Arity <> typeArguments.Length Then
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.BadGenericArity)
             End If
 
@@ -3708,7 +3712,7 @@ Bailout:
                     Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, True, False)
                 End If
 
-            ElseIf (arguments.Length < requiredCount) OrElse (Not hasParamArray AndAlso arguments.Length > maxCount) Then
+            ElseIf arguments.Length < requiredCount OrElse (Not hasParamArray AndAlso arguments.Length > maxCount) Then
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, Not hasParamArray, hasParamArray)
             End If
 
@@ -3719,8 +3723,8 @@ Bailout:
                     useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
                 End If
                 useSiteDiagnostics.Add(useSiteErrorInfo)
-                    Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUseSiteError)
-                End If
+                Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUseSiteError)
+            End If
 
             ' A method with a paramarray can be considered in two forms: in an
             ' expanded form or in an unexpanded form (i.e. as if the paramarray
@@ -3743,7 +3747,6 @@ Bailout:
             If hasParamArray AndAlso Not isQueryOperatorInvocation Then
                 applicableInParamArrayForm = True
             End If
-
 
             Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.Applicable, applicableInNormalForm, applicableInParamArrayForm)
         End Function

@@ -357,7 +357,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             comparisons As SymbolComparisonResults,
             Optional stopIfAny As SymbolComparisonResults = 0
         ) As SymbolComparisonResults
-
             Dim results As SymbolComparisonResults = Nothing
 
             If method1 = method2 Then
@@ -484,7 +483,8 @@ Done:
 
             If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
                 Return SymbolComparisonResults.ReturnTypeMismatch
-            ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso (type1 <> type2) Then
+            ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
+                   (type1 <> type2) Then
                 Return SymbolComparisonResults.CustomModifierMismatch
             End If
 
@@ -499,7 +499,6 @@ Done:
             comparisons As SymbolComparisonResults,
             Optional stopIfAny As SymbolComparisonResults = 0
         ) As SymbolComparisonResults
-
             Dim results As SymbolComparisonResults = Nothing
 
             Dim commonParamCount As Integer
@@ -584,7 +583,6 @@ Done:
                         End If
 
                         If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
-
                             If bothOptional Then
                                 results = results Or SymbolComparisonResults.OptionalParameterTypeMismatch
                                 If (stopIfAny And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -649,7 +647,6 @@ Done:
                             If Not AreValuesMismatched Then
                                 optionalParameterMismatch = AreValuesMismatched
                             Else
-
 
                                 ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
                                 ' However, the only way to know the current compilation at this point is to pass it into every method
