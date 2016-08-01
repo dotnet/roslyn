@@ -232,6 +232,8 @@
     <Compile Include="FindReferences\DocumentLocation.cs" />
     <Compile Include="FindReferences\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindReferences\SourceReferenceItem.cs" />
+    <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
@@ -247,11 +249,8 @@
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
-    <Compile Include="Diagnostics\EngineV2\CompilerAnalysisResult.cs" />
-    <Compile Include="Diagnostics\EngineV2\DiagnosticDataSerializer.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisData.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisKind.cs" />
-    <Compile Include="Diagnostics\EngineV2\AnalysisResult.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.CompilationManager.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.Executor.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.InMemoryStorage.cs" />
@@ -265,7 +264,6 @@
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerCategory.cs" />
-    <Compile Include="Diagnostics\EngineV2\CompilerDiagnosticExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.ActiveFileState.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.ProjectState.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />
@@ -340,8 +338,6 @@
     <Compile Include="Shared\Options\AddImportOptionsProvider.cs" />
     <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
     <Compile Include="Shared\Options\AddImportOptions.cs" />
-    <Compile Include="Shared\Options\RuntimeOptions.cs" />
-    <Compile Include="Shared\Options\RuntimeOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
