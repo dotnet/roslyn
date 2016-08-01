@@ -537,4 +537,7 @@
   <data name="SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>Source Link embedding is only supported when emitting Portable PDB.</value>
   </data>
+  <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
+    <value>Unrecognized resource file format.</value>
+  </data>
 </root>

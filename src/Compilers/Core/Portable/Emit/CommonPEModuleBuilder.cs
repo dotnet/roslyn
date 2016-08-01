@@ -29,6 +29,16 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
         internal abstract Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint index);
+
+        internal readonly IEnumerable<ResourceDescription> ManifestResources;
+        internal IEnumerable<Cci.IWin32Resource> Win32Resources;
+        internal Cci.ResourceSection Win32ResourceSection;
+        internal Stream SourceLinkStreamOpt;
+
+        public CommonPEModuleBuilder(IEnumerable<ResourceDescription> manifestResources)
+        {
+            ManifestResources = manifestResources;
+        }
     }
 
     /// <summary>
@@ -65,11 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private PrivateImplementationDetails _privateImplementationDetails;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
-        internal IEnumerable<Cci.IWin32Resource> Win32Resources { set; private get; }
-        internal Cci.ResourceSection Win32ResourceSection { set; private get; }
-        internal Stream SourceLinkStreamOpt { set; private get; }
 
-        internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly TModuleCompilationState CompilationState;
 
         // This is a map from the document "name" to the document.
@@ -115,7 +121,8 @@ namespace Microsoft.CodeAnalysis.Emit
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
             EmitOptions emitOptions,
-            TModuleCompilationState compilationState)
+            TModuleCompilationState compilationState) 
+            : base(manifestResources)
         {
             Debug.Assert(sourceModule != null);
             Debug.Assert(serializationProperties != null);
@@ -123,7 +130,6 @@ namespace Microsoft.CodeAnalysis.Emit
             _compilation = compilation;
             _sourceModule = sourceModule;
             _serializationProperties = serializationProperties;
-            this.ManifestResources = manifestResources;
             _outputKind = outputKind;
             _emitOptions = emitOptions;
             this.CompilationState = compilationState;

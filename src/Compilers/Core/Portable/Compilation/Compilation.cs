@@ -1160,6 +1160,25 @@ namespace Microsoft.CodeAnalysis
             return resourceList;
         }
 
+        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream win32Resources, DiagnosticBag diagnostics)
+        {
+            if (win32Resources == null)
+                return;
+
+            switch (DetectWin32ResourceForm(win32Resources))
+            {
+                case Win32ResourceForm.COFF:
+                    moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
+                    break;
+                case Win32ResourceForm.RES:
+                    moduleBeingBuilt.Win32Resources = MakeWin32ResourceList(win32Resources, diagnostics);
+                    break;
+                default:
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, CodeAnalysisResources.UnrecognizedResourceFileFormat));
+                    break;
+            }
+        }
+
         internal void ReportManifestResourceDuplicates(
             IEnumerable<ResourceDescription> manifestResources,
             IEnumerable<string> addedModuleNames,

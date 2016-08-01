@@ -1922,7 +1922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_ProjectSettingsLocationName = 56000
         IDS_FunctionReturnType = 56001
         IDS_TheSystemCannotFindThePathSpecified = 56002
-        IDS_UnrecognizedFileFormat = 56003
+        ' available: 56003
         IDS_MSG_ADDMODULE = 56004
         IDS_MSG_ADDLINKREFERENCE = 56005
         IDS_MSG_ADDREFERENCE = 56006

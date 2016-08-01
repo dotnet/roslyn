@@ -1253,6 +1253,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unrecognized resource file format..
+        /// </summary>
+        internal static string UnrecognizedResourceFileFormat {
+            get {
+                return ResourceManager.GetString("UnrecognizedResourceFileFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unresolved: .
         /// </summary>
         internal static string Unresolved {
