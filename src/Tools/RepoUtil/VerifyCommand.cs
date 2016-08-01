@@ -26,10 +26,15 @@ namespace RepoUtil
         public bool Run(TextWriter writer, string[] args)
         {
             RepoData repoData;
-            return
-                VerifyProjectJsonContents(writer, out repoData) &&
+            if (VerifyProjectJsonContents(writer, out repoData) &&
                 VerifyRepoConfig(writer) &&
-                VerifyGeneratedFiles(writer, repoData);
+                VerifyGeneratedFiles(writer, repoData))
+            {
+                return true;
+            }
+
+            writer.WriteLine($"Error! RepoUtil verification failed.");
+            return false;
         }
 
         /// <summary>

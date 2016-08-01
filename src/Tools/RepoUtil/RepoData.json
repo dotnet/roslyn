@@ -22,7 +22,6 @@
                 "Microsoft.Dia.*",
                 "System.*",
                 "Microsoft.CodeAnalysis.Analyzers",
-                "Managed.Esent",
                 "Microsoft.VisualBasic",
                 "Microsoft.Composition"
             ]
