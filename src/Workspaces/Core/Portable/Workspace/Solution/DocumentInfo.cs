@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A class that represents all the arguments necessary to create a new document instance.
     /// </summary>
-    [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay()}")]
+    [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
     {
 
@@ -73,6 +74,11 @@ namespace Microsoft.CodeAnalysis
             if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
+            }
+
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
             }
 
             this.Id = id;
