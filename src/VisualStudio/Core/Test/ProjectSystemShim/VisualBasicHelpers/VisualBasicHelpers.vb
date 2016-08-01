@@ -1,9 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
-Imports System.IO
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
     Friend Module VisualBasicHelpers
@@ -13,7 +14,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
                                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
                                                           projectName,
                                                           environment.CreateHierarchy(projectName, projectBinPath, "VB"),
-                                                          environment.ServiceProvider)
+                                                          environment.ServiceProvider,
+                                                          New VisualBasicCommandLineParserService())
         End Function
 
         Public Function CreateMinimalCompilerOptions(project As VisualBasicProjectShimWithServices) As VBCompilerOptions

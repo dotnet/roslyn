@@ -267,8 +267,23 @@ namespace A.B {
                     }
                 }
             }
+        }
+
+        [Fact]
+        public void Emit_BadArgs()
+        {
+            var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
 
             Assert.Throws<ArgumentNullException>(() => comp.Emit(peStream: null));
+            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+
+            // we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream: new MemoryStream(), 
+                pdbStream: new MemoryStream(), 
+                xmlDocumentationStream: new TestStream(canRead: true, canWrite: false, canSeek: true)).Success);
         }
 
         [Fact]

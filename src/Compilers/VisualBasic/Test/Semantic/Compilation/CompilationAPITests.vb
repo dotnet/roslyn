@@ -239,6 +239,22 @@ End Namespace
         End Sub
 
         <Fact>
+        Public Sub Emit_BadArgs()
+            Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
+
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+
+            ' we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                xmlDocumentationStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)).Success)
+        End Sub
+
+        <Fact>
         Public Sub EmitOptionsDiagnostics()
             Dim c = CreateCompilationWithMscorlib({"class C {}"})
             Dim stream = New MemoryStream()

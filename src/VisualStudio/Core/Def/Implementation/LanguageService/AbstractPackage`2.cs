@@ -3,16 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -74,6 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
                 this.Workspace.StartSolutionCrawler();
+
+                // start remote host
+                this.Workspace.Services.GetService<IRemoteHostClientService>()?.Enable();
             }
 
             // Ensure services that must be created on the UI thread have been.
@@ -136,6 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (this.Workspace != null)
             {
                 this.Workspace.StopSolutionCrawler();
+                this.Workspace.Services.GetService<IRemoteHostClientService>()?.Disable();
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.

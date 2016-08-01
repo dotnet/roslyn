@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
     public class CSharpReferenceTests
     {
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddingReferenceToProjectMetadataPromotesToProjectReference()
         {
@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddCyclicProjectMetadataReferences()
         {
@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddCyclicProjectReferences()
         {
@@ -79,7 +79,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddCyclicProjectReferencesDeep()
         {
@@ -102,6 +102,35 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 project4.Disconnect();
                 project3.Disconnect();
+                project2.Disconnect();
+                project1.Disconnect();
+            }
+        }
+
+        [WorkItem(12707, "https://github.com/dotnet/roslyn/issues/12707")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12707")]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void AddingProjectReferenceAndUpdateReferenceBinPath()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var project1 = CreateCSharpProject(environment, "project1");
+                environment.ProjectTracker.UpdateProjectBinPath(project1, null, @"c:\project1.dll");
+
+                var project2 = CreateCSharpProject(environment, "project2");
+                environment.ProjectTracker.UpdateProjectBinPath(project2, null, @"c:\project2.dll");
+
+                // since this is known to be the output path of project1, the metadata reference is converted to a project reference
+                project2.OnImportAdded(@"c:\project1.dll", "project1");
+
+                Assert.Equal(true, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
+                // update bin bath for project1.
+                environment.ProjectTracker.UpdateProjectBinPath(project1, @"c:\project1.dll", @"c:\new_project1.dll");
+
+                // Verify project reference updated after bin path change.
+                Assert.Equal(true, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
                 project2.Disconnect();
                 project1.Disconnect();
             }

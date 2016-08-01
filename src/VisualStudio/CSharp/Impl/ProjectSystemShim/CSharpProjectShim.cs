@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -51,7 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt)
             : base(projectTracker,
                    reportExternalErrorCreatorOpt,
                    projectSystemName,
@@ -59,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                    LanguageNames.CSharp,
                    serviceProvider,
                    visualStudioWorkspaceOpt,
-                   hostDiagnosticUpdateSourceOpt)
+                   hostDiagnosticUpdateSourceOpt,
+                   commandLineParserServiceOpt)
         {
             _projectRoot = projectRoot;
             _warningNumberArrayPointer = Marshal.AllocHGlobal(0);
@@ -189,11 +190,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 .WithPlatform(platform)
                 .WithSpecificDiagnosticOptions(diagnosticOptions)
                 .WithWarningLevel(warningLevel);
-        }
-
-        protected override CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments)
-        {
-            return CSharpCommandLineParser.Default.Parse(arguments, this.ContainingDirectoryPathOpt, sdkDirectory: null);
         }
 
         private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)

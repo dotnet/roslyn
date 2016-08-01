@@ -11,13 +11,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
     public class SourceFileHandlingTests
     {
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddRemoveSourceFile_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (var project = CreateCSharpCPSProject(environment, "project1"))
             {
-                var project = CreateCSharpCPSProject(environment, "project1");
                 Assert.Empty(project.GetCurrentDocuments());
 
                 // Add source file
@@ -28,18 +28,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Remove source file
                 project.RemoveSourceFile(sourceFileFullPath);
                 Assert.Empty(project.GetCurrentDocuments());
-
-                project.Disconnect();
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddRemoveAdditionalFile_CPS()
         {
             using (var environment = new TestEnvironment())
+            using (var project = CreateCSharpCPSProject(environment, "project1"))
             {
-                var project = CreateCSharpCPSProject(environment, "project1");
                 Assert.Empty(project.GetCurrentAdditionalDocuments());
 
                 // Add additional file
@@ -50,8 +48,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Remove additional file
                 project.RemoveAdditionalFile(additionalFileFullPath);
                 Assert.Empty(project.GetCurrentAdditionalDocuments());
-
-                project.Disconnect();
             }
         }
     }

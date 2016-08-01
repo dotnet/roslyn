@@ -91,16 +91,17 @@
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\CPSProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\CPSProject_IProjectContext.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProject_IWorkspaceProjectContext.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\CPSProjectFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\IProjectContextFactory.cs" />
-    <Compile Include="Implementation\ProjectSystem\CPS\IProjectContext.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContext.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_Options.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkspaceHost2.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IAnalyzerHost.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
@@ -110,6 +111,8 @@
     <Compile Include="Implementation\Options\ExportLanguageSpecificOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
+    <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
@@ -261,6 +264,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
@@ -522,7 +526,7 @@
     <Compile Include="Implementation\Progression\SymbolContainment.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractEntryPointFinder.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IAnalyzerHost.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractProject_Analyzers.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsENCRebuildableProjectCfg.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsReportExternalErrors.cs" />
     <Compile Include="Implementation\ProjectSystem\ComEventSink.cs" />

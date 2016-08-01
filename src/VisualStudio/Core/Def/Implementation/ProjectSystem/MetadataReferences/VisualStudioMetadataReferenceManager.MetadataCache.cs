@@ -28,6 +28,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
+            public bool TryGetSource(FileKey key, out ValueSource<AssemblyMetadata> source)
+            {
+                lock (_gate)
+                {
+                    return _metadataCache.TryGetValue(key, out source);
+                }
+            }
+
             private bool TryGetMetadata_NoLock(FileKey key, out AssemblyMetadata metadata)
             {
                 ValueSource<AssemblyMetadata> metadataSource;

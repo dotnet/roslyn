@@ -14,7 +14,6 @@
     <MSBuild Projects="DevDivPackages\Roslyn.proj" />
     <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
     <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
-    <MSBuild Projects="DevDivVsix\MicrosoftVisualStudioInteractiveWindow\Microsoft.VisualStudio.InteractiveWindow.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
 
     <!-- Dependencies -->
     <!-- <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" /> -->

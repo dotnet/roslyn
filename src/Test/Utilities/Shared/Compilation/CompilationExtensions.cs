@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Stream pdbStream = null,
             IMethodSymbol debugEntryPoint = null)
         {
-            var stream = new MemoryStream();
+            var peStream = new MemoryStream();
 
-            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
+            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug && options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
                 if (MonoHelpers.IsRunningOnMono())
                 {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var emitResult = compilation.Emit(
-                peStream: stream,
+                peStream: peStream,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 emitResult.Diagnostics.Verify(expectedWarnings);
             }
 
-            return stream.ToImmutable();
+            return peStream.ToImmutable();
         }
 
         public static MemoryStream EmitToStream(this Compilation compilation, EmitOptions options = null, DiagnosticDescription[] expectedWarnings = null)
