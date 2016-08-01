@@ -92,6 +92,8 @@ namespace RepoUtil
             {
                 var data = _repoConfig.MSBuildGenerateData.Value;
                 var packages = GenerateUtil.GetFilteredPackages(data, repoData);
+
+                // Need to verify the contents of the generated file are correct.
                 var fileName = new FileName(_sourcesPath, data.RelativeFileName);
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
@@ -100,15 +102,23 @@ namespace RepoUtil
                     writer.WriteLine($"{fileName.RelativePath} does not have the expected contents");
                     allGood = false;
                 }
+
+                if (!allGood)
+                {
+                    writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil.change"" to correct");
+                    return false;
+                }
+
+                // Verify none of the regex entries are stale.
+                var staleRegexList = GenerateUtil.GetStaleRegex(data, repoData);
+                foreach (var regex in staleRegexList)
+                {
+                    writer.WriteLine($"Regex {regex} matches no packages");
+                    allGood = false;
+                }
             }
 
-            if (!allGood)
-            {
-                writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil.change"" to correct");
-                return false;
-            }
-
-            return true;
+            return allGood;
         }
     }
 }

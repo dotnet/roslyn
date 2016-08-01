@@ -2,10 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
+    <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60723-01</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.0.12</SystemCollectionsConcurrentVersion>

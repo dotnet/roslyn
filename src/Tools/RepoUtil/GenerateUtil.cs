@@ -22,7 +22,7 @@ namespace RepoUtil
         /// <summary>
         /// Get the subset of packages which match the specified filter for the generated file.
         /// </summary>
-        internal static IEnumerable<NuGetPackage> GetFilteredPackages(GenerateData generateData, RepoData repoData)
+        internal static List<NuGetPackage> GetFilteredPackages(GenerateData generateData, RepoData repoData)
         {
             // Fixed packages are never included in generated output.  Doing so would create conflicts because it's
             // possible for two versions to exist for the same package.  Take for example System.Collections.Immuatble
@@ -30,6 +30,17 @@ namespace RepoUtil
             return repoData
                 .FloatingPackages
                 .Where(x => generateData.Packages.Any(y => y.IsMatch(x.Name)))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Get any regex entries that match no packages.  Such entries are stale.
+        /// </summary>
+        internal static List<Regex> GetStaleRegex(GenerateData generateData, RepoData repoData)
+        {
+            return generateData
+                .Packages
+                .Where(r => repoData.FloatingPackages.All(p => !r.IsMatch(p.Name)))
                 .ToList();
         }
 

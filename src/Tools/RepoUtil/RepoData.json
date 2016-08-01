@@ -21,11 +21,10 @@
             "values": [
                 "Microsoft.Dia.*",
                 "System.*",
-                "NETStandardLibraryVersion",
-                "MicrosoftCodeAnalysisAnalyzersVersion",
-                "ManagedEsentVersion",
-                "MicrosoftVisualBasicVersion",
-                "MicrosoftCompositionVersion"
+                "Microsoft.CodeAnalysis.Analyzers",
+                "Managed.Esent",
+                "Microsoft.VisualBasic",
+                "Microsoft.Composition"
             ]
         }
     },
