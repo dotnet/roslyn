@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources { set; private get; }
         internal Cci.ResourceSection Win32ResourceSection { set; private get; }
+        internal Stream SourceLinkStreamOpt { set; private get; }
 
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly TModuleCompilationState CompilationState;
@@ -266,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         Cci.IMethodReference Cci.IModule.PEEntryPoint => _peEntryPoint;
         Cci.IMethodReference Cci.IModule.DebugEntryPoint => _debugEntryPoint;
+        Stream Cci.IModule.SourceLinkStream => SourceLinkStreamOpt;
 
         internal void SetPEEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
         {

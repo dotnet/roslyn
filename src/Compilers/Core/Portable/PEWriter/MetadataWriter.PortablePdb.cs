@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -746,5 +747,24 @@ namespace Microsoft.Cci
         }
 
         #endregion
+
+        private void EmbedSourceLink(Stream stream)
+        {
+            // TODO: be more efficient: https://github.com/dotnet/roslyn/issues/12853
+            var memoryStream = new MemoryStream();
+            try
+            {
+                stream.CopyTo(memoryStream);
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PdbWritingException(e);
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
+                value: _debugMetadataOpt.GetOrAddBlob(memoryStream.ToArray()));
+        }
     }
 }

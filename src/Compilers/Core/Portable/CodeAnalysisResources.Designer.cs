@@ -1100,6 +1100,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Source Link embedding is only supported when emitting Portable PDB..
+        /// </summary>
+        internal static string SourceLinkRequiresPortablePdb {
+            get {
+                return ResourceManager.GetString("SourceLinkRequiresPortablePdb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The span does not include the end of a line..
         /// </summary>
         internal static string SpanDoesNotIncludeEndOfLine {
@@ -1123,6 +1132,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string StartMustNotBeNegative {
             get {
                 return ResourceManager.GetString("StartMustNotBeNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream must be readable..
+        /// </summary>
+        internal static string StreamMustSupportRead {
+            get {
+                return ResourceManager.GetString("StreamMustSupportRead", resourceCulture);
             }
         }
         

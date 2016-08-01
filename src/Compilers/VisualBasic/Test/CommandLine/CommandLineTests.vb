@@ -2424,6 +2424,36 @@ a.vb
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pdb:something"))
         End Sub
 
+        <Fact>
+        Public Sub SourceLink()
+            Dim parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:portable", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:""s l.json""", "/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+        End Sub
+
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
         Public Sub ParseOut()

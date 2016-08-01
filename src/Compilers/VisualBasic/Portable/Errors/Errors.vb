@@ -1686,6 +1686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PeWritingFailure = 37256
 
         ERR_OptionMustBeAbsolutePath = 37257
+        ERR_SourceLinkRequiresPortablePdb = 37258
 
         ERR_LastPlusOne
 

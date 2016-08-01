@@ -432,6 +432,7 @@ namespace Microsoft.CodeAnalysis
                         Arguments.ManifestResources,
                         emitOptions,
                         debugEntryPoint: null,
+                        sourceLinkStream: null,
                         testData: null,
                         cancellationToken: cancellationToken);
 

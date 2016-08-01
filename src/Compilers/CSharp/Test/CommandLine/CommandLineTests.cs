@@ -1591,6 +1591,36 @@ d.cs
             Assert.Null(parsedArgs.PdbPath);
         }
 
+        [Fact]
+        public void SourceLink()
+        {
+            var parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug:portable", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink);
+
+            parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug:embedded", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink);
+
+            parsedArgs = DefaultParse(new[] { @"/sourcelink:""s l.json""", "/debug:embedded", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink);
+
+            parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug:full", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+
+            parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug:pdbonly", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+
+            parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+
+            parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+
+            parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+        }
 
         [Fact]
         public void Optimize()

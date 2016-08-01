@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool optionsEnded = false;
             bool interactiveMode = false;
             bool publicSign = false;
+            string sourceLink = null;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -552,6 +553,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 resourcesOrModulesSpecified = true;
                             }
 
+                            continue;
+
+                        case "sourcelink":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
+                            }
+                            else
+                            {
+                                sourceLink = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
                             continue;
 
                         case "debug":
@@ -1146,6 +1159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
 
+            if (sourceLink != null)
+            {
+                if (!emitPdb || debugInformationFormat != DebugInformationFormat.PortablePdb && debugInformationFormat != DebugInformationFormat.Embedded)
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPortablePdb);
+                }
+            }
+
             var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
 
             string compilationName;
@@ -1223,6 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputFileName = outputFileName,
                 PdbPath = pdbPath,
                 EmitPdb = emitPdb,
+                SourceLink = sourceLink,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
                 ErrorLogPath = errorLogPath,

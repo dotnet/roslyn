@@ -2221,6 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -2265,6 +2266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 moduleBeingBuilt.SetDebugEntryPoint((MethodSymbol)debugEntryPoint, diagnostics);
             }
+
+            moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream;
 
             // testData is only passed when running tests.
             if (testData != null)

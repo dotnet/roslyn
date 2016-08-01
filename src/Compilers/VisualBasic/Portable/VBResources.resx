@@ -5062,6 +5062,7 @@
                                   (including module version GUID and timestamp)
 /instrument:options               Sets instrumentation options.
                                   If empty instrumentation is disabled.
+/sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.

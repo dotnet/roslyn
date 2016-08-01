@@ -2110,6 +2110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,
+            sourceLinkStream As Stream,
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2118,6 +2119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateModuleBuilder(
                 emitOptions,
                 debugEntryPoint,
+                sourceLinkStream,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -2128,6 +2130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,
+            sourceLinkStream As Stream,
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2169,6 +2172,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If debugEntryPoint IsNot Nothing Then
                 moduleBeingBuilt.SetDebugEntryPoint(DirectCast(debugEntryPoint, MethodSymbol), diagnostics)
             End If
+
+            moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream
 
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
