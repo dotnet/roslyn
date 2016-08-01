@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
         {
-            return nameof(Path) + " " + Path;
+            return nameof(Path) + " = " + Path;
         }
 
         /// <summary>
