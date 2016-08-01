@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (filePath == null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
             this.Id = id;
             this.Name = name;
             this.Folders = folders.ToImmutableReadOnlyListOrEmpty();
