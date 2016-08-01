@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay}")]
+    [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay()}")]
     public class FileTextLoader : TextLoader
     {
         private readonly string _path;
