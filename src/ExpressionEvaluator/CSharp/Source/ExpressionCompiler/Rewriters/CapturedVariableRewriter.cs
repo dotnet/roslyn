@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var result = variable.ToBoundExpression(syntax);
             Debug.Assert(node.Kind == BoundKind.BaseReference
-                ? result.Type.BaseType.Equals(node.Type, ignoreDynamic: true)
-                : result.Type.Equals(node.Type, ignoreDynamic: true));
+                ? result.Type.BaseType.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames)
+                : result.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             return result;
         }
 
