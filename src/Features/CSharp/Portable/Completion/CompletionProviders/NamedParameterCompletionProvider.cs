@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
+        private static readonly CompletionItemRules CompletionItemRules = CompletionItemRules.Default
+            .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     symbol: parameter,
                     contextPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: CompletionItemRules.Default,
+                    rules: CompletionItemRules,
                     matchPriority: SymbolMatchPriority.PreferNamedArgument));
             }
         }
