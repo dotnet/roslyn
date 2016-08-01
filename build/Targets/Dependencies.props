@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
+    <ManagedEsentVersion>1.9.2.0</ManagedEsentVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>

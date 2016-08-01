@@ -40,9 +40,9 @@ namespace RepoUtil
         private JProperty GetFixedPackages()
         {
             var obj = new JObject();
-            foreach (var package in _repoData.FixedPackages.OrderBy(x => x.Name))
+            foreach (var package in _repoData.FixedPackages.GroupBy(x => x.Name))
             {
-                obj.Add(GetProperty(package));
+                obj.Add(GetProperty(package.Key, package.Select(x => x.Version)));
             }
             return new JProperty("fixed", obj);
         }
@@ -73,11 +73,11 @@ namespace RepoUtil
             return new JProperty(package.Name, package.Version);
         }
 
-        private static JProperty GetProperty(string packageName, ImmutableArray<string> versions)
+        private static JProperty GetProperty(string packageName, IEnumerable<string> versions)
         {
-            if (versions.Length == 1)
+            if (versions.Count() == 1)
             {
-                return GetProperty(new NuGetPackage(packageName, versions[0]));
+                return GetProperty(new NuGetPackage(packageName, versions.Single()));
             }
 
             var content = JArray.FromObject(versions.ToArray());

@@ -23,7 +23,8 @@
                 "System.*",
                 "Microsoft.CodeAnalysis.Analyzers",
                 "Microsoft.VisualBasic",
-                "Microsoft.Composition"
+                "Microsoft.Composition",
+                "ManagedEsent"
             ]
         }
     },
