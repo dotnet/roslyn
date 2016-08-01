@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Roslyn.Utilities;
 
