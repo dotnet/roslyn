@@ -14,6 +14,7 @@
     <SignRoslynArgs>-test</SignRoslynArgs>
     <PublishAssetsArgs>-test</PublishAssetsArgs>
     <CopyInsertionFileArgs>-test</CopyInsertionFileArgs>
+    <SetupStep2Properties>FinalizeValidate=false;ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6</SetupStep2Properties>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -27,7 +28,7 @@
     <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
-    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" />
+    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties)" />
 
     <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
 
