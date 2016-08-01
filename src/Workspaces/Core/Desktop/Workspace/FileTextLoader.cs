@@ -12,16 +12,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay}")]
-    public sealed class DocumentInfo
+    public class FileTextLoader : TextLoader
     {
+        private readonly string _path;
+        private readonly Encoding _defaultEncoding;
 
         private string GetDebuggerDisplay()
         {
-            return nameof(FilePath) + " " + FilePath;
+            return nameof(Path) + " " + Path;
         }
-
-        private readonly string _path;
-        private readonly Encoding _defaultEncoding;
 
         /// <summary>
         /// Creates a content loader for specified file.
