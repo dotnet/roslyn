@@ -24,7 +24,6 @@
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
 
-    <!-- TODO: pass arguments -->
     <Exec Command="$(ProjectDir)Binaries\$(Configuration)\SignRoslyn\SignRoslyn.exe $(SignRoslynArgs) -binariesPath &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
