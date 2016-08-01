@@ -82,6 +82,19 @@
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
+    <Compile Include="FindReferences\ISupportsNavigation.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DisposableToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Entry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
+    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
@@ -89,7 +102,9 @@
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="ServicesVisualStudioNextResources.resx" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
