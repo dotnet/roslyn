@@ -3022,12 +3022,7 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(
-                                                             param As ParameterSymbol,
-                                                             syntax As VisualBasicSyntaxNode,
-                                                             diagnostics As DiagnosticBag,
-                                                             callerInfoOpt As VisualBasicSyntaxNode
-                                                           ) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VisualBasicSyntaxNode) As BoundExpression
 
             Dim defaultArgument As BoundExpression = Nothing
 

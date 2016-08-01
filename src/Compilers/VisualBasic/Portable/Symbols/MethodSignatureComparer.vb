@@ -356,11 +356,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             method2 As MethodSymbol,
             comparisons As SymbolComparisonResults,
             Optional stopIfAny As SymbolComparisonResults = 0
-         ) As SymbolComparisonResults
+        ) As SymbolComparisonResults
 
             Dim results As SymbolComparisonResults = Nothing
 
-            If method1 = method2 Then Return Nothing
+            If method1 = method2 Then
+                Return Nothing
+            End If
 
             If (comparisons And SymbolComparisonResults.ArityMismatch) <> 0 Then
                 If method1.Arity <> method2.Arity Then
@@ -382,17 +384,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim typeSubstitution2 As New LazyTypeSubstitution(method2)
 
             If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
-                results = results Or DetailedReturnTypeCompare(
-                                                                New TypeWithModifiers(method1.OriginalDefinition.ReturnType, method1.OriginalDefinition.ReturnTypeCustomModifiers),
-                                                                typeSubstitution1.Value,
-                                                                New TypeWithModifiers(method2.OriginalDefinition.ReturnType, method2.OriginalDefinition.ReturnTypeCustomModifiers),
-                                                                typeSubstitution2.Value,
-                                                                comparisons
-                                                              )
+                results = results Or DetailedReturnTypeCompare(New TypeWithModifiers(method1.OriginalDefinition.ReturnType, method1.OriginalDefinition.ReturnTypeCustomModifiers),
+                                                               typeSubstitution1.Value,
+                                                               New TypeWithModifiers(method2.OriginalDefinition.ReturnType, method2.OriginalDefinition.ReturnTypeCustomModifiers),
+                                                               typeSubstitution2.Value,
+                                                               comparisons)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
                 End If
-
             End If
 
             If (comparisons And SymbolComparisonResults.AllParameterMismatches) <> 0 Then
@@ -402,7 +401,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
                 End If
-
             End If
 
             If (comparisons And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
@@ -475,27 +473,32 @@ Done:
 
         ' Compare two return types and return the detailed comparison of them.
         Public Shared Function DetailedReturnTypeCompare(
-                                                          type1 As TypeWithModifiers, typeSubstitution1 As TypeSubstitution,
-                                                          type2 As TypeWithModifiers, typeSubstitution2 As TypeSubstitution,
-                                                          comparisons As SymbolComparisonResults
-                                                        ) As SymbolComparisonResults
-
+            type1 As TypeWithModifiers,
+            typeSubstitution1 As TypeSubstitution,
+            type2 As TypeWithModifiers,
+            typeSubstitution2 As TypeSubstitution,
+            comparisons As SymbolComparisonResults
+        ) As SymbolComparisonResults
             type1 = SubstituteType(typeSubstitution1, type1)
             type2 = SubstituteType(typeSubstitution2, type2)
 
-            If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then Return SymbolComparisonResults.ReturnTypeMismatch
-
-            If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso (type1 <> type2) Then Return SymbolComparisonResults.CustomModifierMismatch
+            If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
+                Return SymbolComparisonResults.ReturnTypeMismatch
+            ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso (type1 <> type2) Then
+                Return SymbolComparisonResults.CustomModifierMismatch
+            End If
 
             Return Nothing
         End Function
 
         Public Shared Function DetailedParameterCompare(
-                                                         params1 As ImmutableArray(Of ParameterSymbol), <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
-                                                         params2 As ImmutableArray(Of ParameterSymbol), <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
-                                                         comparisons As SymbolComparisonResults,
-                                                Optional stopIfAny As SymbolComparisonResults = 0
-                                                       ) As SymbolComparisonResults
+            params1 As ImmutableArray(Of ParameterSymbol),
+            <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
+            params2 As ImmutableArray(Of ParameterSymbol),
+            <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
+            comparisons As SymbolComparisonResults,
+            Optional stopIfAny As SymbolComparisonResults = 0
+        ) As SymbolComparisonResults
 
             Dim results As SymbolComparisonResults = Nothing
 
@@ -505,11 +508,9 @@ Done:
             If params1.Length > params2.Length Then
                 commonParamCount = params2.Length
                 longerParameters = params1
-
             ElseIf params1.Length < params2.Length Then
                 commonParamCount = params1.Length
                 longerParameters = params2
-
             Else
                 commonParamCount = params1.Length
                 longerParameters = Nothing
@@ -568,7 +569,6 @@ Done:
                     End If
 
                     If checkTypes Then
-
                         Dim type1 As TypeWithModifiers
                         If typeSubstitution1 IsNot Nothing Then
                             type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type, param1.OriginalDefinition.CustomModifiers))
@@ -596,7 +596,6 @@ Done:
                                     GoTo Done
                                 End If
                             End If
-
                         ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
                                (type1 <> type2 OrElse param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
                             results = results Or SymbolComparisonResults.CustomModifierMismatch
@@ -626,7 +625,6 @@ Done:
                        (comparisons And SymbolComparisonResults.OptionalParameterValueMismatch) <> 0 Then
 
                         Dim bothHaveExplicitDefaultValue = param1.HasExplicitDefaultValue AndAlso param2.HasExplicitDefaultValue
-
                         Dim optionalParameterMismatch As Boolean
 
                         ' For source symbols, parameter default values must match. i.e. if one has a default value then both must have a default value
@@ -636,8 +634,6 @@ Done:
 
                         If bothHaveExplicitDefaultValue Then
                             optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, param2.ExplicitDefaultConstantValue)
-
-
                         Else
 
                             Dim AreValuesMismatched As Boolean

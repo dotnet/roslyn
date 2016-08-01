@@ -30,23 +30,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend MustOverride Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate
 
             ''' <summary>Whether the method is used as extension method vs. called as a static method.</summary>
-            Public Overridable ReadOnly Property IsExtensionMethod As Boolean = False
+            Public Overridable ReadOnly Property IsExtensionMethod As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
 
             ''' <summary>Whether the method is used as an operator.</summary>
-            Public Overridable ReadOnly Property IsOperator As Boolean = False
+            Public Overridable ReadOnly Property IsOperator As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
 
             '''<summary>Whether the method is used in a lifted to nullable form.</summary>
-            Public Overridable ReadOnly Property IsLifted As Boolean = False
+            Public Overridable ReadOnly Property IsLifted As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
 
 
             ''' <summary>Precedence level for an extension method.</summary>
-            Public Overridable ReadOnly Property PrecedenceLevel As Integer = 0
+            Public Overridable ReadOnly Property PrecedenceLevel As Integer
+                Get
+                    Return 0
+                End Get
+            End Property
 
             ''' <summary>
             ''' Extension method type parameters that were fixed during currying, if any.
             ''' If none were fixed, BitArray.Null should be returned. 
             ''' </summary>
-            Public Overridable ReadOnly Property FixedTypeParameters As BitVector = BitVector.Null
+            Public Overridable ReadOnly Property FixedTypeParameters As BitVector
+                Get
+                    Return BitVector.Null
+                End Get
+            End Property
+
 
             Public MustOverride ReadOnly Property IsGeneric As Boolean
             Public MustOverride ReadOnly Property ParameterCount As Integer
@@ -57,10 +78,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
             Friend Sub GetAllParameterCounts(
-                                        ByRef requiredCount As Integer,
-                                        ByRef maxCount As Integer,
-                                        ByRef hasParamArray As Boolean
-                                            )
+                ByRef requiredCount As Integer,
+                ByRef maxCount As Integer,
+                ByRef hasParamArray As Boolean
+            )
 
                 maxCount = Me.ParameterCount
                 hasParamArray = False
@@ -690,8 +711,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Represents a simple overload resolution result
         Friend Structure OverloadResolutionResult
+            Private ReadOnly _bestResult As CandidateAnalysisResult?
             Private ReadOnly _allResults As ImmutableArray(Of CandidateAnalysisResult)
+            Private ReadOnly _resolutionIsLateBound As Boolean
+            Private ReadOnly _remainingCandidatesRequireNarrowingConversion As Boolean
             Public ReadOnly AsyncLambdaSubToFunctionMismatch As ImmutableArray(Of BoundExpression)
+
 
             ' Create an overload resolution result from a full set of results.
             Public Sub New(allResults As ImmutableArray(Of CandidateAnalysisResult), resolutionIsLateBound As Boolean,
@@ -717,14 +742,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Returns the best method. Note that if overload resolution succeeded, the set of conversion kinds will NOT be returned.
             Public ReadOnly Property BestResult As CandidateAnalysisResult?
+                Get
+                    Return _bestResult
+                End Get
+            End Property
 
             Public ReadOnly Property ResolutionIsLateBound As Boolean
+                Get
+                    Return _resolutionIsLateBound
+                End Get
+            End Property
 
             ''' <summary>
             ''' This might simplify error reporting. If not, consider getting rid of this property. 
             ''' </summary>
             Public ReadOnly Property RemainingCandidatesRequireNarrowingConversion As Boolean
-
+                Get
+                    Return _remainingCandidatesRequireNarrowingConversion
+                End Get
+            End Property
 
             Private Shared Function GetBestResult(allResults As ImmutableArray(Of CandidateAnalysisResult)) As CandidateAnalysisResult?
                 Dim best As CandidateAnalysisResult? = Nothing
@@ -2786,12 +2822,11 @@ Bailout:
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
-            <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As VisualBasicSyntaxNode,
             forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
-
             Debug.Assert(Not arguments.IsDefault)
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
             Debug.Assert(Not candidate.ArgumentMatchingDone)
@@ -3075,7 +3110,9 @@ Bailout:
                 ' Note these arguments are stored by parameter index. Default arguments are missing so they
                 ' may not have an argument index.
                 If defaultArgument IsNot Nothing Then
-                    optionalArguments = If(optionalArguments, New OptionalArgument(candidate.Candidate.ParameterCount - 1) {})
+                    If optionalArguments Is Nothing Then
+                        optionalArguments = New OptionalArgument(candidate.Candidate.ParameterCount - 1) {}
+                    End If
                     optionalArguments(paramIndex) = New OptionalArgument(defaultArgument, conversion)
                 End If
 
@@ -3094,17 +3131,29 @@ Bailout:
             Next
 
 Bailout:
-            If diagnostics IsNot Nothing Then diagnostics.Free()
+            If diagnostics IsNot Nothing Then
+                diagnostics.Free()
+            End If
 
-            If paramArrayItems IsNot Nothing Then paramArrayItems.Free()
+            If paramArrayItems IsNot Nothing Then
+                paramArrayItems.Free()
+            End If
 
-            If conversionKinds IsNot Nothing Then candidate.ConversionsOpt = conversionKinds.AsImmutableOrNull()
+            If conversionKinds IsNot Nothing Then
+                candidate.ConversionsOpt = conversionKinds.AsImmutableOrNull()
+            End If
 
-            If conversionBackKinds IsNot Nothing Then candidate.ConversionsBackOpt = conversionBackKinds.AsImmutableOrNull()
+            If conversionBackKinds IsNot Nothing Then
+                candidate.ConversionsBackOpt = conversionBackKinds.AsImmutableOrNull()
+            End If
 
-            If optionalArguments IsNot Nothing Then candidate.OptionalArguments = optionalArguments.AsImmutableOrNull()
+            If optionalArguments IsNot Nothing Then
+                candidate.OptionalArguments = optionalArguments.AsImmutableOrNull()
+            End If
 
-            If parameterToArgumentMap IsNot Nothing Then parameterToArgumentMap.Free()
+            If parameterToArgumentMap IsNot Nothing Then
+                parameterToArgumentMap.Free()
+            End If
 
         End Sub
 
@@ -3415,7 +3464,7 @@ Bailout:
             includeEliminatedCandidates As Boolean,
             isQueryOperatorInvocation As Boolean,
             forceExpandedForm As Boolean,
-            <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
             Debug.Assert(results IsNot Nothing)
@@ -3426,11 +3475,15 @@ Bailout:
 
             For i As Integer = 0 To group.Count - 1
 
-                If group(i) Is Nothing Then Continue For
+                If group(i) Is Nothing Then
+                    Continue For
+                End If
 
                 Dim info As QuickApplicabilityInfo = DoQuickApplicabilityCheck(group(i), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteDiagnostics)
 
-                If info.Candidate Is Nothing Then Continue For
+                If info.Candidate Is Nothing Then
+                    Continue For
+                End If
 
                 If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule OrElse
                    info.Candidate.IsExtensionMethod Then
@@ -3455,7 +3508,8 @@ Bailout:
                 Dim applicableCount As Integer = If(info.State = CandidateAnalysisResultState.Applicable, 1, 0)
 
                 For j As Integer = i + 1 To group.Count - 1
-                    If group(j) Is Nothing OrElse group(j).IsExtensionMethod Then ' VS2013 ignores illegal overloading for extension methods
+                    If group(j) Is Nothing OrElse
+                       group(j).IsExtensionMethod Then ' VS2013 ignores illegal overloading for extension methods
                         Continue For
                     End If
 
@@ -3463,7 +3517,9 @@ Bailout:
                         info = DoQuickApplicabilityCheck(group(j), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteDiagnostics)
                         group(j) = Nothing
 
-                        If info.Candidate Is Nothing Then Continue For
+                        If info.Candidate Is Nothing Then
+                            Continue For
+                        End If
 
                         ' Keep applicable candidates at the beginning.
                         If info.State <> CandidateAnalysisResultState.Applicable Then
@@ -3482,22 +3538,28 @@ Bailout:
                 ' Now see if any candidates are ambiguous or lose against other candidates in the quickInfo array.
                 ' This loop is destructive to the content of the quickInfo, some applicable candidates could be replaced with
                 ' a "better" candidate, even though that candidate is not applicable, "losers" are deleted, etc.
-                Dim ke = If(applicableCount > 0 OrElse Not includeEliminatedCandidates, applicableCount, quickInfo.Count) - 1
+                Dim ke As Integer = If(applicableCount > 0 OrElse Not includeEliminatedCandidates, applicableCount, quickInfo.Count) - 1
                 For k As Integer = 0 To ke
                     info = quickInfo(k)
 
-                    If info.Candidate Is Nothing OrElse (info.State = CandidateAnalysisResultState.Ambiguous) Then Continue For
+                    If info.Candidate Is Nothing OrElse (info.State = CandidateAnalysisResultState.Ambiguous) Then
+                        Continue For
+                    End If
 
 #If DEBUG Then
                     Dim isExtensionMethod As Boolean = info.Candidate.IsExtensionMethod
 #End If
                     Dim firstSymbol As Symbol = info.Candidate.UnderlyingSymbol.OriginalDefinition
-                    If firstSymbol.IsReducedExtensionMethod() Then firstSymbol = DirectCast(firstSymbol, MethodSymbol).ReducedFrom
+                    If firstSymbol.IsReducedExtensionMethod() Then
+                        firstSymbol = DirectCast(firstSymbol, MethodSymbol).ReducedFrom
+                    End If
 
                     For l As Integer = k + 1 To quickInfo.Count - 1
                         Dim info2 As QuickApplicabilityInfo = quickInfo(l)
 
-                        If info2.Candidate Is Nothing OrElse (info2.State = CandidateAnalysisResultState.Ambiguous) Then Continue For
+                        If info2.Candidate Is Nothing OrElse (info2.State = CandidateAnalysisResultState.Ambiguous) Then
+                            Continue For
+                        End If
 
 #If DEBUG Then
                         Debug.Assert(isExtensionMethod = info2.Candidate.IsExtensionMethod)
@@ -3512,7 +3574,11 @@ Bailout:
                         Const significantDifferences As SymbolComparisonResults = SymbolComparisonResults.AllMismatches And
                                                                                   Not SymbolComparisonResults.MismatchesForConflictingMethods
 
-                        Dim comparisonResults As SymbolComparisonResults = OverrideHidingHelper.DetailedSignatureCompare(firstSymbol, secondSymbol, significantDifferences, significantDifferences)
+                        Dim comparisonResults As SymbolComparisonResults = OverrideHidingHelper.DetailedSignatureCompare(
+                            firstSymbol,
+                            secondSymbol,
+                            significantDifferences,
+                            significantDifferences)
 
                         ' Signature must be considered equal following VB rules.
                         If comparisonResults = 0 Then
@@ -3599,13 +3665,14 @@ Bailout:
             forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As QuickApplicabilityInfo
-
             If isQueryOperatorInvocation AndAlso DirectCast(candidate.UnderlyingSymbol, MethodSymbol).IsSub Then
                 ' Subs are never considered as candidates for Query Operators, but method group might have subs in it. 
                 Return Nothing
             End If
 
-            If candidate.UnderlyingSymbol.HasUnsupportedMetadata Then Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUnsupportedMetadata)
+            If candidate.UnderlyingSymbol.HasUnsupportedMetadata Then
+                Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUnsupportedMetadata)
+            End If
 
             ' If type arguments have been supplied, eliminate procedures that don't have an
             ' appropriate number of type parameters.
@@ -3615,10 +3682,14 @@ Bailout:
             ' If type arguments have been specified, they are matched against the type parameter list. 
             ' If the two lists do not have the same number of elements, the method is not applicable, 
             ' unless the type argument list is empty. 
-            If (typeArguments.Length > 0) AndAlso (candidate.Arity <> typeArguments.Length) Then Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.BadGenericArity)
+            If (typeArguments.Length > 0) AndAlso (candidate.Arity <> typeArguments.Length) Then
+                Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.BadGenericArity)
+            End If
 
             ' Eliminate procedures that cannot accept the number of supplied arguments.
-            Dim requiredCount, maxCount As Integer, hasParamArray As Boolean
+            Dim requiredCount As Integer
+            Dim maxCount As Integer
+            Dim hasParamArray As Boolean
 
             candidate.GetAllParameterCounts(requiredCount, maxCount, hasParamArray)
 
@@ -3633,7 +3704,9 @@ Bailout:
             'expression is the literal Nothing, then the method is only applicable in its unexpanded form.
             If isQueryOperatorInvocation Then
                 ' Query operators require exact match for argument count.
-                If arguments.Length <> maxCount Then Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, True, False)
+                If arguments.Length <> maxCount Then
+                    Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, True, False)
+                End If
 
             ElseIf (arguments.Length < requiredCount) OrElse (Not hasParamArray AndAlso arguments.Length > maxCount) Then
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, Not hasParamArray, hasParamArray)
@@ -3642,10 +3715,12 @@ Bailout:
             Dim useSiteErrorInfo As DiagnosticInfo = candidate.UnderlyingSymbol.GetUseSiteErrorInfo()
 
             If useSiteErrorInfo IsNot Nothing Then
-                useSiteDiagnostics = If(useSiteDiagnostics, New HashSet(Of DiagnosticInfo)())
+                If useSiteDiagnostics Is Nothing Then
+                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
+                End If
                 useSiteDiagnostics.Add(useSiteErrorInfo)
-                Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUseSiteError)
-            End If
+                    Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUseSiteError)
+                End If
 
             ' A method with a paramarray can be considered in two forms: in an
             ' expanded form or in an unexpanded form (i.e. as if the paramarray
@@ -3657,12 +3732,17 @@ Bailout:
             ' either there is no paramarray or if the argument count matches exactly
             ' (if it's less, then the paramarray is expanded to nothing, if it's more,
             ' it's expanded to one or more parameters).
-            Dim applicableInNormalForm, applicableInParamArrayForm As Boolean
+            Dim applicableInNormalForm As Boolean = False
+            Dim applicableInParamArrayForm As Boolean = False
 
-            If Not hasParamArray OrElse (arguments.Length = maxCount AndAlso Not forceExpandedForm) Then applicableInNormalForm = True
+            If Not hasParamArray OrElse (arguments.Length = maxCount AndAlso Not forceExpandedForm) Then
+                applicableInNormalForm = True
+            End If
 
             ' How about it's expanded form? It always applies if there's a paramarray.
-            If hasParamArray AndAlso Not isQueryOperatorInvocation Then applicableInParamArrayForm = True
+            If hasParamArray AndAlso Not isQueryOperatorInvocation Then
+                applicableInParamArrayForm = True
+            End If
 
 
             Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.Applicable, applicableInNormalForm, applicableInParamArrayForm)
@@ -3678,18 +3758,24 @@ Bailout:
             delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
             binder As Binder,
-            <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
             Select Case candidate.State
                 Case CandidateAnalysisResultState.HasUnsupportedMetadata
-                    If includeEliminatedCandidates Then results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.HasUnsupportedMetadata))
+                    If includeEliminatedCandidates Then
+                        results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.HasUnsupportedMetadata))
+                    End If
 
                 Case CandidateAnalysisResultState.HasUseSiteError
-                    If includeEliminatedCandidates Then results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.HasUseSiteError))
+                    If includeEliminatedCandidates Then
+                        results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.HasUseSiteError))
+                    End If
 
                 Case CandidateAnalysisResultState.BadGenericArity
-                    If includeEliminatedCandidates Then results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.BadGenericArity))
+                    If includeEliminatedCandidates Then
+                        results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.BadGenericArity))
+                    End If
 
                 Case CandidateAnalysisResultState.ArgumentCountMismatch
                     Debug.Assert(candidate.AppliesToNormalForm <> candidate.AppliesToParamArrayForm)
@@ -3697,7 +3783,9 @@ Bailout:
 
                         Dim candidateAnalysis As New CandidateAnalysisResult(ConstructIfNeedTo(candidate.Candidate, typeArguments), CandidateAnalysisResultState.ArgumentCountMismatch)
 
-                        If candidate.AppliesToParamArrayForm Then candidateAnalysis.SetIsExpandedParamArrayForm()
+                        If candidate.AppliesToParamArrayForm Then
+                            candidateAnalysis.SetIsExpandedParamArrayForm()
+                        End If
 
                         results.Add(candidateAnalysis)
                     End If
@@ -3748,7 +3836,9 @@ Bailout:
 #End If
 
                 Case CandidateAnalysisResultState.Ambiguous
-                    If includeEliminatedCandidates Then results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.Ambiguous))
+                    If includeEliminatedCandidates Then
+                        results.Add(New CandidateAnalysisResult(candidate.Candidate, CandidateAnalysisResultState.Ambiguous))
+                    End If
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(candidate.State)
