@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)t != null)
             {
-                var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamicAndTupleNames) : TypeCompareKind.ConsiderEverything;
+                var comparison = ignoreDynamicAndTupleNames ? TypeCompareKind.IgnoreDynamicAndTupleNames : TypeCompareKind.ConsiderEverything;
                 if (type.Equals(t, comparison))
                 {
                     return true;
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool IsEqualToOrDerivedFrom(TypeSymbol type, bool ignoreDynamicAndTupleNames, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var comparison = ignoreDynamicAndTupleNames ? (TypeCompareKind.IgnoreDynamicAndTupleNames) : TypeCompareKind.ConsiderEverything;
+            var comparison = ignoreDynamicAndTupleNames ? TypeCompareKind.IgnoreDynamicAndTupleNames : TypeCompareKind.ConsiderEverything;
             return this.Equals(type, comparison) || this.IsDerivedFrom(type, ignoreDynamicAndTupleNames, ref useSiteDiagnostics);
         }
 
@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!MemberSignatureComparer.DifferOnlyInTupleNames(implicitImpl, interfaceMember))
+            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
             {
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
             }

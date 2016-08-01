@@ -15281,7 +15281,7 @@ class Derived : Base
         }
 
         [Fact]
-        public void OverridenMethodWithDifferentTupleNamesInReturn()
+        public void OverriddenMethodWithDifferentTupleNamesInReturn()
         {
             var source = @"
 public class Base
@@ -15638,7 +15638,7 @@ public class C : I0
         }
 
         [Fact]
-        public void InterfaceHiddingAnotherInterfaceWithDifferentTupleNames()
+        public void InterfaceHidingAnotherInterfaceWithDifferentTupleNames()
         {
             var source = @"
 public interface I0

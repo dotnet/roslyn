@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();
 
-                if (TryGetNames(type, namesBuilder))
+                if (!TryGetNames(type, namesBuilder))
                 {
                     namesBuilder.Free();
                     return default(ImmutableArray<string>);
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();
 
-                if (TryGetNames(type, namesBuilder))
+                if (!TryGetNames(type, namesBuilder))
                 {
                     namesBuilder.Free();
                     return default(ImmutableArray<TypedConstant>);
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
                 Debug.Assert(namesBuilder.Any());
-                return namesBuilder.All(name => name == null);
+                return namesBuilder.Any(name => name != null);
             }
 
             private static bool AddNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)

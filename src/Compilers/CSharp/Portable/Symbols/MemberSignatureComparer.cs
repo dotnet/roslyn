@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Does the members match in terms of tuple names (both in their return type and parameters)?
+        /// Do the members differ in terms of tuple names (both in their return type and parameters), but would match ignoring names?
         ///
         /// We'll look at the result of equality without tuple names (1) and with tuple names (2).
         /// The question is whether there is a change in tuple element names only (3).
@@ -737,10 +737,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// `int M()`                vs. `string M()`              | no  | no  |   match   |
         ///
         /// </summary>
-        internal static bool DifferOnlyInTupleNames(Symbol member1, Symbol member2)
+        internal static bool ConsideringTupleNamesCreatesDifference(Symbol member1, Symbol member2)
         {
-            return CSharpWithTupleNamesComparer.Equals(member1, member2) ||
-                !CSharpWithoutTupleNamesComparer.Equals(member1, member2);
+            return !CSharpWithTupleNamesComparer.Equals(member1, member2) &&
+                CSharpWithoutTupleNamesComparer.Equals(member1, member2);
         }
     }
 }
