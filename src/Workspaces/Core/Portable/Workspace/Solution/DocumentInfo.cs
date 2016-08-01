@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// A class that represents all the arguments necessary to create a new document instance.
     /// </summary>
     /// 
-    [System.Diagnostics.DebuggerDisplay("FilePath:= {FilePath}")]
+    [System.Diagnostics.DebuggerDisplay("FilePath = {FilePath}")]
     public sealed class DocumentInfo
     {
         /// <summary>
