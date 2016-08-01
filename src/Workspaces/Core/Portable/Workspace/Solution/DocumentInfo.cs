@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A class that represents all the arguments necessary to create a new document instance.
     /// </summary>
-    /// 
     [System.Diagnostics.DebuggerDisplay("{GetDebuggerDisplay}")]
     public sealed class DocumentInfo
     {
