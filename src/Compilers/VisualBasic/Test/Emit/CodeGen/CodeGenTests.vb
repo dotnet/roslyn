@@ -7868,7 +7868,7 @@ DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
 ]]>)
         End Sub
 
-        <Fact(Skip:="TO BE FIXED")>
+        <Fact()>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
             If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
