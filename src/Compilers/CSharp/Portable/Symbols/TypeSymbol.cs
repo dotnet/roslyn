@@ -324,8 +324,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        internal sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
+            public static EqualsIgnoringComparer InstanceIgnoringTupleNames { get; } = new EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames);
+
             private readonly TypeCompareKind _comparison;
 
             public EqualsIgnoringComparer(TypeCompareKind comparison)

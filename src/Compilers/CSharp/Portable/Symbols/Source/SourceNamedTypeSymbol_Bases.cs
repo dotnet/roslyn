@@ -131,25 +131,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
-                var seenInterfaces = PooledHashSet<NamedTypeSymbol>.GetInstance();
 
                 foreach (var @interface in interfaces)
                 {
                     @interface.CheckAllConstraints(conversions, location, diagnostics);
-
-                    foreach (var seenInterface in seenInterfaces)
-                    {
-                        if (@interface.Equals(seenInterface, TypeCompareKind.IgnoreTupleNames))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, seenInterface, this);
-                            break;
-                        }
-                    }
-
-                    seenInterfaces.Add(@interface);
                 }
 
-                seenInterfaces.Free();
+                if (interfaces.Count > 1)
+                {
+                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+                    foreach (var @interface in interfaces)
+                    {
+                        NamedTypeSymbol other;
+                        if (seenInterfaces.TryGetValue(@interface, out other))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                        }
+                        else
+                        {
+                            seenInterfaces.Add(@interface, @interface);
+                        }
+                    }
+                }
             }
         }
 
