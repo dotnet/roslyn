@@ -5,9 +5,6 @@
 
   <Target Name="Build">
 
-    <!-- Build the Roslyn NuGet packages -->
-    <MSBuild Projects="..\Nuget\NuGet.proj" />
-
     <!-- Build CoreXT packages for insertion into DevDiv (order of the following actions matters) -->
     <MSBuild Projects="DevDivPackages\Dependencies.proj" />
     <MSBuild Projects="DevDivInsertionFiles\DevDivInsertionFiles.sln" />
