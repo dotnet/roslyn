@@ -6,7 +6,6 @@
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
     <OutputPath>$(OutDir)Insertion\</OutputPath>
-    <ManifestPublishUrl>https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6;</ManifestPublishUrl>
     <IsPackage>true</IsPackage>
   </PropertyGroup>
 
