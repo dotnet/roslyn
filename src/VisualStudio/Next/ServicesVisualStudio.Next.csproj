@@ -86,6 +86,7 @@
     <Compile Include="Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\RemoteHostOptions.cs" />
+    <Compile Include="Remote\ServiceHubRemoteHostClient.SnapshotJsonRpcClient.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
   </ItemGroup>
