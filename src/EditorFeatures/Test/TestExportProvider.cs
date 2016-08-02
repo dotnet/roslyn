@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
                 typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
+                typeof(CodeAnalysis.Diagnostics.EngineV2.InProcCodeAnalysisDiagnosticAnalyzerExecutor)
             };
 
             return MinimalTestExportProvider.GetLanguageNeutralTypes()

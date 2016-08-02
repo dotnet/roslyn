@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -23,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                                                                     isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
+
+        public bool RunInProcess => false;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
         }
 
-        private bool AnalyzeIfStatement(IfStatementSyntax ifStatement) => 
+        private bool AnalyzeIfStatement(IfStatementSyntax ifStatement) =>
             !ifStatement.Statement.IsKind(SyntaxKind.Block);
 
         private bool AnalyzeElseClause(ElseClauseSyntax elseClause) =>
@@ -138,13 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         private bool AnalyzeForEachStatement(ForEachStatementSyntax forEachStatement) =>
             !forEachStatement.Statement.IsKind(SyntaxKind.Block);
-            
+
         private bool AnalyzeWhileStatement(WhileStatementSyntax whileStatement) =>
             !whileStatement.Statement.IsKind(SyntaxKind.Block);
-            
+
         private bool AnalyzeDoStatement(DoStatementSyntax doStatement) =>
             !doStatement.Statement.IsKind(SyntaxKind.Block);
-            
+
         private bool AnalyzeUsingStatement(UsingStatementSyntax usingStatement) =>
             !usingStatement.Statement.IsKind(SyntaxKind.Block) &&
             !usingStatement.Statement.IsKind(SyntaxKind.UsingStatement);
