@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLinkedFiles_Methods() As Task
             Dim definition =
 <Workspace>
@@ -41,7 +41,7 @@ class C
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLinkedFiles_ClassWithSameSpanAsCompilationUnit() As Task
             Dim definition =
 <Workspace>
@@ -75,7 +75,7 @@ End Class
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLinkedFiles_ReferencesBeforeAndAfterRemovingLinkedDocument() As Task
             Dim definition =
 <Workspace>
@@ -130,7 +130,7 @@ End Class
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Function TestLinkedFiles_LinkedFilesWithSameAssemblyNameNoReferences() As Task
             Dim definition =
 <Workspace>
@@ -150,7 +150,7 @@ class {|Definition:$$C|}
             Return TestAsync(definition)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Function TestLinkedFiles_LinkedFilesWithSameAssemblyNameWithReferences() As Task
             Dim definition =
 <Workspace>
