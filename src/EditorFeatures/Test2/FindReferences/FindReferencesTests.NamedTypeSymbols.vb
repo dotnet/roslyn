@@ -2015,7 +2015,7 @@ public class {|Definition:_Default|}
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input, uiVisibleOnly:=False)
+            Await TestFullAsync(input, uiVisibleOnly:=False)
         End Function
 
 #End Region

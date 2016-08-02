@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>

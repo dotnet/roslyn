@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -91,8 +91,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespace5() As Task
             Dim input =
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -135,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -163,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -188,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -213,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -242,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
@@ -266,7 +267,7 @@ namespace {|Definition:$$[|var|]|} { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
@@ -311,7 +312,7 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -330,7 +331,7 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -349,7 +350,7 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestFullAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
