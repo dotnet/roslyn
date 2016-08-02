@@ -178,6 +178,7 @@
     <Compile Include="ProjectSystemShim\AnalyzersTests.cs" />
     <Compile Include="ProjectSystemShim\CSharpCompilerOptionsTests.cs" />
     <Compile Include="ProjectSystemShim\CSharpHelpers.cs" />
+    <Compile Include="ProjectSystemShim\LifetimeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Debugging\Resources.resx">
