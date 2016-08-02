@@ -105,6 +105,7 @@
     <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
+    <Compile Include="ObjectReference.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="AppDomainAssemblyCache.cs" />
     <Compile Include="Exceptions.cs" />
