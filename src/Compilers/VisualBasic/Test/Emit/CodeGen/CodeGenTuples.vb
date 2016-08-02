@@ -1698,6 +1698,501 @@ End Class
             ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub MethodTypeInference001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        System.Console.WriteLine(Test((1,"q")))
+    End Sub
+
+    Function Test(of T1, T2)(x as (T1, T2)) as (T1, T2)
+        Console.WriteLine(Gettype(T1))
+        Console.WriteLine(Gettype(T2))
+        
+        return x
+    End Function
+
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Int32
+System.String
+(1, q)
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim v = (new Object(),"q")
+        
+        Test(v)
+        System.Console.WriteLine(v)
+    End Sub
+
+    Function Test(of T)(x as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+        
+        return x
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Object
+(System.Object, q)
+
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Object, String) V_0)
+  IL_0000:  newobj     "Sub Object..ctor()"
+  IL_0005:  ldstr      "q"
+  IL_000a:  newobj     "Sub System.ValueTuple(Of Object, String)..ctor(Object, String)"
+  IL_000f:  dup
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ldfld      "System.ValueTuple(Of Object, String).Item1 As Object"
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      "System.ValueTuple(Of Object, String).Item2 As String"
+  IL_001d:  newobj     "Sub System.ValueTuple(Of Object, Object)..ctor(Object, Object)"
+  IL_0022:  call       "Function C.Test(Of Object)((Object, Object)) As (Object, Object)"
+  IL_0027:  pop
+  IL_0028:  box        "System.ValueTuple(Of Object, String)"
+  IL_002d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0032:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference002Err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+    Sub Main()
+        Dim v = (new Object(),"q")
+        
+        Test(v)
+        System.Console.WriteLine(v)
+
+        TestRef(v)
+        System.Console.WriteLine(v)
+    End Sub
+
+    Function Test(of T)(x as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+        
+        return x
+    End Function
+
+    Function TestRef(of T)(ByRef x as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+    
+        x.Item1 = x.Item2    
+
+        return x
+    End Function
+
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36651: Data type(s) of the type parameter(s) in method 'Public Function TestRef(Of T)(ByRef x As (T, T)) As (T, T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        TestRef(v)
+        ~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        System.Console.WriteLine(Test((Nothing,"q")))
+    End Sub
+
+    Function Test(of T)(x as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+        
+        return x
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.String
+(, q)
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim q = "q"
+        Dim a as object = "a"
+
+        System.Console.WriteLine(Test((q, a)))
+      
+        System.Console.WriteLine(q)
+        System.Console.WriteLine(a)
+    End Sub
+
+    Function Test(of T)(byref x as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+    
+        x.Item1 = x.Item2
+
+        return x
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Object
+(a, a)
+q
+a
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference005()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+    Sub Main()
+        Dim ie As IEnumerable(Of String) = {1, 2}
+        Dim t = (ie, ie)
+        Test(t, New Object)
+        Test((ie, ie), New Object)
+    End Sub
+
+    Sub Test(Of T)(a1 As (IEnumerable(Of T), IEnumerable(Of T)), a2 As T)
+        System.Console.WriteLine(GetType(T))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Object
+System.Object
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference006()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+    Sub Main()
+        Dim ie As IEnumerable(Of Integer) = {1, 2}
+        Dim t = (ie, ie)
+        Test(t)
+        Test((1, 1))
+    End Sub
+
+    Sub Test(Of T)(f1 As IComparable(Of (T, T)))
+        System.Console.WriteLine(GetType(T))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Collections.Generic.IEnumerable`1[System.Int32]
+System.Int32
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference007()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+    Sub Main()
+        Dim ie As IEnumerable(Of Integer) = {1, 2}
+        Dim t = (ie, ie)
+        Test(t)
+        Test((1, 1))
+    End Sub
+
+    Sub Test(Of T)(f1 As IComparable(Of (T, T)))
+        System.Console.WriteLine(GetType(T))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Collections.Generic.IEnumerable`1[System.Int32]
+System.Int32
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference008()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+    Sub Main()
+        Dim t = (1, 1L)
+
+        ' these are valid
+        Test1(t)
+        Test1((1, 1L))
+    End Sub
+
+    Sub Test1(Of T)(f1 As (T, T))
+        System.Console.WriteLine(GetType(T))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Int64
+System.Int64
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference008Err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+    Sub Main()
+        Dim t = (1, 1L)
+
+        ' these are valid
+        Test1(t)
+        Test1((1, 1L))
+
+        ' these are not
+        Test2(t)
+        Test2((1, 1L))
+    End Sub
+
+    Sub Test1(Of T)(f1 As (T, T))
+        System.Console.WriteLine(GetType(T))
+    End Sub
+
+    Sub Test2(Of T)(f1 As IComparable(Of (T, T)))
+        System.Console.WriteLine(GetType(T))
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Test2(Of T)(f1 As IComparable(Of (T, T)))' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+        Test2(t)
+        ~~~~~
+BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Test2(Of T)(f1 As IComparable(Of (T, T)))' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+        Test2((1, 1L))
+        ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub Inference04()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Module1
+    Sub Main()
+        Test( Function(x)x.y )
+        Test( Function(x)x.bob )
+    End Sub
+
+    Sub Test(of T)(x as Func(of (x as Byte, y As Byte), T))
+        System.Console.WriteLine("first")
+        System.Console.WriteLine(x((2,3)).ToString())
+    End Sub
+
+    Sub Test(of T)(x as Func(of (alice as integer, bob as integer), T))
+        System.Console.WriteLine("second")
+        System.Console.WriteLine(x((4,5)).ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+first
+3
+second
+5
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Inference07()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Module1
+    Sub Main()
+        Test(Function(x)(x, x), Function(t)1)
+        Test1(Function(x)(x, x), Function(t)1)
+        Test2((a:= 1, b:= 2), Function(t)(t.a, t.b))
+    End Sub
+
+    Sub Test(Of U)(f1 as Func(of Integer, ValueTuple(Of U, U)), f2 as Func(Of ValueTuple(Of U, U), Integer))
+        System.Console.WriteLine(f2(f1(1)))
+    End Sub
+
+    Sub Test1(of U)(f1 As Func(of integer, (U, U)), f2 as Func(Of (U, U), integer))
+        System.Console.WriteLine(f2(f1(1)))
+    End Sub 
+
+    Sub Test2(of U, T)(f1 as U , f2 As Func(Of U, (x as T, y As T)))
+        System.Console.WriteLine(f2(f1).y)
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+1
+1
+2
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InferenceChain001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Module1
+    Sub Main()
+        Test(Function(x As (Integer, Integer)) (x, x), Function(t) (t, t))
+    End Sub
+
+    Sub Test(Of T, U, V)(f1 As Func(Of (T,T), (U,U)), f2 As Func(Of (U,U), (V,V)))
+        System.Console.WriteLine(f2(f1(Nothing)))
+
+        System.Console.WriteLine(GetType(T))
+        System.Console.WriteLine(GetType(U))
+        System.Console.WriteLine(GetType(V))
+    End Sub
+
+
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(((0, 0), (0, 0)), ((0, 0), (0, 0)))
+System.Int32
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.ValueTuple`2[System.Int32,System.Int32],System.ValueTuple`2[System.Int32,System.Int32]]
+
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InferenceChain002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Module Module1
+    Sub Main()
+        Test(Function(x As (Integer, Object)) (x, x), Function(t) (t, t))
+    End Sub
+
+    Sub Test(Of T, U, V)(ByRef f1 As Func(Of (T, T), (U, U)), ByRef f2 As Func(Of (U, U), (V, V)))
+        System.Console.WriteLine(f2(f1(Nothing)))
+
+        System.Console.WriteLine(GetType(T))
+        System.Console.WriteLine(GetType(U))
+        System.Console.WriteLine(GetType(V))
+    End Sub
+
+
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(((0, ), (0, )), ((0, ), (0, )))
+System.Object
+System.ValueTuple`2[System.Int32,System.Object]
+System.ValueTuple`2[System.ValueTuple`2[System.Int32,System.Object],System.ValueTuple`2[System.Int32,System.Object]]
+
+            ]]>)
+        End Sub
     End Class
 
 End Namespace

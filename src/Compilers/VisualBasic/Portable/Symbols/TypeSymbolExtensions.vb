@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function TryGetElementTypesIfTupleOrCompatible(type As TypeSymbol, <Out> elementTypes As ImmutableArray(Of TypeSymbol)) As Boolean
+        Public Function TryGetElementTypesIfTupleOrCompatible(type As TypeSymbol, <Out> ByRef elementTypes As ImmutableArray(Of TypeSymbol)) As Boolean
             If type.IsTupleType Then
                 elementTypes = DirectCast(type, TupleTypeSymbol).TupleElementTypes
                 Return True

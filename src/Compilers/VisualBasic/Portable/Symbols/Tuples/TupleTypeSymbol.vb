@@ -891,7 +891,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Return myNames.SequenceEqual(otherNames)
+            Debug.Assert(myNames.Length = otherNames.Length)
+
+            For i As Integer = 0 To myNames.Length - 1
+                If Not IdentifierComparison.Equals(myNames(i), otherNames(i)) Then
+                    Return False
+                End If
+            Next
+
+            Return True
         End Function
 
         Public Overrides Function GetHashCode() As Integer
