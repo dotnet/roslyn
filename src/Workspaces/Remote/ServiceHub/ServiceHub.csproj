@@ -61,7 +61,6 @@
     <Compile Include="Services\CodeAnalysisService.cs" />
     <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />
     <Compile Include="Services\RemoteHostService.cs" />
-    <Compile Include="Services\ServiceHubJsonRpcServiceBase.cs" />
     <Compile Include="Services\ServiceHubServiceBase.cs" />
     <Compile Include="Services\SnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
