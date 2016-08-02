@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await hubClient.RequestServiceAsync(WellKnownServiceHubServices.ServiceHubSnapshotService, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = await hubClient.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
 
             var instance = new ServiceHubRemoteHostClient(workspace, hubClient, remoteHostStream, snapshotStream);
 
