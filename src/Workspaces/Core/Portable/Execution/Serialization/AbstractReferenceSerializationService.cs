@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
 
-            writer.WriteArray(guid.ToByteArray());
+            writer.WriteValue(guid.ToByteArray());
         }
 
         private void WritePortableExecutableReferenceTo(
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteArray(properties.Aliases.ToArray());
+            writer.WriteValue(properties.Aliases.ToArray());
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             var toArrayFieldInfo = block.GetType().GetTypeInfo().GetDeclaredMethod("ToArray");
             var array = (byte[])toArrayFieldInfo.Invoke(block, null);
 
-            writer.WriteArray(array);
+            writer.WriteValue(array);
         }
 
         private MetadataReader GetMetadataReader(ModuleMetadata metadata)

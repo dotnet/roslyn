@@ -334,24 +334,102 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            Type elementType = this.ReadType();
+            var elementKind = (DataKind)_reader.ReadByte();
 
-            // optimizations for supported array type by binary reader
-            if (elementType == typeof(byte))
+            // optimization for primitive type array
+            Type elementType;
+            if (s_reverseTypeMap.TryGetValue(elementKind, out elementType))
             {
-                return _reader.ReadBytes(length);
+                return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
             }
 
-            if (elementType == typeof(char))
-            {
-                return _reader.ReadChars(length);
-            }
+            // custom type case
+            elementType = this.ReadType(elementKind);
 
             Array array = Array.CreateInstance(elementType, length);
             for (int i = 0; i < length; i++)
             {
                 var value = this.ReadValue();
                 array.SetValue(value, i);
+            }
+
+            return array;
+        }
+
+        private Array ReadPrimitiveTypeArrayElements(Type type, DataKind kind, int length)
+        {
+            Debug.Assert(s_reverseTypeMap[kind] == type);
+
+            // optimizations for supported array type by binary reader
+            if (type == typeof(byte))
+            {
+                return _reader.ReadBytes(length);
+            }
+
+            if (type == typeof(char))
+            {
+                return _reader.ReadChars(length);
+            }
+
+            var array = Array.CreateInstance(type, length);
+
+            // optimizations for string where object reader/writer has its own mechanism to
+            // reduce duplicated strings
+            if (type == typeof(string))
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    var value = this.ReadString();
+                    array.SetValue(value, i);
+                }
+
+                return array;
+            }
+
+            // otherwise, read elements directly from underlying binary writer
+            for (int i = 0; i < length; i++)
+            {
+                switch (kind)
+                {
+                    case DataKind.Int8:
+                        array.SetValue(_reader.ReadSByte(), i);
+                        continue;
+                    case DataKind.Int16:
+                        array.SetValue(_reader.ReadInt16(), i);
+                        continue;
+                    case DataKind.Int32:
+                        array.SetValue(_reader.ReadInt32(), i);
+                        continue;
+                    case DataKind.Int64:
+                        array.SetValue(_reader.ReadInt64(), i);
+                        continue;
+                    case DataKind.UInt8:
+                        array.SetValue(_reader.ReadByte(), i);
+                        continue;
+                    case DataKind.UInt16:
+                        array.SetValue(_reader.ReadUInt16(), i);
+                        continue;
+                    case DataKind.UInt32:
+                        array.SetValue(_reader.ReadUInt32(), i);
+                        continue;
+                    case DataKind.UInt64:
+                        array.SetValue(_reader.ReadUInt64(), i);
+                        continue;
+                    case DataKind.Float4:
+                        array.SetValue(_reader.ReadSingle(), i);
+                        continue;
+                    case DataKind.Float8:
+                        array.SetValue(_reader.ReadDouble(), i);
+                        continue;
+                    case DataKind.Decimal:
+                        array.SetValue(_reader.ReadDecimal(), i);
+                        continue;
+                    case DataKind.BooleanType:
+                        array.SetValue(_reader.ReadBoolean(), i);
+                        continue;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
             }
 
             return array;
@@ -365,17 +443,6 @@ namespace Roslyn.Utilities
 
         private Type ReadType(DataKind kind)
         {
-            // optimization for primitive types
-            if (kind == DataKind.UInt8)
-            {
-                return typeof(byte);
-            }
-
-            if (kind == DataKind.Char)
-            {
-                return typeof(char);
-            }
-
             switch (kind)
             {
                 case DataKind.TypeRef_B:

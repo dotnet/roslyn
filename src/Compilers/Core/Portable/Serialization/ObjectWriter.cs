@@ -472,43 +472,108 @@ namespace Roslyn.Utilities
                     break;
             }
 
+            // get type of array
             var elementType = instance.GetType().GetElementType();
-            this.WriteType(elementType);
 
-            // optimizations for supported array type by binary writer
-            if (elementType == typeof(byte))
+            // optimization for primitive type array
+            DataKind elementKind;
+            if (s_typeMap.TryGetValue(elementType, out elementKind))
+            {
+                this.WritePrimitiveType(elementType, elementKind);
+                this.WritePrimitiveTypeArrayElements(elementType, elementKind, instance);
+
+                return;
+            }
+
+            // custom type case
+            this.WriteType(elementType);
+            foreach (var value in instance)
+            {
+                this.WriteValue(value);
+            }
+        }
+
+        private void WritePrimitiveTypeArrayElements(Type type, DataKind kind, Array instance)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+
+            // optimization for type underlying binary writer knows about
+            if (type == typeof(byte))
             {
                 _writer.Write((byte[])instance);
                 return;
             }
 
-            if (elementType == typeof(char))
+            if (type == typeof(char))
             {
                 _writer.Write((char[])instance);
                 return;
             }
 
-            for (int i = 0; i < length; i++)
+            // optimization for string which object writer has
+            // its own optimization to reduce repeated string
+            if (type == typeof(string))
             {
-                this.WriteValue(instance.GetValue(i));
+                foreach (var value in instance)
+                {
+                    this.WriteString((string)value);
+                }
+
+                return;
             }
+
+            // otherwise, write elements directly to underlying binary writer
+            foreach (var value in instance)
+            {
+                switch (kind)
+                {
+                    case DataKind.Int8:
+                        _writer.Write((sbyte)value);
+                        break;
+                    case DataKind.Int16:
+                        _writer.Write((short)value);
+                        break;
+                    case DataKind.Int32:
+                        _writer.Write((int)value);
+                        break;
+                    case DataKind.Int64:
+                        _writer.Write((long)value);
+                        break;
+                    case DataKind.UInt16:
+                        _writer.Write((ushort)value);
+                        break;
+                    case DataKind.UInt32:
+                        _writer.Write((uint)value);
+                        break;
+                    case DataKind.UInt64:
+                        _writer.Write((ulong)value);
+                        break;
+                    case DataKind.Float4:
+                        _writer.Write((float)value);
+                        break;
+                    case DataKind.Float8:
+                        _writer.Write((double)value);
+                        break;
+                    case DataKind.Decimal:
+                        _writer.Write((decimal)value);
+                        break;
+                    case DataKind.BooleanType:
+                        _writer.Write((bool)value);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+        }
+
+        private void WritePrimitiveType(Type type, DataKind kind)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+            _writer.Write((byte)kind);
         }
 
         private void WriteType(Type type)
         {
-            // optimization. primitive types
-            if (type == typeof(byte))
-            {
-                _writer.Write((byte)DataKind.UInt8);
-                return;
-            }
-
-            if (type == typeof(char))
-            {
-                _writer.Write((byte)DataKind.Char);
-                return;
-            }
-
             int id;
             if (_dataMap.TryGetId(type, out id))
             {
