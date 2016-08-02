@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// this service will be used to move over snapshot data from client to service hub
     /// </summary>
-    internal partial class SnapshotService : ServiceHubJsonRpcServiceBase
+    internal partial class SnapshotService : ServiceHubServiceBase
     {
         private readonly AssetSource _source;
 

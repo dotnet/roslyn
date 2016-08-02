@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal class RemoteHostService : ServiceHubJsonRpcServiceBase
+    internal class RemoteHostService : ServiceHubServiceBase
     {
         private string _host;
 
