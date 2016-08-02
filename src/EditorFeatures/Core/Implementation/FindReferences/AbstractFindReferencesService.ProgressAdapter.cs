@@ -76,8 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public void CallThirdPartyExtensions()
             {
-                this.AssertIsForeground();
-
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 foreach (var definition in _definitionToItem.Keys)
                 {

@@ -192,8 +192,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         public async Task FindReferencesAsync(
             Document document, int position, FindReferencesContext context)
         {
-            this.AssertIsForeground();
-
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -227,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 progressAdapter,
                 documents: null,
                 cancellationToken: cancellationToken).ConfigureAwait(true);
-
-            this.AssertIsForeground();
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
