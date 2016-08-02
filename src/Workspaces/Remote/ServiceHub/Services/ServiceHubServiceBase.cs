@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract class ServiceHubServiceBase : IDisposable
     {
         private static int s_instanceId;
+
         private readonly CancellationTokenSource _source;
 
         protected readonly JsonRpc Rpc;
@@ -51,14 +52,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
+            Rpc.Dispose();
             Stream.Dispose();
 
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
-
-
-            Rpc.Dispose();
         }
 
         protected virtual void OnDisconnected(JsonRpcDisconnectedEventArgs e)
