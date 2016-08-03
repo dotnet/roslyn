@@ -38,12 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.DigitSeparators
-                    Return "digitSeparators"
-
-                Case Feature.BinaryLiterals
-                    Return "binaryLiterals"
-
                 Case Feature.IOperation
                     Return "IOperation"
 
@@ -85,6 +79,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.BinaryLiterals,
+                     Feature.DigitSeparators
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
