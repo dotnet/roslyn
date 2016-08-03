@@ -72,6 +72,52 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestRoundTripBooleanArray()
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                var inputBool = new bool[i];
+
+                for (var j = 0; j < i; j++)
+                {
+                    inputBool[j] = j % 2 == 0;
+                }
+
+                var stream = new MemoryStream();
+                var writer = new ObjectWriter(stream);
+
+                writer.WriteValue(inputBool);
+
+                writer.Dispose();
+
+                stream.Position = 0;
+                var reader = new ObjectReader(stream);
+                Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
+
+                reader.Dispose();
+            }
+        }
+
+        [Fact]
+        public void TestRoundTripFalseBooleanArray()
+        {
+            var inputBool = Enumerable.Repeat<bool>(false, 1000).ToArray();
+
+            var stream = new MemoryStream();
+            var writer = new ObjectWriter(stream);
+
+            writer.WriteValue(inputBool);
+
+            writer.Dispose();
+
+            stream.Position = 0;
+            var reader = new ObjectReader(stream);
+            Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
+
+            reader.Dispose();
+        }
+
+        [Fact]
         public void TestRoundTripPrimitives()
         {
             var stream = new MemoryStream();

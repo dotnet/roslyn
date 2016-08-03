@@ -514,55 +514,76 @@ namespace Roslyn.Utilities
             // its own optimization to reduce repeated string
             if (type == typeof(string))
             {
-                foreach (var value in instance)
-                {
-                    this.WriteString((string)value);
-                }
+                WritePrimitiveTypeArrayElements((string[])instance, WriteString);
+                return;
+            }
 
+            // optimization for bool array
+            if (type == typeof(bool))
+            {
+                WriteBooleanArray((bool[])instance);
                 return;
             }
 
             // otherwise, write elements directly to underlying binary writer
-            foreach (var value in instance)
+            switch (kind)
             {
-                switch (kind)
-                {
-                    case DataKind.Int8:
-                        _writer.Write((sbyte)value);
-                        break;
-                    case DataKind.Int16:
-                        _writer.Write((short)value);
-                        break;
-                    case DataKind.Int32:
-                        _writer.Write((int)value);
-                        break;
-                    case DataKind.Int64:
-                        _writer.Write((long)value);
-                        break;
-                    case DataKind.UInt16:
-                        _writer.Write((ushort)value);
-                        break;
-                    case DataKind.UInt32:
-                        _writer.Write((uint)value);
-                        break;
-                    case DataKind.UInt64:
-                        _writer.Write((ulong)value);
-                        break;
-                    case DataKind.Float4:
-                        _writer.Write((float)value);
-                        break;
-                    case DataKind.Float8:
-                        _writer.Write((double)value);
-                        break;
-                    case DataKind.Decimal:
-                        _writer.Write((decimal)value);
-                        break;
-                    case DataKind.BooleanType:
-                        _writer.Write((bool)value);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
+                case DataKind.Int8:
+                    WritePrimitiveTypeArrayElements((sbyte[])instance, _writer.Write);
+                    return;
+                case DataKind.Int16:
+                    WritePrimitiveTypeArrayElements((short[])instance, _writer.Write);
+                    return;
+                case DataKind.Int32:
+                    WritePrimitiveTypeArrayElements((int[])instance, _writer.Write);
+                    return;
+                case DataKind.Int64:
+                    WritePrimitiveTypeArrayElements((long[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt16:
+                    WritePrimitiveTypeArrayElements((ushort[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt32:
+                    WritePrimitiveTypeArrayElements((uint[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt64:
+                    WritePrimitiveTypeArrayElements((ulong[])instance, _writer.Write);
+                    return;
+                case DataKind.Float4:
+                    WritePrimitiveTypeArrayElements((float[])instance, _writer.Write);
+                    return;
+                case DataKind.Float8:
+                    WritePrimitiveTypeArrayElements((double[])instance, _writer.Write);
+                    return;
+                case DataKind.Decimal:
+                    WritePrimitiveTypeArrayElements((decimal[])instance, _writer.Write);
+                    return;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private void WriteBooleanArray(bool[] array)
+        {
+            // convert bool array to bit array
+            var bits = BitVector.Create(array.Length);
+            for (var i = 0; i < array.Length; i++)
+            {
+                bits[i] = array[i];
+            }
+
+            // send over bit array
+            foreach (var word in bits.Words())
+            {
+                _writer.Write(word);
+            }
+        }
+
+        private void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                write(array[i]);
             }
         }
 
