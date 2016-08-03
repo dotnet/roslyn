@@ -6,6 +6,7 @@ set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nug
 
 :ParseArguments
 if /I "%1" == "/?" goto :Usage
+if /I "%1" == "/nuke"  set RestoreNuke=true&&shift&& goto :ParseArguments
 if /I "%1" == "/clean" set RestoreClean=true&&shift&& goto :ParseArguments
 if /I "%1" == "/fast" set RestoreFast=true&&shift&& goto :ParseArguments
 goto :DoneParsing
@@ -16,8 +17,32 @@ REM Allow for alternate solutions to be passed as restore targets.
 set RoslynSolution=%1
 if "%RoslynSolution%" == "" set RoslynSolution=%RoslynRoot%\Roslyn.sln
 
+echo NuGet Info
 REM Load in the inforation for NuGet
 call "%RoslynRoot%build\scripts\LoadNuGetInfo.cmd" || goto :LoadNuGetInfoFailed
+
+if "%RestoreNuke%" == "true" (
+
+    REM Kill tasks that can interfere with restore
+
+    echo Nuking MSBuild
+    taskkill /IM MSBuild.exe /F
+
+    echo Nuking VBCSCompiler"
+    taskkill /IM VBCSCompiler.exe /F
+
+    echo Nuking xunit.console.x86"
+    taskkill /IM xunit.console.x86.exe /F
+
+    echo Nuking RunTests"
+    taskkill /IM RunTests.exe /F
+    
+    REM Enable more detailed output from NuGet
+    set NuGetAdditionalCommandLineArgs=-verbosity normal -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
+
+    REM Continue onto do the restore.
+    set RestoreClean=true
+)
 
 if "%RestoreClean%" == "true" (
     echo Clearing the NuGet caches
