@@ -702,6 +702,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
+                if (previousToken.Value.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                {
+                    // We parsed an array creation but the token before `new` is `=`.
+                    // This could be a case like:
+                    //
+                    // int[] array;
+                    // Program p = new |
+                    // array[4] = 4;
+                    //
+                    // This is similar to the cases described in `InferTypeInObjectCreationExpression`.
+                    // Again, all we have to do is back up to before `new`.
+
+                    return InferTypes(previousToken.Value.SpanStart);
+                }
+
                 var outerTypes = InferTypes(arrayCreationExpression);
                 return outerTypes.Where(o => o is IArrayTypeSymbol);
             }
