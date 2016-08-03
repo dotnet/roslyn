@@ -251,10 +251,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current.Kind() == SyntaxKind.VariableDeclaration &&
-                             (current.Parent as ForEachStatementSyntax)?.DeconstructionVariables == current)
+                else if (current is VariableComponentSyntax &&
+                             (current.Parent as ForEachComponentStatementSyntax)?.Component == current)
                 {
                     binder = rootBinder.GetBinder(current.Parent);
+                }
+                else if (current is VariableComponentSyntax &&
+                             (current.Parent is DeconstructionDeclarationAssignmentSyntax) &&
+                             (current.Parent.Parent as ForStatementSyntax)?.Deconstuction == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent.Parent);
+                }
+                else if (current is VariableComponentSyntax &&
+                             (current.Parent is DeconstructionDeclarationAssignmentSyntax) &&
+                             (current.Parent.Parent as DeconstructionDeclarationStatementSyntax)?.Assignment.Declaration == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent.Parent);
                 }
                 else
                 {
@@ -557,6 +569,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
         }
 
+        public override ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
+
         private LocalSymbol GetDeclaredLocal(CSharpSyntaxNode declarationSyntax, SyntaxToken declaredIdentifier)
         {
             for (var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)); binder != null; binder = binder.Next)
@@ -573,13 +591,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override ILocalSymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
         }
 
-        public override ISymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override ILocalSymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier());

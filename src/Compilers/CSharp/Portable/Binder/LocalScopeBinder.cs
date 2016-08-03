@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
         {
-            ArrayBuilder<LocalSymbol> locals = null;
+            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var statement in statements)
             {
                 var innerStatement = statement;
@@ -155,28 +155,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (innerStatement.Kind())
                 {
+                    case SyntaxKind.DeconstructionDeclarationStatement:
+                        {
+                            var decl = (DeconstructionDeclarationStatementSyntax)innerStatement;
+                            CollectLocalsFromDeconstruction(decl.Assignment.Declaration, LocalDeclarationKind.RegularVariable, locals);
+                            break;
+                        }
                     case SyntaxKind.LocalDeclarationStatement:
                         {
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                            if (locals == null)
+                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+                            foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                            }
-
-                            if (!decl.Declaration.IsDeconstructionDeclaration)
-                            {
-                                RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
-                                LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
-                                foreach (var vdecl in decl.Declaration.Variables)
-                                {
-                                    var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
-                                    locals.Add(localSymbol);
-                                }
-                            }
-                            else
-                            {
-                                CollectLocalsFromDeconstruction(decl.Declaration, decl.Declaration.Type, LocalDeclarationKind.RegularVariable, locals);
+                                var localSymbol = MakeLocal(
+                                    (decl.RefKeyword.Kind() == SyntaxKind.RefKeyword) ? RefKind.Ref : RefKind.None,
+                                    decl.Declaration, vdecl,
+                                    kind);
+                                locals.Add(localSymbol);
                             }
                         }
                         break;
@@ -186,34 +181,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalSymbol>.Empty;
+            return locals.ToImmutableAndFree();
         }
 
-        // When a VariableDeclaration is used in a deconstruction, there are two cases:
-        // - deconstruction is set, type may be set (for "var"), and no declarators. For instance, `var (x, ...)` or `(int x, ...)`.
-        // - deconstruction is null, type may be set, and there is one declarator holding the identifier. For instance, `int x` or `x`.
-        internal void CollectLocalsFromDeconstruction(VariableDeclarationSyntax declaration, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        internal void CollectLocalsFromDeconstruction(VariableComponentSyntax declaration, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
         {
-            if (declaration.IsDeconstructionDeclaration)
+            switch (declaration.Kind())
             {
-                foreach (var variable in declaration.Deconstruction.Variables)
-                {
-                    CollectLocalsFromDeconstruction(variable, variable.Type ?? closestTypeSyntax, kind, locals);
-                }
+                case SyntaxKind.TupleDeconstructionVariableComponent:
+                    {
+                        var component = (TupleDeconstructionVariableComponentSyntax)declaration;
+                        foreach (var decl in component.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(decl, kind, locals);
+                        }
+                        break;
+                    }
+                case SyntaxKind.TypedVariableComponent:
+                    {
+                        var component = (TypedVariableComponentSyntax)declaration;
+                        CollectLocalsFromDeconstruction(component.Designation, component.Type, kind, locals);
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
             }
-            else
+        }
+
+        internal void CollectLocalsFromDeconstruction(VariableDesignationSyntax designation, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        {
+            switch (designation.Kind())
             {
-                Debug.Assert(declaration.Variables.Count == 1);
-                VariableDeclaratorSyntax declarator = declaration.Variables[0];
-
-                SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
-                                                            this.ContainingMemberOrLambda,
-                                                            this,
-                                                            closestTypeSyntax,
-                                                            declarator.Identifier,
-                                                            kind);
-
-                locals.Add(localSymbol);
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                                    this.ContainingMemberOrLambda,
+                                                                    this,
+                                                                    closestTypeSyntax,
+                                                                    single.Identifier,
+                                                                    kind);
+                        locals.Add(localSymbol);
+                        break;
+                    }
+                case SyntaxKind.TupleDeconstructionVariableDesignation:
+                    {
+                        var tuple = (TupleDeconstructionVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals);
+                        }
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
         }
 

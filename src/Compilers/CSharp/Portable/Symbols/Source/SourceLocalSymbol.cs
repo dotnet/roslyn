@@ -336,18 +336,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
-                        Debug.Assert(node is VariableDeclaratorSyntax || node is ArgumentSyntax);
+                    case LocalDeclarationKind.ForInitializerVariable:
+                        Debug.Assert(node is VariableDeclaratorSyntax || node is SingleVariableDesignationSyntax);
                         break;
 
                     case LocalDeclarationKind.Constant:
                     case LocalDeclarationKind.FixedVariable:
                     case LocalDeclarationKind.UsingVariable:
-                    case LocalDeclarationKind.ForInitializerVariable:
                         Debug.Assert(node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.ForEachIterationVariable:
-                        Debug.Assert(node is ForEachStatementSyntax || node is VariableDeclaratorSyntax);
+                        Debug.Assert(node is ForEachStatementSyntax || node is SingleVariableDesignationSyntax);
                         break;
 
                     case LocalDeclarationKind.CatchVariable:
@@ -566,6 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
+                Debug.Assert(binder is ForEachLoopBinder);
                 _collection = collection;
             }
 
@@ -605,8 +606,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Try binding immediately enclosing invocation expression, this should force the inference.
 
                 CSharpSyntaxNode invocation = (CSharpSyntaxNode)IdentifierToken.
-                                                                Parent. // VariableDeclaratorSyntax
-                                                                Parent. // VariableDeclarationSyntax
+                                                                Parent. // SingleVariableDesignationSyntax
+                                                                Parent. // TypedVariableComponentSyntax
                                                                 Parent. // DeclarationExpressionSyntax
                                                                 Parent. // ArgumentSyntax
                                                                 Parent. // ArgumentListSyntax
@@ -650,47 +651,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LocalDeclarationKind declarationKind)
             : base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
             {
-#if DEBUG
                 SyntaxNode parent;
-                Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent));
-
-                Debug.Assert(parent.Parent != null);
-
-                Debug.Assert(
-                        parent.Parent.Kind() == SyntaxKind.LocalDeclarationStatement ||
-                        parent.Parent.Kind() == SyntaxKind.ForStatement ||
-                        parent.Parent.Kind() == SyntaxKind.ForEachStatement);
-#endif
+                Debug.Assert(SyntaxFacts.IsDeconstructionIdentifier(identifierToken, out parent) &&
+                        parent != null &&
+                        parent.Kind() == SyntaxKind.DeconstructionDeclarationStatement ||
+                        parent.Kind() == SyntaxKind.ForStatement ||
+                        parent.Kind() == SyntaxKind.ForEachComponentStatement);
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 // Try binding enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
-                SyntaxNode topLevelVariableDeclaration;
-                bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out topLevelVariableDeclaration);
-
+                SyntaxNode statement;
+                bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out statement);
                 Debug.Assert(isDeconstruction);
-                Debug.Assert(((VariableDeclarationSyntax)topLevelVariableDeclaration).IsDeconstructionDeclaration);
 
-                var statement = topLevelVariableDeclaration.Parent;
                 switch (statement.Kind())
                 {
-                    case SyntaxKind.LocalDeclarationStatement:
-                        var localDecl = (LocalDeclarationStatementSyntax)statement;
+                    case SyntaxKind.DeconstructionDeclarationStatement:
+                        var localDecl = (DeconstructionDeclarationStatementSyntax)statement;
                         var localBinder = this.binder.GetBinder(localDecl);
                         var newLocalBinder = new ImplicitlyTypedLocalBinder(localBinder, this);
-                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Declaration, diagnostics);
+                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.Declaration, localDecl.Assignment.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)statement;
                         var forBinder = this.binder.GetBinder(forStatement);
                         var newForBinder = new ImplicitlyTypedLocalBinder(forBinder, this);
-                        newForBinder.BindDeconstructionDeclaration(forStatement.Declaration, forStatement.Declaration, diagnostics);
+                        newForBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstuction.Declaration, forStatement.Deconstuction.Value, diagnostics);
                         break;
 
-                    case SyntaxKind.ForEachStatement:
-                        var foreachBinder = this.binder.GetBinder((ForEachStatementSyntax)statement);
+                    case SyntaxKind.ForEachComponentStatement:
+                        var foreachBinder = this.binder.GetBinder((ForEachComponentStatementSyntax)statement);
                         foreachBinder.BindForEachDeconstruction(diagnostics, foreachBinder);
                         break;
 

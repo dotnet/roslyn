@@ -28,7 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
 
             // AllInOneCSharpCode has no deconstruction or declaration expression
-            syntaxKindsMissing.Add(SyntaxKind.VariableDeconstructionDeclarator);
+            syntaxKindsMissing.Add(SyntaxKind.TypedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.TupleDeconstructionVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.TupleDeconstructionVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
+            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationAssignment);
+            syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

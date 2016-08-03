@@ -578,17 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// </summary>
         public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
         {
-            SyntaxNode parent;
-            if (currentToken.Kind() == SyntaxKind.OpenParenToken
-                && (parent = currentToken.Parent)?.Kind() == SyntaxKind.VariableDeconstructionDeclarator
-                && (parent = parent.Parent)?.Kind() == SyntaxKind.VariableDeclaration)
-            {
-                var declaration = ((VariableDeclarationSyntax)parent);
-
-                return (declaration.IsDeconstructionDeclaration) && (declaration.Type != null);
-            }
-
-            return false;
+            return currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                currentToken.Parent is TupleDeconstructionVariableDesignationSyntax &&
+                currentToken.Parent.Parent is TypedVariableComponentSyntax;
         }
     }
 }

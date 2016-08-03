@@ -59,12 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
                 {
                     node = (LocalDeclarationStatementSyntax)base.VisitLocalDeclarationStatement(node);
-
-                    if (node.Declaration.IsDeconstructionDeclaration)
-                    {
-                        return node;
-                    }
-
                     var list = new List<VariableDeclaratorSyntax>();
                     var triviaList = new List<SyntaxTrivia>();
                     // go through each var decls in decl statement

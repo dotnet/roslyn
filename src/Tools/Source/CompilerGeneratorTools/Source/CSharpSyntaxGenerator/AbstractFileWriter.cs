@@ -110,11 +110,6 @@ namespace CSharpSyntaxGenerator
             return IsOverride(field) ? "override " : IsNew(field) ? "new " : "";
         }
 
-        protected static string AccessibilityModifier(Field field)
-        {
-            return IsInternal(field) ? "internal" : "public";
-        }
-
         protected static bool CanBeField(Field field)
         {
             return field.Type != "SyntaxToken" && !IsAnyList(field.Type) && !IsOverride(field) && !IsNew(field);
@@ -207,11 +202,6 @@ namespace CSharpSyntaxGenerator
         protected static bool IsOverride(Field f)
         {
             return f.Override != null && string.Compare(f.Override, "true", true) == 0;
-        }
-
-        protected static bool IsInternal(Field f)
-        {
-            return f.Internal != null && string.Compare(f.Internal, "true", true) == 0;
         }
 
         protected static bool IsNew(Field f)

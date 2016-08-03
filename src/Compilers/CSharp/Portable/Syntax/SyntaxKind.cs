@@ -542,7 +542,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         TupleType = 8925,
         TupleElement = 8926,
         TupleExpression = 8927,
-        VariableDeconstructionDeclarator = 8928,
+        TypedVariableComponent = 8928,
+        TupleDeconstructionVariableComponent = 8929,
+        SingleVariableDesignation = 8930,
+        TupleDeconstructionVariableDesignation = 8931,
+        DeconstructionDeclarationStatement = 8932,
+        DeconstructionDeclarationAssignment = 8933,
+        ForEachComponentStatement = 8934,
 
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,

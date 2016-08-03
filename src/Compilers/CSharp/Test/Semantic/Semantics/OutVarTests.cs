@@ -143,7 +143,7 @@ public class Cls
 
         private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, params IdentifierNameSyntax[] references)
         {
-            var variableDeclaratorSyntax = GetVariableDeclarator(decl);
+            var variableDeclaratorSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -215,11 +215,11 @@ public class Cls
 
         private static void VerifyModelForOutVarDuplicateInSameScope(SemanticModel model, DeclarationExpressionSyntax decl)
         {
-            var variableDeclaratorSyntax = GetVariableDeclarator(decl);
-            var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            var variableDesignationSyntax = GetVariableDesignation(decl);
+            var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
-            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
@@ -271,9 +271,10 @@ public class Cls
             Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
-        private static VariableDeclaratorSyntax GetVariableDeclarator(DeclarationExpressionSyntax decl)
+        private static SingleVariableDesignationSyntax GetVariableDesignation(DeclarationExpressionSyntax decl)
         {
-            return decl.Declaration.Variables.Single();
+            var component = (TypedVariableComponentSyntax)decl.Declaration;
+            return (SingleVariableDesignationSyntax)component.Designation;
         }
 
         private static bool FlowsIn(ExpressionSyntax dataFlowParent, DeclarationExpressionSyntax decl, IdentifierNameSyntax[] references)
@@ -11623,7 +11624,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -11736,7 +11737,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
@@ -11777,7 +11778,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
@@ -11820,7 +11821,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
@@ -11863,7 +11864,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
         
         [Fact]
@@ -11902,7 +11903,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
@@ -11981,7 +11982,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, true, true, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
@@ -12189,7 +12190,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("dynamic x1", model.GetDeclaredSymbol(GetVariableDeclarator(x1Decl)).ToTestDisplayString());
+            Assert.Equal("dynamic x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
