@@ -8,6 +8,10 @@
         "version": "14.3.25407",
         "suppressParent": "all"
     },
+    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
   },
   "frameworks": {
     "net46": { }
