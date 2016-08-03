@@ -28,13 +28,13 @@ if "%RestoreNuke%" == "true" (
     echo Nuking MSBuild
     taskkill /IM MSBuild.exe /F
 
-    echo Nuking VBCSCompiler"
+    echo Nuking VBCSCompiler
     taskkill /IM VBCSCompiler.exe /F
 
-    echo Nuking xunit.console.x86"
+    echo Nuking xunit.console.x86
     taskkill /IM xunit.console.x86.exe /F
 
-    echo Nuking RunTests"
+    echo Nuking RunTests
     taskkill /IM RunTests.exe /F
     
     REM Enable more detailed output from NuGet
