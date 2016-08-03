@@ -2535,7 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
             ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
             Debug.Assert(flags1.Length == flags2.Length);
-            ImmutableArray<bool> mergedFlags = flags1.SelectAsArray((f, index, other) => f || other[index], flags2);
+            ImmutableArray<bool> mergedFlags = flags1.SelectAsArray((f, index, other) => f | other[index], flags2);
 
             return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(target, (AssemblySymbol)compilation.Assembly, RefKind.None, mergedFlags);
         }

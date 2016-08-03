@@ -6384,19 +6384,19 @@ class C
 " + trivial2uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (7,51): warning CS8204: The tuple literal should probably not use element name 'e' at this position.
+                // (7,51): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("e").WithLocation(7, 51),
-                // (7,56): warning CS8204: The tuple literal should probably not use element name 'f' at this position.
+                // (7,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the assignment target.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("f").WithLocation(7, 56),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
-                // (9,53): warning CS8204: The tuple literal should probably not use element name 'e' at this position.
+                // (9,53): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("e").WithLocation(9, 53),
-                // (9,58): warning CS8204: The tuple literal should probably not use element name 'f' at this position.
+                // (9,58): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the assignment target.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("f").WithLocation(9, 58),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
@@ -15272,10 +15272,10 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,35): warning CS8204: The tuple literal should probably not use element name 'b' at this position.
+                // (7,35): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
                 //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(7, 35),
-                // (7,50): warning CS8204: The tuple literal should probably not use element name 'c' at this position.
+                // (7,50): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
                 //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("c").WithLocation(7, 50)
                 );
@@ -15306,7 +15306,7 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,62): warning CS8204: The tuple literal should probably not use element name 'c' at this position.
+                // (7,62): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
                 //         var x1 = flag ? (a: 1, b: (long)2) : (a: (byte)1, c: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("c").WithLocation(7, 62)
                 );
@@ -15354,13 +15354,13 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (11,46): warning CS8204: The tuple literal should probably not use element name 'b' at this position.
+                // (11,46): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
                 //                             return (a: 1, b: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(11, 46),
-                // (17,50): warning CS8204: The tuple literal should probably not use element name 'c' at this position.
+                // (17,50): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
                 //                                 return (a: 1, c: 3);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "3").WithArguments("c").WithLocation(17, 50),
-                // (21,50): warning CS8204: The tuple literal should probably not use element name 'd' at this position.
+                // (21,50): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
                 //                                 return (a: 1, d: 4);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "4").WithArguments("d").WithLocation(21, 50)
                 );
@@ -15409,13 +15409,13 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (12,46): warning CS8204: The tuple literal should probably not use element name 'b' at this position.
+                // (12,46): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
                 //                             return (a: 1, b: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(12, 46),
-                // (18,50): warning CS8204: The tuple literal should probably not use element name 'c' at this position.
+                // (18,50): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
                 //                                 return (a: d, c: 3);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "3").WithArguments("c").WithLocation(18, 50),
-                // (22,50): warning CS8204: The tuple literal should probably not use element name 'd' at this position.
+                // (22,50): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
                 //                                 return (a: d, d: 4);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "4").WithArguments("d").WithLocation(22, 50)
                 );
@@ -15485,10 +15485,10 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,34): warning CS8204: The tuple literal should probably not use element name 'b' at this position.
+                // (6,34): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
                 //         (int a, int) x1 = (1, b: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(6, 34),
-                // (7,37): warning CS8204: The tuple literal should probably not use element name 'b' at this position.
+                // (7,37): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
                 //         (int a, string) x2 = (1, b: null);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "null").WithArguments("b").WithLocation(7, 37)
                 );
@@ -15558,13 +15558,13 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,42): warning CS8204: The tuple literal should probably not use element name 'c' at this position.
+                // (6,42): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
                 //         M2((a: 1, b: 2), (a: (byte)1, c: (byte)3));
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "(byte)3").WithArguments("c").WithLocation(6, 42),
-                // (7,33): warning CS8204: The tuple literal should probably not use element name 'c' at this position.
+                // (7,33): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
                 //         M2(((long)1, b: 2), (c: 1, d: (byte)3));
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("c").WithLocation(7, 33),
-                // (7,39): warning CS8204: The tuple literal should probably not use element name 'd' at this position.
+                // (7,39): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
                 //         M2(((long)1, b: 2), (c: 1, d: (byte)3));
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "(byte)3").WithArguments("d").WithLocation(7, 39)
                 );

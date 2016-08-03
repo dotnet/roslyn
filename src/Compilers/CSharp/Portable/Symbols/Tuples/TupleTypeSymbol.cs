@@ -390,9 +390,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < sourceLength; i++)
             {
-                if (sourceNames[i] != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceNames[i]) != 0))
+                var sourceName = sourceNames[i];
+                if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
-                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Location, sourceNames[i]);
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Location, sourceName);
                 }
             }
         }

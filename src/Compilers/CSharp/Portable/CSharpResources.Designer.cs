@@ -13364,7 +13364,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The tuple literal should probably not use element name &apos;{0}&apos; at this position..
+        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the assignment target..
         /// </summary>
         internal static string WRN_TupleLiteralNameMismatch {
             get {
@@ -13373,7 +13373,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The tuple literal should probably not use a mismatching element name at this position..
+        ///   Looks up a localized string similar to The tuple element name is ignored because a different name is specified by the assignment target..
         /// </summary>
         internal static string WRN_TupleLiteralNameMismatch_Title {
             get {
