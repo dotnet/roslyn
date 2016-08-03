@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 {
     /// <summary>
-    /// This interface is solely here to prevent VS.Next dll to be not loaded
+    /// This interface is solely here to prevent VS.Next dll from loading
     /// when RemoteHost option is off
     /// </summary>
     internal interface IRemoteHostDiagnosticAnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
