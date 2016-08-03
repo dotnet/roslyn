@@ -18,10 +18,19 @@
         "version": "14.3.25407",
         "suppressParent": "all"
     },
-    "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
+    "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
     "RoslynDependencies.Microsoft.Internal.Performance.CodeMarkers.DesignTime": "14.3.25407",
-    "RoslynDependencies.Microsoft.VisualStudio.Progression": "14.3.25407",
-    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": "14.3.25407",
+    "RoslynDependencies.Microsoft.VisualStudio.Progression": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
     "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "14.3.25407",
     "Roslyn.Microsoft.Build": "0.0.2",
     "NuGet.VisualStudio": {
