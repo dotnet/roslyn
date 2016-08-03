@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     [ExportWorkspaceService(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor)), Shared]
     internal class InProcCodeAnalysisDiagnosticAnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
     {
+        public static readonly InProcCodeAnalysisDiagnosticAnalyzerExecutor Instance = new InProcCodeAnalysisDiagnosticAnalyzerExecutor();
+
         public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             if (analyzerDriver.Analyzers.Length == 0)
