@@ -125,6 +125,14 @@
         "System.Composition.Convention.dll",
         "System.Composition.Hosting.dll",
         "System.Composition.TypedParts.dll",
-        "System.Composition.Runtime.dll"
+        "System.Composition.Runtime.dll",
+        "Microsoft.Build.Conversion.Core.dll",
+        "Microsoft.Build.dll",
+        "Microsoft.Build.Engine.dll",
+        "Microsoft.Build.Framework.dll",
+        "Microsoft.Build.Tasks.Core.dll",
+        "Microsoft.Build.Utilities.Core.dll",
+        "Microsoft.VisualStudio.Threading.dll",
+        "Microsoft.VisualStudio.Validation.dll"
     ]
 }
