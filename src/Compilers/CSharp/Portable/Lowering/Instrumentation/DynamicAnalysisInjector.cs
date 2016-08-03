@@ -367,35 +367,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    {
-                        MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)node;
-                        return SkipAttributes(methodSyntax.AttributeLists, methodSyntax.Modifiers, methodSyntax.RefKeyword, methodSyntax.ReturnType);
-                    }
+                    MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)node;
+                    return SkipAttributes(methodSyntax.AttributeLists, methodSyntax.Modifiers, methodSyntax.RefKeyword, methodSyntax.ReturnType);
 
                 case SyntaxKind.PropertyDeclaration:
-                    {
-                        PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)node;
-                        return SkipAttributes(propertySyntax.AttributeLists, propertySyntax.Modifiers, propertySyntax.RefKeyword, propertySyntax.Type);
-                    }
+                    PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)node;
+                    return SkipAttributes(propertySyntax.AttributeLists, propertySyntax.Modifiers, propertySyntax.RefKeyword, propertySyntax.Type);
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    {
-                        AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)node;
-                        return SkipAttributes(accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
-                    }
+                    AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)node;
+                    return SkipAttributes(accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
 
                 case SyntaxKind.ConstructorDeclaration:
-                    {
-                        ConstructorDeclarationSyntax constructorSyntax = (ConstructorDeclarationSyntax)node;
-                        return SkipAttributes(constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, null);
-                    }
+                    ConstructorDeclarationSyntax constructorSyntax = (ConstructorDeclarationSyntax)node;
+                    return SkipAttributes(constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, null);
 
                 case SyntaxKind.OperatorDeclaration:
-                    {
-                        OperatorDeclarationSyntax operatorSyntax = (OperatorDeclarationSyntax)node;
-                        return SkipAttributes(operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
-                    }
+                    OperatorDeclarationSyntax operatorSyntax = (OperatorDeclarationSyntax)node;
+                    return SkipAttributes(operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
             }
 
             return null;

@@ -78,27 +78,29 @@ End Class
 
             Assert.Equal(11, reader.Methods.Length)
 
-            VerifySpans(reader, reader.Methods(1),                                      ' Main
-                "(3,4)-(6,11)",
-                "(4,8)-(4,30)",
-                "(5,8)-(5,30)")
+            Dim sourceLines As String() = ExampleSource.ToString().Split(vbLf(0))
 
-            VerifySpans(reader, reader.Methods(2),                                      ' Fred get
-                "(8,4)-(10,16)",
-                "(9,8)-(9,16)")
+            VerifySpans(reader, reader.Methods(1), sourceLines,                                 ' Main
+                New SpanResult(3, 4, 6, 11, "Public Shared Sub Main()"),
+                New SpanResult(4, 8, 4, 30, "Console.WriteLine(123)"),
+                New SpanResult(5, 8, 5, 30, "Console.WriteLine(123)"))
 
-            VerifySpans(reader, reader.Methods(3),                                      ' Barney
-                "(12,4)-(14,16)",
-                "(13,8)-(13,16)")
+            VerifySpans(reader, reader.Methods(2), sourceLines,                                 ' Fred get
+                New SpanResult(8, 4, 10, 16, "Public Shared Function Fred As Integer"),
+                New SpanResult(9, 8, 9, 16, "Return 3"))
 
-            VerifySpans(reader, reader.Methods(4),                                      ' Wilma get
-                "(17,8)-(19,15)",
-                "(18,12)-(18,21)")
+            VerifySpans(reader, reader.Methods(3), sourceLines,                                 ' Barney
+                New SpanResult(12, 4, 14, 16, "Public Shared Function Barney(x As Integer)"),
+                New SpanResult(13, 8, 13, 16, "Return x"))
 
-            VerifySpans(reader, reader.Methods(5),                                      ' Wilma set
-                "(20,8)-(21,15)")
+            VerifySpans(reader, reader.Methods(4), sourceLines,                                 ' Wilma get
+                New SpanResult(17, 8, 19, 15, "Get"),
+                New SpanResult(18, 12, 18, 21, "Return 12"))
 
-            VerifySpans(reader, reader.Methods(6))                                      ' Betty get -- VB does not supply a valid syntax node for the body.
+            VerifySpans(reader, reader.Methods(5), sourceLines,                                 ' Wilma set
+                New SpanResult(20, 8, 21, 15, "Set"))
+
+            VerifySpans(reader, reader.Methods(6))                                              ' Betty get -- VB does not supply a valid syntax node for the body.
 
             VerifySpans(reader, reader.Methods(7))
         End Sub
@@ -189,51 +191,53 @@ End Module
 
             VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
 
-            VerifySpans(reader, reader.Methods(0),                                      ' TestIf
-                "(1,4)-(18,16)",
-                "(2,27)-(2,28)",
-                "(3,18)-(3,24)",
-                "(3,30)-(3,37)",
-                "(3,11)-(3,12)",
-                "(5,12)-(5,18)",
-                "(7,12)-(7,19)",
-                "(9,12)-(9,20)",
-                "(6,15)-(6,26)",
-                "(4,11)-(4,12)",
-                "(12,12)-(12,18)",
-                "(11,11)-(11,12)",
-                "(15,12)-(15,19)",
-                "(14,11)-(14,22)",
-                "(17,8)-(17,16)")
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
-            VerifySpans(reader, reader.Methods(1),                                      ' TestDoLoops
-                "(20,4)-(43,16)",
-                "(21,27)-(21,30)",
-                "(23,12)-(23,18)",
-                "(22,14)-(22,21)",
-                "(26,12)-(26,18)",
-                "(25,14)-(25,21)",
-                "(29,12)-(29,18)",
-                "(28,17)-(28,24)",
-                "(32,12)-(32,18)",
-                "(31,17)-(31,24)",
-                "(35,12)-(35,18)",
-                "(36,19)-(36,26)",
-                "(38,12)-(38,18)",
-                "(39,19)-(39,26)",
-                "(41,12)-(41,20)")
+            VerifySpans(reader, reader.Methods(0), sourceLines,                                             ' TestIf
+                New SpanResult(1, 4, 18, 16, "Function TestIf(a As Boolean, b As Boolean) As Integer"),
+                New SpanResult(2, 27, 2, 28, "0"),
+                New SpanResult(3, 18, 3, 24, "x += 1"),
+                New SpanResult(3, 30, 3, 37, "x += 10"),
+                New SpanResult(3, 11, 3, 12, "a"),
+                New SpanResult(5, 12, 5, 18, "x += 1"),
+                New SpanResult(7, 12, 7, 19, "x += 10"),
+                New SpanResult(9, 12, 9, 20, "x += 100"),
+                New SpanResult(6, 15, 6, 26, "a AndAlso b"),
+                New SpanResult(4, 11, 4, 12, "a"),
+                New SpanResult(12, 12, 12, 18, "x += 1"),
+                New SpanResult(11, 11, 11, 12, "b"),
+                New SpanResult(15, 12, 15, 19, "x += 10"),
+                New SpanResult(14, 11, 14, 22, "a AndAlso b"),
+                New SpanResult(17, 8, 17, 16, "Return x"))
 
-            VerifySpans(reader, reader.Methods(2),                                      ' TestForLoops
-                "(45,4)-(58,11)",
-                "(46,27)-(46,28)",
-                "(47,27)-(47,29)",
-                "(48,27)-(48,28)",
-                "(49,27)-(49,28)",
-                "(50,12)-(50,18)",
-                "(52,27)-(52,28)",
-                "(53,12)-(53,18)",
-                "(55,33)-(55,42)",
-                "(56,12)-(56,18)")
+            VerifySpans(reader, reader.Methods(1), sourceLines,                                             ' TestDoLoops
+                New SpanResult(20, 4, 43, 16, "Function TestDoLoops() As Integer"),
+                New SpanResult(21, 27, 21, 30, "100"),
+                New SpanResult(23, 12, 23, 18, "x += 1"),
+                New SpanResult(22, 14, 22, 21, "x < 150"),
+                New SpanResult(26, 12, 26, 18, "x += 1"),
+                New SpanResult(25, 14, 25, 21, "x < 150"),
+                New SpanResult(29, 12, 29, 18, "x += 1"),
+                New SpanResult(28, 17, 28, 24, "x < 200"),
+                New SpanResult(32, 12, 32, 18, "x += 1"),
+                New SpanResult(31, 17, 31, 24, "x = 200"),
+                New SpanResult(35, 12, 35, 18, "x += 1"),
+                New SpanResult(36, 19, 36, 26, "x < 200"),
+                New SpanResult(38, 12, 38, 18, "x += 1"),
+                New SpanResult(39, 19, 39, 26, "x = 202"),
+                New SpanResult(41, 12, 41, 20, "Return x"))
+
+            VerifySpans(reader, reader.Methods(2), sourceLines,                                             ' TestForLoops
+                New SpanResult(45, 4, 58, 11, "Sub TestForLoops()"),
+                New SpanResult(46, 27, 46, 28, "0"),
+                New SpanResult(47, 27, 47, 29, "10"),
+                New SpanResult(48, 27, 48, 28, "3"),
+                New SpanResult(49, 27, 49, 28, "x"),
+                New SpanResult(50, 12, 50, 18, "z += 1"),
+                New SpanResult(52, 27, 52, 28, "1"),
+                New SpanResult(53, 12, 53, 18, "z += 1"),
+                New SpanResult(55, 33, 55, 42, "{x, y, z}"),
+                New SpanResult(56, 12, 56, 18, "z += 1"))
 
         End Sub
 
@@ -285,17 +289,19 @@ End Module
 
             VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
 
-            VerifySpans(reader, reader.Methods(0),                                      ' TryAndSelect
-                "(1,4)-(23,11)",
-                "(2,27)-(2,28)",
-                "(5,35)-(5,36)",
-                "(6,32)-(6,33)",
-                "(8,28)-(8,34)",
-                "(10,28)-(10,56)",
-                "(12,28)-(12,34)",
-                "(14,28)-(14,34)",
-                "(18,16)-(18,22)",
-                "(21,12)-(21,18)")
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
+
+            VerifySpans(reader, reader.Methods(0), sourceLines,                                     ' TryAndSelect
+                New SpanResult(1, 4, 23, 11, "Sub TryAndSelect()"),
+                New SpanResult(2, 27, 2, 28, "0"),
+                New SpanResult(5, 35, 5, 36, "0"),
+                New SpanResult(6, 32, 6, 33, "x"),
+                New SpanResult(8, 28, 8, 34, "y += 1"),
+                New SpanResult(10, 28, 10, 56, "Throw New System.Exception()"),
+                New SpanResult(12, 28, 12, 34, "y += 1"),
+                New SpanResult(14, 28, 14, 34, "y += 1"),
+                New SpanResult(18, 16, 18, 22, "y += 1"),
+                New SpanResult(21, 12, 21, 18, "y += 1"))
         End Sub
 
         <Fact>
@@ -349,22 +355,24 @@ End Module
 
             VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
 
-            VerifySpans(reader, reader.Methods(0),                                      ' Branches
-                "(1,4)-(26,11)",
-                "(2,27)-(2,28)",
-                "(5,12)-(5,19)",
-                "(6,12)-(6,18)",
-                "(8,27)-(8,28)",
-                "(9,12)-(9,20)",
-                "(10,12)-(10,18)",
-                "(13,12)-(13,20)",
-                "(14,12)-(14,18)",
-                "(17,20)-(17,21)",
-                "(19,16)-(19,27)",
-                "(20,16)-(20,22)",
-                "(23,12)-(23,20)",
-                "(22,11)-(22,16)",
-                "(25,8)-(25,20)")
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
+
+            VerifySpans(reader, reader.Methods(0), sourceLines,                                     ' Branches
+                New SpanResult(1, 4, 26, 11, "Sub Branches()"),
+                New SpanResult(2, 27, 2, 28, "0"),
+                New SpanResult(5, 12, 5, 19, "Exit Do"),
+                New SpanResult(6, 12, 6, 18, "y += 1"),
+                New SpanResult(8, 27, 8, 28, "1"),
+                New SpanResult(9, 12, 9, 20, "Exit For"),
+                New SpanResult(10, 12, 10, 18, "y += 1"),
+                New SpanResult(13, 12, 13, 20, "Exit Try"),
+                New SpanResult(14, 12, 14, 18, "y += 1"),
+                New SpanResult(17, 20, 17, 21, "y"),
+                New SpanResult(19, 16, 19, 27, "Exit Select"),
+                New SpanResult(20, 16, 20, 22, "y += 0"),
+                New SpanResult(23, 12, 23, 20, "Exit Sub"),
+                New SpanResult(22, 11, 22, 16, "y = 0"),
+                New SpanResult(25, 8, 25, 20, "GoTo MyLabel"))
         End Sub
 
         <Fact>
@@ -439,44 +447,46 @@ End Class
 
             VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
 
-            VerifySpans(reader, reader.Methods(0),
-                        "(3,4)-(5,11)",
-                        "(4,8)-(4,14)")
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
-            VerifySpans(reader, reader.Methods(1),
-                        "(8,4)-(9,11)")
+            VerifySpans(reader, reader.Methods(0), sourceLines,
+                        New SpanResult(3, 4, 5, 11, "Public Sub Main()"),
+                        New SpanResult(4, 8, 4, 14, "Fred()"))
 
-            VerifySpans(reader, reader.Methods(2),
-                        "(11,4)-(13,11)",
-                        "(12,8)-(12,14)")
+            VerifySpans(reader, reader.Methods(1), sourceLines,
+                        New SpanResult(8, 4, 9, 11, "Sub Fred()"))
 
-            VerifySpans(reader, reader.Methods(3),
-                        "(18,4)-(19,11)")
+            VerifySpans(reader, reader.Methods(2), sourceLines,
+                        New SpanResult(11, 4, 13, 11, "Sub New()"),
+                        New SpanResult(12, 8, 12, 14, "x = 12"))
 
-            VerifySpans(reader, reader.Methods(4),
-                        "(22,4)-(23,11)")
+            VerifySpans(reader, reader.Methods(3), sourceLines,
+                        New SpanResult(18, 4, 19, 11, "Public Sub New(x As Integer) "))
 
-            VerifySpans(reader, reader.Methods(5),
-                        "(26,4)-(28,11)",
-                        "(27,8)-(27,14)")
+            VerifySpans(reader, reader.Methods(4), sourceLines,
+                        New SpanResult(22, 4, 23, 11, "Sub New()"))
 
-            VerifySpans(reader, reader.Methods(6),
-                        "(31,4)-(33,16)",
-                        "(32,8)-(32,17)")
+            VerifySpans(reader, reader.Methods(5), sourceLines,
+                        New SpanResult(26, 4, 28, 11, "Public Sub Fred()"),
+                        New SpanResult(27, 8, 27, 14, "Return"))
 
-            VerifySpans(reader, reader.Methods(7),
-                        "(36,4)-(37,11)")
+            VerifySpans(reader, reader.Methods(6), sourceLines,
+                        New SpanResult(31, 4, 33, 16, "Function Barney() As Integer"),
+                        New SpanResult(32, 8, 32, 17, "Return 12"))
 
-            VerifySpans(reader, reader.Methods(8),
-                        "(40,4)-(42,16)",
-                        "(41,8)-(41,16)")
+            VerifySpans(reader, reader.Methods(7), sourceLines,
+                        New SpanResult(36, 4, 37, 11, "Shared Sub New()"))
 
-            VerifySpans(reader, reader.Methods(9),
-                        "(46,8)-(48,15)",
-                        "(47,12)-(47,21)")
+            VerifySpans(reader, reader.Methods(8), sourceLines,
+                        New SpanResult(40, 4, 42, 16, "Public Shared Operator +(a As c, b As c) As c"),
+                        New SpanResult(41, 8, 41, 16, "Return a"))
 
-            VerifySpans(reader, reader.Methods(10),
-                        "(50,8)-(51,15)")
+            VerifySpans(reader, reader.Methods(9), sourceLines,
+                        New SpanResult(46, 8, 48, 15, "Get"),
+                        New SpanResult(47, 12, 47, 21, "Return 10"))
+
+            VerifySpans(reader, reader.Methods(10), sourceLines,
+                        New SpanResult(50, 8, 51, 15, "Set(value As Integer)"))
         End Sub
 
         <Fact>
@@ -494,21 +504,46 @@ End Class
             Assert.Null(reader)
         End Sub
 
+        Private Class SpanResult
+            Public ReadOnly Property StartLine As Integer
+            Public ReadOnly Property StartColumn As Integer
+            Public ReadOnly Property EndLine As Integer
+            Public ReadOnly Property EndColumn As Integer
+            Public ReadOnly Property TextStart As String
+            Public Sub New(startLine As Integer, startColumn As Integer, endLine As Integer, endColumn As Integer, textStart As String)
+                Me.StartLine = startLine
+                Me.StartColumn = startColumn
+                Me.EndLine = endLine
+                Me.EndColumn = endColumn
+                Me.TextStart = textStart
+            End Sub
+        End Class
+
+        Private Shared Sub VerifySpans(reader As DynamicAnalysisDataReader, methodData As DynamicAnalysisMethod, sourceLines As String(), ParamArray expected As SpanResult())
+            Dim expectedSpanSpellings As ArrayBuilder(Of String) = ArrayBuilder(Of String).GetInstance(expected.Length)
+            For Each expectedSpanResult As SpanResult In expected
+                Assert.True(sourceLines(expectedSpanResult.StartLine + 1).Substring(expectedSpanResult.StartColumn).StartsWith(expectedSpanResult.TextStart))
+                expectedSpanSpellings.Add(String.Format("({0},{1})-({2},{3})", expectedSpanResult.StartLine, expectedSpanResult.StartColumn, expectedSpanResult.EndLine, expectedSpanResult.EndColumn))
+            Next
+
+            VerifySpans(reader, methodData, expectedSpanSpellings.ToArrayAndFree())
+        End sub
+
         Private Shared Sub VerifySpans(reader As DynamicAnalysisDataReader, methodData As DynamicAnalysisMethod, ParamArray expected As String())
-            AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(Function(s) $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn})"))
-        End Sub
+                AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(Function(s) $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn})"))
+            End Sub
 
-        Private Sub VerifyDocuments(reader As DynamicAnalysisDataReader, documents As ImmutableArray(Of DynamicAnalysisDocument), ParamArray expected As String())
-            Dim sha1 = New Guid("ff1816ec-aa5e-4d10-87F7-6F4963833460")
+            Private Sub VerifyDocuments(reader As DynamicAnalysisDataReader, documents As ImmutableArray(Of DynamicAnalysisDocument), ParamArray expected As String())
+                Dim sha1 = New Guid("ff1816ec-aa5e-4d10-87F7-6F4963833460")
 
-            Dim actual = From d In documents
-                         Let name = reader.GetDocumentName(d.Name)
-                         Let hash = If(d.Hash.IsNil, "", " " + BitConverter.ToString(reader.GetBytes(d.Hash)))
-                         Let hashAlgGuid = reader.GetGuid(d.HashAlgorithm)
-                         Let hashAlg = If(hashAlgGuid = sha1, " (SHA1)", If(hashAlgGuid = New Guid, "", " " + hashAlgGuid.ToString()))
-                         Select $"'{name}'{hash}{hashAlg}"
+                Dim actual = From d In documents
+                             Let name = reader.GetDocumentName(d.Name)
+                             Let hash = If(d.Hash.IsNil, "", " " + BitConverter.ToString(reader.GetBytes(d.Hash)))
+                             Let hashAlgGuid = reader.GetGuid(d.HashAlgorithm)
+                             Let hashAlg = If(hashAlgGuid = sha1, " (SHA1)", If(hashAlgGuid = New Guid, "", " " + hashAlgGuid.ToString()))
+                             Select $"'{name}'{hash}{hashAlg}"
 
-            AssertEx.Equal(expected, actual)
-        End Sub
-    End Class
+                AssertEx.Equal(expected, actual)
+            End Sub
+        End Class
 End Namespace
