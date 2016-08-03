@@ -371,65 +371,88 @@ namespace Roslyn.Utilities
                 return _reader.ReadChars(length);
             }
 
-            var array = Array.CreateInstance(type, length);
-
             // optimizations for string where object reader/writer has its own mechanism to
             // reduce duplicated strings
             if (type == typeof(string))
             {
-                for (int i = 0; i < length; i++)
-                {
-                    var value = this.ReadString();
-                    array.SetValue(value, i);
-                }
+                return ReadPrimitiveTypeArrayElements(length, ReadString);
+            }
 
-                return array;
+            if (type == typeof(bool))
+            {
+                return ReadBooleanArray(length);
             }
 
             // otherwise, read elements directly from underlying binary writer
-            for (int i = 0; i < length; i++)
+            switch (kind)
             {
-                switch (kind)
+                case DataKind.Int8:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadSByte);
+                case DataKind.Int16:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt16);
+                case DataKind.Int32:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt32);
+                case DataKind.Int64:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt64);
+                case DataKind.UInt16:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt16);
+                case DataKind.UInt32:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt32);
+                case DataKind.UInt64:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt64);
+                case DataKind.Float4:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadSingle);
+                case DataKind.Float8:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadDouble);
+                case DataKind.Decimal:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadDecimal);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private Array ReadBooleanArray(int length)
+        {
+            if (length == 0)
+            {
+                //  simple check
+                return SpecializedCollections.EmptyArray<bool>();
+            }
+
+            var array = new bool[length];
+            var wordLength = BitVector.WordsRequired(length);
+
+            var count = 0;
+            for (var i = 0; i < wordLength; i++)
+            {
+                var word = _reader.ReadUInt32();
+
+                for (var p = 0; p < BitVector.BitsPerWord; p++)
                 {
-                    case DataKind.Int8:
-                        array.SetValue(_reader.ReadSByte(), i);
-                        continue;
-                    case DataKind.Int16:
-                        array.SetValue(_reader.ReadInt16(), i);
-                        continue;
-                    case DataKind.Int32:
-                        array.SetValue(_reader.ReadInt32(), i);
-                        continue;
-                    case DataKind.Int64:
-                        array.SetValue(_reader.ReadInt64(), i);
-                        continue;
-                    case DataKind.UInt8:
-                        array.SetValue(_reader.ReadByte(), i);
-                        continue;
-                    case DataKind.UInt16:
-                        array.SetValue(_reader.ReadUInt16(), i);
-                        continue;
-                    case DataKind.UInt32:
-                        array.SetValue(_reader.ReadUInt32(), i);
-                        continue;
-                    case DataKind.UInt64:
-                        array.SetValue(_reader.ReadUInt64(), i);
-                        continue;
-                    case DataKind.Float4:
-                        array.SetValue(_reader.ReadSingle(), i);
-                        continue;
-                    case DataKind.Float8:
-                        array.SetValue(_reader.ReadDouble(), i);
-                        continue;
-                    case DataKind.Decimal:
-                        array.SetValue(_reader.ReadDecimal(), i);
-                        continue;
-                    case DataKind.BooleanType:
-                        array.SetValue(_reader.ReadBoolean(), i);
-                        continue;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
+                    if (count >= length)
+                    {
+                        return array;
+                    }
+
+                    array[count++] = BitVector.IsTrue(word, p);
                 }
+            }
+
+            return array;
+        }
+
+        private T[] ReadPrimitiveTypeArrayElements<T>(int length, Func<T> read)
+        {
+            if (length == 0)
+            {
+                // quick check
+                return SpecializedCollections.EmptyArray<T>();
+            }
+
+            var array = new T[length];
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = read();
             }
 
             return array;
