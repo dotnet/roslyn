@@ -1228,7 +1228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim elementConversion = ClassifyConversion(argument, targetElementTypes(i), binder, useSiteDiagnostics).Key
 
                 If NoConversion(elementConversion) Then
-                    Return Nothing
+                    Return Nothing 'ConversionKind.NoConversion
                 End If
 
                 If IsNarrowingConversion(elementConversion) Then
@@ -3506,7 +3506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim elementConversion = ClassifyConversion(argumentType, targetElementTypes(i), useSiteDiagnostics).Key
 
                 If NoConversion(elementConversion) Then
-                    Return Nothing
+                    Return Nothing 'ConversionKind.NoConversion
                 End If
 
                 If IsNarrowingConversion(elementConversion) Then

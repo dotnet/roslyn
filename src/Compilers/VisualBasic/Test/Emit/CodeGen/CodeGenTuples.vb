@@ -554,6 +554,27 @@ End Module
         End Sub
 
         <Fact()>
+        Public Sub SimpleTupleTargetTyped002a()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (Func(Of integer), Func(of String)) = (Function() 42, Function() Nothing)
+        System.Console.WriteLine((x.Item1(), x.Item2()).ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(42, )
+            ]]>)
+        End Sub
+
+        <Fact()>
         Public Sub SimpleTupleTargetTyped003()
 
             Dim verifier = CompileAndVerify(
