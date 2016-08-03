@@ -1,10 +1,9 @@
 {
   "version": "1.0.0-*",
   "compilationOptions": {
-      "emitEntryPoint": true,
-      "outputName": "RoslynRestore"
-   },
-
+    "emitEntryPoint": true,
+    "outputName": "RoslynRestore"
+  },
   "dependencies": {
     "Microsoft.Build.Framework": "0.1.0-preview-00024-160610",
     "Microsoft.Build.Tasks.Core": "0.1.0-preview-00024-160610",
@@ -14,16 +13,18 @@
     "MSBuild": "0.1.0-preview-00024-160610",
     "Microsoft.NETCore.TestHost": "1.0.0",
     "Microsoft.NETCore.App": "1.0.0-rc3-004338",
-    "Newtonsoft.Json": "7.0.1"
+    "Newtonsoft.Json": "8.0.3"
   },
-
   "frameworks": {
     "NETCoreApp1.0": {
-      "imports": ["portable-net452", "dotnet"]
+      "imports": [
+        "portable-net452",
+        "dotnet"
+      ]
     }
   },
   "runtimes": {
-    "ubuntu.14.04-x64": { },
-    "osx.10.10-x64": { }
+    "ubuntu.14.04-x64": {},
+    "osx.10.10-x64": {}
   }
 }
