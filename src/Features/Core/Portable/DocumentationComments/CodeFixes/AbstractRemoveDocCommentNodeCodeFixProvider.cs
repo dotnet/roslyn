@@ -29,19 +29,14 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.Remove_tag,
-                    c => RemoveDuplicateParamTagAsync(context)),
+                    c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),
                 context.Diagnostics);
 
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> RemoveDuplicateParamTagAsync(CodeFixContext context)
+        private async Task<Document> RemoveDuplicateParamTagAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var commentParent = root.FindNode(span);
             var triviaNode = commentParent.GetLeadingTrivia().Single(s => s.GetLocation().SourceSpan.Contains(span));
@@ -61,6 +56,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 removedNodes.Add(triviaNodeStructureChildren[paramNodeIndex - 1]);
             }
 
+            // Remove all trivia attached to the nodes I am removing.
+            // Really, any option should work here because the leading/trailing text around these nodes are not attached to them as trivia.
             var newCommentNode = triviaNodeStructure.RemoveNodes(removedNodes, SyntaxRemoveOptions.KeepNoTrivia);
             var newRoot = root.ReplaceTrivia(triviaNode, GetRevisedDocCommentTrivia(newCommentNode.ToFullString()));
             return document.WithSyntaxRoot(newRoot);
@@ -68,8 +65,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(FeaturesResources.Remove_tag, createChangedDocument)
             {
             }
         }

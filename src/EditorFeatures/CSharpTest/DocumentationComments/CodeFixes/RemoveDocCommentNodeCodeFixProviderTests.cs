@@ -18,7 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpRemoveDocCommentNodeCodeFixProvider());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        private async Task TestAsync(string initial, string expected)
+        {
+            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
+            await TestAsync(initial, expected, parseOptions: parseOptions, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag()
         {
             var initial = 
@@ -43,11 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public void Fizz(int value) {}
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag_OnlyParamTags()
         {
             var initial =
@@ -66,11 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public void Fizz(int value) {}
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag_TagBelowOffendingParamTag()
         {
             var initial =
@@ -91,11 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public int Fizz(int value) { return 0; }
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_DocCommentTagBetweenThem()
         {
             var initial =
@@ -119,11 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public void Fizz(int value) {}
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_WhitespaceBetweenThem()
         {
             var initial =
@@ -147,11 +149,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public void Fizz(int value) {}
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem()
         {
             var initial =
@@ -175,11 +176,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public void Fizz(int value) {}
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        public async Task RemovesDuplicateParamTag_RawTextBeforeAndAfterNode()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""value""></param>
+    /// some comment<param [|name=""value""|]></param>out of the XML nodes
+    public void Fizz(int value) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""value""></param>
+    /// some commentout of the XML nodes
+    public void Fizz(int value) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateTypeparamTag()
         {
             var initial =
@@ -204,12 +233,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     public void Fizz<T>() { }
 }
 ";
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions);
+            await TestAsync(initial, expected);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllTypeparamInDocument_DoesNotFixDuplicateParamTags()
         {
@@ -217,53 +245,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;typeparam name=""T""&gt;&lt;/typeparam&gt;
-    /// &lt;typeparam {|FixAllInDocument:name=""T""|}>&lt;/typeparam&gt;
-    /// &lt;typeparam name=""U""&gt;&lt;/typeparam&gt;
-    public void Fizz&lt;T, U&gt;(int value) {}
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
+    /// <typeparam name=""T""></typeparam>
+    /// <typeparam {|FixAllInDocument:name=""T""|}></typeparam>
+    /// <typeparam name=""U""></typeparam>
+    public void Fizz<T, U>(int value) {}
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;typeparam name=""T""&gt;&lt;/typeparam&gt;
-    /// &lt;typeparam name=""T""&gt;&lt;/typeparam&gt;
-    /// &lt;typeparam name=""U""&gt;&lt;/typeparam&gt;
-    /// &lt;returns&gt;&lt;/returns&gt;
-    public int Buzz&lt;T, U&gt;(int value) { returns 0; }
-}
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
+    /// <typeparam name=""T""></typeparam>
+    /// <typeparam name=""T""></typeparam>
+    /// <typeparam name=""U""></typeparam>
+    /// <returns></returns>
+    public int Buzz<T, U>(int value) { returns 0; }
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
@@ -272,60 +303,63 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;typeparam name=""T""&gt;&lt;/typeparam&gt;
-    /// &lt;typeparam name=""U""&gt;&lt;/typeparam&gt;
-    public void Fizz&lt;T, U&gt;(int value) {}
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
+    /// <typeparam name=""T""></typeparam>
+    /// <typeparam name=""U""></typeparam>
+    public void Fizz<T, U>(int value) {}
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;typeparam name=""T""&gt;&lt;/typeparam&gt;
-    /// &lt;typeparam name=""U""&gt;&lt;/typeparam&gt;
-    /// &lt;returns&gt;&lt;/returns&gt;
-    public int Buzz&lt;T, U&gt;(int value) { returns 0; }
-}
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
+    /// <typeparam name=""T""></typeparam>
+    /// <typeparam name=""U""></typeparam>
+    /// <returns></returns>
+    public int Buzz<T, U>(int value) { returns 0; }
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
-            
-            await TestAsync(initial, expected, compareTokens: false);
+
+            await TestAsync(initial, expected);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
@@ -333,47 +367,50 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param {|FixAllInDocument:name=""value""|}&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param {|FixAllInDocument:name=""value""|}></param>
     public void Fizz(int value) {}
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;returns&gt;&lt;/returns&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
+    /// <returns></returns>
     public int Buzz(int value) { returns 0; }
-}
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
@@ -382,54 +419,57 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;returns&gt;&lt;/returns&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <returns></returns>
     public int Buzz(int value) { returns 0; }
-}
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
-            
-            await TestAsync(initial, expected, compareTokens: false);
+
+            await TestAsync(initial, expected);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
@@ -437,39 +477,42 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param {|FixAllInProject:name=""value""|}&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param {|FixAllInProject:name=""value""|}></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
@@ -478,46 +521,49 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
-            
-            await TestAsync(initial, expected, compareTokens: false);
+
+            await TestAsync(initial, expected);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
@@ -525,39 +571,42 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param {|FixAllInSolution:name=""value""|}&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param {|FixAllInSolution:name=""value""|}></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
@@ -566,41 +615,44 @@ class Program3
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program1
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
         <Document>
+<![CDATA[
 class Program2
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
+<![CDATA[
 class Program3
 {
-    /// &lt;summary&gt;
+    /// <summary>
     /// 
-    /// &lt;/summary&gt;
-    /// &lt;param name=""value""&gt;&lt;/param&gt;
+    /// </summary>
+    /// <param name=""value""></param>
     public void Fizz(int value) {}
-}
+}]]>
         </Document>
     </Project>
 </Workspace>";
-            
-            await TestAsync(initial, expected, compareTokens: false);
+
+            await TestAsync(initial, expected);
         }
     }
 }

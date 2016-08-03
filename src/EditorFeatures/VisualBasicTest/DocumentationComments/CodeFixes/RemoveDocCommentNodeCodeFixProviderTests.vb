@@ -14,351 +14,373 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
                 Nothing,
                 New VisualBasicRemoveDocCommentNodeCodeFixProvider())
         End Function
+
+        Private Overloads Async Function TestAsync(ByVal initial As String, ByVal expected As String) As Task
+
+            Dim parseOptions = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
+            Await TestAsync(initial, expected, parseOptions:=parseOptions, compareTokens:=False)
+        End Function
         
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag() As Task
             Dim initial =
-<File>
+"<File>
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' [|<param name="value"></param>|]
+    ''' <param name=""value""></param>
+    ''' [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
             Dim expected =
-<File>
+"<File>
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
             
-            
-
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_OnlyParamTags() As Task
             Dim initial =
-<File>Class Program
-    ''' <param name="value"></param>
-    ''' [|<param name="value"></param>|]
+"<File>Class Program
+    ''' <param name=""value""></param>
+    ''' [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
-    ''' <param name="value"></param>
+"<File>Class Program
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_TagBelowOffendingParamTag() As Task
             Dim initial =
-<File>Class Program
-    ''' <param name="value"></param>
-    ''' [|<param name="value"></param>|]
+"<File>Class Program
+    ''' <param name=""value""></param>
+    ''' [|<param name=""value""></param>|]
     ''' <returns></returns>
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
 End Class
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
-    ''' <param name="value"></param>
+"<File>Class Program
+    ''' <param name=""value""></param>
     ''' <returns></returns>
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
 End Class
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_BothParamTagsOnSameLine_DocCommentTagBetweenThem() As Task
             Dim initial =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>    ''' [|<param name="value"></param>|]
+    ''' <param name=""value""></param>    ''' [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_BothParamTagsOnSameLine_WhitespaceBetweenThem() As Task
             Dim initial =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>    [|<param name="value"></param>|]
+    ''' <param name=""value""></param>    [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem() As Task
             Dim initial =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>[|<param name="value"></param>|]
+    ''' <param name=""value""></param>[|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
         
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesParamTagWithNoMatchingParam() As Task
             Dim initial =
-<File>
+"<File>
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' [|<param name="buzz"></param>|]
+    ''' <param name=""value""></param>
+    ''' [|<param name=""buzz""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class
-</File>
-            Dim expected =
-<File>
-Class Program
-    ''' <summary>
-    ''' 
-    ''' </summary>
-    ''' <param name="value"></param>
-    Sub Fizz(ByVal value As Integer)
-    End Sub
-End Class
-</File>
-            
-            
+</File>"
 
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Dim expected =
+"<File>
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class
+</File>"
+            
+            Await TestAsync(initial, expected)
+        End Function
+        
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        Public Async Function RemovesDuplicateParamTag_RawTextBeforeAndAfterNode() As Task
+            Dim initial =
+"<File>
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' some comment[|<param name=""value""></param>|]out of the XML nodes
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class
+</File>"
+            Dim expected =
+"<File>
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' some commentout of the XML nodes
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class
+</File>"
+            
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateTypeparamTag() As Task
             Dim initial =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <typeparam name="T"></typeparam>
-    ''' [|<typeparam name="T"></typeparam>|]
-    ''' <typeparam name="U"></typeparam>
-    ''' <param name="value"></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' [|<typeparam name=""T""></typeparam>|]
+    ''' <typeparam name=""U""></typeparam>
+    ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <typeparam name="T"></typeparam>
-    ''' <typeparam name="U"></typeparam>
-    ''' <param name="value"></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesTypeparamTagWithNoMatchingType() As Task
             Dim initial =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <typeparam name="T"></typeparam>
-    ''' <typeparam name="U"></typeparam>
-    ''' [|<typeparam name="A"></typeparam>|]
-    ''' <param name="value"></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' [|<typeparam name=""A""></typeparam>|]
+    ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <typeparam name="T"></typeparam>
-    ''' <typeparam name="U"></typeparam>
-    ''' <param name="value"></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesReturnsTagOnSub() As Task
             Dim initial =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     ''' [|<returns></returns>|]
     Public Sub Fizz(ByVal value As Integer)
     End Sub
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
+"<File>Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Public Sub Fizz(ByVal value As Integer)
     End Sub
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateReturnsTag() As Task
             Dim initial =
-<File>Class Program
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+"<File>Class Program
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     ''' <returns></returns>
     ''' [|<returns></returns>|]
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
-</File>
+</File>"
 
             Dim expected =
-<File>Class Program
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+"<File>Class Program
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     ''' <returns></returns>
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
-</File>
+</File>"
             
-            Dim options = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial.ToString(), expected.ToString(), options)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllTypeparamInDocument_FixesDuplicateParamTags() As Task
             ' This fixes both because VB.NET has one diagnostic for all doc comment nodes with the same attributes
 
             Dim initial =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
-    ''' <typeparam name="T"></typeparam>
-    ''' {|FixAllInDocument:<typeparam name="T"></typeparam>|}
-    ''' <typeparam name="U"></typeparam>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' {|FixAllInDocument:<typeparam name=""T""></typeparam>|}
+    ''' <typeparam name=""U""></typeparam>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
 
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
-    ''' <typeparam name="T"></typeparam>
-    ''' <typeparam name="U"></typeparam>
-    ''' <typeparam name="U"></typeparam>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
     ''' <returns></returns>
     Function Buzz(Of T, U)(value As Integer) As Integer
         Return 0
@@ -370,49 +392,49 @@ Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
 
             Dim expected =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <typeparam name="T"></typeparam>
-    ''' <typeparam name="U"></typeparam>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
 
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <typeparam name="T"></typeparam>
-    ''' <typeparam name="U"></typeparam>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
     ''' <returns></returns>
     Function Buzz(Of T, U)(value As Integer) As Integer
         Return 0
@@ -424,54 +446,54 @@ Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
             
-            Await TestAsync(initial.ToString(), expected.ToString(), compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
             Dim initial =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' {|FixAllInDocument:<param name="value"></param>|}
+    ''' <param name=""value""></param>
+    ''' {|FixAllInDocument:<param name=""value""></param>|}
     Sub Fizz(ByVal value As Integer)
     End Sub
 
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     ''' <returns></returns>
     Function Buzz(value As Integer) As Integer
         Return 0
@@ -483,45 +505,45 @@ Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
 
             Dim expected =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     ''' <returns></returns>
     Function Buzz(value As Integer) As Integer
         Return 0
@@ -533,46 +555,46 @@ Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
             
-            Await TestAsync(initial.ToString(), expected.ToString(), compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
             Dim initial = 
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' {|FixAllInProject:<param name="value"></param>|}
+    ''' <param name=""value""></param>
+    ''' {|FixAllInProject:<param name=""value""></param>|}
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
@@ -582,38 +604,38 @@ Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
 
             Dim expected =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
@@ -623,45 +645,45 @@ Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document><![CDATA[
 Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
             
-            Await TestAsync(initial.ToString(), expected.ToString(), compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDuplicateParamTag)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task
             Dim initial =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
             <![CDATA[Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' {|FixAllInSolution:<param name="value"></param>|}
+    ''' <param name=""value""></param>
+    ''' {|FixAllInSolution:<param name=""value""></param>|}
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
@@ -671,38 +693,38 @@ End Class]]>
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document>
             <![CDATA[Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
 
             Dim expected =
-<Workspace>
-    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document>
             <![CDATA[Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
@@ -712,29 +734,28 @@ End Class]]>
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true" DocumentationMode="Diagnose">
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document>
             <![CDATA[Class Program
     ''' <summary>
     ''' 
     ''' </summary>
-    ''' <param name="value"></param>
+    ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class]]>
         </Document>
     </Project>
-</Workspace>
+</Workspace>"
             
-            Await TestAsync(initial.ToString(), expected.ToString(), compareTokens:=False)
+            Await TestAsync(initial, expected)
         End Function
-
     End Class
 End Namespace
