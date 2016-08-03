@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         End Function
 
         Private Overloads Async Function TestAsync(ByVal initial As String, ByVal expected As String) As Task
-
             Dim parseOptions = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
             Await TestAsync(initial, expected, parseOptions:=parseOptions, compareTokens:=False)
         End Function

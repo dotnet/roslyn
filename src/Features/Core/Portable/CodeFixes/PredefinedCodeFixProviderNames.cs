@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConvertToAsync = "Convert To Async";
         public const string ConvertToIterator = "Convert To Iterator";
         public const string CorrectNextControlVariable = "Correct Next Control Variable";
-        public const string RemoveDuplicateParamTag = "Remove Duplicate Param Tag";
+        public const string RemoveDocCommentNode = "Remove Doc Comment Node";
         public const string AddMissingReference = "Add Missing Reference";
         public const string AddUsingOrImport = "Add Using or Import";
         public const string FullyQualify = "Fully Qualify";

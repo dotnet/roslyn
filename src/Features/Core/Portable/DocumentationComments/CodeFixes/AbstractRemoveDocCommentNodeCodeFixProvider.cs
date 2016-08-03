@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.First();
-
             context.RegisterCodeFix(
                 new MyCodeAction(
                     c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),

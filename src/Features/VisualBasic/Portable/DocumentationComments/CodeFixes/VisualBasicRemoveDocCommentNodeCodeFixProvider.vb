@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveDuplicateParamTag), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveDocCommentNode), [Shared]>
     Friend Class VisualBasicRemoveDocCommentNodeCodeFixProvider
         Inherits AbstractRemoveDocCommentNodeCodeFixProvider
 
