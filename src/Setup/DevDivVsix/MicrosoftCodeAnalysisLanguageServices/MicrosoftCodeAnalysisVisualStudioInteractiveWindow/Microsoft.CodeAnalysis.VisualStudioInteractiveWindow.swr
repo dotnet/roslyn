@@ -1,6 +1,6 @@
 use vs
 
-package name=Microsoft.VisualStudio.InteractiveWindow
+package name=Microsoft.CodeAnalysis.VisualStudio.InteractiveWindow
         version=$(Version)
         vs.package.language=en-us
         vs.package.type=vsix

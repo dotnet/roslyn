@@ -7,6 +7,8 @@
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
     <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.0.0</RoslynAssemblyVersionBase>
+    <!-- This is the next assembly version of Roslyn from the .NET assembly perspective. -->
+    <NextRoslynAssemblyVersionBase Condition="'$(NextRoslynAssemblyVersion)' == ''">3.0.0</NextRoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
@@ -51,6 +53,7 @@
     <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
       <PropertyGroup>
         <AssemblyVersion>$(RoslynAssemblyVersionBase).0</AssemblyVersion>
+        <NextAssemblyVersion>$(NextRoslynAssemblyVersionBase).0</NextAssemblyVersion>
         <BuildVersion>$(RoslynFileVersionBase).$(BuildNumberFiveDigitDateStamp)</BuildVersion>
         <VsixVersion>$(RoslynFileVersionBase).$(BuildNumberFiveDigitDateStamp)$(BuildNumberBuildOfTheDayPadded)</VsixVersion>
       </PropertyGroup>
@@ -63,6 +66,7 @@
           this number.  -->
       <PropertyGroup>
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
+        <NextAssemblyVersion>42.42.42.42</NextAssemblyVersion>
         <BuildVersion>42.42.42.42</BuildVersion>
         <VsixVersion>42.42.42.42</VsixVersion>
       </PropertyGroup>

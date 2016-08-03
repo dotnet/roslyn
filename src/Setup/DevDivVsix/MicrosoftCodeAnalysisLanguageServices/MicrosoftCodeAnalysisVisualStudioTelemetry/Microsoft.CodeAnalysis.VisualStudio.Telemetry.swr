@@ -16,5 +16,5 @@ vs.payloads
 
 vs.dependencies
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
-                version=$(Version)
+                version=[$(Version),$(NextVersion))
                 type=Required
