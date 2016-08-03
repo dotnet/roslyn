@@ -15364,12 +15364,13 @@ public class C
                 //                                 return (a: 1, d: 4);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "4").WithArguments("d").WithLocation(21, 50)
                 );
-        
+
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().First());
-            Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());}
+            Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
+        }
 
         [Fact]
         public void LambdaTypeInferenceWithDynamic()
