@@ -109,7 +109,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 builder.Add(new HostDiagnosticAnalyzerPackage(name, assemblies.ToImmutable()));
             }
 
-            return builder.ToImmutable();
+            var packages = builder.ToImmutable();
+
+            EnsureMandatoryAnalyzers(packages);
+
+            // make sure enabled extensions are alive in memory
+            // so that we can debug it through if mandatory analyzers are missing
+            GC.KeepAlive(enabledExtensions);
+
+            return packages;
+        }
+
+        private static void EnsureMandatoryAnalyzers(ImmutableArray<HostDiagnosticAnalyzerPackage> packages)
+        {
+            foreach (var package in packages)
+            {
+                if (package.Assemblies.Any(a => a?.EndsWith("Microsoft.CodeAnalysis.CSharp.dll", StringComparison.OrdinalIgnoreCase) == true) &&
+                    package.Assemblies.Any(a => a?.EndsWith("Microsoft.CodeAnalysis.VisualBasic.dll", StringComparison.OrdinalIgnoreCase) == true))
+                {
+                    return;
+                }
+            }
+
+            FailFast.OnFatalException(new Exception("Mandatory analyzers are missing"));
         }
 
         // internal for testing purpose
