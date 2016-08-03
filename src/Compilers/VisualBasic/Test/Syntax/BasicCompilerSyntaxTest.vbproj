@@ -124,6 +124,7 @@
     <Compile Include="Syntax\GeneratedTests.vb" />
     <Compile Include="Syntax\LambdaUtilitiesTests.vb" />
     <Compile Include="Syntax\ManualTests.vb" />
+    <Compile Include="Syntax\NonRecurSyntaxRewriterTests.vb" />
     <Compile Include="Syntax\SeparatedSyntaxListTests.vb" />
     <Compile Include="Syntax\SerializationTests.vb" />
     <Compile Include="Syntax\StatementSyntaxWalkerTests.vb" />
@@ -139,6 +140,7 @@
     <Compile Include="Syntax\SyntaxTokenListTests.vb" />
     <Compile Include="Syntax\SyntaxTreeTests.vb" />
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
+    <Compile Include="Syntax\NonRecursiveSyntaxWalkerTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
     <None Include="project.json" />

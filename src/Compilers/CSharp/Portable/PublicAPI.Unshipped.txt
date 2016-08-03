@@ -235,11 +235,12 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VariableDeclaration(Microsoft
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VariableDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeconstructionDeclaratorSyntax deconstructionDeclaration) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.SyntaxToken whenKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
-virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.Skip(Microsoft.CodeAnalysis.SyntaxNodeOrToken nodeOrToken, out Microsoft.CodeAnalysis.SyntaxNodeOrToken rewriten) -> bool
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.ShouldRewriteChildren(Microsoft.CodeAnalysis.SyntaxNodeOrToken nodeOrToken, out Microsoft.CodeAnalysis.SyntaxNodeOrToken rewritten) -> bool
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.ShouldRewriteTrivia(Microsoft.CodeAnalysis.SyntaxTrivia trivia, out Microsoft.CodeAnalysis.SyntaxTrivia rewritten) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitNode(Microsoft.CodeAnalysis.SyntaxNode original, Microsoft.CodeAnalysis.SyntaxNode rewritten) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitToken(Microsoft.CodeAnalysis.SyntaxToken original, Microsoft.CodeAnalysis.SyntaxToken rewritten) -> Microsoft.CodeAnalysis.SyntaxToken
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxRewriter.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia original, Microsoft.CodeAnalysis.SyntaxTrivia rewritten) -> Microsoft.CodeAnalysis.SyntaxTrivia
-virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.Skip(Microsoft.CodeAnalysis.SyntaxNode node) -> bool
+virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.ShouldVisitChildren(Microsoft.CodeAnalysis.SyntaxNode node) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.VisitNode(Microsoft.CodeAnalysis.SyntaxNode node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpNonRecursiveSyntaxWalker.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> void

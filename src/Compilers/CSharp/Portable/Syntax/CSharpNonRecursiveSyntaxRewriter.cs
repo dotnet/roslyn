@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents a non-recursive visitor which descends an entire <see cref="CSharpSyntaxNode"/> graph and
     /// may replace or remove visited SyntaxNodes in depth-first order.
     /// </summary>
-    public class CSharpNonRecursiveSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
+    public abstract class CSharpNonRecursiveSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
     {
         private readonly Stack<SyntaxNodeOrToken> _undeconstructedStack;
         private readonly Stack<UntransformedNode> _untransformedStack;
@@ -32,10 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected SyntaxNode Original { get; private set; }
 
-        protected virtual bool Skip(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewriten)
+        protected virtual bool ShouldRewriteChildren(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewritten)
         {
-            rewriten = default(SyntaxNodeOrToken);
-            return false;
+            rewritten = default(SyntaxNodeOrToken);
+            return true;
+        }
+
+        protected virtual bool ShouldRewriteTrivia(SyntaxTrivia trivia, out SyntaxTrivia rewritten)
+        {
+            rewritten = default(SyntaxTrivia);
+            return true;
         }
 
         public virtual SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
@@ -63,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        public SyntaxNode Rewrite(SyntaxNode node)
+        protected SyntaxNode Rewrite(SyntaxNode node)
         {
             int undeconstructedStart = _undeconstructedStack.Count;
             int untransformedStart = _untransformedStack.Count;
@@ -87,12 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        SyntaxNodeOrToken rewriten;
-                        if (this.Skip(node, out rewriten))
-                        {
-                            _transformedStack.Push(rewriten);
-                        }
-                        else
+                        SyntaxNodeOrToken rewritten;
+                        if (this.ShouldRewriteChildren(node, out rewritten))
                         {
                             // deconstruct node into child elements
                             _children.Clear();
@@ -108,22 +110,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // remember the node that will be tranformed later after the children are transformed
                             _untransformedStack.Push(new UntransformedNode(node, _children.Count, _transformedStack.Count));
                         }
+                        else
+                        {
+                            _transformedStack.Push(rewritten);
+                        }
                     }
                 }
                 else if (nodeOrToken.IsToken)
                 {
                     // we can transform tokens immediately
                     var original = nodeOrToken.AsToken();
-                    SyntaxNodeOrToken rewriten;
-                    if (this.Skip(original, out rewriten))
-                    {
-                        _transformedStack.Push(rewriten);
-                    }
-                    else
+                    SyntaxNodeOrToken rewritten;
+                    if (this.ShouldRewriteChildren(original, out rewritten))
                     {
                         var rewrittenToken = _trivializer.VisitToken(original); // rewrite trivia
                         var transformed = this.VisitToken(original, rewrittenToken);
                         _transformedStack.Push(transformed);
+                    }
+                    else
+                    {
+                        _transformedStack.Push(rewritten);
                     }
                 }
 
@@ -213,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _elements = rewrittenElements;
                 _index = 0;
-                return ((CSharpSyntaxNode)original).Accept(this);
+                return ((CSharpSyntaxNode)original.AsNode()).Accept(this);
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
@@ -245,8 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
-                var rewritten = base.VisitTrivia(trivia);
-                return _parent.VisitTrivia(trivia, rewritten);
+                SyntaxTrivia rewritten;
+                if (_parent.ShouldRewriteTrivia(trivia, out rewritten))
+                {
+                    rewritten = base.VisitTrivia(trivia);
+                    return _parent.VisitTrivia(trivia, rewritten);
+                }
+
+                return rewritten;
             }
         }
     }

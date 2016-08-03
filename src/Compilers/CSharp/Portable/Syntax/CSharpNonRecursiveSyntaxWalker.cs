@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents a non-recursive visitor which descends an entire <see cref="CSharpSyntaxNode"/> graph
     /// </summary>
-    public class CSharpNonRecursiveSyntaxWalker : CSharpSyntaxVisitor
+    public abstract class CSharpNonRecursiveSyntaxWalker : CSharpSyntaxVisitor
     {
         private readonly Stack<SyntaxNodeOrToken> _stack = new Stack<SyntaxNodeOrToken>();
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     this.VisitToken(n.AsToken());
                 }
-                else if (!this.Skip(n.AsNode()))
+                else if (this.ShouldVisitChildren(n.AsNode()))
                 {
                     this.VisitNode(n.AsNode());
                     var children = n.ChildNodesAndTokens();
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual bool Skip(SyntaxNode node)
+        protected virtual bool ShouldVisitChildren(SyntaxNode node)
         {
-            return false;
+            return true;
         }
 
         public virtual void VisitNode(SyntaxNode node)

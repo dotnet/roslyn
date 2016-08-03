@@ -1,1 +1,18 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.New(visitIntoStructuredTrivia As Boolean = False) -> Void
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.Original() -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.Rewrite(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxWalker
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxWalker.New() -> Void
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.ShouldRewriteChildren(nodeOrToken As Microsoft.CodeAnalysis.SyntaxNodeOrToken, ByRef rewritten As Microsoft.CodeAnalysis.SyntaxNodeOrToken) -> Boolean
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.ShouldRewriteTrivia(trivia As Microsoft.CodeAnalysis.SyntaxTrivia, ByRef rewritten As Microsoft.CodeAnalysis.SyntaxTrivia) -> Boolean
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.VisitNode(Original As Microsoft.CodeAnalysis.SyntaxNode, rewritten As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.VisitToken(original As Microsoft.CodeAnalysis.SyntaxToken, rewritten As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.SyntaxToken
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.VisitTrivia(original As Microsoft.CodeAnalysis.SyntaxTrivia, rewritten As Microsoft.CodeAnalysis.SyntaxTrivia) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxWalker.ShouldVisitChildren(node As Microsoft.CodeAnalysis.SyntaxNode) -> Boolean
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxWalker.VisitNode(node As Microsoft.CodeAnalysis.SyntaxNode) -> Void
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxWalker.VisitToken(node As Microsoft.CodeAnalysis.SyntaxToken) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.DefaultVisit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxRewriter.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicNonRecursiveSyntaxWalker.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Void

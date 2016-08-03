@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private class SkippedNonRecursiveRewriter : CSharpNonRecursiveSyntaxRewriter
         {
-            protected override bool Skip(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewriten)
+            protected override bool ShouldRewriteChildren(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewritten)
             {
-                rewriten = nodeOrToken;
-                return nodeOrToken.IsNode && nodeOrToken.AsNode() is LiteralExpressionSyntax;
+                rewritten = nodeOrToken;
+                return ! (nodeOrToken.IsNode && nodeOrToken.AsNode() is LiteralExpressionSyntax);
             }
 
             public int VisitNodeCallsCount { get; private set; }
@@ -59,17 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             private SkipLiteralNonRecursiveRewriter _skipRewriter = new SkipLiteralNonRecursiveRewriter();
 
-            protected override bool Skip(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewriten)
+            protected override bool ShouldRewriteChildren(SyntaxNodeOrToken nodeOrToken, out SyntaxNodeOrToken rewritten)
             {
                 if (nodeOrToken.IsNode)
                 {
                     var value = _skipRewriter.Visit(nodeOrToken.AsNode());
-                    rewriten = _skipRewriter.Rewriten;
-                    return value;
+                    rewritten = _skipRewriter.Rewriten;
+                    return ! value;
                 }
 
-                rewriten = nodeOrToken;
-                return false;
+                rewritten = nodeOrToken;
+                return true;
             }
 
             public int VisitNodeCallsCount { get; private set; }
@@ -94,18 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal class ToStringWalker : CSharpNonRecursiveSyntaxWalker
         {
-            StringBuilder sb;
+            private StringBuilder _sb;
 
             public new string Visit(SyntaxNode node)
             {
-                this.sb = new StringBuilder();
+                this._sb = new StringBuilder();
                 base.Visit(node);
-                return this.sb.ToString();
+                return this._sb.ToString();
             }
 
             public override void VisitToken(SyntaxToken token)
             {
-                sb.Append(token.ToFullString());
+                _sb.Append(token.ToFullString());
             }
         }
 
@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal class SkippedCountingWalker : CountingWalker
         {
-            protected override bool Skip(SyntaxNode node)
+            protected override bool ShouldVisitChildren(SyntaxNode node)
             {
-                return node is LiteralExpressionSyntax;
+                return ! (node is LiteralExpressionSyntax);
             }
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestWalkerCount()
+        public void TestNonRecursiveWalkerCount()
         {
             string code = "1 + 2 + 3";
             ExpressionSyntax expression = SyntaxFactory.ParseExpression(code);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSkippedWalkerCount()
+        public void TestSkippedNonRecursiveWalkerCount()
         {
             string code = "1 + 2 + a";
             ExpressionSyntax expression = SyntaxFactory.ParseExpression(code);

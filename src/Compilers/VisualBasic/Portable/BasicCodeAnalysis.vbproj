@@ -900,6 +900,8 @@
     <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
+    <Compile Include="Syntax\VisualBasicNonRecursiveSyntaxRewriter.vb" />
+    <Compile Include="Syntax\VisualBasicNonRecursiveSyntaxWalker.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxVisitor.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
     <Compile Include="Syntax\VisualBasicLineDirectiveMap.vb" />
