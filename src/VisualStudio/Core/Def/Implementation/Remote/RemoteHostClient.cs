@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
+namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     /// <summary>
     /// This lets users create a session to communicate with remote host (i.e. ServiceHub)
