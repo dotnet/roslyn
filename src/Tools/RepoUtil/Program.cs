@@ -117,6 +117,9 @@ namespace RepoUtil
                 case "verify":
                     func = (c, s) => new VerifyCommand(c, s);
                     break;
+                case "view":
+                    func = (c, s) => new ViewCommand(c, s);
+                    break;
                 case "consumes":
                     func = (c, s) => new ConsumesCommand(RepoData.Create(c, s));
                     break;
