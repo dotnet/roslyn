@@ -876,7 +876,7 @@ class C : I
 ";
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
-                // (4,28): error CS8220: The tuple element names in the signature of method 'C.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
+                // (4,28): error CS8141: The tuple element names in the signature of method 'C.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object a, object b) I.M((object, object) x) { return x; }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((object, object))", "I.M((object c, object d))").WithLocation(4, 28),
                 // (2,11): error CS0535: 'C' does not implement interface member 'I.M((object c, object d))'
@@ -898,7 +898,7 @@ class C : I
 ";
             var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
-                // (4,24): error CS8220: The tuple element names in the signature of method 'C.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
+                // (4,24): error CS8141: The tuple element names in the signature of method 'C.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object, object) I.M((object c, object d) x) { return x; }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((object c, object d))", "I.M((object c, object d))").WithLocation(4, 24),
                 // (2,11): error CS0535: 'C' does not implement interface member 'I.M((object c, object d))'
@@ -994,7 +994,7 @@ class C : I
 ";
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
-                // (4,24): error CS8220: The tuple element names in the signature of method 'C.P' must match the tuple element names of interface method 'I.P' (including on the return type).
+                // (4,24): error CS8141: The tuple element names in the signature of method 'C.P' must match the tuple element names of interface method 'I.P' (including on the return type).
                 //     (object, object) I.P { get; set; }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "P").WithArguments("C.P", "I.P").WithLocation(4, 24),
                 // (2,11): error CS0535: 'C' does not implement interface member 'I.P'
@@ -1161,16 +1161,16 @@ class C : Base
 ";
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
-                // (5,38): error CS8218: 'C.M((object c, object d))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
+                // (5,38): error CS8139: 'C.M((object c, object d))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object, object) M((object c, object d) y) { return y; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M((object c, object d))", "Base.M((object c, object d))").WithLocation(5, 38),
-                // (4,38): error CS8218: 'C.P': cannot change tuple element names when overriding inherited member 'Base.P'
+                // (4,38): error CS8139: 'C.P': cannot change tuple element names when overriding inherited member 'Base.P'
                 //     public override (object, object) P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P").WithArguments("C.P", "Base.P").WithLocation(4, 38),
-                // (4,42): error CS8218: 'C.P.get': cannot change tuple element names when overriding inherited member 'Base.P.get'
+                // (4,42): error CS8139: 'C.P.get': cannot change tuple element names when overriding inherited member 'Base.P.get'
                 //     public override (object, object) P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("C.P.get", "Base.P.get").WithLocation(4, 42),
-                // (4,47): error CS8218: 'C.P.set': cannot change tuple element names when overriding inherited member 'Base.P.set'
+                // (4,47): error CS8139: 'C.P.set': cannot change tuple element names when overriding inherited member 'Base.P.set'
                 //     public override (object, object) P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("C.P.set", "Base.P.set").WithLocation(4, 47)
                 );
@@ -1196,7 +1196,7 @@ class C : Base
 ";
             var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
-                // (5,42): error CS8218: 'C.M((object, object))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
+                // (5,42): error CS8139: 'C.M((object, object))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object a, object b) M((object, object) y) { return y; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M((object, object))", "Base.M((object c, object d))").WithLocation(5, 42)
                 );

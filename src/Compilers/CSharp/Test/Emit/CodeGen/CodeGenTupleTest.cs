@@ -1467,7 +1467,7 @@ class C
 " + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,27): error CS8206: Tuple with 3 elements cannot be converted to type '(int, string)'.
+                // (6,27): error CS8135: Tuple with 3 elements cannot be converted to type '(int, string)'.
                 //         (int, string) x = (1, null, 2);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(1, null, 2)").WithArguments("3", "(int, string)").WithLocation(6, 27)
             );
@@ -2877,7 +2877,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
             comp.VerifyEmitDiagnostics(
-                // (11,24): error CS8205: Member '.ctor' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (11,24): error CS8128: Member '.ctor' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int, int) x = (1, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(1, 2)").WithArguments(".ctor", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 24)
                                );
@@ -2898,13 +2898,13 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,24): error CS8203: Tuple member names must be unique.
+                // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
                 Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
-                // (6,38): error CS8203: Tuple member names must be unique.
+                // (6,38): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
                 Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 38),
-                // (6,50): error CS8203: Tuple member names must be unique.
+                // (6,50): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
                 Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
                );
@@ -2926,16 +2926,16 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,28): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                // (6,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 28),
-                // (6,50): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                // (6,50): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 50),
-                // (7,14): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                // (7,14): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 14),
-                // (7,40): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                // (7,40): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 40)
                 );
@@ -2956,13 +2956,13 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (6,37): error CS8201: Tuple member name 'Item10' is only allowed at position 10.
+                // (6,37): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 37),
-                // (6,61): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                // (6,61): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 61),
-                // (6,71): error CS8201: Tuple member name 'Item10' is only allowed at position 10.
+                // (6,71): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 71)
                 );
@@ -3003,10 +3003,10 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,24): error CS8203: Tuple member names must be unique.
+                // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
                 Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
-                // (6,50): error CS8203: Tuple member names must be unique.
+                // (6,50): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
                 Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
                 );
@@ -3027,22 +3027,22 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (6,28): error CS8201: Tuple member name 'Item3' is only allowed at position 3.
+                // (6,28): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(6, 28),
-                // (6,42): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                // (6,42): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
-                // (6,100): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                // (6,100): error CS8126: Tuple membername 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
-                // (6,111): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                // (6,111): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 111),
-                // (6,125): error CS8201: Tuple member name 'Item4' is only allowed at position 4.
+                // (6,125): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
-                // (6,189): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                // (6,189): error CS8126: Tuple membername 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
                );
@@ -3063,22 +3063,22 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (6,18): error CS8202: Tuple membername 'CompareTo' is disallowed at any position.
+                // (6,18): error CS8126: Tuple membername 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
-                // (6,43): error CS8202: Tuple membername 'Deconstruct' is disallowed at any position.
+                // (6,43): error CS8126: Tuple membername 'Deconstruct' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
-                // (6,59): error CS8202: Tuple membername 'Equals' is disallowed at any position.
+                // (6,59): error CS8126: Tuple membername 'Equals' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
-                // (6,70): error CS8202: Tuple membername 'GetHashCode' is disallowed at any position.
+                // (6,70): error CS8126: Tuple membername 'GetHashCode' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
-                // (6,86): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                // (6,86): error CS8126: Tuple membername 'Rest' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
-                // (6,95): error CS8202: Tuple membername 'ToString' is disallowed at any position.
+                // (6,95): error CS8126: Tuple membername 'ToString' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
                 );
@@ -3930,19 +3930,19 @@ namespace System
                 // (11,13): error CS8207: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
                 //     void M2((int a, int b) y)
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int a, int b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(11, 13),
-                // (7,39): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (7,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.Item1}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
-                // (13,39): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (13,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{y.Item1}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 39),
-                // (14,39): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (14,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{y.a}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 39),
                 // (15,39): error CS0229: Ambiguity between '(int a, int b).Item2' and '(int a, int b).Item2'
                 //         System.Console.WriteLine($"{y.Item2}");
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(int a, int b).Item2", "(int a, int b).Item2").WithLocation(15, 39),
-                // (16,39): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (16,39): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{y.b}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "b").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(16, 39)
                 );
@@ -3963,7 +3963,7 @@ namespace System
             Assert.Same(mTuple, mItem1.ContainingSymbol);
             Assert.True(mItem1.CustomModifiers.IsEmpty);
             Assert.True(mItem1.GetAttributes().IsEmpty);
-            Assert.Equal("error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            Assert.Equal("error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
                          mItem1.GetUseSiteDiagnostic().ToString());
             Assert.False(mItem1.Locations.IsDefaultOrEmpty);
             Assert.Equal("string", mItem1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
@@ -4018,7 +4018,7 @@ namespace System
 ";
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
             comp.VerifyDiagnostics(
-                // (7,39): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (7,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39)
                 );
@@ -4053,16 +4053,16 @@ namespace System
 ";
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
             comp.VerifyDiagnostics(
-                // (7,39): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (7,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
-                // (8,39): error CS8205: Member 'Item7' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,39): error CS8128: Member 'Item7' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.g}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "g").WithArguments("Item7", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 39),
-                // (9,39): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (9,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.h}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "h").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 39),
-                // (10,39): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (10,39): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.i}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "i").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 39)
                 );
@@ -4174,7 +4174,7 @@ class C : I
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,40): error CS8220: The tuple element names in the signature of method 'C.M((string, string))' must match the tuple element names of interface method 'I.M((string, string))' (including on the return type).
+                // (9,40): error CS8141: The tuple element names in the signature of method 'C.M((string, string))' must match the tuple element names of interface method 'I.M((string, string))' (including on the return type).
                 //     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((string, string))", "I.M((string, string))").WithLocation(9, 40)
                 );
@@ -4308,7 +4308,7 @@ class D : C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (11,36): error CS8218: 'D.M((int g, int h))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
+                // (11,36): error CS8139: 'D.M((int g, int h))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
                 //     public override (int e, int f) M((int g, int h) y)
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M((int g, int h))", "C.M((int c, int d))").WithLocation(11, 36)
                 );
@@ -5581,7 +5581,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8206: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -5638,7 +5638,7 @@ class C
                 // (12,32): error CS1525: Invalid expression term ')'
                 //         x = ((int, int))(1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 32),
-                // (8,13): error CS8206: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = ((int, int))(null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((int, int))(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0030: Cannot convert type '(int, int, int)' to '(int, int)'
@@ -5696,7 +5696,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8206: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -5755,7 +5755,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8206: Tuple with 3 elements cannot be converted to type '(string, string)'.
+                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(string, string)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(string, string)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(string, string)'
@@ -5811,7 +5811,7 @@ class C
                 // (12,21): error CS1525: Invalid expression term ')'
                 //         x = ((1, 1, ), 1);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 21),
-                // (8,14): error CS8206: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,14): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = ((null, null, null), 1);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 14),
                 // (9,14): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -8304,13 +8304,13 @@ class D : C, I<(int a, int b), (int c, int d)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,49): error CS8220: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))' (including on the return type).
+                // (9,49): error CS8141: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))' (including on the return type).
                 //     public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M(((int, int), (int, int)))", "I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))").WithLocation(9, 49),
-                // (17,54): error CS8218: 'D.M(((int a, int b), (int b, int a)))': cannot change tuple element names when overriding inherited member 'C.M(((int, int), (int, int)))'
+                // (17,54): error CS8139: 'D.M(((int a, int b), (int b, int a)))': cannot change tuple element names when overriding inherited member 'C.M(((int, int), (int, int)))'
                 //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "C.M(((int, int), (int, int)))").WithLocation(17, 54),
-                // (17,54): error CS8220: The tuple element names in the signature of method 'D.M(((int a, int b), (int b, int a)))' must match the tuple element names of interface method 'I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))' (including on the return type).
+                // (17,54): error CS8141: The tuple element names in the signature of method 'D.M(((int a, int b), (int b, int a)))' must match the tuple element names of interface method 'I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))' (including on the return type).
                 //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))").WithLocation(17, 54)
                 );
@@ -9529,31 +9529,31 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (9,17): error CS8201: Tuple member name 'Item9' is only allowed at position 9.
+                // (9,17): error CS8125: Tuple member name 'Item9' is only allowed at position 9.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item9").WithArguments("Item9", "9").WithLocation(9, 17),
-                // (9,28): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                // (9,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(9, 28),
-                // (9,39): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                // (9,39): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(9, 39),
-                // (9,50): error CS8201: Tuple member name 'Item3' is only allowed at position 3.
+                // (9,50): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(9, 50),
-                // (9,61): error CS8201: Tuple member name 'Item4' is only allowed at position 4.
+                // (9,61): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(9, 61),
-                // (9,72): error CS8201: Tuple member name 'Item5' is only allowed at position 5.
+                // (9,72): error CS8125: Tuple member name 'Item5' is only allowed at position 5.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item5").WithArguments("Item5", "5").WithLocation(9, 72),
-                // (9,83): error CS8201: Tuple member name 'Item6' is only allowed at position 6.
+                // (9,83): error CS8125: Tuple member name 'Item6' is only allowed at position 6.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item6").WithArguments("Item6", "6").WithLocation(9, 83),
-                // (9,94): error CS8201: Tuple member name 'Item7' is only allowed at position 7.
+                // (9,94): error CS8125: Tuple member name 'Item7' is only allowed at position 7.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item7").WithArguments("Item7", "7").WithLocation(9, 94),
-                // (9,105): error CS8201: Tuple member name 'Item8' is only allowed at position 8.
+                // (9,105): error CS8125: Tuple member name 'Item8' is only allowed at position 8.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item8").WithArguments("Item8", "8").WithLocation(9, 105)
                 );
@@ -9633,7 +9633,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source,
                 references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,73): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                // (9,73): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int a1, int a2, int a3, int a4, int a5, int a6, int a7, int Item1) M8()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(9, 73)
                 );
@@ -10160,7 +10160,7 @@ partial class C
                 // (23,12): warning CS0612: '(int a, int b)' is obsolete
                 //     static (int a, int b) M102()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b)").WithArguments("(int a, int b)").WithLocation(23, 12),
-                // (35,73): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                // (35,73): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(35, 73),
                 // (55,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
@@ -12644,10 +12644,10 @@ class TestAttribute : System.Attribute
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
-                // (6,32): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                // (6,32): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 32),
-                // (6,38): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                // (6,38): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 38),
                 // (8,31): error CS8207: Cannot implicitly convert tuple expression to 'ValueType'
@@ -12665,7 +12665,7 @@ class TestAttribute : System.Attribute
                 // (14,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
                 //     [TestAttribute(Val = (5, "5"))]
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(14, 20),
-                // (19,16): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                // (19,16): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         await (null, "6");
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(19, 16),
                 // (20,9): error CS1061: '(int, string)' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
@@ -12695,7 +12695,7 @@ class TestAttribute : System.Attribute
                 // (36,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
                 //         V3 = ("15", "15"),
                 Diagnostic(ErrorCode.Unknown, @"(""15"", ""15"")").WithArguments("int").WithLocation(36, 14),
-                // (41,28): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                // (41,28): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         var x = (16, (16 , null));
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(41, 28),
                 // (44,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
@@ -14253,7 +14253,7 @@ namespace System
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
-                // (7,26): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (7,26): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (long, long) y = x;   
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "x").WithArguments("Item2", "System.ValueTuple<T1, T2>", "ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26)
             );
@@ -14293,7 +14293,7 @@ namespace System
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
-                // (7,26): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (7,26): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (byte, byte) y = ((byte, byte))x;   
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "((byte, byte))x").WithArguments("Item2", "System.ValueTuple<T1, T2>", "ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26)
             );
@@ -15305,19 +15305,19 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics(
-                // (14,42): error CS8218: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
+                // (14,42): error CS8139: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
                 //     public override (int notA, int notB) M2() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(14, 42),
-                // (15,44): error CS8218: 'Derived.M3()': cannot change tuple element names when overriding inherited member 'Base.M3()'
+                // (15,44): error CS8139: 'Derived.M3()': cannot change tuple element names when overriding inherited member 'Base.M3()'
                 //     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(15, 44),
-                // (16,59): error CS8218: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
+                // (16,59): error CS8139: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
                 //     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(16, 59),
-                // (17,53): error CS8218: 'Derived.M5()': cannot change tuple element names when overriding inherited member 'Base.M5()'
+                // (17,53): error CS8139: 'Derived.M5()': cannot change tuple element names when overriding inherited member 'Base.M5()'
                 //     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M5").WithArguments("Derived.M5()", "Base.M5()").WithLocation(17, 53),
-                // (18,45): error CS8218: 'Derived.M6()': cannot change tuple element names when overriding inherited member 'Base.M6()'
+                // (18,45): error CS8139: 'Derived.M6()': cannot change tuple element names when overriding inherited member 'Base.M6()'
                 //     public override (dynamic notA, dynamic) M6() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M6").WithArguments("Derived.M6()", "Base.M6()").WithLocation(18, 45)
                 );
@@ -15344,16 +15344,16 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,26): error CS8218: 'Derived.M2((int notA, int notB)[])': cannot change tuple element names when overriding inherited member 'Base.M2((int a, int b)[])'
+                // (12,26): error CS8139: 'Derived.M2((int notA, int notB)[])': cannot change tuple element names when overriding inherited member 'Base.M2((int a, int b)[])'
                 //     public override void M2((int notA, int notB)[] x) { }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2((int notA, int notB)[])", "Base.M2((int a, int b)[])").WithLocation(12, 26),
-                // (13,26): error CS8218: 'Derived.M3((int notA, int notB)?)': cannot change tuple element names when overriding inherited member 'Base.M3((int a, int b)?)'
+                // (13,26): error CS8139: 'Derived.M3((int notA, int notB)?)': cannot change tuple element names when overriding inherited member 'Base.M3((int a, int b)?)'
                 //     public override void M3(System.Nullable<(int notA, int notB)> x) { }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3((int notA, int notB)?)", "Base.M3((int a, int b)?)").WithLocation(13, 26),
-                // (14,26): error CS8218: 'Derived.M4(((int notA, int notB) c, int d))': cannot change tuple element names when overriding inherited member 'Base.M4(((int a, int b) c, int d))'
+                // (14,26): error CS8139: 'Derived.M4(((int notA, int notB) c, int d))': cannot change tuple element names when overriding inherited member 'Base.M4(((int a, int b) c, int d))'
                 //     public override void M4(((int notA, int notB) c, int d) x) { }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))", "Base.M4(((int a, int b) c, int d))").WithLocation(14, 26),
-                // (11,26): error CS8218: 'Derived.M1((int notA, int notB))': cannot change tuple element names when overriding inherited member 'Base.M1((int a, int b))'
+                // (11,26): error CS8139: 'Derived.M1((int notA, int notB))': cannot change tuple element names when overriding inherited member 'Base.M1((int a, int b))'
                 //     public override void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M1").WithArguments("Derived.M1((int notA, int notB))", "Base.M1((int a, int b))").WithLocation(11, 26)
                 );
@@ -15380,40 +15380,40 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,44): error CS8218: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
+                // (12,44): error CS8139: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
                 //     public override (int notA, int notB)[] P2 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P2").WithArguments("Derived.P2", "Base.P2").WithLocation(12, 44),
-                // (12,49): error CS8218: 'Derived.P2.get': cannot change tuple element names when overriding inherited member 'Base.P2.get'
+                // (12,49): error CS8139: 'Derived.P2.get': cannot change tuple element names when overriding inherited member 'Base.P2.get'
                 //     public override (int notA, int notB)[] P2 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P2.get", "Base.P2.get").WithLocation(12, 49),
-                // (12,54): error CS8218: 'Derived.P2.set': cannot change tuple element names when overriding inherited member 'Base.P2.set'
+                // (12,54): error CS8139: 'Derived.P2.set': cannot change tuple element names when overriding inherited member 'Base.P2.set'
                 //     public override (int notA, int notB)[] P2 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P2.set", "Base.P2.set").WithLocation(12, 54),
-                // (13,43): error CS8218: 'Derived.P3': cannot change tuple element names when overriding inherited member 'Base.P3'
+                // (13,43): error CS8139: 'Derived.P3': cannot change tuple element names when overriding inherited member 'Base.P3'
                 //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P3").WithArguments("Derived.P3", "Base.P3").WithLocation(13, 43),
-                // (13,48): error CS8218: 'Derived.P3.get': cannot change tuple element names when overriding inherited member 'Base.P3.get'
+                // (13,48): error CS8139: 'Derived.P3.get': cannot change tuple element names when overriding inherited member 'Base.P3.get'
                 //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P3.get", "Base.P3.get").WithLocation(13, 48),
-                // (13,71): error CS8218: 'Derived.P3.set': cannot change tuple element names when overriding inherited member 'Base.P3.set'
+                // (13,71): error CS8139: 'Derived.P3.set': cannot change tuple element names when overriding inherited member 'Base.P3.set'
                 //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P3.set", "Base.P3.set").WithLocation(13, 71),
-                // (14,53): error CS8218: 'Derived.P4': cannot change tuple element names when overriding inherited member 'Base.P4'
+                // (14,53): error CS8139: 'Derived.P4': cannot change tuple element names when overriding inherited member 'Base.P4'
                 //     public override ((int notA, int notB) c, int d) P4 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P4").WithArguments("Derived.P4", "Base.P4").WithLocation(14, 53),
-                // (14,58): error CS8218: 'Derived.P4.get': cannot change tuple element names when overriding inherited member 'Base.P4.get'
+                // (14,58): error CS8139: 'Derived.P4.get': cannot change tuple element names when overriding inherited member 'Base.P4.get'
                 //     public override ((int notA, int notB) c, int d) P4 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P4.get", "Base.P4.get").WithLocation(14, 58),
-                // (14,63): error CS8218: 'Derived.P4.set': cannot change tuple element names when overriding inherited member 'Base.P4.set'
+                // (14,63): error CS8139: 'Derived.P4.set': cannot change tuple element names when overriding inherited member 'Base.P4.set'
                 //     public override ((int notA, int notB) c, int d) P4 { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P4.set", "Base.P4.set").WithLocation(14, 63),
-                // (11,42): error CS8218: 'Derived.P1': cannot change tuple element names when overriding inherited member 'Base.P1'
+                // (11,42): error CS8139: 'Derived.P1': cannot change tuple element names when overriding inherited member 'Base.P1'
                 //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P1").WithArguments("Derived.P1", "Base.P1").WithLocation(11, 42),
-                // (11,47): error CS8218: 'Derived.P1.get': cannot change tuple element names when overriding inherited member 'Base.P1.get'
+                // (11,47): error CS8139: 'Derived.P1.get': cannot change tuple element names when overriding inherited member 'Base.P1.get'
                 //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P1.get", "Base.P1.get").WithLocation(11, 47),
-                // (11,70): error CS8218: 'Derived.P1.set': cannot change tuple element names when overriding inherited member 'Base.P1.set'
+                // (11,70): error CS8139: 'Derived.P1.set': cannot change tuple element names when overriding inherited member 'Base.P1.set'
                 //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P1.set", "Base.P1.set").WithLocation(11, 70)
                 );
@@ -15445,31 +15445,31 @@ public class Derived : Base
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (15,54): error CS8218: 'Derived.E2': cannot change tuple element names when overriding inherited member 'Base.E2'
+                // (15,54): error CS8139: 'Derived.E2': cannot change tuple element names when overriding inherited member 'Base.E2'
                 //     public override event Func<(int notA, int notB)> E2;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2", "Base.E2").WithLocation(15, 54),
-                // (15,54): error CS8218: 'Derived.E2.add': cannot change tuple element names when overriding inherited member 'Base.E2.add'
+                // (15,54): error CS8139: 'Derived.E2.add': cannot change tuple element names when overriding inherited member 'Base.E2.add'
                 //     public override event Func<(int notA, int notB)> E2;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2.add", "Base.E2.add").WithLocation(15, 54),
-                // (15,54): error CS8218: 'Derived.E2.remove': cannot change tuple element names when overriding inherited member 'Base.E2.remove'
+                // (15,54): error CS8139: 'Derived.E2.remove': cannot change tuple element names when overriding inherited member 'Base.E2.remove'
                 //     public override event Func<(int notA, int notB)> E2;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2.remove", "Base.E2.remove").WithLocation(15, 54),
-                // (16,56): error CS8218: 'Derived.E3': cannot change tuple element names when overriding inherited member 'Base.E3'
+                // (16,56): error CS8139: 'Derived.E3': cannot change tuple element names when overriding inherited member 'Base.E3'
                 //     public override event Func<(int notA, int notB)[]> E3;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3", "Base.E3").WithLocation(16, 56),
-                // (16,56): error CS8218: 'Derived.E3.add': cannot change tuple element names when overriding inherited member 'Base.E3.add'
+                // (16,56): error CS8139: 'Derived.E3.add': cannot change tuple element names when overriding inherited member 'Base.E3.add'
                 //     public override event Func<(int notA, int notB)[]> E3;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3.add", "Base.E3.add").WithLocation(16, 56),
-                // (16,56): error CS8218: 'Derived.E3.remove': cannot change tuple element names when overriding inherited member 'Base.E3.remove'
+                // (16,56): error CS8139: 'Derived.E3.remove': cannot change tuple element names when overriding inherited member 'Base.E3.remove'
                 //     public override event Func<(int notA, int notB)[]> E3;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3.remove", "Base.E3.remove").WithLocation(16, 56),
-                // (17,60): error CS8218: 'Derived.E4': cannot change tuple element names when overriding inherited member 'Base.E4'
+                // (17,60): error CS8139: 'Derived.E4': cannot change tuple element names when overriding inherited member 'Base.E4'
                 //     public override event Func<((int notA, int) c, int d)> E4;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4", "Base.E4").WithLocation(17, 60),
-                // (17,60): error CS8218: 'Derived.E4.add': cannot change tuple element names when overriding inherited member 'Base.E4.add'
+                // (17,60): error CS8139: 'Derived.E4.add': cannot change tuple element names when overriding inherited member 'Base.E4.add'
                 //     public override event Func<((int notA, int) c, int d)> E4;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4.add", "Base.E4.add").WithLocation(17, 60),
-                // (17,60): error CS8218: 'Derived.E4.remove': cannot change tuple element names when overriding inherited member 'Base.E4.remove'
+                // (17,60): error CS8139: 'Derived.E4.remove': cannot change tuple element names when overriding inherited member 'Base.E4.remove'
                 //     public override event Func<((int notA, int) c, int d)> E4;
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4.remove", "Base.E4.remove").WithLocation(17, 60)
                 );
@@ -15610,16 +15610,16 @@ public class C : I0
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8220: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
+                // (12,13): error CS8141: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
                 //     void I0.M2((int notA, int notB) z) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M2").WithArguments("C.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(12, 13),
-                // (13,32): error CS8220: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()' (including on the return type).
+                // (13,32): error CS8141: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()' (including on the return type).
                 //     (int notMissing, int b) I0.MR1() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR1").WithArguments("C.MR1()", "I0.MR1()").WithLocation(13, 32),
-                // (14,29): error CS8220: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()' (including on the return type).
+                // (14,29): error CS8141: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()' (including on the return type).
                 //     (int notA, int notB) I0.MR2() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR2").WithArguments("C.MR2()", "I0.MR2()").WithLocation(14, 29),
-                // (11,13): error CS8220: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))' (including on the return type).
+                // (11,13): error CS8141: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))' (including on the return type).
                 //     void I0.M1((int notMissing, int b) z) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M1").WithArguments("C.M1((int notMissing, int b))", "I0.M1((int, int b))").WithLocation(11, 13),
                 // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR2()'
@@ -15721,7 +15721,7 @@ public class C3 : I0<int>, I0<int> { }
                 // (4,39): error CS0528: 'I0<(int a, int b)>' is already listed in interface list
                 // public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<(int a, int b)>").WithArguments("I0<(int a, int b)>").WithLocation(4, 39),
-                // (3,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (3,14): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
                 );
@@ -15749,10 +15749,10 @@ public class D : I0<(int a, int b)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (10,17): error CS8220: The tuple element names in the signature of method 'C.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
+                // (10,17): error CS8141: The tuple element names in the signature of method 'C.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
                 //     public void set((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("C.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(10, 17),
-                // (9,33): error CS8220: The tuple element names in the signature of method 'C.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()'.
+                // (9,33): error CS8141: The tuple element names in the signature of method 'C.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()'.
                 //     public (int notA, int notB) get() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("C.get()", "I0<(int a, int b)>.get()").WithLocation(9, 33)
                 );
@@ -15790,10 +15790,10 @@ public class D2 : D1, I0<(int notA, int notB)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (20,17): error CS8220: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))' (including on the return type).
+                // (20,17): error CS8141: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))' (including on the return type).
                 //     public void set((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("D1.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(20, 17),
-                // (19,33): error CS8220: The tuple element names in the signature of method 'D1.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()' (including on the return type).
+                // (19,33): error CS8141: The tuple element names in the signature of method 'D1.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()' (including on the return type).
                 //     public (int notA, int notB) get() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("D1.get()", "I0<(int a, int b)>.get()").WithLocation(19, 33),
                 // (25,10): error CS0540: 'D2.I0<(int a, int b)>.set((int a, int b))': containing type does not implement interface 'I0<(int a, int b)>'
@@ -15824,10 +15824,10 @@ public partial class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (4,18): error CS8221: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                // (4,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int a, int b) x);
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
-                // (5,18): error CS8221: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                // (5,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
                 //     partial void M2((int a, int b) x);
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
                 );
@@ -15847,10 +15847,10 @@ public partial class D : I0<(int a, int b)> { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (3,22): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class C : I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(3, 22),
-                // (3,22): error CS8219: 'I0<(int, int)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (3,22): error CS8140: 'I0<(int, int)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class C : I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "I0<(int a, int b)>", "C").WithLocation(3, 22)
                 );
@@ -15893,7 +15893,7 @@ public class D : I1, I3 { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (7,14): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C : I1, I2 { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(7, 14)
                 );
@@ -16077,7 +16077,7 @@ public class C : Base2
                             options: TestOptions.DebugDll);
 
             compDifferent1.VerifyDiagnostics(
-                // (4,36): error CS8218: 'C.M()': cannot change tuple element names when overriding inherited member 'Base2.M()'
+                // (4,36): error CS8139: 'C.M()': cannot change tuple element names when overriding inherited member 'Base2.M()'
                 //     public override (int a, int b) M() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M()", "Base2.M()").WithLocation(4, 36)
                 );
@@ -16093,7 +16093,7 @@ public class C : Base2
                             options: TestOptions.DebugDll);
 
             compDifferent2.VerifyDiagnostics(
-                // (4,32): error CS8218: 'C.M()': cannot change tuple element names when overriding inherited member 'Base2.M()'
+                // (4,32): error CS8139: 'C.M()': cannot change tuple element names when overriding inherited member 'Base2.M()'
                 //     public override (int, int) M() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M()", "Base2.M()").WithLocation(4, 32)
                 );

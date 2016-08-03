@@ -2111,7 +2111,7 @@ namespace x
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8200: Tuple must contain at least two elements.
+                // (9,21): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
                 // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
@@ -2248,7 +2248,7 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8200: Tuple must contain at least two elements.
+                // (4,41): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
                 // (4,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
@@ -3628,7 +3628,7 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8200: Tuple must contain at least two elements.
+                // (3,41): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
                 // (3,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
