@@ -7,15 +7,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal partial class RemoteHostClientServiceFactory
     {
-        private class RemoteHostClientService : IRemoteHostClientService
+        public class RemoteHostClientService : IRemoteHostClientService
         {
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -46,6 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
+                        return;
+                    }
+
+                    var remoteHostClientFactory = _workspace.Services.GetService<IRemoteHostClientFactory>();
+                    if (remoteHostClientFactory == null)
+                    {
+                        // dev14 doesn't have remote host client factory
                         return;
                     }
 
@@ -91,27 +96,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Task<RemoteHostClient> instance;
+                Task<RemoteHostClient> instanceTask;
                 lock (_gate)
                 {
-                    instance = _instanceTask;
+                    instanceTask = _instanceTask;
                 }
 
-                if (instance == null)
+                if (instanceTask == null)
                 {
                     // service is in shutdown mode or not enabled
                     return SpecializedTasks.Default<RemoteHostClient>();
                 }
 
-                return instance;
+                return instanceTask;
             }
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
                 await AddGlobalAssetsAsync(cancellationToken).ConfigureAwait(false);
 
-                // TODO: abstract this out so that we can have more host than service hub
-                var instance = await ServiceHubRemoteHostClient.CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                // if we reached here, IRemoteHostClientFactory must exist.
+                // this will make VS.Next dll to be loaded
+                var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
                 instance.ConnectionChanged += OnConnectionChanged;
 
                 return instance;
@@ -147,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
-                lock(_gate)
+                lock (_gate)
                 {
                     if (_shutdownCancellationTokenSource.IsCancellationRequested)
                     {
