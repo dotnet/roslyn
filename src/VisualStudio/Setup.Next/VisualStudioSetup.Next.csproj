@@ -121,7 +121,7 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="serviceHubSnapshotService.servicehub.service.json">
+    <Content Include="snapshotService.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

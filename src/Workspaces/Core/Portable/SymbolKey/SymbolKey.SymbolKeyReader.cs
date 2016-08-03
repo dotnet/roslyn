@@ -484,6 +484,7 @@ namespace Microsoft.CodeAnalysis
                 Compilation = null;
                 IgnoreAssemblyKey = false;
                 Comparer = null;
+                CurrentMethod = null;
 
                 // Place us back in the pool for future use.
                 s_readerPool.Free(this);

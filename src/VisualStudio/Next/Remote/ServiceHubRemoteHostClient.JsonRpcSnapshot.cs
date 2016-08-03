@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                             using (var writer = new ObjectWriter(stream))
                             {
                                 writer.WriteInt32(serviceId);
-                                writer.WriteArray(checksum);
+                                writer.WriteValue(checksum);
 
                                 var checksumObject = service.GetChecksumObject(new Checksum(checksum), _source.Token);
                                 writer.WriteString(checksumObject.Kind);

@@ -4098,35 +4098,6 @@ class C : I
         }
 
         [Fact]
-        public void ImplementTupleInterfaceWithDifferentNames()
-        {
-            string source = @"
-public interface I
-{
-    (int i1, int i2) M((string s1, string s2) a);
-}
-
-class C : I
-{
-    static void Main()
-    {
-        I i = new C();
-        var r = i.M((""Alice"", ""Bob""));
-        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
-    }
-
-    public (int i3, int i4) M((string s3, string s4) a)
-    {
-        return (a.Item1.Length, a.Item2.Length);
-    }
-}
-";
-
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void ImplementLongTupleInterface()
         {
             string source = @"
@@ -4161,7 +4132,7 @@ class C : I
             string source = @"
 public interface I
 {
-    (int i1, int i2) M((string, string) a);
+    (int, int) M((string, string) a);
 }
 
 class C : I
@@ -4170,7 +4141,7 @@ class C : I
     {
         I i = new C();
         var r = i.M((""Alice"", ""Bob""));
-        System.Console.WriteLine($""{r.i1} {r.i2}"");
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
     }
 
     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
@@ -4182,6 +4153,31 @@ class C : I
 
             var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementTupleInterfaceWithValueTuple2()
+        {
+            string source = @"
+public interface I
+{
+    (int i1, int i2) M((string, string) a);
+}
+
+class C : I
+{
+    public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+    {
+        return (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,40): error CS8220: The tuple element names in the signature of method 'C.M((string, string))' must match the tuple element names of interface method 'I.M((string, string))' (including on the return type).
+                //     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((string, string))", "I.M((string, string))").WithLocation(9, 40)
+                );
         }
 
         [Fact]
@@ -4304,24 +4300,18 @@ class C
 }
 class D : C
 {
-    static void Main()
-    {
-        C c = new D();
-        var r = c.M((1, 2));
-        System.Console.WriteLine($""{r.a} {r.b}"");
-    }
-
     public override (int e, int f) M((int g, int h) y)
     {
         return y;
     }
 }
 ";
-
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                expectedOutput: @"1 2");
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (11,36): error CS8218: 'D.M((int g, int h))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
+                //     public override (int e, int f) M((int g, int h) y)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M((int g, int h))", "C.M((int c, int d))").WithLocation(11, 36)
+                );
         }
 
         [Fact]
@@ -4777,7 +4767,7 @@ class C
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: "Item1: 2  Rest: (2, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -5473,13 +5463,13 @@ class C
             var tuple4 = (TypeSymbol)comp.CreateTupleTypeSymbol((INamedTypeSymbol)tuple1.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b"));
 
             Assert.True(tuple1.Equals(tuple2));
-            Assert.True(tuple1.Equals(tuple2, ignoreDynamic: true));
+            Assert.True(tuple1.Equals(tuple2, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             Assert.False(tuple1.Equals(tuple3));
-            Assert.True(tuple1.Equals(tuple3, ignoreDynamic: true));
+            Assert.True(tuple1.Equals(tuple3, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             Assert.False(tuple1.Equals(tuple4));
-            Assert.True(tuple1.Equals(tuple4, ignoreDynamic: true));
+            Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamicAndTupleNames));
         }
 
         [Fact]
@@ -8178,12 +8168,12 @@ class C : I
         System.Console.WriteLine(x);
     }
 
-    public (int, string) M((int, string) value)
+    public (int Alice, string Bob) M((int x, string y) value)
     {
         return value;
     }
 
-    public (int, string) P1 => (r: 1, s: ""hello"");
+    public (int Alice, string Bob) P1 => (r: 1, s: ""hello"");
 }
 ";
 
@@ -8212,12 +8202,12 @@ class C : I
         System.Console.WriteLine(x.Alice);
     }
 
-    (int, string) I.M((int, string) value)
+    (int Alice, string Bob) I.M((int x, string y) value)
     {
         return value;
     }
 
-    public (int, string) P1 => (r: 1, s: ""hello"");
+    public (int Alice, string Bob) P1 => (r: 1, s: ""hello"");
 }
 ";
 
@@ -8245,11 +8235,10 @@ class C : I<(int, string), (int Alice, string Bob)>
         System.Console.WriteLine(x);
     }
 
-    public ((int Charlie, string Dylan), (int, string)) M((int Item1, string Item2) a, (int, string) b)
+    public ((int, string), (int Alice, string Bob)) M((int, string) x, (int Alice, string Bob) y)
     {
-        return (a, b);
+        return (x, y);
     }
-
 }
 ";
 
@@ -8276,11 +8265,11 @@ class C : I<(int, string, int, string, int, string, int, string), (int A, string
         System.Console.WriteLine(x);
     }
 
-    public ((int, string, int, string, int, string, int, string), (int, string, int, string, int, string, int, string)) M((int, string, int, string, int, string, int, string) a, (int, string, int, string, int, string, int, string) b)
+    public ((int, string, int, string, int, string, int, string), (int A, string B, int C, string D, int E, string F, int G, string H)) 
+        M((int, string, int, string, int, string, int, string) a, (int A, string B, int C, string D, int E, string F, int G, string H) b)
     {
         return (a, b);
     }
-
 }
 ";
 
@@ -8307,35 +8296,24 @@ class C : I<(int b, int a), (int a, int b)>
 
 class D : C, I<(int a, int b), (int c, int d)>
 {
-    static void Main()
-    {
-        C c = new D();
-        var r = c.M(((1, 2), (3, 4)));
-        System.Console.WriteLine($""{r.x} {r.y}"");
-    }
-
     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
     {
         return y;
     }
 }
 ";
-
-            Action<ModuleSymbol> validator = module =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                TypeSymbol y = (TypeSymbol)compilation.GlobalNamespace.GetMember("D");
-
-                Assert.Equal(2, y.AllInterfaces.Length);
-                Assert.Equal("I<(System.Int32 b, System.Int32 a), (System.Int32 a, System.Int32 b)>", y.AllInterfaces[0].ToTestDisplayString());
-                Assert.Equal("I<(System.Int32 a, System.Int32 b), (System.Int32 c, System.Int32 d)>", y.AllInterfaces[1].ToTestDisplayString());
-            };
-
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                expectedOutput: @"(1, 2) (3, 4)", sourceSymbolValidator: validator);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,49): error CS8220: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))' (including on the return type).
+                //     public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M(((int, int), (int, int)))", "I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))").WithLocation(9, 49),
+                // (17,54): error CS8218: 'D.M(((int a, int b), (int b, int a)))': cannot change tuple element names when overriding inherited member 'C.M(((int, int), (int, int)))'
+                //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "C.M(((int, int), (int, int)))").WithLocation(17, 54),
+                // (17,54): error CS8220: The tuple element names in the signature of method 'D.M(((int a, int b), (int b, int a)))' must match the tuple element names of interface method 'I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))' (including on the return type).
+                //     public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("D.M(((int a, int b), (int b, int a)))", "I<(int a, int b), (int c, int d)>.M(((int a, int b) paramA, (int c, int d) paramB))").WithLocation(17, 54)
+                );
         }
 
         [Fact]
@@ -8697,12 +8675,12 @@ class C
         private static void AssertTupleTypeEquality(TypeSymbol tuple)
         {
             Assert.True(tuple.Equals(tuple));
-            Assert.True(tuple.Equals(tuple, false, false));
-            Assert.True(tuple.Equals(tuple, false, true));
-            Assert.False(tuple.Equals(tuple.TupleUnderlyingType, false, false));
-            Assert.False(tuple.TupleUnderlyingType.Equals(tuple, false, false));
-            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, false, true));
-            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, false, true));
+            Assert.True(tuple.Equals(tuple, TypeCompareKind.ConsiderEverything));
+            Assert.True(tuple.Equals(tuple, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Assert.False(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
+            Assert.False(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.ConsiderEverything));
+            Assert.True(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Assert.True(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             var members = tuple.GetMembers();
 
@@ -10435,16 +10413,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true));
-                Assert.True(t3.Equals(t1, false, true));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true));
-                Assert.True(t3.Equals(t5, false, true));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2"));
@@ -10454,20 +10432,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true));
-                Assert.True(t6.Equals(t1, false, true));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m1Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true));
-                Assert.True(t8.Equals(t1, false, true));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true));
-                Assert.True(t8.Equals(t6, false, true));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
 
@@ -10487,16 +10465,16 @@ namespace System
                                                   ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "i", "h"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true));
-                Assert.True(t3.Equals(t1, false, true));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true));
-                Assert.True(t3.Equals(t5, false, true));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10508,21 +10486,21 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true));
-                Assert.True(t6.Equals(t1, false, true));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
                                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item9", "Item8"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true));
-                Assert.True(t8.Equals(t1, false, true));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true));
-                Assert.True(t8.Equals(t6, false, true));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
 
                 var t9 = TupleTypeSymbol.Create(m2Tuple.TupleUnderlyingType,
@@ -10541,12 +10519,12 @@ namespace System
 
                 Assert.False(t1.Equals(t11));
                 AssertTupleTypeMembersEquality(t1, t11);
-                Assert.True(t1.Equals(t11, false, true));
-                Assert.True(t11.Equals(t1, false, true));
+                Assert.True(t1.Equals(t11, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t11.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, false, true));
+                Assert.True(t1.TupleUnderlyingType.Equals(t11.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true));
+                Assert.True(t11.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
                 AssertTestDisplayString(t11.GetMembers(),
                     "System.Int32 ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item1",
@@ -10598,12 +10576,12 @@ namespace System
 
                 Assert.False(t1.Equals(t12));
                 AssertTupleTypeMembersEquality(t1, t12);
-                Assert.True(t1.Equals(t12, false, true));
-                Assert.True(t12.Equals(t1, false, true));
+                Assert.True(t1.Equals(t12, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t12.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType));
-                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, false, true));
+                Assert.True(t1.TupleUnderlyingType.Equals(t12.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 Assert.False(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType));
-                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, false, true));
+                Assert.True(t12.TupleUnderlyingType.Equals(t1.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
                 AssertTestDisplayString(t12.GetMembers(),
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item1",
@@ -10669,16 +10647,16 @@ namespace System
                 var t5 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("c", "b", "a"));
 
                 Assert.False(t1.Equals(t3));
-                Assert.True(t1.Equals(t3, false, true));
-                Assert.True(t3.Equals(t1, false, true));
+                Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t3);
 
                 Assert.True(t3.Equals(t4));
                 AssertTupleTypeMembersEquality(t3, t4);
 
                 Assert.False(t5.Equals(t3));
-                Assert.True(t5.Equals(t3, false, true));
-                Assert.True(t3.Equals(t5, false, true));
+                Assert.True(t5.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
                 var t6 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item1", "Item2", "Item3"));
@@ -10688,20 +10666,20 @@ namespace System
                 AssertTupleTypeMembersEquality(t6, t7);
 
                 Assert.False(t1.Equals(t6));
-                Assert.True(t1.Equals(t6, false, true));
-                Assert.True(t6.Equals(t1, false, true));
+                Assert.True(t1.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
                 var t8 = TupleTypeSymbol.Create(m3Tuple.TupleUnderlyingType, ImmutableArray.Create("Item2", "Item3", "Item1"));
 
                 Assert.False(t1.Equals(t8));
-                Assert.True(t1.Equals(t8, false, true));
-                Assert.True(t8.Equals(t1, false, true));
+                Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t8);
 
                 Assert.False(t6.Equals(t8));
-                Assert.True(t6.Equals(t8, false, true));
-                Assert.True(t8.Equals(t6, false, true));
+                Assert.True(t6.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
             }
         }
@@ -15300,6 +15278,855 @@ class Derived : Base
             // Metadata
             var comp4 = CreateCompilationWithMscorlib45(source2, references: new[] { comp2.EmitToImageReference() });
             comp4.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverriddenMethodWithDifferentTupleNamesInReturn()
+        {
+            var source = @"
+public class Base
+{
+    public virtual (int a, int b) M1() { return (1, 2); }
+    public virtual (int a, int b) M2() { return (1, 2); }
+    public virtual (int a, int b)[] M3() { return new[] { (1, 2) }; }
+    public virtual System.Nullable<(int a, int b)> M4() { return (1, 2); }
+    public virtual ((int a, int b) c, int d) M5() { return ((1, 2), 3); }
+    public virtual (dynamic a, dynamic b) M6() { return (1, 2); }
+}
+public class Derived : Base
+{
+    public override (int a, int b) M1() { return (1, 2); }
+    public override (int notA, int notB) M2() { return (1, 2); }
+    public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
+    public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
+    public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
+    public override (dynamic notA, dynamic) M6() { return (1, 2); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (14,42): error CS8218: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
+                //     public override (int notA, int notB) M2() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(14, 42),
+                // (15,44): error CS8218: 'Derived.M3()': cannot change tuple element names when overriding inherited member 'Base.M3()'
+                //     public override (int notA, int notB)[] M3() { return new[] { (1, 2) }; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(15, 44),
+                // (16,59): error CS8218: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
+                //     public override System.Nullable<(int notA, int notB)> M4() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(16, 59),
+                // (17,53): error CS8218: 'Derived.M5()': cannot change tuple element names when overriding inherited member 'Base.M5()'
+                //     public override ((int notA, int notB) c, int d) M5() { return ((1, 2), 3); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M5").WithArguments("Derived.M5()", "Base.M5()").WithLocation(17, 53),
+                // (18,45): error CS8218: 'Derived.M6()': cannot change tuple element names when overriding inherited member 'Base.M6()'
+                //     public override (dynamic notA, dynamic) M6() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M6").WithArguments("Derived.M6()", "Base.M6()").WithLocation(18, 45)
+                );
+        }
+
+        [Fact]
+        public void OverridenMethodWithDifferentTupleNamesInParameters()
+        {
+            var source = @"
+public class Base
+{
+    public virtual void M1((int a, int b) x) { }
+    public virtual void M2((int a, int b)[] x) { }
+    public virtual void M3(System.Nullable<(int a, int b)> x) { }
+    public virtual void M4(((int a, int b) c, int d) x) { }
+}
+public class Derived : Base
+{
+    public override void M1((int notA, int notB) y) { }
+    public override void M2((int notA, int notB)[] x) { }
+    public override void M3(System.Nullable<(int notA, int notB)> x) { }
+    public override void M4(((int notA, int notB) c, int d) x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,26): error CS8218: 'Derived.M2((int notA, int notB)[])': cannot change tuple element names when overriding inherited member 'Base.M2((int a, int b)[])'
+                //     public override void M2((int notA, int notB)[] x) { }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2((int notA, int notB)[])", "Base.M2((int a, int b)[])").WithLocation(12, 26),
+                // (13,26): error CS8218: 'Derived.M3((int notA, int notB)?)': cannot change tuple element names when overriding inherited member 'Base.M3((int a, int b)?)'
+                //     public override void M3(System.Nullable<(int notA, int notB)> x) { }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3((int notA, int notB)?)", "Base.M3((int a, int b)?)").WithLocation(13, 26),
+                // (14,26): error CS8218: 'Derived.M4(((int notA, int notB) c, int d))': cannot change tuple element names when overriding inherited member 'Base.M4(((int a, int b) c, int d))'
+                //     public override void M4(((int notA, int notB) c, int d) x) { }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))", "Base.M4(((int a, int b) c, int d))").WithLocation(14, 26),
+                // (11,26): error CS8218: 'Derived.M1((int notA, int notB))': cannot change tuple element names when overriding inherited member 'Base.M1((int a, int b))'
+                //     public override void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M1").WithArguments("Derived.M1((int notA, int notB))", "Base.M1((int a, int b))").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void OverridenPropertiesWithDifferentTupleNames()
+        {
+            var source = @"
+public class Base
+{
+    public virtual (int a, int b) P1 { get { return (1, 2); } set { } }
+    public virtual (int a, int b)[] P2 { get; set; }
+    public virtual (int a, int b)? P3 { get { return (1, 2); } set { } }
+    public virtual ((int a, int b) c, int d) P4 { get; set; }
+}
+public class Derived : Base
+{
+    public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+    public override (int notA, int notB)[] P2 { get; set; }
+    public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+    public override ((int notA, int notB) c, int d) P4 { get; set; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,44): error CS8218: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
+                //     public override (int notA, int notB)[] P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P2").WithArguments("Derived.P2", "Base.P2").WithLocation(12, 44),
+                // (12,49): error CS8218: 'Derived.P2.get': cannot change tuple element names when overriding inherited member 'Base.P2.get'
+                //     public override (int notA, int notB)[] P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P2.get", "Base.P2.get").WithLocation(12, 49),
+                // (12,54): error CS8218: 'Derived.P2.set': cannot change tuple element names when overriding inherited member 'Base.P2.set'
+                //     public override (int notA, int notB)[] P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P2.set", "Base.P2.set").WithLocation(12, 54),
+                // (13,43): error CS8218: 'Derived.P3': cannot change tuple element names when overriding inherited member 'Base.P3'
+                //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P3").WithArguments("Derived.P3", "Base.P3").WithLocation(13, 43),
+                // (13,48): error CS8218: 'Derived.P3.get': cannot change tuple element names when overriding inherited member 'Base.P3.get'
+                //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P3.get", "Base.P3.get").WithLocation(13, 48),
+                // (13,71): error CS8218: 'Derived.P3.set': cannot change tuple element names when overriding inherited member 'Base.P3.set'
+                //     public override (int notA, int notB)? P3 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P3.set", "Base.P3.set").WithLocation(13, 71),
+                // (14,53): error CS8218: 'Derived.P4': cannot change tuple element names when overriding inherited member 'Base.P4'
+                //     public override ((int notA, int notB) c, int d) P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P4").WithArguments("Derived.P4", "Base.P4").WithLocation(14, 53),
+                // (14,58): error CS8218: 'Derived.P4.get': cannot change tuple element names when overriding inherited member 'Base.P4.get'
+                //     public override ((int notA, int notB) c, int d) P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P4.get", "Base.P4.get").WithLocation(14, 58),
+                // (14,63): error CS8218: 'Derived.P4.set': cannot change tuple element names when overriding inherited member 'Base.P4.set'
+                //     public override ((int notA, int notB) c, int d) P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P4.set", "Base.P4.set").WithLocation(14, 63),
+                // (11,42): error CS8218: 'Derived.P1': cannot change tuple element names when overriding inherited member 'Base.P1'
+                //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P1").WithArguments("Derived.P1", "Base.P1").WithLocation(11, 42),
+                // (11,47): error CS8218: 'Derived.P1.get': cannot change tuple element names when overriding inherited member 'Base.P1.get'
+                //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P1.get", "Base.P1.get").WithLocation(11, 47),
+                // (11,70): error CS8218: 'Derived.P1.set': cannot change tuple element names when overriding inherited member 'Base.P1.set'
+                //     public override (int notA, int notB) P1 { get { return (1, 2); } set { } }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P1.set", "Base.P1.set").WithLocation(11, 70)
+                );
+        }
+
+        [Fact]
+        public void OverridenEventsWithDifferentTupleNames()
+        {
+            var source = @"
+using System;
+public class Base
+{
+    public virtual event Func<(int a, int b)> E1;
+    public virtual event Func<(int a, int b)> E2;
+    public virtual event Func<(int a, int b)[]> E3;
+    public virtual event Func<((int a, int b) c, int d)> E4;
+
+    void M() { E1(); E2(); E3(); E4(); }
+}
+public class Derived : Base
+{
+    public override event Func<(int a, int b)> E1;
+    public override event Func<(int notA, int notB)> E2;
+    public override event Func<(int notA, int notB)[]> E3;
+    public override event Func<((int notA, int) c, int d)> E4;
+
+    void M() { E1(); E2(); E3(); E4(); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (15,54): error CS8218: 'Derived.E2': cannot change tuple element names when overriding inherited member 'Base.E2'
+                //     public override event Func<(int notA, int notB)> E2;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2", "Base.E2").WithLocation(15, 54),
+                // (15,54): error CS8218: 'Derived.E2.add': cannot change tuple element names when overriding inherited member 'Base.E2.add'
+                //     public override event Func<(int notA, int notB)> E2;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2.add", "Base.E2.add").WithLocation(15, 54),
+                // (15,54): error CS8218: 'Derived.E2.remove': cannot change tuple element names when overriding inherited member 'Base.E2.remove'
+                //     public override event Func<(int notA, int notB)> E2;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E2").WithArguments("Derived.E2.remove", "Base.E2.remove").WithLocation(15, 54),
+                // (16,56): error CS8218: 'Derived.E3': cannot change tuple element names when overriding inherited member 'Base.E3'
+                //     public override event Func<(int notA, int notB)[]> E3;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3", "Base.E3").WithLocation(16, 56),
+                // (16,56): error CS8218: 'Derived.E3.add': cannot change tuple element names when overriding inherited member 'Base.E3.add'
+                //     public override event Func<(int notA, int notB)[]> E3;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3.add", "Base.E3.add").WithLocation(16, 56),
+                // (16,56): error CS8218: 'Derived.E3.remove': cannot change tuple element names when overriding inherited member 'Base.E3.remove'
+                //     public override event Func<(int notA, int notB)[]> E3;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E3").WithArguments("Derived.E3.remove", "Base.E3.remove").WithLocation(16, 56),
+                // (17,60): error CS8218: 'Derived.E4': cannot change tuple element names when overriding inherited member 'Base.E4'
+                //     public override event Func<((int notA, int) c, int d)> E4;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4", "Base.E4").WithLocation(17, 60),
+                // (17,60): error CS8218: 'Derived.E4.add': cannot change tuple element names when overriding inherited member 'Base.E4.add'
+                //     public override event Func<((int notA, int) c, int d)> E4;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4.add", "Base.E4.add").WithLocation(17, 60),
+                // (17,60): error CS8218: 'Derived.E4.remove': cannot change tuple element names when overriding inherited member 'Base.E4.remove'
+                //     public override event Func<((int notA, int) c, int d)> E4;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "E4").WithArguments("Derived.E4.remove", "Base.E4.remove").WithLocation(17, 60)
+                );
+        }
+
+        [Fact]
+        public void HiddenMethodsWithDifferentTupleNames()
+        {
+            var source = @"
+public class Base
+{
+    public virtual int M0() { return 0; }
+    public virtual (int a, int b) M1() { return (1, 2); }
+    public virtual (int a, int b)[] M2() { return new[] { (1, 2) }; }
+    public virtual System.Nullable<(int a, int b)> M3() { return null; }
+    public virtual ((int a, int b) c, int d) M4() { return ((1, 2), 3); }
+}
+public class Derived : Base
+{
+    public string M0() { return null; }
+    public (int a, int b) M1() { return (1, 2); }
+    public (int notA, int notB)[] M2() { return new[] { (1, 2) }; }
+    public System.Nullable<(int notA, int notB)> M3() { return null; }
+    public ((int notA, int notB) c, int d) M4() { return ((1, 2), 3); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (13,27): warning CS0114: 'Derived.M1()' hides inherited member 'Base.M1()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public (int a, int b) M1() { return (1, 2); }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M1").WithArguments("Derived.M1()", "Base.M1()").WithLocation(13, 27),
+                // (14,35): warning CS0114: 'Derived.M2()' hides inherited member 'Base.M2()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public (int notA, int notB)[] M2() { return new[] { (1, 2) }; }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(14, 35),
+                // (15,50): warning CS0114: 'Derived.M3()' hides inherited member 'Base.M3()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public System.Nullable<(int notA, int notB)> M3() { return null; }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M3").WithArguments("Derived.M3()", "Base.M3()").WithLocation(15, 50),
+                // (16,44): warning CS0114: 'Derived.M4()' hides inherited member 'Base.M4()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public ((int notA, int notB) c, int d) M4() { return ((1, 2), 3); }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(16, 44),
+                // (12,19): warning CS0114: 'Derived.M0()' hides inherited member 'Base.M0()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public string M0() { return null; }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M0").WithArguments("Derived.M0()", "Base.M0()").WithLocation(12, 19)
+                );
+        }
+
+        [Fact]
+        public void DuplicateMethodDetectionWithDifferentTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M1((int a, int b) x) { }
+    public void M1((int notA, int notB) x) { }
+
+    public void M2((int a, int b)[] x) { }
+    public void M2((int notA, int notB)[] x) { }
+
+    public void M3(System.Nullable<(int a, int b)> x) { }
+    public void M3(System.Nullable<(int notA, int notB)> x) { }
+
+    public void M4(((int a, int b) c, int d) x) { }
+    public void M4(((int notA, int notB) c, int d) x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0111: Type 'C' already defines a member called 'M1' with the same parameter types
+                //     public void M1((int notA, int notB) x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C").WithLocation(5, 17),
+                // (8,17): error CS0111: Type 'C' already defines a member called 'M2' with the same parameter types
+                //     public void M2((int notA, int notB)[] x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C").WithLocation(8, 17),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'M3' with the same parameter types
+                //     public void M3(System.Nullable<(int notA, int notB)> x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C").WithLocation(11, 17),
+                // (14,17): error CS0111: Type 'C' already defines a member called 'M4' with the same parameter types
+                //     public void M4(((int notA, int notB) c, int d) x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        public void HiddenMethodParametersWithDifferentTupleNames()
+        {
+            var source = @"
+public class Base
+{
+    public virtual void M1((int a, int b) x) { }
+    public virtual void M2((int a, int b)[] x) { }
+    public virtual void M3(System.Nullable<(int a, int b)> x) { }
+    public virtual void M4(((int a, int b) c, int d) x) { }
+}
+public class Derived : Base
+{
+    public void M1((int notA, int notB) y) { }
+    public void M2((int notA, int notB)[] x) { }
+    public void M3(System.Nullable<(int notA, int notB)> x) { }
+    public void M4(((int notA, int notB) c, int d) x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,17): warning CS0114: 'Derived.M2((int notA, int notB)[])' hides inherited member 'Base.M2((int a, int b)[])'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M2((int notA, int notB)[] x) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M2").WithArguments("Derived.M2((int notA, int notB)[])", "Base.M2((int a, int b)[])").WithLocation(12, 17),
+                // (13,17): warning CS0114: 'Derived.M3((int notA, int notB)?)' hides inherited member 'Base.M3((int a, int b)?)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M3(System.Nullable<(int notA, int notB)> x) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M3").WithArguments("Derived.M3((int notA, int notB)?)", "Base.M3((int a, int b)?)").WithLocation(13, 17),
+                // (14,17): warning CS0114: 'Derived.M4(((int notA, int notB) c, int d))' hides inherited member 'Base.M4(((int a, int b) c, int d))'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M4(((int notA, int notB) c, int d) x) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M4").WithArguments("Derived.M4(((int notA, int notB) c, int d))", "Base.M4(((int a, int b) c, int d))").WithLocation(14, 17),
+                // (11,17): warning CS0114: 'Derived.M1((int notA, int notB))' hides inherited member 'Base.M1((int a, int b))'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M1").WithArguments("Derived.M1((int notA, int notB))", "Base.M1((int a, int b))").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void ExplicitInterfaceImplementationWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0
+{
+    void M1((int, int b) x);
+    void M2((int a, int b) x);
+    (int, int b) MR1();
+    (int a, int b) MR2();
+}
+public class C : I0
+{
+    void I0.M1((int notMissing, int b) z) { }
+    void I0.M2((int notA, int notB) z) { }
+    (int notMissing, int b) I0.MR1() { return (1, 2); }
+    (int notA, int notB) I0.MR2() { return (1, 2); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8220: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
+                //     void I0.M2((int notA, int notB) z) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M2").WithArguments("C.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(12, 13),
+                // (13,32): error CS8220: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()' (including on the return type).
+                //     (int notMissing, int b) I0.MR1() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR1").WithArguments("C.MR1()", "I0.MR1()").WithLocation(13, 32),
+                // (14,29): error CS8220: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()' (including on the return type).
+                //     (int notA, int notB) I0.MR2() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR2").WithArguments("C.MR2()", "I0.MR2()").WithLocation(14, 29),
+                // (11,13): error CS8220: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))' (including on the return type).
+                //     void I0.M1((int notMissing, int b) z) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M1").WithArguments("C.M1((int notMissing, int b))", "I0.M1((int, int b))").WithLocation(11, 13),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR2()'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.MR2()").WithLocation(9, 18),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.M2((int a, int b))'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.M2((int a, int b))").WithLocation(9, 18),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR1()'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.MR1()").WithLocation(9, 18),
+                // (9,18): error CS0535: 'C' does not implement interface member 'I0.M1((int, int b))'
+                // public class C : I0
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.M1((int, int b))").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
+        public void InterfaceHidingAnotherInterfaceWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0
+{
+    void M2((int a, int b) x);
+    (int a, int b) MR2();
+}
+public interface I1 : I0
+{
+    void M2((int notA, int notB) z);
+    (int notA, int notB) MR2();
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,26): warning CS0108: 'I1.MR2()' hides inherited member 'I0.MR2()'. Use the new keyword if hiding was intended.
+                //     (int notA, int notB) MR2();
+                Diagnostic(ErrorCode.WRN_NewRequired, "MR2").WithArguments("I1.MR2()", "I0.MR2()").WithLocation(10, 26),
+                // (9,10): warning CS0108: 'I1.M2((int notA, int notB))' hides inherited member 'I0.M2((int a, int b))'. Use the new keyword if hiding was intended.
+                //     void M2((int notA, int notB) z);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("I1.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(9, 10)
+                );
+        }
+
+        [Fact]
+        public void HiddingInterfaceMethodsWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0
+{
+    void M1((int a, int b) x);
+    void M2((int a, int b) x);
+    void M3((int a, int b) x);
+    void M4((int a, int b) x);
+    (int a, int b) M5();
+    (int a, int b) M6();
+}
+public interface I1 : I0
+{
+    void M1((int notA, int notB) x);
+    void M2((int a, int b) x);
+    new void M3((int a, int b) x);
+    new void M4((int notA, int notB) x);
+    (int notA, int notB) M5();
+    (int a, int b) M6();
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (18,20): warning CS0108: 'I1.M6()' hides inherited member 'I0.M6()'. Use the new keyword if hiding was intended.
+                //     (int a, int b) M6();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M6").WithArguments("I1.M6()", "I0.M6()").WithLocation(18, 20),
+                // (14,10): warning CS0108: 'I1.M2((int a, int b))' hides inherited member 'I0.M2((int a, int b))'. Use the new keyword if hiding was intended.
+                //     void M2((int a, int b) x);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("I1.M2((int a, int b))", "I0.M2((int a, int b))").WithLocation(14, 10),
+                // (17,26): warning CS0108: 'I1.M5()' hides inherited member 'I0.M5()'. Use the new keyword if hiding was intended.
+                //     (int notA, int notB) M5();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M5").WithArguments("I1.M5()", "I0.M5()").WithLocation(17, 26),
+                // (13,10): warning CS0108: 'I1.M1((int notA, int notB))' hides inherited member 'I0.M1((int a, int b))'. Use the new keyword if hiding was intended.
+                //     void M1((int notA, int notB) x);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("I1.M1((int notA, int notB))", "I0.M1((int a, int b))").WithLocation(13, 10)
+                );
+        }
+
+        [Fact]
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0<T> { }
+public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
+public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
+public class C3 : I0<int>, I0<int> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (5,28): error CS0528: 'I0<int>' is already listed in interface list
+                // public class C3 : I0<int>, I0<int> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<int>").WithArguments("I0<int>").WithLocation(5, 28),
+                // (4,39): error CS0528: 'I0<(int a, int b)>' is already listed in interface list
+                // public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<(int a, int b)>").WithArguments("I0<(int a, int b)>").WithLocation(4, 39),
+                // (3,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
+                // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
+                );
+        }
+
+        [Fact]
+        public void ImplicitInterfaceImplementationWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0<T>
+{
+    T get();
+    void set(T x);
+}
+public class C : I0<(int a, int b)>
+{
+    public (int notA, int notB) get() { return (1, 2); }
+    public void set((int notA, int notB) y) { }
+}
+public class D : I0<(int a, int b)>
+{
+    public (int a, int b) get() { return (1, 2); }
+    public void set((int a, int b) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,17): error CS8220: The tuple element names in the signature of method 'C.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
+                //     public void set((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("C.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(10, 17),
+                // (9,33): error CS8220: The tuple element names in the signature of method 'C.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()'.
+                //     public (int notA, int notB) get() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("C.get()", "I0<(int a, int b)>.get()").WithLocation(9, 33)
+                );
+        }
+
+        [Fact]
+        public void ImplicitAndExplicitInterfaceImplementationWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0<T>
+{
+    T get();
+    void set(T x);
+}
+public class C1 : I0<(int a, int b)>
+{
+    public (int a, int b) get() { return (1, 2); }
+    public void set((int a, int b) y) { }
+}
+public class C2 : C1, I0<(int a, int b)>
+{
+    (int a, int b) I0<(int a, int b)>.get() { return (1, 2); }
+    void I0<(int a, int b)>.set((int a, int b) y) { }
+}
+public class D1 : I0<(int a, int b)>
+{
+    public (int notA, int notB) get() { return (1, 2); }
+    public void set((int notA, int notB) y) { }
+}
+public class D2 : D1, I0<(int notA, int notB)>
+{
+    (int a, int b) I0<(int a, int b)>.get() { return (1, 2); }
+    void I0<(int a, int b)>.set((int a, int b) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (20,17): error CS8220: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))' (including on the return type).
+                //     public void set((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "set").WithArguments("D1.set((int notA, int notB))", "I0<(int a, int b)>.set((int a, int b))").WithLocation(20, 17),
+                // (19,33): error CS8220: The tuple element names in the signature of method 'D1.get()' must match the tuple element names of interface method 'I0<(int a, int b)>.get()' (including on the return type).
+                //     public (int notA, int notB) get() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "get").WithArguments("D1.get()", "I0<(int a, int b)>.get()").WithLocation(19, 33),
+                // (25,10): error CS0540: 'D2.I0<(int a, int b)>.set((int a, int b))': containing type does not implement interface 'I0<(int a, int b)>'
+                //     void I0<(int a, int b)>.set((int a, int b) y) { }
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I0<(int a, int b)>").WithArguments("D2.I0<(int a, int b)>.set((int a, int b))", "I0<(int a, int b)>").WithLocation(25, 10),
+                // (24,20): error CS0540: 'D2.I0<(int a, int b)>.get()': containing type does not implement interface 'I0<(int a, int b)>'
+                //     (int a, int b) I0<(int a, int b)>.get() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I0<(int a, int b)>").WithArguments("D2.I0<(int a, int b)>.get()", "I0<(int a, int b)>").WithLocation(24, 20)
+                );
+        }
+
+        [Fact]
+        public void PartialMethodsWithDifferentTupleNames()
+        {
+            var source = @"
+public partial class C
+{
+    partial void M1((int a, int b) x);
+    partial void M2((int a, int b) x);
+    partial void M3((int a, int b) x);
+}
+public partial class C
+{
+    partial void M1((int notA, int notB) y) { }
+    partial void M2((int, int) y) { }
+    partial void M3((int a, int b) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS8221: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                //     partial void M1((int a, int b) x);
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
+                // (5,18): error CS8221: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                //     partial void M2((int a, int b) x);
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
+                );
+        }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInBaseInterfaces()
+        {
+            var source = @"
+public interface I0<T> { }
+public partial class C : I0<(int a, int b)> { }
+public partial class C : I0<(int notA, int notB)> { }
+public partial class C : I0<(int, int)> { }
+
+public partial class D : I0<(int a, int b)> { }
+public partial class D : I0<(int a, int b)> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,22): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // public partial class C : I0<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(3, 22),
+                // (3,22): error CS8219: 'I0<(int, int)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // public partial class C : I0<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int, int)>", "I0<(int a, int b)>", "C").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInBaseTypes()
+        {
+            var source = @"
+public class Base<T> { }
+public partial class C1 : Base<(int a, int b)> { }
+public partial class C1 : Base<(int notA, int notB)> { }
+public partial class C2 : Base<(int a, int b)> { }
+public partial class C2 : Base<(int, int)> { }
+public partial class C3 : Base<(int a, int b)> { }
+public partial class C3 : Base<(int a, int b)> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (5,22): error CS0263: Partial declarations of 'C2' must not specify different base classes
+                // public partial class C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 22),
+                // (3,22): error CS0263: Partial declarations of 'C1' must not specify different base classes
+                // public partial class C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
+        public void IndirectInterfaceBasesWithDifferentTupleNames()
+        {
+            var source = @"
+public interface I0<T> { }
+public interface I1 : I0<(int a, int b)> { }
+public interface I2 : I0<(int notA, int notB)> { }
+public interface I3 : I0<(int a, int b)> { }
+
+public class C : I1, I2 { }
+public class D : I1, I3 { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8219: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // public class C : I1, I2 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(7, 14)
+                );
+        }
+
+        [Fact]
+        public void InterfaceUnification()
+        {
+            var source = @"
+public interface I0<T1> { }
+public class C1<T2> : I0<(int, int)>, I0<(T2, T2)> { }
+public class C2<T2> : I0<(int, int)>, I0<System.ValueTuple<T2, T2>> { }
+public class C3<T2> : I0<(int a, int b)>, I0<(T2, T2)> { }
+public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0695: 'C4<T2>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T2 a, T2 b)>' because they may unify for some type parameter substitutions
+                // public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T2>", "I0<(int a, int b)>", "I0<(T2 a, T2 b)>").WithLocation(6, 14),
+                // (3,14): error CS0695: 'C1<T2>' cannot implement both 'I0<(int, int)>' and 'I0<(T2, T2)>' because they may unify for some type parameter substitutions
+                // public class C1<T2> : I0<(int, int)>, I0<(T2, T2)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T2>", "I0<(int, int)>", "I0<(T2, T2)>").WithLocation(3, 14),
+                // (5,14): error CS0695: 'C3<T2>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T2, T2)>' because they may unify for some type parameter substitutions
+                // public class C3<T2> : I0<(int a, int b)>, I0<(T2, T2)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T2>", "I0<(int a, int b)>", "I0<(T2, T2)>").WithLocation(5, 14),
+                // (4,14): error CS0695: 'C2<T2>' cannot implement both 'I0<(int, int)>' and 'I0<(T2, T2)>' because they may unify for some type parameter substitutions
+                // public class C2<T2> : I0<(int, int)>, I0<System.ValueTuple<T2, T2>> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T2>", "I0<(int, int)>", "I0<(T2, T2)>").WithLocation(4, 14)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousExtensionMethodWithDifferentTupleNames()
+        {
+            var source = @"
+public static class C1
+{
+    public static void M(this string self, (int, int) x) { System.Console.Write($""C1.M({x}) ""); }
+}
+public static class C2
+{
+    public static void M(this string self, (int a, int b) x) { System.Console.Write($""C2.M({x}) ""); }
+}
+public static class C3
+{
+    public static void M(this string self, (int c, int d) x) { System.Console.Write($""C3.M({x}) ""); }
+}
+public class D
+{
+    public static void Main()
+    {
+        ""string"".M((1, 1));
+        ""string"".M((a: 1, b: 1));
+        ""string"".M((c: 1, d: 1));
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (18,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
+                //         "string".M((1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C1.M(string, (int, int))", "C2.M(string, (int a, int b))").WithLocation(18, 18),
+                // (19,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
+                //         "string".M((a: 1, b: 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C1.M(string, (int, int))", "C2.M(string, (int a, int b))").WithLocation(19, 18),
+                // (20,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
+                //         "string".M((c: 1, d: 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C1.M(string, (int, int))", "C2.M(string, (int a, int b))").WithLocation(20, 18)
+                );
+        }
+
+        [Fact]
+        public void InheritFromMetadataWithDifferentNames()
+        {
+            const string ilSource = @"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi beforefieldinit Base
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
+          M() cil managed
+  {
+    .param [0]
+    // = (int a, int b)
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = ( 01 00 02 00 00 00 01 61 01 62 00 00 )
+    // Code size       13 (0xd)
+    .maxstack  2
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.2
+    IL_0003:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                        !1)
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+  } // end of method Base::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base::.ctor
+
+} // end of class Base
+
+.class public auto ansi beforefieldinit Base2
+       extends Base
+{
+  .method public hidebysig virtual instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
+          M() cil managed
+  {
+    .param [0]
+    // = (int notA, int notB)
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = (
+			01 00 02 00 00 00 04 6e 6f 74 41 04 6e 6f 74 42 00 00 )
+    // Code size       13 (0xd)
+    .maxstack  2
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.2
+    IL_0003:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                        !1)
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+  } // end of method Base2::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void Base::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base2::.ctor
+
+} // end of class Base2
+";
+
+            string sourceWithMatchingNames = @"
+public class C : Base2
+{
+    public override (int notA, int notB) M() { return (1, 2); }
+}";
+
+            var compMatching = CreateCompilationWithCustomILSource(sourceWithMatchingNames, ilSource,
+                            references: s_valueTupleRefs,
+                            options: TestOptions.DebugDll);
+
+            compMatching.VerifyEmitDiagnostics();
+
+            string sourceWithDifferentNames1 = @"
+public class C : Base2
+{
+    public override (int a, int b) M() { return (1, 2); }
+}";
+
+            var compDifferent1 = CreateCompilationWithCustomILSource(sourceWithDifferentNames1, ilSource,
+                            references: s_valueTupleRefs,
+                            options: TestOptions.DebugDll);
+
+            compDifferent1.VerifyDiagnostics(
+                // (4,36): error CS8218: 'C.M()': cannot change tuple element names when overriding inherited member 'Base2.M()'
+                //     public override (int a, int b) M() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M()", "Base2.M()").WithLocation(4, 36)
+                );
+
+            string sourceWithDifferentNames2 = @"
+public class C : Base2
+{
+    public override (int, int) M() { return (1, 2); }
+}";
+
+            var compDifferent2 = CreateCompilationWithCustomILSource(sourceWithDifferentNames2, ilSource,
+                            references: s_valueTupleRefs,
+                            options: TestOptions.DebugDll);
+
+            compDifferent2.VerifyDiagnostics(
+                // (4,32): error CS8218: 'C.M()': cannot change tuple element names when overriding inherited member 'Base2.M()'
+                //     public override (int, int) M() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M()", "Base2.M()").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void TupleNamesInAnonymousTypes()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        var x1 = new { Tuple = (a: 1, b: 2) };
+        var x2 = new { Tuple = (c: 1, 2) };
+        x2 = x1;
+        System.Console.Write(x1.Tuple.a);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = nodes.OfType<VariableDeclaratorSyntax>().First();
+            Assert.Equal("<anonymous type: (System.Int32 a, System.Int32 b) Tuple> x1", model.GetDeclaredSymbol(x1).ToTestDisplayString());
+
+            var x2 = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
+            Assert.Equal("<anonymous type: (System.Int32 c, System.Int32) Tuple> x2", model.GetDeclaredSymbol(x2).ToTestDisplayString());
         }
     }
 }

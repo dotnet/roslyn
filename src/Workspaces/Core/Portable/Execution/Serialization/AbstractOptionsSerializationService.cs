@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(options.CryptoKeyContainer);
             writer.WriteString(options.CryptoKeyFile);
 
-            writer.WriteArray(options.CryptoPublicKey.ToArray());
+            writer.WriteValue(options.CryptoPublicKey.ToArray());
             writer.WriteBoolean(options.DelaySign.HasValue);
             if (options.DelaySign.HasValue)
             {

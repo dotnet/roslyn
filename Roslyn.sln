@@ -382,6 +382,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteWorkspaces", "src\Wor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceHub", "src\Workspaces\Remote\ServiceHub\ServiceHub.csproj", "{80FDDD00-9393-47F7-8BAF-7E87CE011068}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoUtil", "src\Tools\RepoUtil\RepoUtil.csproj", "{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
@@ -3293,6 +3295,26 @@ Global
 		{80FDDD00-9393-47F7-8BAF-7E87CE011068}.Release|x64.Build.0 = Release|Any CPU
 		{80FDDD00-9393-47F7-8BAF-7E87CE011068}.Release|x86.ActiveCfg = Release|Any CPU
 		{80FDDD00-9393-47F7-8BAF-7E87CE011068}.Release|x86.Build.0 = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|ARM.Build.0 = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|x64.Build.0 = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Debug|x86.Build.0 = Debug|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|ARM.ActiveCfg = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|ARM.Build.0 = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|x64.ActiveCfg = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|x64.Build.0 = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|x86.ActiveCfg = Release|Any CPU
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -3468,5 +3490,6 @@ Global
 		{FE0D4BDD-1C30-488E-A870-854F5B8C5014} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{F822F72A-CC87-4E31-B57D-853F65CBEBF3} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{80FDDD00-9393-47F7-8BAF-7E87CE011068} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
+		{1CA184D3-89CB-4074-BEC5-F8AEBA657D41} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 EndGlobal
