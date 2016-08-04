@@ -236,6 +236,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             await TestAsync(initial, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        public async Task RemovesParamTagWithNoMatchingParameter()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""[|val|]""></param>
+    public void Fizz(int value) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public void Fizz(int value) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

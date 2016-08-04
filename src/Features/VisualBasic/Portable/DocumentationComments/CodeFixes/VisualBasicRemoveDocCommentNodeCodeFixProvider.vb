@@ -47,9 +47,5 @@ Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         Protected Overrides Function GetRevisedDocCommentTrivia(docCommentText As String) As SyntaxTriviaList
             Return SyntaxFactory.ParseLeadingTrivia(docCommentText)
         End Function
-
-        Protected Overrides Function GetDocCommentElementNode(fullDocComentNode As SyntaxNode, span As TextSpan) As SyntaxNode
-            Return fullDocComentNode.FindNode(span)
-        End Function
     End Class
 End Namespace

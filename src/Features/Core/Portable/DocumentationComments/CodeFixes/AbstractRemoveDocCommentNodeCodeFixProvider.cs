@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected abstract string DocCommentSignifierToken { get; }
 
         protected abstract SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText);
-        protected abstract SyntaxNode GetDocCommentElementNode(SyntaxNode fullDocComentNode, TextSpan span);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
             var triviaNodeStructure = triviaNode.GetStructure();
 
-            var paramNode = GetDocCommentElementNode(triviaNodeStructure, span);
+            var paramNode = triviaNodeStructure.ChildNodes().Single(s => s.Span.Contains(span));
             var removedNodes = new List<SyntaxNode> { paramNode };
 
             var triviaNodeStructureChildren = triviaNodeStructure.ChildNodes().ToList();

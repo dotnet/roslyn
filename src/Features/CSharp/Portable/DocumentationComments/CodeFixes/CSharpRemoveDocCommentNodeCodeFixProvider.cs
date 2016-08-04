@@ -18,18 +18,20 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         internal const string CS1571 = nameof(CS1571);
 
         /// <summary>
+        /// Param tag with no matching parameter
+        /// </summary>
+        internal const string CS1572 = nameof(CS1572);
+
+        /// <summary>
         /// Duplicate typeparam tag
         /// </summary>
         internal const string CS1710 = nameof(CS1710);
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1571, CS1710);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1571, CS1572, CS1710);
 
         protected override string DocCommentSignifierToken { get; } = "///";
 
         protected override SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText)
             => SyntaxFactory.ParseLeadingTrivia(docCommentText);
-
-        protected override SyntaxNode GetDocCommentElementNode(SyntaxNode fullDocComentNode, TextSpan span)
-            => fullDocComentNode.FindNode(span).Parent.Parent;
     }
 }
