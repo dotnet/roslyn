@@ -16394,6 +16394,18 @@ public class Derived : Base<(int a, int b)>
         }
 
         [Fact]
+        public void InterfaceUnification2()
+        {
+            var source = @"
+public interface I0<T1> { }
+public class Derived<T> : I0<Derived<(T, T)>>, I0<T> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            // Didn't run out of memory in trying to substitute T with Derived<(T, T)> in a loop
+        }
+
+        [Fact]
         public void AmbiguousExtensionMethodWithDifferentTupleNames()
         {
             var source = @"
