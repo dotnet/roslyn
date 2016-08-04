@@ -292,6 +292,12 @@ namespace A.B {
                sourceLinkStream: new MemoryStream()));
 
             Assert.Throws<ArgumentException>(() => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: null,
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
                 peStream: new MemoryStream(),
                 win32Resources: new TestStream(canRead: true, canWrite: false, canSeek: false)));
 

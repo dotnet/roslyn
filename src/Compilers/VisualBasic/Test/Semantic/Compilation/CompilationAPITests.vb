@@ -261,6 +261,12 @@ End Namespace
 
             Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
                 peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream:=New MemoryStream()))
+
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+                peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
 
             Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
