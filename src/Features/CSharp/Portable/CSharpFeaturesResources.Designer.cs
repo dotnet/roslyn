@@ -947,6 +947,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (Unknown).
+        /// </summary>
+        internal static string unknown_value {
+            get {
+                return ResourceManager.GetString("unknown_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
         internal static string Use_explicit_type {
