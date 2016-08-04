@@ -1,6 +1,5 @@
 ﻿{
   "dependencies": {
-    "Newtonsoft.Json": "6.0.4",
     "Microsoft.Composition": "1.0.27"
   },
   "frameworks": {
