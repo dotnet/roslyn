@@ -4,13 +4,13 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveDocCommentNode), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class CSharpRemoveDocCommentNodeCodeFixProvider : AbstractRemoveDocCommentNodeCodeFixProvider
+    internal class CSharpRemoveDocCommentNodeCodeFixProvider : AbstractRemoveDocCommentNodeCodeFixProvider<XmlElementSyntax>
     {
         /// <summary>
         /// Duplicate param tag

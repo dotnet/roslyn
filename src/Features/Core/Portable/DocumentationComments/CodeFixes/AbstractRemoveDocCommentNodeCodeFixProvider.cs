@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
-    internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider<TXMLElement> : CodeFixProvider
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -47,25 +47,34 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
             var triviaNodeStructure = triviaNode.GetStructure();
 
-            // See comment above
-            var paramNode = triviaNodeStructure.ChildNodes().FirstOrDefault(s => s.Span.Contains(span));
+            // First, we get the node the diagnostic fired on
+            // Then, we climb the tree to the first parent that is of the type XMLElement
+            // This is to correctly handle XML nodes that are nested in other XML nodes, so we only
+            // remove the node the diagnostic fired on and its children, but no parent nodes
+            var paramNode = triviaNodeStructure.FindNode(span);
+            while (paramNode != null && !(paramNode is TXMLElement))
+            {
+                paramNode = paramNode.Parent;
+            }
+
             if (paramNode == null)
             {
                 return document;
             }
 
             var removedNodes = new List<SyntaxNode> { paramNode };
-
-            var triviaNodeStructureChildren = triviaNodeStructure.ChildNodes().ToList();
+            var paramNodeSiblings = paramNode.Parent.ChildNodes().ToList();
 
             // This should not cause a crash because the diagnostics are only thrown in
             // doc comment XML nodes, which, by definition, start with `///` (C#) or `'''` (VB.NET)
-            var paramNodeIndex = triviaNodeStructureChildren.IndexOf(paramNode);
-            var previousNodeTextTrimmed = triviaNodeStructureChildren[paramNodeIndex - 1].ToFullString().Trim();
+            // If, perhaps, this specific node is not directly preceded by the comment marker node,
+            // it will be preceded by another XML node
+            var paramNodeIndex = paramNodeSiblings.IndexOf(paramNode);
+            var previousNodeTextTrimmed = paramNodeSiblings[paramNodeIndex - 1].ToFullString().Trim();
 
             if (previousNodeTextTrimmed == string.Empty || previousNodeTextTrimmed == DocCommentSignifierToken)
             {
-                removedNodes.Add(triviaNodeStructureChildren[paramNodeIndex - 1]);
+                removedNodes.Add(paramNodeSiblings[paramNodeIndex - 1]);
             }
 
             // Remove all trivia attached to the nodes I am removing.

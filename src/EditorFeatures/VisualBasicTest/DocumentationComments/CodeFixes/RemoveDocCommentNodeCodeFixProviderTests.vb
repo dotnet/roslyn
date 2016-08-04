@@ -378,6 +378,56 @@ End Class"
             Await TestAsync(initial, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        Public Async Function RemovesParamTag_NestedInSummaryTag() As Task
+            Dim initial =
+"Class Program
+    ''' <summary>
+    ''' <param name=""value""></param>
+    ''' [|<param name=""value""></param>|]
+    ''' </summary>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class"
+
+            Dim expected =
+"Class Program
+    ''' <summary>
+    ''' <param name=""value""></param>
+    ''' </summary>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class"
+            
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        Public Async Function RemovesParamTag_NestedInSummaryTag_WithChildren() As Task
+            Dim initial =
+"Class Program
+    ''' <summary>
+    '''   <param name=""value""></param>
+    '''   [|<param name=""value"">
+    '''     <xmlnode></xmlnode>
+    '''   </param>|]
+    ''' </summary>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class"
+
+            Dim expected =
+"Class Program
+    ''' <summary>
+    '''   <param name=""value""></param>
+    ''' </summary>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class"
+            
+            Await TestAsync(initial, expected)
+        End Function
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>

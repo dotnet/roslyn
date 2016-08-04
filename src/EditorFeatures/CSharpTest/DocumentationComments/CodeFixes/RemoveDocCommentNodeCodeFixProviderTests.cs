@@ -262,6 +262,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             await TestAsync(initial, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        public async Task RemovesParamTag_NestedInSummaryTag()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// <param name=""value""></param>
+    /// <param [|name=""value""|]></param>
+    /// </summary>
+    public void Fizz(int value) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// <param name=""value""></param>
+    /// </summary>
+    public void Fizz(int value) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        public async Task RemovesParamTag_NestedInSummaryTag_WithChildren()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    ///   <param name=""value""></param>
+    ///   <param [|name=""value""|]>
+    ///     <xmlnode></xmlnode>
+    ///   </param>
+    /// </summary>
+    public void Fizz(int value) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    ///   <param name=""value""></param>
+    /// </summary>
+    public void Fizz(int value) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
