@@ -1583,24 +1583,22 @@ DoneWithDiagnostics:
             Dim isNullableTupleConversion = (convKind = ConversionKind.WideningNullable) Or (convKind = ConversionKind.NarrowingNullable)
             Debug.Assert(Not isNullableTupleConversion OrElse destination.IsNullableType())
 
-            Dim destinationWithoutNullable = destination
+            Dim targetType = destination
 
             If isNullableTupleConversion Then
-                destinationWithoutNullable = destination.GetNullableUnderlyingType()
+                targetType = destination.GetNullableUnderlyingType()
             End If
 
-            Dim targetType As NamedTypeSymbol = DirectCast(destinationWithoutNullable, NamedTypeSymbol)
+            Dim arguments = sourceTuple.Arguments
+            If Not targetType.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
+                Return sourceTuple
+            End If
+
             If targetType.IsTupleType Then
                 Dim destTupleType = DirectCast(targetType, TupleTypeSymbol)
                 ' do not lose the original element names in the literal if different from names in the target
                 ' Come back to this, what about locations? (https:'github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt)
-            End If
-
-            Dim arguments = sourceTuple.Arguments
-
-            If Not targetType.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
-                Return sourceTuple
             End If
 
             Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Length)

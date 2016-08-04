@@ -533,6 +533,35 @@ End Module
         End Sub
 
         <Fact()>
+        Public Sub SimpleTupleTargetTyped001Err()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (A as String, B as String) = (C:=Nothing, D:=Nothing, E:=Nothing)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        Dim x as (A as String, B as String) = (C:=Nothing, D:=Nothing, E:=Nothing)
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+
+        End Sub
+
+        <Fact()>
         Public Sub SimpleTupleTargetTyped002()
 
             Dim verifier = CompileAndVerify(
