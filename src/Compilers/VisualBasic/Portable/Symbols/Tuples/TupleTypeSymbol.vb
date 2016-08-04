@@ -592,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CollectTupleElementFields() As ImmutableArray(Of FieldSymbol)
-            Dim builder = ArrayBuilder(Of FieldSymbol).GetInstance(_elementTypes.Length)
+            Dim builder = ArrayBuilder(Of FieldSymbol).GetInstance(_elementTypes.Length, Nothing)
 
             For Each member In GetMembers()
                 If member.Kind <> SymbolKind.Field Then

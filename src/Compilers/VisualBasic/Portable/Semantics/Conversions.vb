@@ -383,6 +383,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Interpolated string conversions
         InterpolatedString = [Widening] Or (1 << 25)
 
+        ' Tuple conversions
+        Tuple = (1 << 26)
+        WideningTuple = [Widening] Or Tuple
+        NarrowingTuple = [Narrowing] Or Tuple
+
         ' Bits 28 - 31 are reserved for failure flags.
     End Enum
 
@@ -1038,6 +1043,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.InterpolatedStringExpression
                     Return ClassifyInterpolatedStringConversion(DirectCast(source, BoundInterpolatedStringExpression), destination, binder)
 
+                Case BoundKind.TupleLiteral
+                    Return ClassifyTupleConversion(DirectCast(source, BoundTupleLiteral), destination, binder, useSiteDiagnostics)
             End Select
 
             Return Nothing 'ConversionKind.NoConversion
@@ -1200,6 +1207,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Nothing
 
+        End Function
+
+        Public Shared Function ClassifyTupleConversion(source As BoundTupleLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+            Dim arguments = source.Arguments
+
+            ' check if the type is actually compatible type for a tuple of given cardinality
+            If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
+                Return Nothing 'ConversionKind.NoConversion
+            End If
+
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(arguments.Count = targetElementTypes.Length)
+
+            ' check arguments against flattened list of target element types 
+            Dim result As ConversionKind = ConversionKind.WideningTuple
+
+            For i As Integer = 0 To arguments.Length - 1
+                Dim argument = arguments(i)
+                Dim elementConversion = ClassifyConversion(argument, targetElementTypes(i), binder, useSiteDiagnostics).Key
+
+                If NoConversion(elementConversion) Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                If IsNarrowingConversion(elementConversion) Then
+                    result = ConversionKind.NarrowingTuple
+                End If
+            Next
+
+            Return result
         End Function
 
         Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
@@ -2117,6 +2154,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             'Array conversions
             result = ClassifyArrayConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            If ConversionExists(result) Then
+                Return result
+            End If
+
+            'Tuple conversions
+            result = ClassifyTupleConversion(source, destination, useSiteDiagnostics)
             If ConversionExists(result) Then
                 Return result
             End If
@@ -3437,6 +3480,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing 'ConversionKind.NoConversion
+        End Function
+
+        Private Shared Function ClassifyTupleConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+
+            If Not source.IsTupleType Then
+                Return Nothing  'ConversionKind.NoConversion
+            End If
+
+            Dim sourceElementTypes = DirectCast(source, TupleTypeSymbol).TupleElementTypes
+
+            ' check if the type is actually compatible type for a tuple of given cardinality
+            If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceElementTypes.Length) Then
+                Return Nothing 'ConversionKind.NoConversion
+            End If
+
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(sourceElementTypes.Count = targetElementTypes.Length)
+
+            ' check arguments against flattened list of target element types 
+            Dim result As ConversionKind = ConversionKind.WideningTuple
+
+            For i As Integer = 0 To sourceElementTypes.Length - 1
+                Dim argumentType = sourceElementTypes(i)
+                Dim elementConversion = ClassifyConversion(argumentType, targetElementTypes(i), useSiteDiagnostics).Key
+
+                If NoConversion(elementConversion) Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                If IsNarrowingConversion(elementConversion) Then
+                    result = ConversionKind.NarrowingTuple
+                End If
+            Next
+
+            Return result
         End Function
 
         Public Shared Function ClassifyStringConversion(source As TypeSymbol, destination As TypeSymbol) As ConversionKind

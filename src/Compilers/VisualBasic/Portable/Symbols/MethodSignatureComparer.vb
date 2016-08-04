@@ -570,16 +570,16 @@ Done:
                     If checkTypes Then
                         Dim type1 As TypeWithModifiers
                         If typeSubstitution1 IsNot Nothing Then
-                            type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type, param1.OriginalDefinition.CustomModifiers))
+                            type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type.GetTupleUnderlyingTypeOrSelf(), param1.OriginalDefinition.CustomModifiers))
                         Else
-                            type1 = New TypeWithModifiers(param1.Type, param1.CustomModifiers)
+                            type1 = New TypeWithModifiers(param1.Type.GetTupleUnderlyingTypeOrSelf(), param1.CustomModifiers)
                         End If
 
                         Dim type2 As TypeWithModifiers
                         If typeSubstitution2 IsNot Nothing Then
-                            type2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(param2.OriginalDefinition.Type, param2.OriginalDefinition.CustomModifiers))
+                            type2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(param2.OriginalDefinition.Type.GetTupleUnderlyingTypeOrSelf(), param2.OriginalDefinition.CustomModifiers))
                         Else
-                            type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
+                            type2 = New TypeWithModifiers(param2.Type.GetTupleUnderlyingTypeOrSelf(), param2.CustomModifiers)
                         End If
 
                         If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then

@@ -442,6 +442,1261 @@ Sum: 10, Count: 4")
 
         End Sub
 
+        <Fact()>
+        Public Sub Overloading001()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Module m1
+    Sub Test(x as (a as integer, b as Integer))
+    End Sub
+
+    Sub Test(x as (c as integer, d as Integer))
+    End Sub
+End module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+    BC30269: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures.
+    Sub Test(x as (a as integer, b as Integer))
+        ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub Overloading002()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Module m1
+    Sub Test(x as (integer,Integer))
+    End Sub
+
+    Sub Test(x as (a as integer, b as Integer))
+    End Sub
+End module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30269: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures.
+    Sub Test(x as (integer,Integer))
+        ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (String, String) = (Nothing, Nothing)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, )
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of String, String) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldnull
+  IL_0004:  call       "Sub System.ValueTuple(Of String, String)..ctor(String, String)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. "System.ValueTuple(Of String, String)"
+  IL_0011:  callvirt   "Function Object.ToString() As String"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped001Err()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (A as String, B as String) = (C:=Nothing, D:=Nothing, E:=Nothing)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        Dim x as (A as String, B as String) = (C:=Nothing, D:=Nothing, E:=Nothing)
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (Func(Of integer), Func(of String)) = (Function() 42, Function() "hi")
+        System.Console.WriteLine((x.Item1(), x.Item2()).ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(42, hi)
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped002a()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (Func(Of integer), Func(of String)) = (Function() 42, Function() Nothing)
+        System.Console.WriteLine((x.Item1(), x.Item2()).ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(42, )
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = CType((Nothing, 1),(String, Byte))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, 1)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of String, Byte) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       "Sub System.ValueTuple(Of String, Byte)..ctor(String, Byte)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. "System.ValueTuple(Of String, Byte)"
+  IL_0011:  callvirt   "Function Object.ToString() As String"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = DirectCast((Nothing, 1),(String, String))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, 1)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of String, String) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
+  IL_0009:  call       "Sub System.ValueTuple(Of String, String)..ctor(String, String)"
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  constrained. "System.ValueTuple(Of String, String)"
+  IL_0016:  callvirt   "Function Object.ToString() As String"
+  IL_001b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0020:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped005()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as integer = 100
+        Dim x = CType((Nothing, i),(String, byte))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (Integer V_0, //i
+                System.ValueTuple(Of String, Byte) V_1) //x
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldnull
+  IL_0006:  ldloc.0
+  IL_0007:  conv.ovf.u1
+  IL_0008:  call       "Sub System.ValueTuple(Of String, Byte)..ctor(String, Byte)"
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  constrained. "System.ValueTuple(Of String, Byte)"
+  IL_0015:  callvirt   "Function Object.ToString() As String"
+  IL_001a:  call       "Sub System.Console.WriteLine(String)"
+  IL_001f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped006()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as integer = 100
+        Dim x = DirectCast((Nothing, i),(String, byte))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (Integer V_0, //i
+                System.ValueTuple(Of String, Byte) V_1) //x
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldnull
+  IL_0006:  ldloc.0
+  IL_0007:  conv.ovf.u1
+  IL_0008:  call       "Sub System.ValueTuple(Of String, Byte)..ctor(String, Byte)"
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  constrained. "System.ValueTuple(Of String, Byte)"
+  IL_0015:  callvirt   "Function Object.ToString() As String"
+  IL_001a:  call       "Sub System.Console.WriteLine(String)"
+  IL_001f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleTargetTyped007()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as integer = 100
+        Dim x = TryCast((Nothing, i),(String, byte))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (Integer V_0, //i
+                System.ValueTuple(Of String, Byte) V_1) //x
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldnull
+  IL_0006:  ldloc.0
+  IL_0007:  conv.ovf.u1
+  IL_0008:  call       "Sub System.ValueTuple(Of String, Byte)..ctor(String, Byte)"
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  constrained. "System.ValueTuple(Of String, Byte)"
+  IL_0015:  callvirt   "Function Object.ToString() As String"
+  IL_001a:  call       "Sub System.Console.WriteLine(String)"
+  IL_001f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionWidening()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (x as byte, y as byte) = (a:=100, b:=100)
+        Dim x as (integer, double) = i
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (System.ValueTuple(Of Integer, Double) V_0, //x
+                System.ValueTuple(Of Byte, Byte) V_1)
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0010:  ldloc.1
+  IL_0011:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0016:  conv.r8
+  IL_0017:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. "System.ValueTuple(Of Integer, Double)"
+  IL_0025:  callvirt   "Function Object.ToString() As String"
+  IL_002a:  call       "Sub System.Console.WriteLine(String)"
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionNarrowing()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (Integer, String) = (100, 100)
+        Dim x as (Byte, Byte) = i
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (System.ValueTuple(Of Byte, Byte) V_0, //x
+                System.ValueTuple(Of Integer, String) V_1)
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
+  IL_0009:  newobj     "Sub System.ValueTuple(Of Integer, String)..ctor(Integer, String)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  ldfld      "System.ValueTuple(Of Integer, String).Item1 As Integer"
+  IL_0015:  conv.ovf.u1
+  IL_0016:  ldloc.1
+  IL_0017:  ldfld      "System.ValueTuple(Of Integer, String).Item2 As String"
+  IL_001c:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToByte(String) As Byte"
+  IL_0021:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_0026:  stloc.0
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  constrained. "System.ValueTuple(Of Byte, Byte)"
+  IL_002f:  callvirt   "Function Object.ToString() As String"
+  IL_0034:  call       "Sub System.Console.WriteLine(String)"
+  IL_0039:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionNarrowingUnchecked()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (Integer, String) = (100, 100)
+        Dim x as (Byte, Byte) = i
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.ReleaseExe.WithOverflowChecks(False), expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (System.ValueTuple(Of Byte, Byte) V_0, //x
+                System.ValueTuple(Of Integer, String) V_1)
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
+  IL_0009:  newobj     "Sub System.ValueTuple(Of Integer, String)..ctor(Integer, String)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  ldfld      "System.ValueTuple(Of Integer, String).Item1 As Integer"
+  IL_0015:  conv.u1
+  IL_0016:  ldloc.1
+  IL_0017:  ldfld      "System.ValueTuple(Of Integer, String).Item2 As String"
+  IL_001c:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToByte(String) As Byte"
+  IL_0021:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_0026:  stloc.0
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  constrained. "System.ValueTuple(Of Byte, Byte)"
+  IL_002f:  callvirt   "Function Object.ToString() As String"
+  IL_0034:  call       "Sub System.Console.WriteLine(String)"
+  IL_0039:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionObject()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (object, object) = (1, (2,3))
+        Dim x as (integer, (integer, integer)) = ctype(i, (integer, (integer, integer)))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(1, (2, 3))
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       86 (0x56)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Integer, (Integer, Integer)) V_0, //x
+                System.ValueTuple(Of Object, Object) V_1,
+                System.ValueTuple(Of Integer, Integer) V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        "Integer"
+  IL_0006:  ldc.i4.2
+  IL_0007:  ldc.i4.3
+  IL_0008:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_000d:  box        "System.ValueTuple(Of Integer, Integer)"
+  IL_0012:  newobj     "Sub System.ValueTuple(Of Object, Object)..ctor(Object, Object)"
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      "System.ValueTuple(Of Object, Object).Item1 As Object"
+  IL_001e:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
+  IL_0023:  ldloc.1
+  IL_0024:  ldfld      "System.ValueTuple(Of Object, Object).Item2 As Object"
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0038
+  IL_002c:  pop
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  initobj    "System.ValueTuple(Of Integer, Integer)"
+  IL_0035:  ldloc.2
+  IL_0036:  br.s       IL_003d
+  IL_0038:  unbox.any  "System.ValueTuple(Of Integer, Integer)"
+  IL_003d:  newobj     "Sub System.ValueTuple(Of Integer, (Integer, Integer))..ctor(Integer, (Integer, Integer))"
+  IL_0042:  stloc.0
+  IL_0043:  ldloca.s   V_0
+  IL_0045:  constrained. "System.ValueTuple(Of Integer, (Integer, Integer))"
+  IL_004b:  callvirt   "Function Object.ToString() As String"
+  IL_0050:  call       "Sub System.Console.WriteLine(String)"
+  IL_0055:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionOverloadResolution()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim b as (byte, byte) = (100, 100)
+        Test(b)
+        Dim i as (integer, integer) = b
+        Test(i)
+        Dim l as (Long, integer) = b
+        Test(l)
+    End Sub
+
+    Sub Test(x as (integer, integer))
+        System.Console.Writeline("integer")
+    End SUb
+
+    Sub Test(x as (Long, Long))
+        System.Console.Writeline("long")
+    End SUb
+
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+integer
+integer
+long            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size      101 (0x65)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Byte, Byte) V_0,
+                System.ValueTuple(Of Long, Integer) V_1)
+  IL_0000:  ldc.i4.s   100
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0011:  ldloc.0
+  IL_0012:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0017:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_001c:  call       "Sub C.Test((Integer, Integer))"
+  IL_0021:  dup
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_002f:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0034:  call       "Sub C.Test((Integer, Integer))"
+  IL_0039:  stloc.0
+  IL_003a:  ldloc.0
+  IL_003b:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0040:  conv.u8
+  IL_0041:  ldloc.0
+  IL_0042:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0047:  newobj     "Sub System.ValueTuple(Of Long, Integer)..ctor(Long, Integer)"
+  IL_004c:  stloc.1
+  IL_004d:  ldloc.1
+  IL_004e:  ldfld      "System.ValueTuple(Of Long, Integer).Item1 As Long"
+  IL_0053:  ldloc.1
+  IL_0054:  ldfld      "System.ValueTuple(Of Long, Integer).Item2 As Integer"
+  IL_0059:  conv.i8
+  IL_005a:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_005f:  call       "Sub C.Test((Long, Long))"
+  IL_0064:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionNullable001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (x as byte, y as byte)? = (a:=100, b:=100)
+        Dim x as (integer, double) = CType(i, (integer, double))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init ((x As Byte, y As Byte)? V_0, //i
+                System.ValueTuple(Of Integer, Double) V_1, //x
+                System.ValueTuple(Of Byte, Byte) V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  ldc.i4.s   100
+  IL_0006:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_000b:  call       "Sub (x As Byte, y As Byte)?..ctor((x As Byte, y As Byte))"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "Function (x As Byte, y As Byte)?.get_Value() As (x As Byte, y As Byte)"
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_001e:  ldloc.2
+  IL_001f:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0024:  conv.r8
+  IL_0025:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  constrained. "System.ValueTuple(Of Integer, Double)"
+  IL_0033:  callvirt   "Function Object.ToString() As String"
+  IL_0038:  call       "Sub System.Console.WriteLine(String)"
+  IL_003d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionNullable002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (x as byte, y as byte) = (a:=100, b:=100)
+        Dim x as (integer, double)? = CType(i, (integer, double))
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Byte, Byte) V_0, //i
+                (Integer, Double)? V_1, //x
+                System.ValueTuple(Of Byte, Byte) V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  ldc.i4.s   100
+  IL_0006:  call       "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldloc.0
+  IL_000e:  stloc.2
+  IL_000f:  ldloc.2
+  IL_0010:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0015:  ldloc.2
+  IL_0016:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_001b:  conv.r8
+  IL_001c:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
+  IL_0021:  call       "Sub (Integer, Double)?..ctor((Integer, Double))"
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  constrained. "(Integer, Double)?"
+  IL_002e:  callvirt   "Function Object.ToString() As String"
+  IL_0033:  call       "Sub System.Console.WriteLine(String)"
+  IL_0038:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionNullable003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as (x as byte, y as byte)? = (a:=100, b:=100)
+        Dim x = CType(i, (integer, double)?)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init ((x As Byte, y As Byte)? V_0, //i
+                (Integer, Double)? V_1, //x
+                (Integer, Double)? V_2,
+                System.ValueTuple(Of Byte, Byte) V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  ldc.i4.s   100
+  IL_0006:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_000b:  call       "Sub (x As Byte, y As Byte)?..ctor((x As Byte, y As Byte))"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "Function (x As Byte, y As Byte)?.get_HasValue() As Boolean"
+  IL_0017:  brtrue.s   IL_0024
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  initobj    "(Integer, Double)?"
+  IL_0021:  ldloc.2
+  IL_0022:  br.s       IL_0043
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       "Function (x As Byte, y As Byte)?.GetValueOrDefault() As (x As Byte, y As Byte)"
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.3
+  IL_002d:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0032:  ldloc.3
+  IL_0033:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0038:  conv.r8
+  IL_0039:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
+  IL_003e:  newobj     "Sub (Integer, Double)?..ctor((Integer, Double))"
+  IL_0043:  stloc.1
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  constrained. "(Integer, Double)?"
+  IL_004c:  callvirt   "Function Object.ToString() As String"
+  IL_0051:  call       "Sub System.Console.WriteLine(String)"
+  IL_0056:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleConversionNullable004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim i as ValueTuple(of byte, byte)? = (a:=100, b:=100)
+        Dim x = CType(i, ValueTuple(of integer, double)?)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(100, 100)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init ((Byte, Byte)? V_0, //i
+                (Integer, Double)? V_1, //x
+                (Integer, Double)? V_2,
+                System.ValueTuple(Of Byte, Byte) V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   100
+  IL_0004:  ldc.i4.s   100
+  IL_0006:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
+  IL_000b:  call       "Sub (Byte, Byte)?..ctor((Byte, Byte))"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "Function (Byte, Byte)?.get_HasValue() As Boolean"
+  IL_0017:  brtrue.s   IL_0024
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  initobj    "(Integer, Double)?"
+  IL_0021:  ldloc.2
+  IL_0022:  br.s       IL_0043
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       "Function (Byte, Byte)?.GetValueOrDefault() As (Byte, Byte)"
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.3
+  IL_002d:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0032:  ldloc.3
+  IL_0033:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0038:  conv.r8
+  IL_0039:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
+  IL_003e:  newobj     "Sub (Integer, Double)?..ctor((Integer, Double))"
+  IL_0043:  stloc.1
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  constrained. "(Integer, Double)?"
+  IL_004c:  callvirt   "Function Object.ToString() As String"
+  IL_0051:  call       "Sub System.Console.WriteLine(String)"
+  IL_0056:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplicitConversions02()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = (a:=1, b:=1)
+        Dim y As C1 = x
+        x = y
+        System.Console.WriteLine(x)
+
+        x = CType(CType(x, C1), (integer, integer))
+        System.Console.WriteLine(x)
+
+    End Sub
+End Module
+
+Class C1
+    Public Shared Widening Operator CType(arg as (long, long)) as C1
+        return new C1()
+    End Operator
+
+    Public Shared Widening Operator CType(arg as C1) as (c As Byte, d as Byte)
+        return (2, 2)
+    End Operator
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(2, 2)
+(2, 2)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size      125 (0x7d)
+  .maxstack  2
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0,
+                System.ValueTuple(Of Byte, Byte) V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_000e:  conv.i8
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0015:  conv.i8
+  IL_0016:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_001b:  call       "Function C1.op_Implicit((Long, Long)) As C1"
+  IL_0020:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_002c:  ldloc.1
+  IL_002d:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0032:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0037:  dup
+  IL_0038:  box        "System.ValueTuple(Of Integer, Integer)"
+  IL_003d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0042:  stloc.0
+  IL_0043:  ldloc.0
+  IL_0044:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0049:  conv.i8
+  IL_004a:  ldloc.0
+  IL_004b:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0050:  conv.i8
+  IL_0051:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_0056:  call       "Function C1.op_Implicit((Long, Long)) As C1"
+  IL_005b:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_0060:  stloc.1
+  IL_0061:  ldloc.1
+  IL_0062:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0067:  ldloc.1
+  IL_0068:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_006d:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0072:  box        "System.ValueTuple(Of Integer, Integer)"
+  IL_0077:  call       "Sub System.Console.WriteLine(Object)"
+  IL_007c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub ExplicitConversions02()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = (a:=1, b:=1)
+        Dim y As C1 = CType(x, C1)
+        x = CTYpe(y, (integer, integer))
+        System.Console.WriteLine(x)
+
+        x = CType(CType(x, C1), (integer, integer))
+        System.Console.WriteLine(x)
+
+    End Sub
+End Module
+
+Class C1
+    Public Shared Narrowing Operator CType(arg as (long, long)) as C1
+        return new C1()
+    End Operator
+
+    Public Shared Narrowing Operator CType(arg as C1) as (c As Byte, d as Byte)
+        return (2, 2)
+    End Operator
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(2, 2)
+(2, 2)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size      125 (0x7d)
+  .maxstack  2
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0,
+                System.ValueTuple(Of Byte, Byte) V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_000e:  conv.i8
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0015:  conv.i8
+  IL_0016:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_001b:  call       "Function C1.op_Explicit((Long, Long)) As C1"
+  IL_0020:  call       "Function C1.op_Explicit(C1) As (c As Byte, d As Byte)"
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_002c:  ldloc.1
+  IL_002d:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0032:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0037:  dup
+  IL_0038:  box        "System.ValueTuple(Of Integer, Integer)"
+  IL_003d:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0042:  stloc.0
+  IL_0043:  ldloc.0
+  IL_0044:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0049:  conv.i8
+  IL_004a:  ldloc.0
+  IL_004b:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0050:  conv.i8
+  IL_0051:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_0056:  call       "Function C1.op_Explicit((Long, Long)) As C1"
+  IL_005b:  call       "Function C1.op_Explicit(C1) As (c As Byte, d As Byte)"
+  IL_0060:  stloc.1
+  IL_0061:  ldloc.1
+  IL_0062:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0067:  ldloc.1
+  IL_0068:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_006d:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0072:  box        "System.ValueTuple(Of Integer, Integer)"
+  IL_0077:  call       "Sub System.Console.WriteLine(Object)"
+  IL_007c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplicitConversions03()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = (a:=1, b:=1)
+        Dim y As C1 = x
+        Dim x1 as (integer, integer)? = y
+        System.Console.WriteLine(x1)
+
+        x1 = CType(CType(x, C1), (integer, integer)?)
+        System.Console.WriteLine(x1)
+
+    End Sub
+End Module
+
+Class C1
+    Public Shared Widening Operator CType(arg as (long, long)) as C1
+        return new C1()
+    End Operator
+
+    Public Shared Widening Operator CType(arg as C1) as (c As Byte, d as Byte)
+        return (2, 2)
+    End Operator
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(2, 2)
+(2, 2)
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size      140 (0x8c)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0, //x
+                C1 V_1, //y
+                System.ValueTuple(Of Integer, Integer) V_2,
+                System.ValueTuple(Of Byte, Byte) V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0009:  ldloc.0
+  IL_000a:  stloc.2
+  IL_000b:  ldloc.2
+  IL_000c:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0011:  conv.i8
+  IL_0012:  ldloc.2
+  IL_0013:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0018:  conv.i8
+  IL_0019:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_001e:  call       "Function C1.op_Implicit((Long, Long)) As C1"
+  IL_0023:  stloc.1
+  IL_0024:  ldloc.1
+  IL_0025:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_002a:  stloc.3
+  IL_002b:  ldloc.3
+  IL_002c:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0031:  ldloc.3
+  IL_0032:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0037:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_003c:  newobj     "Sub (Integer, Integer)?..ctor((Integer, Integer))"
+  IL_0041:  box        "(Integer, Integer)?"
+  IL_0046:  call       "Sub System.Console.WriteLine(Object)"
+  IL_004b:  ldloc.0
+  IL_004c:  stloc.2
+  IL_004d:  ldloc.2
+  IL_004e:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0053:  conv.i8
+  IL_0054:  ldloc.2
+  IL_0055:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_005a:  conv.i8
+  IL_005b:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
+  IL_0060:  call       "Function C1.op_Implicit((Long, Long)) As C1"
+  IL_0065:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_006a:  stloc.3
+  IL_006b:  ldloc.3
+  IL_006c:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
+  IL_0071:  ldloc.3
+  IL_0072:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
+  IL_0077:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_007c:  newobj     "Sub (Integer, Integer)?..ctor((Integer, Integer))"
+  IL_0081:  box        "(Integer, Integer)?"
+  IL_0086:  call       "Sub System.Console.WriteLine(Object)"
+  IL_008b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplicitConversions04()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = (1, (1, (1, (1, (1, (1, 1))))))
+        Dim y as C1 = x   
+
+        Dim x2 as (integer, integer) = y
+        System.Console.WriteLine(x2)
+
+        Dim x3 as (integer, (integer, integer)) = y
+        System.Console.WriteLine(x3)
+ 
+        Dim x12 as (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, Integer))))))))))) = y
+        System.Console.WriteLine(x12)
+
+    End Sub
+End Module
+
+Class C1
+    Private x as Byte
+
+    Public Shared Widening Operator CType(arg as (long, C1)) as C1
+        Dim result = new C1()
+        result.x = arg.Item2.x
+        return result
+    End Operator
+
+    Public Shared Widening Operator CType(arg as (long, long)) as C1
+        Dim result = new C1()
+        result.x = CByte(arg.Item2)
+        return result
+    End Operator
+
+    Public Shared Widening Operator CType(arg as C1) as (c As Byte, d as C1)
+        Dim t = arg.x
+        arg.x += 1
+        return (CByte(t), arg)
+    End Operator
+
+    Public Shared Widening Operator CType(arg as C1) as (c As Byte, d as Byte)
+        Dim t1 = arg.x
+        arg.x += 1
+        Dim t2 = arg.x
+        arg.x += 1
+        return (CByte(t1), CByte(t2))
+    End Operator
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(1, 2)
+(3, (4, 5))
+(6, (7, (8, (9, (10, (11, (12, (13, (14, (15, (16, 17)))))))))))
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub ExplicitConversions04()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim x = (1, (1, (1, (1, (1, (1, 1))))))
+        Dim y as C1 = x   
+
+        Dim x2 as (integer, integer) = y
+        System.Console.WriteLine(x2)
+
+        Dim x3 as (integer, (integer, integer)) = y
+        System.Console.WriteLine(x3)
+ 
+        Dim x12 as (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, Integer))))))))))) = y
+        System.Console.WriteLine(x12)
+
+    End Sub
+End Module
+
+Class C1
+    Private x as Byte
+
+    Public Shared Narrowing Operator CType(arg as (long, C1)) as C1
+        Dim result = new C1()
+        result.x = arg.Item2.x
+        return result
+    End Operator
+
+    Public Shared Narrowing Operator CType(arg as (long, long)) as C1
+        Dim result = new C1()
+        result.x = CByte(arg.Item2)
+        return result
+    End Operator
+
+    Public Shared Narrowing Operator CType(arg as C1) as (c As Byte, d as C1)
+        Dim t = arg.x
+        arg.x += 1
+        return (CByte(t), arg)
+    End Operator
+
+    Public Shared Narrowing Operator CType(arg as C1) as (c As Byte, d as Byte)
+        Dim t1 = arg.x
+        arg.x += 1
+        Dim t2 = arg.x
+        arg.x += 1
+        return (CByte(t1), CByte(t2))
+    End Operator
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(1, 2)
+(3, (4, 5))
+(6, (7, (8, (9, (10, (11, (12, (13, (14, (15, (16, 17)))))))))))
+            ]]>)
+        End Sub
 
     End Class
 
