@@ -1,7 +1,7 @@
-﻿{
+{
   "dependencies": {
     "xunit": "2.1.0",
-    "xunit.runner.console": "2.1.0",
+    "xunit.runner.console": "2.2.0-beta1-build3239",
     "Roslyn.Microsoft.Build": "0.0.2",
     "Moq": "4.2.1402.2112"
   },
@@ -9,6 +9,6 @@
     "net46": {}
   },
   "runtimes": {
-    "win7": { }
+    "win7": {}
   }
 }

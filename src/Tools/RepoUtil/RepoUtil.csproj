@@ -58,6 +58,7 @@
     <Compile Include="RepoConfig.cs" />
     <Compile Include="RepoData.cs" />
     <Compile Include="UsageCommand.cs" />
+    <Compile Include="ViewCommand.cs" />
     <Compile Include="VerifyCommand.cs" />
   </ItemGroup>
   <ItemGroup>
