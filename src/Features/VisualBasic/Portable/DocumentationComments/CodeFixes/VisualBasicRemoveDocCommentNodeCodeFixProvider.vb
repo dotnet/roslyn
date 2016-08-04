@@ -14,23 +14,34 @@ Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         ''' <summary>
         ''' XML comment tag with identical attributes
         ''' </summary>
-        Friend Const BC42305 As String = NameOf(BC42305)
+        Private Const BC42305 As String = NameOf(BC42305)
 
         ''' <summary>
         ''' XML comment tag is not permitted on a 'sub' language element
         ''' </summary>
-        Friend Const BC42306 As String = NameOf(BC42306)
+        Private Const BC42306 As String = NameOf(BC42306)
 
         ''' <summary>
         ''' XML comment type parameter does not match a type parameter
         ''' </summary>
-        Friend Const BC42307 As String = NameOf(BC42307)
+        Private Const BC42307 As String = NameOf(BC42307)
+
+        ''' <summary>
+        ''' XML comment tag 'returns' is not permitted on a 'WriteOnly' property
+        ''' </summary>
+        Private Const BC42313 As String = NameOf(BC42313)
+
+        ''' <summary>
+        ''' XML comment tag 'returns' is not permitted on a 'declare sub' language element
+        ''' </summary>
+        Private Const BC42315 As String = NameOf(BC42315)
 
         ''' <summary>
         ''' XML comment type parameter does not match a type parameter
         ''' </summary>
-        Friend Const BC42317 As String = NameOf(BC42317)
-        Friend ReadOnly Id As ImmutableArray(Of String) = ImmutableArray.Create(BC42305, BC42306, BC42307, BC42317)
+        Private Const BC42317 As String = NameOf(BC42317)
+
+        Friend ReadOnly Id As ImmutableArray(Of String) = ImmutableArray.Create(BC42305, BC42306, BC42307, BC42313, BC42315, BC42317)
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

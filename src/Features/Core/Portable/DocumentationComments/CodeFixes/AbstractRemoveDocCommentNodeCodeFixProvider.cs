@@ -36,15 +36,30 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var commentParent = root.FindNode(span);
-            var triviaNode = commentParent.GetLeadingTrivia().Single(s => s.GetLocation().SourceSpan.Contains(span));
+
+            // There *should* always be one node here if the diagnostic fires,
+            // but we will use `FirstOrDefault` just to safeguard against a sly bug
+            var triviaNode = commentParent.GetLeadingTrivia().FirstOrDefault(s => s.Span.Contains(span));
+            if (triviaNode == null)
+            {
+                return document;
+            }
 
             var triviaNodeStructure = triviaNode.GetStructure();
 
-            var paramNode = triviaNodeStructure.ChildNodes().Single(s => s.Span.Contains(span));
+            // See comment above
+            var paramNode = triviaNodeStructure.ChildNodes().FirstOrDefault(s => s.Span.Contains(span));
+            if (paramNode == null)
+            {
+                return document;
+            }
+
             var removedNodes = new List<SyntaxNode> { paramNode };
 
             var triviaNodeStructureChildren = triviaNodeStructure.ChildNodes().ToList();
 
+            // This should not cause a crash because the diagnostics are only thrown in
+            // doc comment XML nodes, which, by definition, start with `///` (C#) or `'''` (VB.NET)
             var paramNodeIndex = triviaNodeStructureChildren.IndexOf(paramNode);
             var previousNodeTextTrimmed = triviaNodeStructureChildren[paramNodeIndex - 1].ToFullString().Trim();
 
@@ -54,7 +69,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
 
             // Remove all trivia attached to the nodes I am removing.
-            // Really, any option should work here because the leading/trailing text around these nodes are not attached to them as trivia.
+            // Really, any option should work here because the leading/trailing text
+            // around these nodes are not attached to them as trivia.
             var newCommentNode = triviaNodeStructure.RemoveNodes(removedNodes, SyntaxRemoveOptions.KeepNoTrivia);
             var newRoot = root.ReplaceTrivia(triviaNode, GetRevisedDocCommentTrivia(newCommentNode.ToFullString()));
             return document.WithSyntaxRoot(newRoot);

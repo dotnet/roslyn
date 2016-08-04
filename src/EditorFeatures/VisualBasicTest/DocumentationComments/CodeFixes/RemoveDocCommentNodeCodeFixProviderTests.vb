@@ -23,8 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag() As Task
             Dim initial =
-"<File>
-Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -32,19 +31,16 @@ Class Program
     ''' [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             Dim expected =
-"<File>
-Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -52,21 +48,19 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_OnlyParamTags() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <param name=""value""></param>
     ''' [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -74,25 +68,23 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_TagBelowOffendingParamTag() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <param name=""value""></param>
     ''' [|<param name=""value""></param>|]
     ''' <returns></returns>
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
-End Class
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <param name=""value""></param>
     ''' <returns></returns>
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -100,26 +92,24 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_BothParamTagsOnSameLine_DocCommentTagBetweenThem() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>    ''' [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -127,26 +117,24 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_BothParamTagsOnSameLine_WhitespaceBetweenThem() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>    [|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -154,26 +142,24 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>[|<param name=""value""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -181,8 +167,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesParamTagWithNoMatchingParam() As Task
             Dim initial =
-"<File>
-Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -190,20 +175,17 @@ Class Program
     ''' [|<param name=""buzz""></param>|]
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
 
             Dim expected =
-"<File>
-Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -211,8 +193,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_RawTextBeforeAndAfterNode() As Task
             Dim initial =
-"<File>
-Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -220,11 +201,9 @@ Class Program
     ''' some comment[|<param name=""value""></param>|]out of the XML nodes
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             Dim expected =
-"<File>
-Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -232,8 +211,7 @@ Class Program
     ''' some commentout of the XML nodes
     Sub Fizz(ByVal value As Integer)
     End Sub
-End Class
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -241,7 +219,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateTypeparamTag() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -251,10 +229,10 @@ End Class
     ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -263,7 +241,7 @@ End Class
     ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -271,7 +249,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesTypeparamTagWithNoMatchingType() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -281,10 +259,10 @@ End Class
     ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -293,7 +271,7 @@ End Class
     ''' <param name=""value""></param>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -301,7 +279,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesReturnsTagOnSub() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
@@ -309,17 +287,17 @@ End Class
     ''' [|<returns></returns>|]
     Public Sub Fizz(ByVal value As Integer)
     End Sub
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <summary>
     ''' 
     ''' </summary>
     ''' <param name=""value""></param>
     Public Sub Fizz(ByVal value As Integer)
     End Sub
-</File>"
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -327,7 +305,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateReturnsTag() As Task
             Dim initial =
-"<File>Class Program
+"Class Program
     ''' <param name=""value""></param>
     ''' <param name=""value""></param>
     ''' <returns></returns>
@@ -335,17 +313,67 @@ End Class
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
-</File>"
+End Class"
 
             Dim expected =
-"<File>Class Program
+"Class Program
     ''' <param name=""value""></param>
     ''' <param name=""value""></param>
     ''' <returns></returns>
     Public Function Fizz(ByVal value As Integer) As Integer
         Return 0
     End Function
-</File>"
+End Class"
+            
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        Public Async Function RemovesIllegalReturnsTagOnWriteOnlyProperty() As Task
+            Dim initial =
+"Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' [|<returns></returns>|]
+    WriteOnly Property P As Integer
+        Set(value As Integer)
+        End Set
+    End Property
+End Class"
+
+            Dim expected =
+"Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    WriteOnly Property P As Integer
+        Set(value As Integer)
+        End Set
+    End Property
+End Class"
+            
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        Public Async Function RemovesIllegalReturnsTagOnDeclareSub() As Task
+            Dim initial =
+"Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' [|<returns></returns>|]
+    Declare Sub Foo Lib ""User"" ()
+End Class"
+
+            Dim expected =
+"Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    Declare Sub Foo Lib ""User"" ()
+End Class"
             
             Await TestAsync(initial, expected)
         End Function
@@ -425,6 +453,129 @@ Class Program
     ''' <param name=""value""></param>
     ''' <typeparam name=""T""></typeparam>
     ''' <typeparam name=""U""></typeparam>
+    Sub Fizz(Of T, U)(ByVal value As Integer)
+    End Sub
+
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <returns></returns>
+    Function Buzz(Of T, U)(value As Integer) As Integer
+        Return 0
+    End Function
+End Class]]>
+        </Document>
+        <Document><![CDATA[
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class]]>
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document><![CDATA[
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>"
+            
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function TestFixAllTypeparamInDocument_DoesNotFixIllegalReturnsOnSub() As Task
+            ' This fixes both because VB.NET has one diagnostic for all doc comment nodes with the same attributes
+
+            Dim initial =
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
+        <Document><![CDATA[
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' {|FixAllInDocument:<typeparam name=""T""></typeparam>|}
+    ''' <typeparam name=""U""></typeparam>
+    ''' <returns></returns>
+    Sub Fizz(Of T, U)(ByVal value As Integer)
+    End Sub
+
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <returns></returns>
+    Function Buzz(Of T, U)(value As Integer) As Integer
+        Return 0
+    End Function
+End Class]]>
+        </Document>
+        <Document><![CDATA[
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class]]>
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document><![CDATA[
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <param name=""value""></param>
+    Sub Fizz(ByVal value As Integer)
+    End Sub
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>"
+
+            Dim expected =
+"<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
+        <Document><![CDATA[
+Class Program
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name=""value""></param>
+    ''' <typeparam name=""T""></typeparam>
+    ''' <typeparam name=""U""></typeparam>
+    ''' <returns></returns>
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
 
