@@ -35,7 +35,6 @@ static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyEventA
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMethodAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyPropertyAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static Microsoft.CodeAnalysis.SolutionId.CreateFromSerialized(System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.SolutionId
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyEventAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyFieldAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyMethodAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>

@@ -10,7 +10,12 @@ namespace Microsoft.CodeAnalysis
 {
     public class TextDocument
     {
-        internal readonly TextDocumentState State;
+        private readonly TextDocumentState _state;
+
+        internal virtual TextDocumentState GetDocumentState()
+        {
+            return _state;
+        }
 
         /// <summary>
         /// The project this document belongs to.
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfNull(state);
 
             this.Project = project;
-            State = state;
+            _state = state;
         }
 
         /// <summary>
@@ -36,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public DocumentId Id
         {
-            get { return State.Id; }
+            get { return this.GetDocumentState().Id; }
         }
 
         /// <summary>
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string FilePath
         {
-            get { return State.FilePath; }
+            get { return this.GetDocumentState().FilePath; }
         }
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return State.Name;
+                return this.GetDocumentState().Name;
             }
         }
 
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return State.Folders;
+                return this.GetDocumentState().Folders;
             }
         }
 
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool TryGetText(out SourceText text)
         {
-            return State.TryGetText(out text);
+            return this.GetDocumentState().TryGetText(out text);
         }
 
         /// <summary>
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool TryGetTextVersion(out VersionStamp version)
         {
-            return State.TryGetTextVersion(out version);
+            return this.GetDocumentState().TryGetTextVersion(out version);
         }
 
         /// <summary>
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return State.GetTextAsync(cancellationToken);
+            return this.GetDocumentState().GetTextAsync(cancellationToken);
         }
 
         /// <summary>
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return State.GetTextVersionAsync(cancellationToken);
+            return this.GetDocumentState().GetTextVersionAsync(cancellationToken);
         }
 
         /// <summary>
@@ -106,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return State.GetTopLevelChangeTextVersionAsync(cancellationToken);
+            return this.GetDocumentState().GetTopLevelChangeTextVersionAsync(cancellationToken);
         }
     }
 }

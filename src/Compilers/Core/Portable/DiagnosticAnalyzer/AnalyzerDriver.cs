@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            return new AnalyzerActionCounts(analyzerActions);
+            return AnalyzerActionCounts.Create(analyzerActions);
         }
 
         /// <summary>
@@ -1707,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var success = true;
-
+            
             // Execute stateless syntax node actions.
             if (shouldExecuteSyntaxNodeActions)
             {

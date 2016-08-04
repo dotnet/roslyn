@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public bool RunInProcess => true;
-
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);

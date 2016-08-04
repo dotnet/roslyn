@@ -12,6 +12,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -54,24 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Debug.Assert(_smartOpenScopeService != null);
             Debug.Assert(_fileChangeService != null);
             Debug.Assert(temporaryStorageService != null);
-        }
-
-        public IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
-        {
-            var key = new FileKey(fullPath, snapshotTimestamp);
-
-            // check existing metadata
-            ValueSource<AssemblyMetadata> source;
-            if (_metadataCache.TryGetSource(key, out source))
-            {
-                var metadata = source as RecoverableMetadataValueSource;
-                if (metadata != null)
-                {
-                    return metadata.GetStorages();
-                }
-            }
-
-            return null;
         }
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)

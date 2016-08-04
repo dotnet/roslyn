@@ -29,11 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _lifetimeMap = lifetimeMap;
             }
 
-            public IEnumerable<ITemporaryStreamStorage> GetStorages()
-            {
-                return _storages;
-            }
-
             public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
             {
                 AssemblyMetadata value;
