@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -156,20 +155,6 @@ namespace Microsoft.CodeAnalysis
 
                 // try again after a delay
                 await Task.Delay(RetryDelay).ConfigureAwait(false);
-            }
-        }
-
-        public ITemporaryTextStorage Storage
-        {
-            get
-            {
-                var recoverableText = this.textAndVersionSource as RecoverableTextAndVersion;
-                if (recoverableText == null)
-                {
-                    return null;
-                }
-
-                return recoverableText.Storage;
             }
         }
 

@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return new ProjectAnalysisData(project.Id, VersionStamp.Default, oldAnalysisData.Result, newResult);
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
+        private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> CreateAnalysisResults(
             Project project, ImmutableArray<StateSet> stateSets, ProjectAnalysisData oldAnalysisData, ImmutableArray<DiagnosticData> diagnostics)
         {
             using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
@@ -71,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = VersionStamp.Default;
                 var lookup = diagnostics.ToLookup(d => d.Id);
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
                     var group = liveDiagnostics.GroupBy(d => d.DocumentId);
-                    var result = new DiagnosticAnalysisResult(
+                    var result = new AnalysisResult(
                         project.Id,
                         version,
                         documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private ImmutableArray<DiagnosticData> GetDiagnostics(DiagnosticAnalysisResult result)
+        private ImmutableArray<DiagnosticData> GetDiagnostics(AnalysisResult result)
         {
             // PERF: don't allocation anything if not needed
             if (result.IsAggregatedForm || result.IsEmpty)

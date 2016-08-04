@@ -472,21 +472,7 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = instance.GetType().GetElementType();
-            this.WriteType(elementType);
-
-            // optimizations for supported array type by binary writer
-            if (elementType == typeof(byte))
-            {
-                _writer.Write((byte[])instance);
-                return;
-            }
-
-            if (elementType == typeof(char))
-            {
-                _writer.Write((char[])instance);
-                return;
-            }
+            this.WriteType(instance.GetType().GetElementType());
 
             for (int i = 0; i < length; i++)
             {
@@ -496,19 +482,6 @@ namespace Roslyn.Utilities
 
         private void WriteType(Type type)
         {
-            // optimization. primitive types
-            if (type == typeof(byte))
-            {
-                _writer.Write((byte)DataKind.UInt8);
-                return;
-            }
-
-            if (type == typeof(char))
-            {
-                _writer.Write((byte)DataKind.Char);
-                return;
-            }
-
             int id;
             if (_dataMap.TryGetId(type, out id))
             {

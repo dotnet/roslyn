@@ -169,7 +169,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
             ' the given project does not contain this document
-            Dim newDocumentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(Guid.NewGuid(), "TestProject"), Guid.NewGuid(), "TestDoc")
+            Dim newDocumentId = New DocumentId(New ProjectId(New Guid(), "TestProject"), New Guid(), "TestDoc")
             readOnlyDocumentTracker.SetReadOnly(newDocumentId, False) ' Check no NRE
         End Function
 

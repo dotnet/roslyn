@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _debugName;
 
-        private SolutionId(Guid id, string debugName)
+        private SolutionId(string debugName)
         {
-            this.Id = id;
+            this.Id = Guid.NewGuid();
             _debugName = debugName;
         }
 
@@ -33,22 +33,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static SolutionId CreateNewId(string debugName = null)
         {
-            return CreateFromSerialized(Guid.NewGuid(), debugName);
-        }
-
-        public static SolutionId CreateFromSerialized(Guid id, string debugName = null)
-        {
-            if (id == Guid.Empty)
-            {
-                throw new ArgumentException(nameof(id));
-            }
-
             debugName = debugName ?? "unsaved";
 
-            return new SolutionId(id, debugName);
+            return new SolutionId(debugName);
         }
-
-        internal string DebugName => _debugName;
 
         private string GetDebuggerDisplay()
         {

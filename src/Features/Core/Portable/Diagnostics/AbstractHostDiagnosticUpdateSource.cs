@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.DiagnosticsUpdated?.Invoke(this, args);
         }
 
-        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
+        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
         {
             if (workspace != this.Workspace)
             {
@@ -58,21 +58,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
+            bool raiseDiagnosticsUpdated = true;
             var diagnosticData = project != null ?
                 DiagnosticData.Create(project, diagnostic) :
                 DiagnosticData.Create(this.Workspace, diagnostic);
-
-            ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
-        }
-
-        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project project)
-        {
-            if (diagnosticData.Workspace != this.Workspace)
-            {
-                return;
-            }
-
-            bool raiseDiagnosticsUpdated = true;
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 analyzer,
@@ -97,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationWithAnalyzers.ClearAnalyzerState(analyzers);
         }
 
-        public void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
+        internal void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
         {
             foreach (var analyzer in analyzers)
             {

@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
-                var analyzers = stateSets.Select(s => s.Analyzer);
+                var analyzers = stateSets.Select(s => s.Analyzer).ToImmutableArrayOrEmpty();
                 return CreateAnalyzerDriverAsync(project, analyzers, includeSuppressedDiagnostics, cancellationToken);
             }
 
             public async Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
-                Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+                Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
                 {
@@ -89,12 +89,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private CompilationWithAnalyzers CreateAnalyzerDriver(
                 Project project,
                 Compilation compilation,
-                IEnumerable<DiagnosticAnalyzer> allAnalyzers,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
                 bool logAnalyzerExecutionTime,
                 bool reportSuppressedDiagnostics)
             {
-                var analyzers = allAnalyzers.Where(a => !a.IsWorkspaceDiagnosticAnalyzer()).ToImmutableArrayOrEmpty();
-
                 // PERF: there is no analyzers for this compilation.
                 //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
                 if (analyzers.IsEmpty)
@@ -167,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // make sure analyzers are same.
-                Contract.ThrowIfFalse(analyzerDriver.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer).Where(a => !a.IsWorkspaceDiagnosticAnalyzer())));
+                Contract.ThrowIfFalse(analyzerDriver.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer)));
             }
 
             [Conditional("DEBUG")]

@@ -27,8 +27,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
 
         #region Interface methods
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
-        public bool RunInProcess => false;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                return ImmutableArray.Create(s_descriptor);
+            }
+        }
 
         public override void Initialize(AnalysisContext context)
         {

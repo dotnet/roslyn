@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -207,18 +206,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return project.GetDependentVersionAsync(cancellationToken);
         }
 
-        private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        private static AnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {
-            DiagnosticAnalysisResult result;
+            AnalysisResult result;
             if (map.TryGetValue(analyzer, out result))
             {
                 return result;
             }
 
-            return new DiagnosticAnalysisResult(projectId, version);
+            return new AnalysisResult(projectId, version);
         }
 
-        private static ImmutableArray<DiagnosticData> GetResult(DiagnosticAnalysisResult result, AnalysisKind kind, DocumentId id)
+        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
         {
             if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
             {

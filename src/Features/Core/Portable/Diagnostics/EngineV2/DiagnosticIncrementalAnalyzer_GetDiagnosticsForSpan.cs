@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _includeSuppressedDiagnostics;
 
             // cache of project result
-            private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> _projectResultCache;
+            private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> _projectResultCache;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken);
 
@@ -202,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _projectResultCache = await _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _project, _stateSets, cancellationToken).ConfigureAwait(false);
                 }
 
-                DiagnosticAnalysisResult result;
+                AnalysisResult result;
                 if (!_projectResultCache.TryGetValue(analyzer, out result))
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
