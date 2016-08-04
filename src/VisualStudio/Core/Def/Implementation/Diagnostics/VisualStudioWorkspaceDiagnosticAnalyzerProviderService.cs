@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
     internal partial class VisualStudioWorkspaceDiagnosticAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
     {
+        public const string MicrosoftCodeAnalysisCSharp = "Microsoft.CodeAnalysis.CSharp.dll";
+        public const string MicrosoftCodeAnalysisVisualBasic = "Microsoft.CodeAnalysis.VisualBasic.dll";
+
         private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 
         private readonly ImmutableArray<HostDiagnosticAnalyzerPackage> _hostDiagnosticAnalyzerInfo;
@@ -124,8 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             foreach (var package in packages)
             {
-                if (package.Assemblies.Any(a => a?.EndsWith("Microsoft.CodeAnalysis.CSharp.dll", StringComparison.OrdinalIgnoreCase) == true) &&
-                    package.Assemblies.Any(a => a?.EndsWith("Microsoft.CodeAnalysis.VisualBasic.dll", StringComparison.OrdinalIgnoreCase) == true))
+                if (package.Assemblies.Any(a => a?.EndsWith(MicrosoftCodeAnalysisCSharp, StringComparison.OrdinalIgnoreCase) == true) &&
+                    package.Assemblies.Any(a => a?.EndsWith(MicrosoftCodeAnalysisVisualBasic, StringComparison.OrdinalIgnoreCase) == true))
                 {
                     return;
                 }
