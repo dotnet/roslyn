@@ -50,13 +50,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MoreThanOneTopLevelTypeInFile_RenameType()
+        public async Task MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
+        {
+            var code =
+@"[||]class Class1 { }
+class test1 { }";
+
+            await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
         {
             var code =
 @"[||]class Class1 { }
 class Class2 { }";
 
-            await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
+            var codeWithTypeRenamedToMatchFileName =
+@"class [|test1|] { }
+class Class2 { }";
+
+            await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
+        {
+            var code =
+@"class Class1 { }
+[||]class Class2 { }";
+
+            var codeWithTypeRenamedToMatchFileName =
+@"class Class1 { }
+class [|test1|] { }";
+
+            await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
     }
 }
