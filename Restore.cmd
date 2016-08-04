@@ -28,7 +28,7 @@ if "%RestoreFast%" == "" (
     echo Deleting project.lock.json files
     pushd "%RoslynRoot%src"
     echo "Dummy lock file to avoid error when there is no project.lock.json file" > project.lock.json
-    del /s /q project.lock.json
+    del /s /q project.lock.json > nul
     popd
 )
 
