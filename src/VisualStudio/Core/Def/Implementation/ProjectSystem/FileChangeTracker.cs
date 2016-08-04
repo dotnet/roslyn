@@ -97,6 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var hr = _fileChangeService.UnadviseFileChange(_fileChangeCookie.Value);
 
                 // Verify if the file still exists before reporting the unadvise failure.
+                // This is a workaround for VSO #248774
                 if (hr != VSConstants.S_OK && File.Exists(_filePath))
                 {
                     Marshal.ThrowExceptionForHR(hr);
