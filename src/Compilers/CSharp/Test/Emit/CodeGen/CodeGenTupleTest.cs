@@ -17436,5 +17436,23 @@ class C
 }
 ");
         }
+
+        [Fact]
+        public void StructInStruct()
+        {
+            var source = @"
+public struct S
+{
+    public (S, S) field;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0523: Struct member 'S.field' of type '(S, S)' causes a cycle in the struct layout
+                //     public (S, S) field;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("S.field", "(S, S)").WithLocation(4, 19)
+                );
+        }
     }
 }
