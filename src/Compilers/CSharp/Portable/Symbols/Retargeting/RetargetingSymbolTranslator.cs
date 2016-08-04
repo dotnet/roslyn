@@ -635,6 +635,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     case SymbolKind.NamedType:
 
                         var namedType = (NamedTypeSymbol)symbol;
+                        if (namedType.IsTupleType)
+                        {
+                            namedType = namedType.TupleUnderlyingType;
+                        }
 
                         if ((object)symbol.OriginalDefinition.ContainingModule == (object)_retargetingModule.UnderlyingModule &&
                             namedType.IsExplicitDefinitionOfNoPiaLocalType)

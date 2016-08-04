@@ -718,6 +718,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
                 Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
+
+                if (type.IsTupleType)
+                {
+                    if (!other.IsTupleType)
+                    {
+                        return false;
+                    }
+
+                    type.TupleElementTypes.SequenceEqual(other.TupleElementTypes, AreTypesEqual);
+                }
+
                 return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
             }
 

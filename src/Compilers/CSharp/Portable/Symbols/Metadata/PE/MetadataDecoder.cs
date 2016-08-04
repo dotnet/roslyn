@@ -230,6 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
+                        if (namedType.IsTupleType)
+                        {
+                            namedType = namedType.TupleUnderlyingType;
+                        }
+
                         var arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 

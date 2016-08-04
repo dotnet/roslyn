@@ -336,6 +336,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
+                if (x.IsTupleType)
+                {
+                    if (y.IsTupleType)
+                    {
+                        return HandleNamedTypesWorker(x.TupleUnderlyingType, y.TupleUnderlyingType, equivalentTypesWithDifferingAssemblies);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
                 if (x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
