@@ -490,6 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
                     return typeMap.SubstituteNamedType(otherDef);
                 }
+                else if (sourceType.IsTupleType)
+                {
+                    var otherDef = (NamedTypeSymbol)this.Visit(originalDef.TupleUnderlyingType);
+                    if ((object)otherDef == null)
+                    {
+                        return null;
+                    }
+
+                    return TupleTypeSymbol.Create(otherDef, sourceType.TupleElementNames);
+                }
 
                 Debug.Assert(sourceType.IsDefinition);
 
