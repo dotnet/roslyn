@@ -108,8 +108,6 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
-    <Compile Include="Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
-    <Compile Include="Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
