@@ -96,11 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var hr = _fileChangeService.UnadviseFileChange(_fileChangeCookie.Value);
 
-                // Report non-fatal watson for failure.
+                // Verify if the file still exists before reporting the unadvise failure.
                 if (hr != VSConstants.S_OK && File.Exists(_filePath))
                 {
-                    var ex = Marshal.GetExceptionForHR(hr);
-                    FatalError.ReportWithoutCrash(ex);
+                    Marshal.ThrowExceptionForHR(hr);
                 }
 
                 _fileChangeCookie = s_none;
