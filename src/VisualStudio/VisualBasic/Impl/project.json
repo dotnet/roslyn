@@ -20,6 +20,10 @@
 		"version": "14.3.25420",
 		"suppressParent": "all"
 	},
+    "Microsoft.VisualStudio.Shell.Design": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
   },
   "frameworks": {
     "net46": { }
