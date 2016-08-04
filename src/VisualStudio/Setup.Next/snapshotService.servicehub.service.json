@@ -4,6 +4,6 @@
   "hostId": "RoslynCodeAnalysisService32",
   "entryPoint": {
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-    "fullClassName": "Microsoft.CodeAnalysis.Remote.ServiceHubSnapshotService"
+    "fullClassName": "Microsoft.CodeAnalysis.Remote.SnapshotService"
   }
 }

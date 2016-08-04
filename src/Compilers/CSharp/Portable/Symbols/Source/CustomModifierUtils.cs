@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we want to retain the original (incorrect) return type to avoid hiding the return type
             // given in source.
             TypeSymbol returnTypeWithCustomModifiers = constructedSourceMethod.ReturnType;
-            if (returnType.Equals(returnTypeWithCustomModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+            if (returnType.Equals(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
             {
                 returnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnType, RefKind.None, destinationMethod.ContainingAssembly);
             }
@@ -59,36 +59,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
         internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, RefKind refKind, AssemblySymbol containingAssembly)
         {
-            Debug.Assert(sourceType.Equals(destinationType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Debug.Assert(sourceType.Equals(destinationType, TypeCompareKind.AllIgnoreOptions));
 
-            if (sourceType.ContainsTuple())
+            // NOTE: overrides can differ by object/dynamic.  If they do, we'll need to tweak newType before
+            // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
+            // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
+            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
+            TypeSymbol typeWithDynamic = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
+
+            TypeSymbol resultType;
+            if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
             {
-                // TODO(https://github.com/dotnet/roslyn/issues/12389):
-                // Need to save/restore tupleness as well
-                if (sourceType.IsTupleType)
-                {
-                    Debug.Assert(destinationType.IsTupleType);
-                    return destinationType;
-                }
-
-                ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
-                TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
-
-                Debug.Assert(resultType.Equals(sourceType, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: true)); // Same custom modifiers as source type.
-                return resultType;
+                // We also preserve tuple names, if present and different
+                ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, containingAssembly, names);
             }
             else
             {
-                // NOTE: overrides can differ by object/dynamic.  If they do, we'll need to tweak newType before
-                // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
-                // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
-                ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
-                TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
-
-                Debug.Assert(resultType.Equals(sourceType, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: true)); // Same custom modifiers as source type.
-                Debug.Assert(resultType.Equals(destinationType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false)); // Same object/dynamic as destination type.
-                return resultType;
+                resultType = typeWithDynamic;
             }
+
+            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
+            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic and tuple names as destination type.
+            return resultType;
         }
 
         internal static ImmutableArray<ParameterSymbol> CopyParameterCustomModifiers(ImmutableArray<ParameterSymbol> sourceParameters, ImmutableArray<ParameterSymbol> destinationParameters, bool alsoCopyParamsModifier)

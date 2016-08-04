@@ -1,0 +1,14 @@
+﻿{
+  "supports": {},
+  "dependencies": {
+    "Newtonsoft.Json": "9.0.1",
+    "System.Collections.Immutable": "1.2.0"
+  },
+  "frameworks": {
+    ".NETFramework,Version=v4.6": {}
+  },
+  "runtimes": {
+    "win": {},
+    "win7": {}
+  }
+}
