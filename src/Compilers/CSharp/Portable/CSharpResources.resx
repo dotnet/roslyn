@@ -3071,7 +3071,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Warning level must be in the range 0-4</value>
   </data>
   <data name="ERR_BadDebugType" xml:space="preserve">
-    <value>Invalid option '{0}' for /debug; must be full or pdbonly</value>
+    <value>Invalid option '{0}' for /debug; must be 'portable', 'embedded', 'full' or 'pdbonly'</value>
   </data>
   <data name="ERR_BadResourceVis" xml:space="preserve">
     <value>Invalid option '{0}'; Resource visibility must be either 'public' or 'private'</value>
