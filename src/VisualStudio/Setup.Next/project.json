@@ -6,6 +6,9 @@
         "version": "14.3.25407",
         "suppressParent": "all"
     },
+    "Microsoft.VisualStudio.Threading": "14.1.131",
+    "Microsoft.VisualStudio.Validation": "14.1.111",
+    "RoslynDependencies.Microsoft.Build.Desktop": "14.3.25407"
   },
   "frameworks": {
     "net46": {}

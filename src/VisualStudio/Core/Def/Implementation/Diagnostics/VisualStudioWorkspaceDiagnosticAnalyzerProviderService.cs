@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
     internal partial class VisualStudioWorkspaceDiagnosticAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
     {
+        public const string MicrosoftCodeAnalysisCSharp = "Microsoft.CodeAnalysis.CSharp.dll";
+        public const string MicrosoftCodeAnalysisVisualBasic = "Microsoft.CodeAnalysis.VisualBasic.dll";
+
         private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 
         private readonly ImmutableArray<HostDiagnosticAnalyzerPackage> _hostDiagnosticAnalyzerInfo;
@@ -109,7 +112,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 builder.Add(new HostDiagnosticAnalyzerPackage(name, assemblies.ToImmutable()));
             }
 
-            return builder.ToImmutable();
+            var packages = builder.ToImmutable();
+
+            EnsureMandatoryAnalyzers(packages);
+
+            // make sure enabled extensions are alive in memory
+            // so that we can debug it through if mandatory analyzers are missing
+            GC.KeepAlive(enabledExtensions);
+
+            return packages;
+        }
+
+        private static void EnsureMandatoryAnalyzers(ImmutableArray<HostDiagnosticAnalyzerPackage> packages)
+        {
+            foreach (var package in packages)
+            {
+                if (package.Assemblies.Any(a => a?.EndsWith(MicrosoftCodeAnalysisCSharp, StringComparison.OrdinalIgnoreCase) == true) &&
+                    package.Assemblies.Any(a => a?.EndsWith(MicrosoftCodeAnalysisVisualBasic, StringComparison.OrdinalIgnoreCase) == true))
+                {
+                    return;
+                }
+            }
+
+            FailFast.OnFatalException(new Exception("Mandatory analyzers are missing"));
         }
 
         // internal for testing purpose
