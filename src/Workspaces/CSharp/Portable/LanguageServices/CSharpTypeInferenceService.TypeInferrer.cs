@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
-                if (previousToken.Value.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                if (previousToken.HasValue && previousToken.Value.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
                 {
                     // We parsed an array creation but the token before `new` is `=`.
                     // This could be a case like:
