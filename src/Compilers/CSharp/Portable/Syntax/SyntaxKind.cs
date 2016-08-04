@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SingleVariableDesignation = 8930,
         TupleDeconstructionVariableDesignation = 8931,
         DeconstructionDeclarationStatement = 8932,
-        DeconstructionDeclarationAssignment = 8933,
+        VariableComponentAssignment = 8933,
         ForEachComponentStatement = 8934,
 
         // patterns (for pattern-matching)

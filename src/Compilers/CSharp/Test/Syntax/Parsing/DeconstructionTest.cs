@@ -713,7 +713,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.DeconstructionDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TupleDeconstructionVariableComponent);
                                     {
@@ -797,7 +797,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.DeconstructionDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TupleDeconstructionVariableComponent);
                                     {
@@ -898,7 +898,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.DeconstructionDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TypedVariableComponent);
                                     {
@@ -975,7 +975,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.DeconstructionDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TypedVariableComponent);
                                     {
@@ -1136,7 +1136,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.DeconstructionDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TupleDeconstructionVariableComponent);
                                     {
@@ -1231,7 +1231,7 @@ class C
                             {
                                 N(SyntaxKind.ForKeyword);
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TupleDeconstructionVariableComponent);
                                     {
@@ -1323,7 +1323,7 @@ class C
                             {
                                 N(SyntaxKind.ForKeyword);
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.DeconstructionDeclarationAssignment);
+                                N(SyntaxKind.VariableComponentAssignment);
                                 {
                                     N(SyntaxKind.TypedVariableComponent);
                                     {

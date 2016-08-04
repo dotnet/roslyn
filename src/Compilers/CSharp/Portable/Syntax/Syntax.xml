@@ -1121,7 +1121,7 @@
   </Node>
   <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="DeclarationExpression"/>
-    <Field Name="Declaration" Type="VariableComponentSyntax">
+    <Field Name="VariableComponent" Type="VariableComponentSyntax">
       <PropertyComment>
         <summary>Declaration representing the variable declared in an out parameter.</summary>
       </PropertyComment>
@@ -1894,14 +1894,14 @@
   <Node Name="DeconstructionDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="DeconstructionDeclarationStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
-    <Field Name="Assignment" Type="DeconstructionDeclarationAssignmentSyntax"/>
+    <Field Name="Assignment" Type="VariableComponentAssignmentSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="DeconstructionDeclarationAssignmentSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="DeconstructionDeclarationAssignment"/>
-    <Field Name="Declaration" Type="VariableComponentSyntax"/>
+  <Node Name="VariableComponentAssignmentSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="VariableComponentAssignment"/>
+    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
     <Field Name="EqualsToken" Type="SyntaxToken">
       <Kind Name="EqualsToken"/>
     </Field>
@@ -2093,7 +2093,7 @@
       <Kind Name="RefKeyword"/>
     </Field>
     <!-- Deconstruction, Declaration, and Initializers are mutually exclusive. -->
-    <Field Name="Deconstuction" Type="DeconstructionDeclarationAssignmentSyntax" Optional="true"/>
+    <Field Name="Deconstuction" Type="VariableComponentAssignmentSyntax" Optional="true"/>
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="FirstSemicolonToken" Type="SyntaxToken">
@@ -2164,7 +2164,7 @@
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="Component" Type="VariableComponentSyntax"/>
+    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>
     </Field>

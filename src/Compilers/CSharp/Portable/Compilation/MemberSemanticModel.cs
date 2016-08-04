@@ -252,19 +252,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = rootBinder.GetBinder(current);
                 }
                 else if (current is VariableComponentSyntax &&
-                             (current.Parent as ForEachComponentStatementSyntax)?.Component == current)
+                             (current.Parent as ForEachComponentStatementSyntax)?.VariableComponent == current)
                 {
                     binder = rootBinder.GetBinder(current.Parent);
                 }
                 else if (current is VariableComponentSyntax &&
-                             (current.Parent is DeconstructionDeclarationAssignmentSyntax) &&
+                             (current.Parent is VariableComponentAssignmentSyntax) &&
                              (current.Parent.Parent as ForStatementSyntax)?.Deconstuction == current)
                 {
                     binder = rootBinder.GetBinder(current.Parent.Parent);
                 }
                 else if (current is VariableComponentSyntax &&
-                             (current.Parent is DeconstructionDeclarationAssignmentSyntax) &&
-                             (current.Parent.Parent as DeconstructionDeclarationStatementSyntax)?.Assignment.Declaration == current)
+                             (current.Parent is VariableComponentAssignmentSyntax) &&
+                             (current.Parent.Parent as DeconstructionDeclarationStatementSyntax)?.Assignment.VariableComponent == current)
                 {
                     binder = rootBinder.GetBinder(current.Parent.Parent);
                 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var syntax = (ForEachComponentStatementSyntax)_syntax;
                         var locals = ArrayBuilder<LocalSymbol>.GetInstance();
                         CollectLocalsFromDeconstruction(
-                            syntax.Component,
+                            syntax.VariableComponent,
                             LocalDeclarationKind.ForEachIterationVariable,
                             locals);
                         return locals.ToImmutableAndFree();
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
-            VariableComponentSyntax variables = ((ForEachComponentStatementSyntax)_syntax).Component;
+            VariableComponentSyntax variables = ((ForEachComponentStatementSyntax)_syntax).VariableComponent;
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
                                                                     variables,
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var node = (ForEachComponentStatementSyntax)_syntax;
                         iterationVariableType = inferredType ?? CreateErrorType("var");
 
-                        var variables = node.Component;
+                        var variables = node.VariableComponent;
                         var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
                         BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
                                                                                 variables,

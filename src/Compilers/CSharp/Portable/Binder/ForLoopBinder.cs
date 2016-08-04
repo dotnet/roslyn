@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Deconstruction, Declaration, and Initializers are mutually exclusive.
             if (_syntax.Deconstuction != null)
             {
-                CollectLocalsFromDeconstruction(_syntax.Deconstuction.Declaration, LocalDeclarationKind.ForInitializerVariable, locals);
+                CollectLocalsFromDeconstruction(_syntax.Deconstuction.VariableComponent, LocalDeclarationKind.ForInitializerVariable, locals);
                 PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Deconstuction.Value);
             }
             else if (_syntax.Declaration != null)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Deconstruction, Declaration, and Initializers are mutually exclusive.
             if (_syntax.Deconstuction != null)
             {
-                var assignment = originalBinder.BindDeconstructionDeclaration(node.Deconstuction, node.Deconstuction.Declaration, node.Deconstuction.Value, diagnostics);
+                var assignment = originalBinder.BindDeconstructionDeclaration(node.Deconstuction, node.Deconstuction.VariableComponent, node.Deconstuction.Value, diagnostics);
                 initializer = new BoundLocalDeconstructionDeclaration(node, assignment);
             }
             else if (_syntax.Declaration != null)

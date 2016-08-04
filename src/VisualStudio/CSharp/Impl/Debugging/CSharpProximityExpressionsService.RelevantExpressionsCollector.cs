@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
             public override void VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
             {
-                AddVariableExpressions(node.Component, _expressions);
+                AddVariableExpressions(node.VariableComponent, _expressions);
                 AddExpressionTerms(node.Expression, _expressions);
             }
 

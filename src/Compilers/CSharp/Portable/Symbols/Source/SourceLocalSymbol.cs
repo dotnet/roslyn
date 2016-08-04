@@ -672,14 +672,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var localDecl = (DeconstructionDeclarationStatementSyntax)statement;
                         var localBinder = this.binder.GetBinder(localDecl);
                         var newLocalBinder = new ImplicitlyTypedLocalBinder(localBinder, this);
-                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.Declaration, localDecl.Assignment.Value, diagnostics);
+                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)statement;
                         var forBinder = this.binder.GetBinder(forStatement);
                         var newForBinder = new ImplicitlyTypedLocalBinder(forBinder, this);
-                        newForBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstuction.Declaration, forStatement.Deconstuction.Value, diagnostics);
+                        newForBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstuction.VariableComponent, forStatement.Deconstuction.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForEachComponentStatement:

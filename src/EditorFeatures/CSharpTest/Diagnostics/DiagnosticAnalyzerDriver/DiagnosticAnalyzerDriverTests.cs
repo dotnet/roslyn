@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
             syntaxKindsMissing.Add(SyntaxKind.TupleDeconstructionVariableDesignation);
             syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
-            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationAssignment);
+            syntaxKindsMissing.Add(SyntaxKind.VariableComponentAssignment);
             syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
 

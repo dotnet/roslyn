@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.DeconstructionDeclarationStatement:
                         {
                             var decl = (DeconstructionDeclarationStatementSyntax)innerStatement;
-                            CollectLocalsFromDeconstruction(decl.Assignment.Declaration, LocalDeclarationKind.RegularVariable, locals);
+                            CollectLocalsFromDeconstruction(decl.Assignment.VariableComponent, LocalDeclarationKind.RegularVariable, locals);
                             break;
                         }
                     case SyntaxKind.LocalDeclarationStatement:

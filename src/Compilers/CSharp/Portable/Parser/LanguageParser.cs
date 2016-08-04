@@ -7715,7 +7715,7 @@ tryAgain:
                 // Here can be either a declaration or an expression statement list.  Scan
                 // for a declaration first.
                 SyntaxToken refKeyword = null;
-                DeconstructionDeclarationAssignmentSyntax deconstruction = null;
+                VariableComponentAssignmentSyntax deconstruction = null;
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
                 if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
@@ -8358,7 +8358,7 @@ tryAgain:
         /// <summary>
         /// Returns null and resets the pointer if this does not look like a deconstruction-declaration after all.
         /// </summary>
-        private DeconstructionDeclarationAssignmentSyntax TryParseDeconstructionDeclarationAssignment()
+        private VariableComponentAssignmentSyntax TryParseDeconstructionDeclarationAssignment()
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
                || (CurrentToken.IsVar() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken))
@@ -8428,13 +8428,13 @@ tryAgain:
         /// The syntax is either var form: `var (deconstruction-declaration, ...) = expression` or list form `(deconstruction-declaration, ...) = expression`.
         /// Cannot return null, except at the top-level.
         /// </summary>
-        private DeconstructionDeclarationAssignmentSyntax ParseDeconstructionDeclarationAssignment()
+        private VariableComponentAssignmentSyntax ParseDeconstructionDeclarationAssignment()
         {
             var component = ParseDeconstructionComponent(true);
             if (component == null || this.CurrentToken.Kind != SyntaxKind.EqualsToken) return null;
             var equalsToken = this.EatToken(SyntaxKind.EqualsToken);
             var value = this.ParseExpressionCore();
-            return _syntaxFactory.DeconstructionDeclarationAssignment(component, equalsToken, value);
+            return _syntaxFactory.VariableComponentAssignment(component, equalsToken, value);
         }
 
         /// <summary>

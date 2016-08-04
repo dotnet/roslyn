@@ -273,7 +273,7 @@ public class Cls
 
         private static SingleVariableDesignationSyntax GetVariableDesignation(DeclarationExpressionSyntax decl)
         {
-            var component = (TypedVariableComponentSyntax)decl.Declaration;
+            var component = (TypedVariableComponentSyntax)decl.VariableComponent;
             return (SingleVariableDesignationSyntax)component.Designation;
         }
 

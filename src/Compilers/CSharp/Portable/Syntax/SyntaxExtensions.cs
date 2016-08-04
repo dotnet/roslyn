@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
         {
-            var component = (TypedVariableComponentSyntax)self.Declaration;
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
             return component.Type;
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            var component = (TypedVariableComponentSyntax)self.Declaration;
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
             var designation = (SingleVariableDesignationSyntax)component.Designation;
             return designation.Identifier;
         }

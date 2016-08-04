@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundLocalDeconstructionDeclaration BindDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            return new BoundLocalDeconstructionDeclaration(node, BindDeconstructionDeclaration(node, node.Assignment.Declaration, node.Assignment.Value, diagnostics));
+            return new BoundLocalDeconstructionDeclaration(node, BindDeconstructionDeclaration(node, node.Assignment.VariableComponent, node.Assignment.Value, diagnostics));
         }
 
         internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableComponentSyntax declaration, ExpressionSyntax right, DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rightPlaceholder = null)
@@ -605,9 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each local is either a simple local (when its type is known) or a deconstruction local pending inference.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationLocals(DeconstructionDeclarationAssignmentSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationLocals(VariableComponentAssignmentSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
         {
-            var deconstructionVariable = BindDeconstructionDeclarationLocals(node.Declaration, diagnostics);
+            var deconstructionVariable = BindDeconstructionDeclarationLocals(node.VariableComponent, diagnostics);
             Debug.Assert(deconstructionVariable.HasNestedVariables);
             return deconstructionVariable.NestedVariables;
         }

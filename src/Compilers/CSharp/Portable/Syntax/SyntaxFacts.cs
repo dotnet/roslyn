@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.TypedVariableComponent:
                     case SyntaxKind.SingleVariableDesignation:
                     case SyntaxKind.TupleDeconstructionVariableDesignation:
-                    case SyntaxKind.DeconstructionDeclarationAssignment:
+                    case SyntaxKind.VariableComponentAssignment:
                         continue;
                     default:
                         return false;
