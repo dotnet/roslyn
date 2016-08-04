@@ -869,6 +869,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to {0}.add.
+        '''</summary>
+        Friend ReadOnly Property Event_add_handler_name() As String
+            Get
+                Return ResourceManager.GetString("Event_add_handler_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0}.remove.
+        '''</summary>
+        Friend ReadOnly Property Event_remove_handler_name() As String
+            Get
+                Return ResourceManager.GetString("Event_remove_handler_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Exits a Do loop and transfers execution immediately to the statement following the Loop statement..
         '''</summary>
         Friend ReadOnly Property Exits_a_Do_loop_and_transfers_execution_immediately_to_the_statement_following_the_Loop_statement() As String
@@ -1856,6 +1874,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property property_accessor() As String
             Get
                 Return ResourceManager.GetString("property_accessor", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0}.get.
+        '''</summary>
+        Friend ReadOnly Property Property_getter_name() As String
+            Get
+                Return ResourceManager.GetString("Property_getter_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0}.set.
+        '''</summary>
+        Friend ReadOnly Property Property_setter_name() As String
+            Get
+                Return ResourceManager.GetString("Property_setter_name", resourceCulture)
             End Get
         End Property
         
@@ -3159,6 +3195,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property type_parameters() As String
             Get
                 Return ResourceManager.GetString("type_parameters", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to (Unknown).
+        '''</summary>
+        Friend ReadOnly Property Unknown_value() As String
+            Get
+                Return ResourceManager.GetString("Unknown_value", resourceCulture)
             End Get
         End Property
         
