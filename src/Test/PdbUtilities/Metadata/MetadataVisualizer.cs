@@ -410,6 +410,9 @@ namespace Roslyn.Test.MetadataUtilities
             if (guid == PortableCustomDebugInfoKinds.DefaultNamespace) return "Default Namespace";
             if (guid == PortableCustomDebugInfoKinds.EncLocalSlotMap) return "EnC Local Slot Map";
             if (guid == PortableCustomDebugInfoKinds.EncLambdaAndClosureMap) return "EnC Lambda and Closure Map";
+            // TODO:
+            // if (guid == PortableCustomDebugInfoKinds.EmbeddedSource) return "Embedded Source";
+            // if (guid == PortableCustomDebugInfoKinds.SourceLink) return "Source Link";
 
             return "{" + guid + "}";
         }
@@ -736,7 +739,7 @@ namespace Roslyn.Test.MetadataUtilities
         {
             _reader = _readers[0];
 
-            _writer.WriteLine("MetadataVersion: {0}", _reader.MetadataVersion);
+            _writer.WriteLine($"MetadataVersion: {_reader.MetadataVersion}");
 
             if (_reader.DebugMetadataHeader != null)
             {
@@ -744,7 +747,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 if (!_reader.DebugMetadataHeader.EntryPoint.IsNil)
                 {
-                    _writer.WriteLine("EntryPoint: {0}", Token(() => _reader.DebugMetadataHeader.EntryPoint));
+                    _writer.WriteLine($"EntryPoint: {Token(() => _reader.DebugMetadataHeader.EntryPoint)}");
                 }
             }
 
