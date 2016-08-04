@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "Microsoft.Composition": "1.0.27",
         "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
         "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
 		"Microsoft.VisualStudio.Editor": {

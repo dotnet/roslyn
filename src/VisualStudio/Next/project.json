@@ -10,6 +10,7 @@
       "version": "3.3.0",
       "suppressParent": "all"
     },
+    "System.Collections.Immutable": "1.2.0"
   },
   "frameworks": {
     "net46": {}

@@ -474,7 +474,7 @@ Public Module BuildDevDivInsertionFiles
         Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
             Dim result = New Dictionary(Of String, DependencyInfo)
 
-            For Each nupkgPath In Directory.EnumerateFiles(Path.Combine(inputDirectory, "DevDivPackages", "Dependencies"), "*.nupkg", SearchOption.TopDirectoryOnly)
+            For Each nupkgPath In Directory.EnumerateFiles(Path.Combine(inputDirectory, "DevDivPackages", "ManagedDependencies"), "*.nupkg", SearchOption.TopDirectoryOnly)
                 Using zip = ZipFile.OpenRead(nupkgPath)
                     Dim packageName As String = Nothing
                     Dim packageVersion As String = Nothing

@@ -12,7 +12,7 @@
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "1.0.0",
     "Microsoft.CodeAnalysis.Workspaces.Common": "1.0.0",
     "System.Reflection.Metadata": "1.0.21",
-    "System.Collections.Immutable": "1.1.36",
+    "System.Collections.Immutable": "1.1.36"
   },
   "frameworks": {
     ".NETFramework,Version=v4.6": {}

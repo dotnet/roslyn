@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -20,9 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
-        public static async Task<ServiceHubRemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            var primary = new HubClient("RoslynPrimaryHubClient");
+            var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
             var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
             var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
@@ -56,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.ServiceHubSnapshotService, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information

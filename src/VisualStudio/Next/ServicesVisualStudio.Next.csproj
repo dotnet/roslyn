@@ -111,7 +111,7 @@
     <Compile Include="Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
-    <Compile Include="Remote\RemoteHostOptions.cs" />
+    <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
     <Compile Include="ServicesVisualStudioNextResources.Designer.cs">

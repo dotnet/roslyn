@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var pair in containingTypeMapOpt)
                 {
                     NamedTypeSymbol otherType = pair.Key;
-                    if (otherType.IsDerivedFrom(memberContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                    if (otherType.IsDerivedFrom(memberContainingType, ignoreDynamicAndTupleNames: false, useSiteDiagnostics: ref useSiteDiagnostics))
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var otherMember in members)
             {
                 NamedTypeSymbol otherContainingType = otherMember.ContainingType;
-                if (HidesByName(otherMember) && otherContainingType.IsDerivedFrom(memberContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                if (HidesByName(otherMember) && otherContainingType.IsDerivedFrom(memberContainingType, ignoreDynamicAndTupleNames: false, useSiteDiagnostics: ref useSiteDiagnostics))
                 {
                     return true;
                 }
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, ignoreDynamicAndTupleNames: false, useSiteDiagnostics: ref useSiteDiagnostics))
                 {
                     return true;
                 }
