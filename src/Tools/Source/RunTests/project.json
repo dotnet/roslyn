@@ -1,7 +1,9 @@
 {
   "dependencies": { 
     "Newtonsoft.Json": "8.0.2",
-    "RestSharp": "105.2.3"
+    "RestSharp": "105.2.3",
+    "System.Collections.Immutable": "1.2.0",
+    "System.Reflection.Metadata": "1.4.1-beta-24322-03",
   },
   "frameworks": {
     "net46": { }

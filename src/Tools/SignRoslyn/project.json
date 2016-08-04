@@ -1,6 +1,8 @@
 ﻿{
   "supports": {},
   "dependencies": {
+    "System.Collections.Immutable": "1.2.0",
+    "System.Reflection.Metadata": "1.4.1-beta-24322-03",
     "Newtonsoft.Json": "9.0.1"
   },
   "frameworks": {
