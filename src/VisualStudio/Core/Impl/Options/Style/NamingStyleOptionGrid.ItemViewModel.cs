@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using System.Collections.Generic;
