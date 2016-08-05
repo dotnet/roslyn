@@ -919,6 +919,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show Stack Trace.
+        /// </summary>
+        internal static string Show_Stack_Trace {
+            get {
+                return ResourceManager.GetString("Show_Stack_Trace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution file not found: &apos;{0}&apos;.
         /// </summary>
         internal static string Solution_file_not_found_colon_0 {

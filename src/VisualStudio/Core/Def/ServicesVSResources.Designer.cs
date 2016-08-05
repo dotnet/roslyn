@@ -344,6 +344,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        internal static string Close {
+            get {
+                return ResourceManager.GetString("Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {
@@ -358,6 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Computing_suppressions_fix {
             get {
                 return ResourceManager.GetString("Computing_suppressions_fix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy to Clopboard.
+        /// </summary>
+        internal static string Copy_to_clipboard {
+            get {
+                return ResourceManager.GetString("Copy_to_clipboard", resourceCulture);
             }
         }
         

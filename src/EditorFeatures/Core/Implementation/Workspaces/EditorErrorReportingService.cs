@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     internal class EditorErrorReportingService : IErrorReportingService
     {
+        public void ShowDetailedErrorInfo(Exception exception)
+        {
+            Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
+        }
+
         public void ShowErrorInfo(string message, params ErrorReportingUI[] items)
         {
             Logger.Log(FunctionId.Extension_Exception, message);

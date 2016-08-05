@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Extensions
     internal interface IErrorReportingService : IWorkspaceService
     {
         void ShowErrorInfo(string message, params ErrorReportingUI[] items);
+        void ShowDetailedErrorInfo(Exception exception);
     }
 
     internal struct ErrorReportingUI

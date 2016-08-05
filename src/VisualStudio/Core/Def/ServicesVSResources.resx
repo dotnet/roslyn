@@ -699,4 +699,10 @@ Additional information: {1}</value>
   <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
   </data>
+  <data name="Copy_to_clipboard" xml:space="preserve">
+    <value>Copy to Clopboard</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
 </root>

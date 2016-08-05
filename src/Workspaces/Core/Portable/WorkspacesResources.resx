@@ -483,4 +483,7 @@
   <data name="_0_encountered_an_error_and_has_been_disabled" xml:space="preserve">
     <value>'{0}' encountered an error and has been disabled.</value>
   </data>
+  <data name="Show_Stack_Trace" xml:space="preserve">
+    <value>Show Stack Trace</value>
+  </data>
 </root>

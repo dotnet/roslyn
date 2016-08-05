@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -147,46 +148,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private class CodeFixInfoBarEvents : IVsInfoBarUIEvents
-        {
-            private readonly Action _onClose;
-            private readonly Action _onEnable;
-            private readonly Action _onEnableAndIgnore;
-
-            public CodeFixInfoBarEvents(Action onClose, Action onEnable = null, Action onEnableAndIgnore = null)
-            {
-                Contract.ThrowIfNull(onClose);
-
-                _onClose = onClose;
-                _onEnable = onEnable;
-                _onEnableAndIgnore = onEnableAndIgnore;
-            }
-
-            public void OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
-            {
-                if (actionItem.Equals(s_enableItem))
-                {
-                    _onEnable?.Invoke();
-                }
-
-                if (actionItem.Equals(s_enableAndIgnoreItem))
-                {
-                    _onEnableAndIgnore?.Invoke();
-                }
-
-                infoBarUIElement.Close();
-            }
-
-            public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
-            {
-                _onClose();
-            }
-        }
-
         private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)
         {
             uiElement = infoBarUIFactory.CreateInfoBar(infoBar);
             return uiElement != null;
+        }
+
+        public void ShowDetailedErrorInfo(Exception exception)
+        {
+            string errorInfo = exception.Message + Environment.NewLine + exception.StackTrace;
+
+            while (exception.InnerException != null)
+            {
+                exception = exception.InnerException;
+                errorInfo += Environment.NewLine + exception.Message + Environment.NewLine + exception.StackTrace;
+            }
+
+            (new DetailedErrorInfoDialog(exception.Message, errorInfo)).ShowModal();
         }
     }
 }

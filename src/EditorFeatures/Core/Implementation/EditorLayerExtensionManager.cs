@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor
                         base.HandleException(provider, exception);
 
                         _errorReportingService?.ShowErrorInfo(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled,  provider.GetType().Name),
-                            new ErrorReportingUI(WorkspacesResources.Enable, ErrorReportingUI.UIKind.HyperLink, () => LaunchExceptionInfoWindow(exception)),
+                            new ErrorReportingUI(WorkspacesResources.Show_Stack_Trace, ErrorReportingUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
                             new ErrorReportingUI(WorkspacesResources.Enable, ErrorReportingUI.UIKind.Button, () => { EnableProvider(provider); LogEnableProvider(provider); }),
                             new ErrorReportingUI(WorkspacesResources.Enable_and_ignore_future_errors, ErrorReportingUI.UIKind.Button, () => { EnableProvider(provider); LogEnableProvider(provider); }),
                             new ErrorReportingUI(String.Empty, ErrorReportingUI.UIKind.Close, () => LogLeaveDisabled(provider)));
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor
                 _errorLoggerService?.LogException(provider, exception);
             }
 
-            private void LaunchExceptionInfoWindow(Exception exception)
+            private void ShowDetailedErrorInfo(Exception exception)
             {
-                throw new NotImplementedException();
+                _errorReportingService.ShowDetailedErrorInfo(exception);
             }
 
             private static void LogLeaveDisabled(object provider)
