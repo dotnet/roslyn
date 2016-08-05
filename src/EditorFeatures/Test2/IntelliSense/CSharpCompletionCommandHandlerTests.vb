@@ -1690,8 +1690,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("cancellationToken", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("cancellationToken", isHardSelected:=True)
             End Using
         End Function
 
@@ -1708,8 +1708,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("args", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("args", isHardSelected:=True)
             End Using
         End Function
 
@@ -1731,8 +1731,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("E", isHardSelected:=True)
             End Using
         End Function
 
@@ -1752,8 +1752,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("c")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True)
             End Using
         End Function
 
@@ -1772,8 +1772,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("c")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True)
             End Using
         End Function
 
@@ -1793,8 +1793,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("f", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("f", isHardSelected:=True)
             End Using
         End Function
 
@@ -1813,8 +1813,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendTypeChars("c")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True)
             End Using
         End Function
 
@@ -1834,8 +1834,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("aaq", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("aaq", isHardSelected:=True)
             End Using
         End Function
 
@@ -1857,8 +1857,31 @@ class Program
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("(")
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(7, "new[] { new { x = 1 } }.ToArray(")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRecursiveGenericSymbolKey() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Collections.Generic;
+
+class Program
+{
+    static void ReplaceInList<T>(List<T> list, T oldItem, T newItem)
+    {
+        $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+
+                state.SendTypeChars("list")
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("Add")
+
+                Await state.AssertSelectedCompletionItem("Add", description:="void List<T>.Add(T item)")
             End Using
         End Function
 
@@ -1878,8 +1901,8 @@ class Program
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=True)
             End Using
         End Function
 

@@ -165,7 +165,29 @@ namespace Microsoft.CodeAnalysis
 
                 if (!shouldWriteOrdinal)
                 {
-                    _symbolToId.Add(symbol, id);
+                    // Note: it is possible in some situations to hit the same symbol 
+                    // multiple times.  For example, if you have:
+                    //
+                    //      Foo<Z>(List<Z> list)
+                    //
+                    // If we start with the symbol for "list" then we'll see the following
+                    // chain of symbols hit:
+                    //
+                    //      List<Z>     
+                    //          Z
+                    //              Foo<Z>(List<Z>)
+                    //                  List<Z>
+                    //
+                    // The recursion is prevented because when we hit 'Foo' we mark that
+                    // we're writing out a signature.  And, in signature mode we only write
+                    // out the ordinal for 'Z' without recursing.  However, even though
+                    // we prevent the recursion, we still hit List<Z> twice.  After writing
+                    // the innermost one out, we'll give it a reference ID.  When we
+                    // then hit the outermost one, we want to just reuse that one.
+                    if (!_symbolToId.ContainsKey(symbol))
+                    {
+                        _symbolToId.Add(symbol, id);
+                    }
                 }
 
                 EndKey();
