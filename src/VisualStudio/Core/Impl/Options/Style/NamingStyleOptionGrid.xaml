@@ -208,9 +208,5 @@
                 </Button>
             </Grid>
         </Border>
-
-
-
-
     </Grid>
 </local:AbstractOptionPageControl>

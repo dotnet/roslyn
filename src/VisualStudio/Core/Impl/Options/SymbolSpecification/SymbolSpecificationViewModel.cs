@@ -218,7 +218,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 this._modifier = modifier;
                 Name = name;
-                //IsChecked = specification.RequiredModifierList & modifier..Any(m => m.Modifier == modifier);
             }
         }
 

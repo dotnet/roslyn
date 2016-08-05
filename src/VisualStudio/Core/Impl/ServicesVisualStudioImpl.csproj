@@ -246,6 +246,7 @@
     <Compile Include="Options\InternalOptionSerializer.cs" />
     <Compile Include="Options\PerLanguageOptionBinding.cs" />
     <Compile Include="Options\RadioButtonViewModel.cs" />
+    <Compile Include="Options\Style\NamingStyleOptionGrid.ItemViewModel.cs" />
     <Compile Include="Options\Style\NamingStyleOptionGrid.xaml.cs">
       <DependentUpon>NamingStyleOptionGrid.xaml</DependentUpon>
     </Compile>

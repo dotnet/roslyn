@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class WellKnownSymbolSpecifications
+    internal class WellKnownNamingInfo
     {
         private static SymbolKindOrTypeKind Kind(SymbolKind kind)
         {
@@ -36,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             Kind(Accessibility.ProtectedOrInternal), Kind(Accessibility.Public)
         }.ToList();
 
-        private static List<AccessibilityKind> Internal = new[] { Kind(Accessibility.Internal) }.ToList();
-        private static List<AccessibilityKind> Public = new[] { Kind(Accessibility.Public) }.ToList();
-        private static List<AccessibilityKind> Protected = new[] { Kind(Accessibility.Protected) }.ToList();
-        private static List<AccessibilityKind> Private = new[] { Kind(Accessibility.Private) }.ToList();
+        private static List<AccessibilityKind> Internal = new List<AccessibilityKind>() { Kind(Accessibility.Internal) };
+        private static List<AccessibilityKind> Public = new List<AccessibilityKind>() { Kind(Accessibility.Public) };
+        private static List<AccessibilityKind> Protected = new List<AccessibilityKind>() { Kind(Accessibility.Protected) };
+        private static List<AccessibilityKind> Private = new List<AccessibilityKind>() { Kind(Accessibility.Private) };
 
         public static List<SymbolSpecification> GetWellKnownSymbolSpecifications()
         {

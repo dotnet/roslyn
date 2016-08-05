@@ -20,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 {
     internal partial class NamingStyleOptionGrid : AbstractOptionPageControl
     {
-        private readonly IEnumerable<SymbolSpecification> _specifications = WellKnownSymbolSpecifications.GetWellKnownSymbolSpecifications();
-        private readonly IEnumerable<NamingStyle> _styles = WellKnownSymbolSpecifications.GetWellKnownNamingStyles();
+        private readonly IEnumerable<SymbolSpecification> _specifications = WellKnownNamingInfo.GetWellKnownSymbolSpecifications();
+        private readonly IEnumerable<NamingStyle> _styles = WellKnownNamingInfo.GetWellKnownNamingStyles();
         private readonly EnforcementLevel[] _notifications = new[]
                 {
                     new EnforcementLevel(DiagnosticSeverity.Hidden),
@@ -31,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 };
         private readonly string _languageName;
         private readonly ViewModel _items = new ViewModel();
-
 
         internal NamingStyleOptionGrid(IServiceProvider serviceProvider, string languageName)
             : base(serviceProvider)
@@ -92,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 return;
             }
 
-            var elem = XElement.Parse(options);
-            var info = SerializableNamingStylePreferencesInfo.FromXElement(elem);
+            var info = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(options));
 
             _items.CodeStyleItems.Clear();
             foreach (var namingRule in info.NamingRules)
@@ -108,13 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal bool ContainsErrors()
         {
-            foreach (var item in _items.CodeStyleItems)
-            {
-                if (!item.IsComplete())
-                    return true;
-            }
-
-            return false;
+            return _items.CodeStyleItems.Any(i => !i.IsComplete());
         }
 
         private void RemoveButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -132,64 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
 
             public ObservableCollection<ItemViewModel> CodeStyleItems { get; set; }
-        }
-    }
-
-    internal class ItemViewModel : AbstractNotifyPropertyChanged
-    {
-        public ItemViewModel()
-        {
-            Specifications = new List<SymbolSpecification>();
-            NamingStyles = new List<NamingStyle>();
-            NotificationPreferences = new List<EnforcementLevel>();
-        }
-
-        private SymbolSpecification _selectedSpecification;
-        private NamingStyle _selectedNamingStyle;
-        private EnforcementLevel _selectedNotification;
-
-        public IEnumerable<SymbolSpecification> Specifications { get; set; }
-        public IEnumerable<NamingStyle> NamingStyles { get; set; }
-        public IEnumerable<EnforcementLevel> NotificationPreferences { get; set; }
-
-        public SymbolSpecification SelectedSpecification
-        {
-            get
-            {
-                return _selectedSpecification;
-            }
-            set
-            {
-                SetProperty(ref _selectedSpecification, value);
-            }
-        }
-
-        public NamingStyle SelectedStyle
-        {
-            get
-            {
-                return _selectedNamingStyle;
-            }
-            set
-            {
-                SetProperty(ref _selectedNamingStyle, value);
-            }
-        }
-        public EnforcementLevel SelectedNotificationPreference
-        {
-            get
-            {
-                return _selectedNotification;
-            }
-            set
-            {
-                SetProperty(ref _selectedNotification, value);
-            }
-        }
-
-        public bool IsComplete()
-        {
-            return SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
         }
     }
 }

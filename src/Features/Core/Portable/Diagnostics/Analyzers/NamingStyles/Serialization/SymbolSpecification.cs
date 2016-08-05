@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public string Name { get; private set; }
         public IEnumerable<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
         public IEnumerable<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
-        public ModifierKindEnum RequiredModifierList { get; private set; }
+        public ModifierKindEnum RequiredModifiers { get; private set; }
         public IEnumerable<string> RequiredCustomTagList { get; private set; }
 
         internal SymbolSpecification()
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new AccessibilityKind(Accessibility.ProtectedOrInternal),
                 };
 
-            RequiredModifierList = ModifierKindEnum.None;
+            RequiredModifiers = ModifierKindEnum.None;
 
             RequiredCustomTagList = new List<string>();
         }
@@ -59,19 +59,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public SymbolSpecification(Guid id, string symbolSpecName,
             IEnumerable<SymbolKindOrTypeKind> symbolKindList,
             IEnumerable<AccessibilityKind> accessibilityKindList,
-            ModifierKindEnum modifierList,
+            ModifierKindEnum modifiers,
             IEnumerable<string> customTagList)
         {
             ID = id;
             Name = symbolSpecName;
             ApplicableAccessibilityList = accessibilityKindList;
-            RequiredModifierList = modifierList;
+            RequiredModifiers = modifiers;
             ApplicableSymbolKindList = symbolKindList;
             RequiredCustomTagList = customTagList;
         }
 
-        public SymbolSpecification(string symbolSpecName, SymbolKindOrTypeKind kind, ModifierKindEnum modifierList, List<AccessibilityKind> accessibilityList, string guidString)
-            : this(Guid.Parse(guidString), symbolSpecName, SpecializedCollections.SingletonEnumerable(kind), accessibilityList, modifierList, SpecializedCollections.EmptyEnumerable<string>())
+        public SymbolSpecification(string symbolSpecName, SymbolKindOrTypeKind kind, ModifierKindEnum modifiers, List<AccessibilityKind> accessibilityList, string guidString)
+            : this(Guid.Parse(guidString), symbolSpecName, SpecializedCollections.SingletonEnumerable(kind), accessibilityList, modifiers, SpecializedCollections.EmptyEnumerable<string>())
         {
 
         }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
             
             // Modifiers must match exactly
-            if (RequiredModifierList != ModifierKind.GetModifiers(symbol))
+            if (RequiredModifiers != ModifierKind.GetModifiers(symbol))
             {
                 return false;
             }
@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private XElement CreateModifiersXElement()
         {
-            var modifiersElement = new XElement(nameof(RequiredModifierList));
-            modifiersElement.Value = RequiredModifierList.ToString();
+            var modifiersElement = new XElement(nameof(RequiredModifiers));
+            modifiersElement.Value = RequiredModifiers.ToString();
 
             return modifiersElement;
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             result.PopulateSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList)));
             result.PopulateAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList)));
-            result.PopulateModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList)));
+            result.PopulateModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifiers)));
             result.PopulateCustomTagListFromXElement(symbolSpecificationElement.Element(nameof(RequiredCustomTagList)));
 
             return result;
@@ -200,8 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private void PopulateModifierListFromXElement(XElement modifierListElement)
         {
-            ModifierKindEnum modifiers = (ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierListElement.Value);
-            RequiredModifierList = modifiers;
+            RequiredModifiers = (ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierListElement.Value);
         }
 
         private void PopulateCustomTagListFromXElement(XElement customTagListElement)
