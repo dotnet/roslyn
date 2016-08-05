@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -36,46 +37,49 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            switch (kind)
+            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind, cancellationToken))
             {
-                case SolutionChecksumObject.Name:
-                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
-                case ProjectChecksumObject.Name:
-                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
-                case DocumentChecksumObject.Name:
-                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                case WellKnownChecksumObjects.Projects:
-                case WellKnownChecksumObjects.Documents:
-                case WellKnownChecksumObjects.TextDocuments:
-                case WellKnownChecksumObjects.ProjectReferences:
-                case WellKnownChecksumObjects.MetadataReferences:
-                case WellKnownChecksumObjects.AnalyzerReferences:
-                    return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
+                switch (kind)
+                {
+                    case SolutionChecksumObject.Name:
+                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
+                    case ProjectChecksumObject.Name:
+                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
+                    case DocumentChecksumObject.Name:
+                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
 
-                case WellKnownChecksumObjects.SolutionChecksumObjectInfo:
-                    return (T)(object)DeserializeSolutionSnapshotInfo(reader, cancellationToken);
-                case WellKnownChecksumObjects.ProjectChecksumObjectInfo:
-                    return (T)(object)DeserializeProjectSnapshotInfo(reader, cancellationToken);
-                case WellKnownChecksumObjects.DocumentChecksumObjectInfo:
-                    return (T)(object)DeserializeDocumentSnapshotInfo(reader, cancellationToken);
-                case WellKnownChecksumObjects.CompilationOptions:
-                    return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
-                case WellKnownChecksumObjects.ParseOptions:
-                    return (T)(object)DeserializeParseOptions(reader, cancellationToken);
-                case WellKnownChecksumObjects.ProjectReference:
-                    return (T)(object)DeserializeProjectReference(reader, cancellationToken);
-                case WellKnownChecksumObjects.MetadataReference:
-                    return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
-                case WellKnownChecksumObjects.AnalyzerReference:
-                    return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
-                case WellKnownChecksumObjects.SourceText:
-                    return (T)(object)DeserializeSourceText(reader, cancellationToken);
+                    case WellKnownChecksumObjects.Projects:
+                    case WellKnownChecksumObjects.Documents:
+                    case WellKnownChecksumObjects.TextDocuments:
+                    case WellKnownChecksumObjects.ProjectReferences:
+                    case WellKnownChecksumObjects.MetadataReferences:
+                    case WellKnownChecksumObjects.AnalyzerReferences:
+                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                    case WellKnownChecksumObjects.SolutionChecksumObjectInfo:
+                        return (T)(object)DeserializeSolutionSnapshotInfo(reader, cancellationToken);
+                    case WellKnownChecksumObjects.ProjectChecksumObjectInfo:
+                        return (T)(object)DeserializeProjectSnapshotInfo(reader, cancellationToken);
+                    case WellKnownChecksumObjects.DocumentChecksumObjectInfo:
+                        return (T)(object)DeserializeDocumentSnapshotInfo(reader, cancellationToken);
+                    case WellKnownChecksumObjects.CompilationOptions:
+                        return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
+                    case WellKnownChecksumObjects.ParseOptions:
+                        return (T)(object)DeserializeParseOptions(reader, cancellationToken);
+                    case WellKnownChecksumObjects.ProjectReference:
+                        return (T)(object)DeserializeProjectReference(reader, cancellationToken);
+                    case WellKnownChecksumObjects.MetadataReference:
+                        return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
+                    case WellKnownChecksumObjects.AnalyzerReference:
+                        return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
+                    case WellKnownChecksumObjects.SourceText:
+                        return (T)(object)DeserializeSourceText(reader, cancellationToken);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
             }
         }
 

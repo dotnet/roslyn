@@ -5,8 +5,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // 2. Request to required this asset has cancelled. (callerCancellationToken)
                 using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_assetChannelCancellationToken, callerCancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, serviceId, checksum, mergedCancellationToken.Token))
                 {
                     return await _rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                         new object[] { serviceId, checksum.ToArray() },
@@ -67,6 +70,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return Task.FromResult(@object);
                 }
+            }
+
+            private static string GetRequestLogInfo(int serviceId, Checksum checksum)
+            {
+                return $"{serviceId} - {checksum.ToString()}";
             }
         }
     }
