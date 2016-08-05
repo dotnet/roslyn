@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -56,12 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart, context.DefaultItemSpan)
+            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart)
             context.AddItems(items)
 
             If IsFirstCrefParameterContext(token) Then
                 ' Include Of in case they're typing a type parameter
-                context.AddItem(CreateOfCompletionItem(context.DefaultItemSpan))
+                context.AddItem(CreateOfCompletionItem())
             End If
 
             context.IsExclusive = True
@@ -140,19 +139,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(workspace As Workspace, semanticModel As SemanticModel, symbols As IEnumerable(Of ISymbol), position As Integer, span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Iterator Function CreateCompletionItems(
+                workspace As Workspace, semanticModel As SemanticModel,
+                symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
+
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, span, builder)
+                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
             End Try
         End Function
 
-        Private Function CreateCompletionItem(workspace As Workspace, semanticModel As SemanticModel, symbol As ISymbol, position As Integer, span As TextSpan, builder As StringBuilder) As CompletionItem
+        Private Function CreateCompletionItem(
+                workspace As Workspace, semanticModel As SemanticModel,
+                symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
+
             If symbol.IsUserDefinedOperator() Then
                 builder.Append("Operator ")
             End If
@@ -185,12 +190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayString = builder.ToString()
 
-            Return SymbolCompletionItem.Create(displayText:=displayString,
-                                               insertionText:=Nothing,
-                                               span:=span,
-                                               symbol:=symbol,
-                                               descriptionPosition:=position,
-                                               rules:=GetRules(displayString))
+            Return SymbolCompletionItem.Create(
+                displayText:=displayString,
+                insertionText:=Nothing,
+                symbol:=symbol,
+                contextPosition:=position,
+                rules:=GetRules(displayString))
         End Function
 
         Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
@@ -201,9 +206,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Function CreateOfCompletionItem(span As TextSpan) As CompletionItem
-            Return CommonCompletionItem.Create("Of", span, glyph:=Glyph.Keyword,
-                                      description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip))
+        Private Function CreateOfCompletionItem() As CompletionItem
+            Return CommonCompletionItem.Create("Of", glyph:=Glyph.Keyword,
+                                      description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
         Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)

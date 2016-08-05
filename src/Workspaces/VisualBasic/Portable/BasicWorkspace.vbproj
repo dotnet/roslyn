@@ -107,6 +107,7 @@
     <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
     <Compile Include="Editing\VisualBasicImportAdder.vb" />
+    <Compile Include="Execution\VisualBasicOptionsSerializationService.vb" />
     <Compile Include="Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="Extensions\CallStatementSyntaxExtensions.vb" />
@@ -256,7 +257,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBWorkspaceResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBWorkspaceResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>

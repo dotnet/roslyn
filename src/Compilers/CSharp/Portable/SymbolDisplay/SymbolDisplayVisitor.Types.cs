@@ -444,19 +444,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddPunctuation(SyntaxKind.OpenParenToken);
 
-            bool first = true;
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                if (!first)
+                if (i != 0)
                 {
                     AddPunctuation(SyntaxKind.CommaToken);
                     AddSpace();
                 }
 
-                first = false;
-
                 elementTypes[i].Accept(this.NotFirstVisitor);
-                if (hasNames)
+                if (hasNames && elementNames[i] != null)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));

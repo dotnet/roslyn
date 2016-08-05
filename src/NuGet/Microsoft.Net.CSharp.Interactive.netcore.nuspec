@@ -19,7 +19,7 @@
       <group targetFramework="NETCoreApp1.0">
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
         <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
-        <dependency id="NETStandard.Library" version="$NETStandardLibraryVersion$" />
+        <dependency id="NETStandard.Library" version="1.6.0" />
       </group>
     </dependencies>
   </metadata>

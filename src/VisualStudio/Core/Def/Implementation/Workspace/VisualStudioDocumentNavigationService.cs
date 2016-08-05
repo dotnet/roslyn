@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (!IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.NavigationMustBePerformedOnTheForegroundThread);
+                throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
             }
 
             var document = OpenDocument(workspace, documentId, options);
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (!IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.NavigationMustBePerformedOnTheForegroundThread);
+                throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
             }
 
             var document = OpenDocument(workspace, documentId, options);
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (!IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.NavigationMustBePerformedOnTheForegroundThread);
+                throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
             }
 
             var document = OpenDocument(workspace, documentId, options);

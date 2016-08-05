@@ -40,34 +40,37 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
         }
 
-        protected static IEnumerable<SymbolDisplayPart> GetSeparatorParts()
-        {
-            yield return Punctuation(SyntaxKind.CommaToken);
-            yield return Space();
-        }
+        private static readonly IList<SymbolDisplayPart> _separatorParts = new List<SymbolDisplayPart>
+            {
+                Punctuation(SyntaxKind.CommaToken),
+                Space()
+            };
 
-        protected static SignatureHelpParameter Convert(
+        protected static IList<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
+
+        protected static SignatureHelpSymbolParameter Convert(
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
-            return new SignatureHelpParameter(
+            return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 parameter.ToMinimalDisplayParts(semanticModel, position));
         }
 
-        protected IList<SymbolDisplayPart> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
+        protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             if (method.IsAwaitableNonDynamic(semanticModel, position))
             {
-                return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position);
+                return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position)
+                             .ToTaggedText();
             }
 
-            return SpecializedCollections.EmptyList<SymbolDisplayPart>();
+            return SpecializedCollections.EmptyList<TaggedText>();
         }
     }
 }

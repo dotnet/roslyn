@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -61,9 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     node = (LocalDeclarationStatementSyntax)base.VisitLocalDeclarationStatement(node);
 
+                    if (node.Declaration.IsDeconstructionDeclaration)
+                    {
+                        return node;
+                    }
+
                     var list = new List<VariableDeclaratorSyntax>();
                     var triviaList = new List<SyntaxTrivia>();
-
                     // go through each var decls in decl statement
                     foreach (var variable in node.Declaration.Variables)
                     {

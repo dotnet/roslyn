@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Assuming we are in an async method, return true if we're in a context where await would be illegal.
-        /// Specifically, return true if we're in a lock, catch, or finally.
+        /// Specifically, return true if we're in a lock or catch filter.
         /// </summary>
         private bool ContextForbidsAwait
         {

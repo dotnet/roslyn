@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression, patternBinder);
 
-            var switchBinder = new SwitchBinder(patternBinder, node);
+            var switchBinder = SwitchBinder.Create(patternBinder, node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)

@@ -174,6 +174,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
             Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
         End Function
-
     End Class
 End Namespace

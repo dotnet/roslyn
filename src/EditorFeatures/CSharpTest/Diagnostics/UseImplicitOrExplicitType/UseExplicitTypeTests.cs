@@ -1039,7 +1039,7 @@ withScriptOption: true);
         {
             await TestAsync(
 @"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
-@"class C { static void M() { (int a, string Item2) s = (a: 1, ""hello""); }}",
+@"class C { static void M() { (int a, string) s = (a: 1, ""hello""); }}",
 options: ExplicitTypeEverywhere(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);

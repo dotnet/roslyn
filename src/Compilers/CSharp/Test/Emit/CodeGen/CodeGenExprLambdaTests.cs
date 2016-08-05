@@ -3611,7 +3611,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
-                // (2,20): error CS8200: Tuple must contain at least two elements.
+                // (2,20): error CS8124: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithLocation(2, 20),
                 // (2,76): error CS1026: ) expected
@@ -3635,7 +3635,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
-                // (2,93): error CS8200: Tuple must contain at least two elements.
+                // (2,93): error CS8124: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(2, 93),
                 // (2,93): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.

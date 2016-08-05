@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
 
-                Assert.Equal(expected:=SolutionExplorerShim.AnalyzersFolderItem_Name, actual:=analyzerFolder.Text)
+                Assert.Equal(expected:=SolutionExplorerShim.Analyzers, actual:=analyzerFolder.Text)
             End Using
         End Function
 
@@ -41,8 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
                 Dim browseObject = DirectCast(analyzerFolder.GetBrowseObject(), AnalyzersFolderItem.BrowseObject)
 
-                Assert.Equal(expected:=SolutionExplorerShim.AnalyzersFolderItem_Name, actual:=browseObject.GetComponentName())
-                Assert.Equal(expected:=SolutionExplorerShim.AnalyzersFolderItem_PropertyWindowClassName, actual:=browseObject.GetClassName())
+                Assert.Equal(expected:=SolutionExplorerShim.Analyzers, actual:=browseObject.GetComponentName())
+                Assert.Equal(expected:=SolutionExplorerShim.Folder_Properties, actual:=browseObject.GetClassName())
             End Using
         End Function
     End Class

@@ -22,10 +22,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
       <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
       <Name>VisualStudioEditor</Name>
@@ -83,7 +79,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
@@ -172,7 +167,6 @@
     <Compile Include="Commands\PasteCommandArgs.cs" />
     <Compile Include="Commands\RedoCommandArgs.cs" />
     <Compile Include="Commands\RemoveParametersCommandArgs.cs" />
-    <Compile Include="Commands\RemoveUnnecessaryImportsCommandArgs.cs" />
     <Compile Include="Commands\RenameCommandArgs.cs" />
     <Compile Include="Commands\OpenLineAboveCommandArgs.cs" />
     <Compile Include="Commands\StartAutomaticOutliningCommandArgs.cs" />
@@ -181,7 +175,6 @@
     <Compile Include="Commands\SaveCommandArgs.cs" />
     <Compile Include="Commands\SelectAllCommandArgs.cs" />
     <Compile Include="Commands\SortAndRemoveUnnecessaryImportsCommandArgs.cs" />
-    <Compile Include="Commands\SortImportsCommandArgs.cs" />
     <Compile Include="Commands\SurroundWithCommandArgs.cs" />
     <Compile Include="Commands\SyncClassViewCommandArgs.cs" />
     <Compile Include="Commands\TabKeyCommandArgs.cs" />
@@ -274,8 +267,6 @@
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
-    <Compile Include="Extensibility\Completion\CompletionHelper.cs" />
-    <Compile Include="Extensibility\Completion\CompletionHelperFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ImageMonikers.cs" />
@@ -303,7 +294,7 @@
     <Compile Include="Host\IPreviewPaneService.cs" />
     <Compile Include="Host\INavigableItemsPresenter.cs" />
     <Compile Include="Host\IPreviewDialogService.cs" />
-    <Compile Include="Host\IReferencedSymbolsPresenter.cs" />
+    <Compile Include="Host\IDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Host\IWaitContext.cs" />
     <Compile Include="Host\IWaitIndicator.cs" />
     <Compile Include="IBraceMatchingService.cs" />
@@ -709,8 +700,7 @@
     <Compile Include="Shared\Extensions\SnapshotPointExtensions.cs" />
     <Compile Include="Shared\Extensions\SnapshotSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\SpanExtensions.cs" />
-    <Compile Include="Shared\Extensions\SymbolDisplayPartExtensions.cs" />
-    <Compile Include="Shared\Extensions\SymbolDisplayPartExtensions_2.cs" />
+    <Compile Include="Shared\Extensions\TaggedTextExtensions.cs" />
     <Compile Include="Shared\Extensions\TextChangeExtensions.cs" />
     <Compile Include="Shared\Extensions\WorkspaceExtensions.cs" />
     <Compile Include="Shared\Options\ComponentOnOffOptions.cs" />

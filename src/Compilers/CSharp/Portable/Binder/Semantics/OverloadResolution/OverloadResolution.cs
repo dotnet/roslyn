@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -449,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var pair in containingTypeMapOpt)
                 {
                     NamedTypeSymbol otherType = pair.Key;
-                    if (otherType.IsDerivedFrom(memberContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                    if (otherType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
@@ -642,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var otherMember in members)
             {
                 NamedTypeSymbol otherContainingType = otherMember.ContainingType;
-                if (HidesByName(otherMember) && otherContainingType.IsDerivedFrom(memberContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                if (HidesByName(otherMember) && otherContainingType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
                 {
                     return true;
                 }
@@ -843,8 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return true;
                 }
-
-                else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
                 {
                     return true;
                 }
@@ -1209,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
-            bool allSame = true; // Are all parameter types equivalent by identify conversions?
+            bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
             for (i = 0; i < arguments.Count; ++i)
             {
@@ -1231,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
-                if (argumentKind == BoundKind.OutVarLocalPendingInference)
+                if (argumentKind == BoundKind.OutVarLocalPendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
                 {
                     // If argument is an out variable that needs type inference,
                     // neither candidate is better in this argument.
@@ -1252,9 +1250,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        out okToDowngradeToNeither);
                 }
 
+                var type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+
                 if (r == BetterResult.Neither)
                 {
-                    if (allSame && Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    if (allSame && Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                     }
@@ -1263,16 +1264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (!considerRefKinds || Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                 {
-                    // If considerRefKinds is false, conversion between parameter types isn't classified by the if condition.
-                    // This assert is here to verify the assumption that the conversion is never an identity in that case and
-                    // we can skip classification as an optimization.
-                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
                     allSame = false;
                 }
 
-                // One of them was better. Does that contradict a previous result or add a new fact?
+                // One of them was better, even if identical up to Task-likeness. Does that contradict a previous result or add a new fact?
                 if (result == BetterResult.Neither)
                 {
                     if (!(ignoreDowngradableToNeither && okToDowngradeToNeither))
@@ -1336,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // In case the parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN} are
-            // equivalent (i.e. each Pi has an identity conversion to the corresponding Qi), the
+            // equivalent ignoring Task-like differences (i.e. each Pi has an identity conversion to the corresponding Qi), the
             // following tie-breaking rules are applied, in order, to determine the better function
             // member. 
 
@@ -1370,7 +1367,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
                     var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
-                    if (Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    var type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                    var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+
+                    if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                         break;
@@ -1702,9 +1702,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We should not have gotten here unless there were identity conversions between the
-            // two types.
-
-            Debug.Assert(n1.OriginalDefinition == n2.OriginalDefinition);
+            // two types, or they are different Task-likes. Ideally we'd assert that the two types (or
+            // Task equivalents) have the same OriginalDefinition but we don't have a Compilation
+            // here for NormalizeTaskTypes.
 
             var allTypeArgs1 = ArrayBuilder<TypeSymbol>.GetInstance();
             var allTypeArgs2 = ArrayBuilder<TypeSymbol>.GetInstance();
@@ -1810,19 +1810,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (t1MatchesExactly)
             {
-                if (t2MatchesExactly)
+                if (!t2MatchesExactly)
                 {
-                    // both exactly match expression
-                    return BetterResult.Neither;
+                    // - E exactly matches T1
+                    okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
+                    return BetterResult.Left;
                 }
-
-                // - E exactly matches T1
-                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
-                return BetterResult.Left;
             }
             else if (t2MatchesExactly)
             {
-                // - E exactly matches T1
+                // - E exactly matches T2
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
                 return BetterResult.Right;
             }
@@ -1874,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lambda.Symbol.IsAsync)
                 {
                     // Dig through Task<...> for an async lambda.
-                    if (y.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                    if (y.OriginalDefinition.IsGenericTaskType(Compilation))
                     {
                         y = ((NamedTypeSymbol)y).TypeArgumentsNoUseSiteDiagnostics[0];
                     }
@@ -2096,28 +2093,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BetterResult.Right;
             }
 
-            var task_T = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            bool type1IsGenericTask = type1.OriginalDefinition.IsGenericTaskType(Compilation);
+            bool type2IsGenericTask = type2.OriginalDefinition.IsGenericTaskType(Compilation);
 
-            if ((object)task_T != null)
+            if (type1IsGenericTask)
             {
-                if (type1.OriginalDefinition == task_T)
+                if (type2IsGenericTask)
                 {
-                    if (type2.OriginalDefinition == task_T)
-                    {
-                        // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
-                        return BetterConversionTargetCore(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                          ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                          ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
-                    }
+                    // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
+                    return BetterConversionTargetCore(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                      ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                      ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
+                }
 
-                    // A shortcut, Task<T> type cannot satisfy other rules.
-                    return BetterResult.Neither;
-                }
-                else if (type2.OriginalDefinition == task_T)
-                {
-                    // A shortcut, Task<T> type cannot satisfy other rules.
-                    return BetterResult.Neither;
-                }
+                // A shortcut, Task<T> type cannot satisfy other rules.
+                return BetterResult.Neither;
+            }
+            else if (type2IsGenericTask)
+            {
+                // A shortcut, Task<T> type cannot satisfy other rules.
+                return BetterResult.Neither;
             }
 
             NamedTypeSymbol d1;
@@ -2972,7 +2967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
-            if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+            if (argument.Kind == BoundKind.OutVarLocalPendingInference || argument.Kind == BoundKind.OutDeconstructVarPendingInference)
             {
                 Debug.Assert(argRefKind != RefKind.None);
 

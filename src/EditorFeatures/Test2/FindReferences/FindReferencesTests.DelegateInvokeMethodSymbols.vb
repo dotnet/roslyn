@@ -17,9 +17,9 @@ Imports System.Linq
  
 Module Program
     Function Main(args As String())
-        Dim q = Function(e As Integer)
+        Dim q = {|Definition:Function(e As Integer)
                     Return True
-                End Function.$$[|Invoke|](42)
+                End Function|}.$$[|Invoke|](42)
  
         Dim r = Function(e2 As Integer)
                     Return True

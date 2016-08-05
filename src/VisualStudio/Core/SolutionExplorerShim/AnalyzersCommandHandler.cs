@@ -375,13 +375,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var project = (AbstractProject)workspace.GetHostProject(projectId);
                     if (project == null)
                     {
-                        SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotFindProject, projectId));
+                        SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
                         return;
                     }
 
                     if (project.RuleSetFile == null)
                     {
-                        SendUnableToOpenRuleSetNotification(workspace, SolutionExplorerShim.AnalyzersCommandHandler_NoRuleSetFile);
+                        SendUnableToOpenRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                         return;
                     }
 
@@ -422,7 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 if (project == null)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotFindProject, projectId));
+                    SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
                     continue;
                 }
 
@@ -430,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 if (pathToRuleSet == null)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.AnalyzersCommandHandler_NoRuleSetFile);
+                    SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                     continue;
                 }
 
@@ -444,7 +444,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         pathToRuleSet = CreateCopyOfRuleSetForProject(pathToRuleSet, envDteProject);
                         if (pathToRuleSet == null)
                         {
-                            SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotCreateRuleSetFile, envDteProject.Name));
+                            SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_create_a_rule_set_for_project_0, envDteProject.Name));
                             continue;
                         }
 
@@ -455,8 +455,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
                     var waitIndicator = componentModel.GetService<IWaitIndicator>();
                     waitIndicator.Wait(
-                        title: SolutionExplorerShim.AnalyzersCommandHandler_RuleSet,
-                        message: string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CheckingOutRuleSet, Path.GetFileName(pathToRuleSet)),
+                        title: SolutionExplorerShim.Rule_Set,
+                        message: string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)),
                         allowCancel: false,
                         action: c =>
                         {
@@ -612,7 +612,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             SendErrorNotification(
                 workspace,
-                SolutionExplorerShim.AnalyzersCommandHandler_RuleSetFileCouldNotBeOpened,
+                SolutionExplorerShim.The_rule_set_file_could_not_be_opened,
                 message);
         }
 
@@ -620,7 +620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             SendErrorNotification(
                 workspace,
-                SolutionExplorerShim.AnalyzersCommandHandler_RuleSetFileCouldNotBeUpdated,
+                SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
                 message);
         }
 

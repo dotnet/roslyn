@@ -93,6 +93,7 @@
           FileAlignment="$(FileAlignment)"
           GenerateFullPaths="$(GenerateFullPaths)"
           HighEntropyVA="$(HighEntropyVA)"
+          Instrument="$(Instrument)"
           KeyContainer="$(KeyContainerName)"
           KeyFile="$(KeyOriginatorFile)"
           LangVersion="$(LangVersion)"
@@ -135,6 +136,7 @@
           Win32Manifest="$(Win32Manifest)"
           Win32Resource="$(Win32Resource)"
           PathMap="$(PathMap)"
+          SourceLink="$(SourceLink)"
           >
       <Output TaskParameter="CommandLineArgs" ItemName="CscCommandLineArgs" />
     </Csc>

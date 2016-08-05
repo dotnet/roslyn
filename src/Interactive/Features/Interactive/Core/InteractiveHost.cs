@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return null;
                     }
 
-                    _output.WriteLine(FeaturesResources.AttemptToConnectToProcess, newProcessId);
+                    _output.WriteLine(FeaturesResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             bool alive = process.IsAlive();
             if (!alive)
             {
-                _errorOutput.WriteLine(FeaturesResources.FailedToLaunchProcess, _hostPath, process.ExitCode);
+                _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, _hostPath, process.ExitCode);
                 _errorOutput.WriteLine(process.StandardError.ReadToEnd());
             }
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                _errorOutput.WriteLine(FeaturesResources.HostingProcessExitedWithExitCode, exitCode.Value);
+                _errorOutput.WriteLine(FeaturesResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
             }
         }
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                _errorOutput.WriteLine(FeaturesResources.UnableToCreateHostingProcess);
+                _errorOutput.WriteLine(FeaturesResources.Unable_to_create_hosting_process);
             }
             catch (OperationCanceledException)
             {

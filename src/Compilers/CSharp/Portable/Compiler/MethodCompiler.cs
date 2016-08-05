@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (emittingPdb)
+            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
                     importChainOpt: null,
-                    emittingPdb: false);
+                    emittingPdb: false,
+                    dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
@@ -639,7 +640,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnosticsThisMethod,
                             _debugDocumentProvider,
                                 method.GenerateDebugInfo ? importChain : null,
-                            emittingPdb: _emittingPdb);
+                            emittingPdb: _emittingPdb,
+                            dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                     }
                 }
                 catch (BoundTreeVisitor.CancelledByStackGuardException ex)
@@ -743,7 +745,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnosticsThisMethod,
                         debugDocumentProvider: _debugDocumentProvider,
                         importChainOpt: null,
-                        emittingPdb: false);
+                        emittingPdb: false,
+                        dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -973,6 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Any errors generated below here are considered Emit diagnostics 
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
+                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
@@ -990,6 +994,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             flowAnalyzedBody,
                             previousSubmissionFields,
                             compilationState,
+                            _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true,
+                            _debugDocumentProvider,
+                            ref dynamicAnalysisSpans,
                             diagsForCurrentMethod,
                             ref lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder,
@@ -1025,6 +1032,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (analyzedInitializers != null)
                             {
+                                // Eventually we will instrument field initializers, but for now we skip them.
+                                const bool instrumentFieldInitializersForDynamicAnalysis = false;
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
                                 processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
@@ -1033,6 +1042,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     analyzedInitializers,
                                     previousSubmissionFields,
                                     compilationState,
+                                    instrumentFieldInitializersForDynamicAnalysis,
+                                    _debugDocumentProvider,
+                                    ref dynamicAnalysisSpans,
                                     diagsForCurrentMethod,
                                     ref lazyVariableSlotAllocator,
                                     lambdaDebugInfoBuilder,
@@ -1073,6 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             methodSymbol.IsImplicitInstanceConstructor)
                         {
                             StateMachineTypeSymbol ctorStateMachineTypeOpt;
+                            const bool instrumentChainedConstructorsForDynamicAnalysis = false;
 
                             var chain = ChainImplicitStructConstructor(methodSymbol, container);
                             chain = LowerBodyOrInitializer(
@@ -1081,6 +1094,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 chain,
                                 previousSubmissionFields,
                                 compilationState,
+                                instrumentChainedConstructorsForDynamicAnalysis,
+                                _debugDocumentProvider,
+                                ref dynamicAnalysisSpans,
                                 diagsForCurrentMethod,
                                 ref lazyVariableSlotAllocator,
                                 lambdaDebugInfoBuilder,
@@ -1109,7 +1125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagsForCurrentMethod,
                             _debugDocumentProvider,
                             importChain,
-                            _emittingPdb);
+                            _emittingPdb,
+                            dynamicAnalysisSpans);
 
                         _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
                     }
@@ -1158,6 +1175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
+            bool instrumentForDynamicAnalysis,
+            DebugDocumentProvider debugDocumentProvider,
+            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
             DiagnosticBag diagnostics,
             ref VariableSlotAllocator lazyVariableSlotAllocator,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
@@ -1175,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool sawLambdas;
-            bool sawLocalFunctions;
+                bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
@@ -1186,9 +1206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilationState,
                     previousSubmissionFields: previousSubmissionFields,
                     allowOmissionOfConditionalCalls: true,
+                    instrumentForDynamicAnalysis: instrumentForDynamicAnalysis,
+                    debugDocumentProvider:debugDocumentProvider,
+                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
-                sawLocalFunctions: out sawLocalFunctions,
+                    sawLocalFunctions: out sawLocalFunctions,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
@@ -1223,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;
-            if (sawLambdas || sawLocalFunctions)
+                if (sawLambdas || sawLocalFunctions)
                 {
                     bodyWithoutLambdas = LambdaRewriter.Rewrite(
                         loweredBody,
@@ -1231,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method.ThisParameter,
                         method,
                         methodOrdinal,
-                    null,
+                        null,
                         lambdaDebugInfoBuilder,
                         closureDebugInfoBuilder,
                         lazyVariableSlotAllocator,
@@ -1280,7 +1303,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             ImportChain importChainOpt,
-            bool emittingPdb)
+            bool emittingPdb,
+            ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1368,6 +1392,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
+                DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt = null;
+                if (moduleBuilder.EmitOptions.EmitDynamicAnalysisData)
+                {
+                    Debug.Assert(debugDocumentProvider != null);
+                    dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(dynamicAnalysisSpans);
+                }
+
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
@@ -1386,7 +1417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
                     stateMachineAwaiterSlots,
-                    asyncDebugInfo);
+                    asyncDebugInfo,
+                    dynamicAnalysisDataOpt);
             }
             finally
             {
@@ -1575,8 +1607,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (body != null)
                 {
-                        return body;
-                    }
+                    return body;
+                }
+
                 statements = ImmutableArray<BoundStatement>.Empty;
             }
             else if (body == null)
@@ -1609,7 +1642,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
                     }
 
-                    var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
+                    //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
+                    var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = method.IsImplicitlyDeclared };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
                     return constructorInitializer;
                 }

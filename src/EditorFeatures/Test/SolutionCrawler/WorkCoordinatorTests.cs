@@ -690,7 +690,7 @@ End Class";
 
             var root = Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseCompilationUnit(code);
             var property = root.FindToken(position).Parent.FirstAncestorOrSelf<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax>();
-            var memberId = (new Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService()).GetMethodLevelMemberId(root, property);
+            var memberId = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory.Instance.GetMethodLevelMemberId(root, property);
 
             Assert.Equal(0, memberId);
         }
@@ -1039,13 +1039,13 @@ End Class";
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
             }
 
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.ProjectIds.Add(project.Id);
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (bodyOpt == null)
                 {
@@ -1055,7 +1055,7 @@ End Class";
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.SyntaxDocumentIds.Add(document.Id);
                 Process(document.Id, cancellationToken);

@@ -31,6 +31,7 @@ using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
 using Document = Microsoft.CodeAnalysis.Document;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -144,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
 
             var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
-            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
+            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractProject;
             if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
                 _debugEncNotify.NotifyEncEditDisallowedByProject(hostProject.Hierarchy);
@@ -177,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            _notifications.SendNotification(message, title: FeaturesResources.EditAndContinue, severity: NotificationSeverity.Error);
+            _notifications.SendNotification(message, title: FeaturesResources.Edit_and_Continue1, severity: NotificationSeverity.Error);
         }
 
         /// <summary>
@@ -249,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _vsProject.DisplayName, outputPath, e.Message);
                         _metadata = null;
 
-                        var descriptor = new DiagnosticDescriptor("Metadata", "Metadata", ServicesVSResources.ErrorWhileReading, DiagnosticCategory.EditAndContinue, DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: DiagnosticCustomTags.EditAndContinue);
+                        var descriptor = new DiagnosticDescriptor("Metadata", "Metadata", ServicesVSResources.Error_while_reading_0_colon_1, DiagnosticCategory.EditAndContinue, DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: DiagnosticCustomTags.EditAndContinue);
 
                         _diagnosticProvider.ReportDiagnostics(
                             new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId),

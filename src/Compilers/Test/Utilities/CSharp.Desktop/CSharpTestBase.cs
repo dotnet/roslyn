@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.MetadataUtilities;
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             return base.CompileAndVerify(
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedOutput: expectedOutput,
                 options: options,
                 parseOptions: parseOptions,
+                emitOptions: emitOptions,
                 verify: verify);
         }
 
@@ -101,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             return base.CompileAndVerify(
@@ -114,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedOutput,
                 options,
                 parseOptions,
+                emitOptions,
                 verify);
         }
 
@@ -201,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 Translate2(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
+                null,
                 verify);
         }
     }
@@ -443,9 +449,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string text,
             CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null)
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] additionalRefs = null)
         {
             var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
+            
+            if (additionalRefs != null)
+            {
+                refs.AddRange(additionalRefs);
+            }
 
             return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }

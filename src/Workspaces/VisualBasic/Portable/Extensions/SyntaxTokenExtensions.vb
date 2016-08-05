@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
-            Return New VisualBasicSyntaxFactsService().IsWord(token)
+            Return VisualBasicSyntaxFactsServiceFactory.Instance.IsWord(token)
         End Function
 
         <Extension()>

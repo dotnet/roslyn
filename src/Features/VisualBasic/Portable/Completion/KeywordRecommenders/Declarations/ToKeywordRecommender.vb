@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 If modifiedIdentifier IsNot Nothing Then
                     If modifiedIdentifier.ArrayBounds IsNot Nothing AndAlso
                        modifiedIdentifier.ArrayBounds.Arguments.Contains(simpleArgument) Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("To", VBFeaturesResources.ToKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
                     End If
                 End If
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     Dim redimStatement = targetToken.GetAncestor(Of ReDimStatementSyntax)()
                     If redimStatement IsNot Nothing Then
                         If redimStatement.Clauses.Contains(clause) Then
-                            Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("To", VBFeaturesResources.ToKeywordToolTip))
+                            Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
                         End If
                     End If
                 End If

@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -186,7 +184,7 @@ NewLines("Class A \n Friend field As Integer \n End Class \n Class B \n Public S
         Public Async Function TestOnlyGenerateFieldInByRefProperty() As Task
             Await TestExactActionSetOfferedAsync(
 NewLines("Class A \n End Class \n Class B \n Public Sub Foo(ByRef d As Integer) \n End Sub \n Public Sub Bar() \n Dim s As New A() \n Foo(s.[|field|]) \n End Sub \n End Class"),
-{String.Format(FeaturesResources.GenerateFieldIn, "field", "A")})
+{String.Format(FeaturesResources.Generate_field_0_in_1, "field", "A")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>

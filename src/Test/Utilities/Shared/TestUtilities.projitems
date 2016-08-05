@@ -55,6 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FX\RegexExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\CustomAttributeRow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\DynamicAnalysisDataReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\EncValidation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\ILBuilderVisualizer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\MetadataReaderUtils.cs" />

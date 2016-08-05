@@ -15,9 +15,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GenerateMSBuildBindingRedirects>true</GenerateMSBuildBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
-    <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
-  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -30,10 +27,6 @@
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
@@ -67,6 +60,9 @@
   <ItemGroup>
     <Compile Include="DependentTypeFinderTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
+    <Compile Include="Execution\Extensions.cs" />
+    <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
+    <Compile Include="Execution\SnapshotSerializationTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
     <Compile Include="Host\WorkspaceServices\TestTemporaryStorageService.cs" />
@@ -114,7 +110,6 @@
     <Compile Include="UtilityTest\SerializableBytesTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="SolutionGeneration.cs" />
-    <Compile Include="WorkspaceTests\SolutionParsingTests.cs" />
     <Compile Include="SolutionTests\SolutionTests.cs" />
     <Compile Include="SolutionUtilities.cs" />
     <Compile Include="SyntaxNodeTests.cs" />

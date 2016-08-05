@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         /// <returns>True if any change is made.</returns>
         protected bool FormatToken(ITextView view, Document document, SyntaxToken token, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var formatter = CreateSmartTokenFormatter(document.Options, formattingRules, root);
             var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.Count == 0)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return false;
             }
 
-            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.FormatToken))
+            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.Format_Token))
             {
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         {
             var position = view.GetCaretPoint(subjectBuffer).Value;
             var line = position.GetContainingLine().AsTextLine();
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var options = document.Options;
             if (!UseSmartTokenFormatter(root, line, formattingRules, options, cancellationToken))
             {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             }
 
             // when undo, make sure it undo the caret movement I did below
-            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.SmartIndenting))
+            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.Smart_Indenting))
             {
                 // if caret position is before the token, make sure we put caret at the beginning of the token so that caret
                 // is at the right position after formatting

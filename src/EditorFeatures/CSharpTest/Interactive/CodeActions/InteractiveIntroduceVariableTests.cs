@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable;
+using Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable;
 using Roslyn.Test.Utilities;
 using Xunit;
 

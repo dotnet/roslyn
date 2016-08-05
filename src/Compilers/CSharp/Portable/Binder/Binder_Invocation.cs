@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference));
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -333,6 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < arguments.Arguments.Count; i++)
             {
+                Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
+
                 if (arguments.Arguments[i].Kind == BoundKind.OutVarLocalPendingInference)
                 {
                     var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
@@ -1146,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
             // Since the purpose is to bind any unbound lambdas, we return early if there are none.
-            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVarLocalPendingInference))
+            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference))
             {
                 return analyzedArguments.Arguments.ToImmutable();
             }
@@ -1186,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 candidateType = parameterType;
                             }
-                            else if (!candidateType.Equals(parameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+                            else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
                             {
                                 // type mismatch
                                 candidateType = null;
@@ -1203,6 +1205,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         newArguments[i] = ((OutVarLocalPendingInference)argument).SetInferredType(candidateType, success: true);
                     }
+                }
+                else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
+                {
+                    newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
                 }
             }
 

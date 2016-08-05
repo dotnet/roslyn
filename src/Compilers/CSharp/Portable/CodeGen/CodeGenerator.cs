@@ -300,14 +300,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _indirectReturnState = IndirectReturnState.Emitted;
         }
 
-        private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitTypeReferenceToken(Cci.ITypeReference symbol, CSharpSyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            _builder.EmitToken(symbol, syntaxNode, _diagnostics);
         }
 
-        private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList)
+        private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList), syntaxNode, _diagnostics);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
+        }
+
+        private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
+        {
+            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, CSharpSyntaxNode syntaxNode)

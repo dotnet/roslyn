@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -206,6 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
+            if (namedType.IsTupleType)
+            {
+                return TransformTupleType(namedType, isContaining);
+            }
+
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
             if (!isContaining)
             {
@@ -262,6 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return namedType;
             }
+        }
+
+        private NamedTypeSymbol TransformTupleType(NamedTypeSymbol tupleType, bool isContaining)
+        {
+            Debug.Assert(tupleType.IsTupleType);
+
+            var underlying = tupleType.TupleUnderlyingType;
+            var transformedUnderlying = TransformNamedType(underlying, isContaining);
+            return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
         }
 
         private ImmutableArray<TypeSymbol> TransformTypeArguments(ImmutableArray<TypeSymbol> typeArguments)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if !MSBUILD12
 using Microsoft.Build.Construction;
-#endif
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -138,7 +136,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             VersionStamp version = default(VersionStamp);
 
-#if !MSBUILD12
             Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
@@ -165,41 +162,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
             }
-#else
-            SolutionFile solutionFile = null;
-
-            using (var reader = new StreamReader(absoluteSolutionPath))
-            {
-                version = VersionStamp.Create(File.GetLastWriteTimeUtc(absoluteSolutionPath));
-                var text = await reader.ReadToEndAsync().ConfigureAwait(false);
-                solutionFile = SolutionFile.Parse(new StringReader(text));
-            }
-
-            var solutionFolder = Path.GetDirectoryName(absoluteSolutionPath);
-
-            // a list to accumulate all the loaded projects
-            var loadedProjects = new LoadState(null);
-
-            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
-
-            // load all the projects
-            foreach (var projectBlock in solutionFile.ProjectBlocks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string absoluteProjectPath;
-                if (TryGetAbsoluteProjectPath(projectBlock.ProjectPath, solutionFolder, reportMode, out absoluteProjectPath))
-                {
-                    IProjectFileLoader loader;
-                    if (TryGetLoaderFromProjectPath(absoluteProjectPath, reportMode, out loader))
-                    { 
-                        // projects get added to 'loadedProjects' as side-effect
-                        // never prefer metadata when loading solution, all projects get loaded if they can.
-                        var tmp = await GetOrLoadProjectAsync(absoluteProjectPath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-#endif
 
             // construct workspace from loaded project infos
             return SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Projects);
@@ -215,12 +177,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (Exception)
             {
-                throw new InvalidOperationException(string.Format(WorkspacesResources.InvalidSolutionFilePath, path));
+                throw new InvalidOperationException(string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, path));
             }
 
             if (!File.Exists(absolutePath))
             {
-                throw new FileNotFoundException(string.Format(WorkspacesResources.SolutionFileNotFound, absolutePath));
+                throw new FileNotFoundException(string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absolutePath));
             }
 
             return absolutePath;
@@ -503,7 +465,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (paths.Contains(doc.FilePath))
                 {
-                    _workspace.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, string.Format(WorkspacesResources.DuplicateSourceFileInProject, doc.FilePath, projectFilePath), projectId));
+                    _workspace.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath), projectId));
                 }
 
                 paths.Add(doc.FilePath);
@@ -654,7 +616,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (Exception)
             {
-                ReportFailure(mode, string.Format(WorkspacesResources.InvalidProjectFilePath, path));
+                ReportFailure(mode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
                 return null;
             }
 
@@ -662,7 +624,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 ReportFailure(
                     mode,
-                    string.Format(WorkspacesResources.ProjectFileNotFound, path),
+                    string.Format(WorkspacesResources.Project_file_not_found_colon_0, path),
                     msg => new FileNotFoundException(msg));
                 return null;
             }
@@ -696,7 +658,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     else
                     {
                         loader = null;
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
                         return false;
                     }
                 }
@@ -706,7 +668,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     if (loader == null)
                     {
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnrecognizedFileExtension, projectFilePath, Path.GetExtension(projectFilePath)));
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
                         return false;
                     }
                 }
@@ -721,7 +683,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (commandLineParser == null)
                     {
                         loader = null;
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
                         return false;
                     }
                 }
@@ -738,7 +700,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (Exception)
             {
-                ReportFailure(mode, string.Format(WorkspacesResources.InvalidProjectFilePath, path));
+                ReportFailure(mode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
                 absolutePath = null;
                 return false;
             }
@@ -747,7 +709,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 ReportFailure(
                     mode,
-                    string.Format(WorkspacesResources.ProjectFileNotFound, absolutePath),
+                    string.Format(WorkspacesResources.Project_file_not_found_colon_0, absolutePath),
                     msg => new FileNotFoundException(msg));
                 return false;
             }

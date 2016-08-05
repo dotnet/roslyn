@@ -85,19 +85,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        return FeaturesResources.ImplementInterfaceExplicitly;
+                        return FeaturesResources.Implement_interface_explicitly;
                     }
                     else if (Abstractly)
                     {
-                        return FeaturesResources.ImplementInterfaceAbstractly;
+                        return FeaturesResources.Implement_interface_abstractly;
                     }
                     else if (ThroughMember != null)
                     {
-                        return string.Format(FeaturesResources.ImplementInterfaceThrough, GetDescription(ThroughMember));
+                        return string.Format(FeaturesResources.Implement_interface_through_0, GetDescription(ThroughMember));
                     }
                     else
                     {
-                        return FeaturesResources.ImplementInterface;
+                        return FeaturesResources.Implement_interface;
                     }
                 }
             }

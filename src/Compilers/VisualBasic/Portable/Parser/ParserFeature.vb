@@ -32,17 +32,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         DigitSeparators
         BinaryLiterals
         Tuples
+        IOperation
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.DigitSeparators
-                    Return "digitSeparators"
-
-                Case Feature.BinaryLiterals
-                    Return "binaryLiterals"
+                Case feature.IOperation
+                    Return "IOperation"
 
                 Case Else
                     Return Nothing
@@ -84,6 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic14
 
                 Case Feature.Tuples
+                    Feature.BinaryLiterals,
+                    Feature.DigitSeparators
                     Return LanguageVersion.VisualBasic15
 
                 Case Else
@@ -147,6 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_BinaryLiterals
                 Case Feature.Tuples
                     Return ERRID.FEATURE_Tuples
+                Case Feature.IOperation
+                    Return ERRID.FEATURE_IOperation
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (renameSymbolDeclarationLocation == null)
             {
                 // Symbol "{0}" is not from source.
-                throw new ArgumentException(string.Format(WorkspacesResources.RenameSymbolIsNotFromSource, renameLocationSet.Symbol.Name));
+                throw new ArgumentException(string.Format(WorkspacesResources.Symbol_0_is_not_from_source, renameLocationSet.Symbol.Name));
             }
 
             var session = new Session(renameLocationSet, renameSymbolDeclarationLocation, originalText, replacementText, optionSet, hasConflict, cancellationToken);

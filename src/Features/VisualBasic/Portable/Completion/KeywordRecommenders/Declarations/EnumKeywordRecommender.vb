@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If context.IsTypeDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Enum) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Enum", VBFeaturesResources.EnumKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Enum", VBFeaturesResources.Declares_an_enumeration_and_defines_the_values_of_its_members))
                 End If
             End If
 

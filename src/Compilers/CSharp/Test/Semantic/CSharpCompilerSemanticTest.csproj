@@ -16,10 +16,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -73,9 +69,12 @@
     <Compile Include="FlowAnalysis\FlowTestBase.cs" />
     <Compile Include="FlowAnalysis\FlowTests.cs" />
     <Compile Include="FlowAnalysis\IterationJumpYieldStatementTests.cs" />
+    <Compile Include="FlowAnalysis\PatternsVsRegions.cs" />
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="Semantics\BindingAsyncTasklikeMoreTests.cs" />
+    <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
     <Compile Include="Semantics\ImportsTests.cs" />
     <Compile Include="Semantics\AccessCheckTests.cs" />
     <Compile Include="Semantics\AccessibilityTests.cs" />
@@ -100,6 +99,7 @@
     <Compile Include="Semantics\InteractiveSemanticModelTests.cs" />
     <Compile Include="Semantics\InterpolationTests.cs" />
     <Compile Include="Semantics\OutVarTests.cs" />
+    <Compile Include="Semantics\PatternSwitchTests.cs" />
     <Compile Include="Semantics\RefLocalsAndReturns.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />

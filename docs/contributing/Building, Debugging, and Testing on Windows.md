@@ -31,7 +31,7 @@ Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 
 1. Run the "Developer Command Prompt for VS2015" from your start menu.
 2. Navigate to the directory of your Git clone.
-3. Run `msbuild /v:m /m BuildAndTest.proj` in the command prompt.
+3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
 
 To debug through tests, you can right click the test project that contains your
 tests and choose **Set as Startup Project**. Then press F5. This will run the

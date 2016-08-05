@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 // Filter the model, recheck the caret position if we haven't computed the initial model yet
-                sessionOpt.FilterModel(CompletionFilterReason.TypeChar, recheckCaretPosition: model == null);
+                sessionOpt.FilterModel(
+                    CompletionFilterReason.TypeChar,
+                    recheckCaretPosition: model == null,
+                    dismissIfEmptyAllowed: true,
+                    filterState: null);
             }
         }
     }

@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                     {
                         // It matches, so just add a reference to this
                         return new AddMissingReferenceCodeAction(project,
-                                              string.Format(FeaturesResources.AddProjectReferenceTo, candidateProject.Name),
+                                              string.Format(FeaturesResources.Add_project_reference_to_0, candidateProject.Name),
                                               new ProjectReference(candidateProjectId), missingAssemblyIdentity);
                     }
                 }
             }
 
             // No matching project, so metadata reference
-            var description = string.Format(FeaturesResources.AddReferenceTo, missingAssemblyIdentity.GetDisplayName());
+            var description = string.Format(FeaturesResources.Add_reference_to_0, missingAssemblyIdentity.GetDisplayName());
             return new AddMissingReferenceCodeAction(project, description, null, missingAssemblyIdentity);
         }
 

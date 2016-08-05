@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             ImmutableArray.Create(_noneDiagnosticDescriptor, _infoDiagnosticDescriptor,
                                   _warningDiagnosticDescriptor, _errorDiagnosticDescriptor);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() =>
-            DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public bool RunInProcess => true;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             State state = null;
             var shouldAnalyze = false;
             var declarationStatement = context.Node;
-            var optionSet = GetOptionSet(context.Options);
+            var optionSet = context.Options.GetOptionSet();
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -141,17 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             return isSupportedParentKind &&
                    variableDeclaration.Variables.Count == 1 &&
                    variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause);
-        }
-
-        private OptionSet GetOptionSet(AnalyzerOptions analyzerOptions)
-        {
-            var workspaceOptions = analyzerOptions as WorkspaceAnalyzerOptions;
-            if (workspaceOptions != null)
-            {
-                return workspaceOptions.Workspace.Options;
-            }
-
-            return null;
         }
     }
 }

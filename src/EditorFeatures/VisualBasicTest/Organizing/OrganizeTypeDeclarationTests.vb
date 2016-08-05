@@ -1,21 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-Imports Roslyn.Test.EditorUtilities
-Imports Roslyn.Test.Utilities
-Imports Xunit
-Imports ParseOptions = Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeTypeDeclarationTests
@@ -976,21 +964,11 @@ End Namespace</element>
                         Return CommandState.Unavailable
                     End Function
 
-                Dim state = handler.GetCommandState(New Commands.SortImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Dim state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
-
                 delegatedToNext = False
-                state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
 
-                delegatedToNext = False
-                state = handler.GetCommandState(New Commands.RemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
-
-                delegatedToNext = False
                 state = handler.GetCommandState(New Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)

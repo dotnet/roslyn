@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                     allowImplicitLineContinuation:=False)
 
             If isFollowingIfStatement OrElse isFollowingIfDirective Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Then", VBFeaturesResources.ThenKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Then", VBFeaturesResources.Introduces_a_statement_block_to_be_compiled_or_executed_if_a_tested_condition_is_true))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

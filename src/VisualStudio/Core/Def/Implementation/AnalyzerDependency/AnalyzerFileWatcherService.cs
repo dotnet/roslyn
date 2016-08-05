@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private readonly DiagnosticDescriptor _analyzerChangedRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.AnalyzerChangedId,
-            title: ServicesVSResources.WRN_AnalyzerChangedTitle,
-            messageFormat: ServicesVSResources.WRN_AnalyzerChangedMessage,
-            category: FeaturesResources.ErrorCategory,
+            title: ServicesVSResources.AnalyzerChangedOnDisk,
+            messageFormat: ServicesVSResources.The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted,
+            category: FeaturesResources.Roslyn_HostError,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 

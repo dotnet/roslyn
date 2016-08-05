@@ -91,7 +91,13 @@ namespace Microsoft.CodeAnalysis
         public string PdbPath { get; internal set; }
 
         /// <summary>
-        /// True to emit PDB file.
+        /// Path of the file containing information linking the compilation to source server that stores 
+        /// a snapshot of the source code included in the compilation.
+        /// </summary>
+        public string SourceLink { get; internal set; }
+
+        /// <summary>
+        /// True to emit PDB information (to a standalone PDB file or embedded into the PE file).
         /// </summary>
         public bool EmitPdb { get; internal set; }
 
@@ -245,8 +251,6 @@ namespace Microsoft.CodeAnalysis
         /// Specify the preferred output language name.
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
-
-        internal Guid SqmSessionGuid { get; set; }
 
         internal CommandLineArguments()
         {
