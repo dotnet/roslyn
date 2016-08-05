@@ -4103,6 +4103,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain an &apos;is&apos; pattern-matching operator..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsIsMatch {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsIsMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a reference to a local function.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsLocalFunction {
@@ -4139,11 +4148,38 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain an out argument variable declaration..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsOutVariable {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsOutVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain an unsafe pointer operation.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsPointerOp {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeContainsPointerOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple conversion..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsTupleConversion {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsTupleConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple literal..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsTupleLiteral {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsTupleLiteral", resourceCulture);
             }
         }
         
@@ -9599,15 +9635,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureCollectionInitializer {
             get {
                 return ResourceManager.GetString("IDS_FeatureCollectionInitializer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to declaration expression.
-        /// </summary>
-        internal static string IDS_FeatureDeclarationExpression {
-            get {
-                return ResourceManager.GetString("IDS_FeatureDeclarationExpression", resourceCulture);
             }
         }
         
