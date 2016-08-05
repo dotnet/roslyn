@@ -35,23 +35,12 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         private async Task<Document> RemoveDuplicateParamTagAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var commentParent = root.FindNode(span);
-
-            // There *should* always be one node here if the diagnostic fires,
-            // but we will use `FirstOrDefault` just to safeguard against a sly bug
-            var triviaNode = commentParent.GetLeadingTrivia().FirstOrDefault(s => s.Span.Contains(span));
-            if (triviaNode == null)
-            {
-                return document;
-            }
-
-            var triviaNodeStructure = triviaNode.GetStructure();
 
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement
             // This is to correctly handle XML nodes that are nested in other XML nodes, so we only
             // remove the node the diagnostic fired on and its children, but no parent nodes
-            var paramNode = triviaNodeStructure.FindNode(span);
+            var paramNode = root.FindNode(span, findInsideTrivia: true);
             while (paramNode != null && !(paramNode is TXMLElement))
             {
                 paramNode = paramNode.Parent;
@@ -80,8 +69,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             // Remove all trivia attached to the nodes I am removing.
             // Really, any option should work here because the leading/trailing text
             // around these nodes are not attached to them as trivia.
-            var newCommentNode = triviaNodeStructure.RemoveNodes(removedNodes, SyntaxRemoveOptions.KeepNoTrivia);
-            var newRoot = root.ReplaceTrivia(triviaNode, GetRevisedDocCommentTrivia(newCommentNode.ToFullString()));
+            var newRoot = root.RemoveNodes(removedNodes, SyntaxRemoveOptions.KeepNoTrivia);
             return document.WithSyntaxRoot(newRoot);
         }
 
