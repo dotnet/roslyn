@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGen\ItemTokenMap.cs" />
+    <Compile Include="Emit\DebugDocumentsBuilder.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="InternalUtilities\IncrementalHash.cs" />
     <Compile Include="PEWriter\ExportedType.cs" />

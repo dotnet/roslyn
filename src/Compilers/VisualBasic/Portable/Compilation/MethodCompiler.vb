@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _filterOpt = filter
 
             If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData Then
-                _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
+                _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 
             If compilation.Options.ConcurrentBuild Then

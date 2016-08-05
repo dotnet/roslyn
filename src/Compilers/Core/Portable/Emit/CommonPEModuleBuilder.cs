@@ -30,14 +30,16 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
         internal abstract Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint index);
 
+        internal readonly DebugDocumentsBuilder DebugDocumentsBuilder;
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
 
-        public CommonPEModuleBuilder(IEnumerable<ResourceDescription> manifestResources)
+        public CommonPEModuleBuilder(IEnumerable<ResourceDescription> manifestResources, Compilation compilation)
         {
             ManifestResources = manifestResources;
+            DebugDocumentsBuilder = new DebugDocumentsBuilder(compilation.Options.SourceReferenceResolver, compilation.IsCaseSensitive);
         }
     }
 
@@ -62,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly OutputKind _outputKind;
         private readonly EmitOptions _emitOptions;
         private readonly Cci.ModulePropertiesForSerialization _serializationProperties;
-        private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
 
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
@@ -77,14 +78,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
-
-        // This is a map from the document "name" to the document.
-        // Document "name" is typically a file path like "C:\Abc\Def.cs". However, that is not guaranteed.
-        // For compatibility reasons the names are treated as case-sensitive in C# and case-insensitive in VB.
-        // Neither language trims the names, so they are both sensitive to the leading and trailing whitespaces.
-        // NOTE: We are not considering how filesystem or debuggers do the comparisons, but how native implementations did.
-        // Deviating from that may result in unexpected warnings or different behavior (possibly without warnings).
-        private readonly ConcurrentDictionary<string, Cci.DebugSourceDocument> _debugDocuments;
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
@@ -122,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Emit
             OutputKind outputKind,
             EmitOptions emitOptions,
             TModuleCompilationState compilationState) 
-            : base(manifestResources)
+            : base(manifestResources, compilation)
         {
             Debug.Assert(sourceModule != null);
             Debug.Assert(serializationProperties != null);
@@ -133,10 +126,6 @@ namespace Microsoft.CodeAnalysis.Emit
             _outputKind = outputKind;
             _emitOptions = emitOptions;
             this.CompilationState = compilationState;
-            _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(
-                compilation.IsCaseSensitive ?
-                StringComparer.Ordinal :
-                StringComparer.OrdinalIgnoreCase);
         }
 
         internal sealed override void CompilationFinished()
@@ -922,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        int Cci.IModule.DebugDocumentCount => _debugDocuments.Count;
+        int Cci.IModule.DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
 
         #endregion
 
@@ -951,50 +940,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return this;
         }
 
-        #endregion
-
-        #region Debug Documents
-
-        internal void AddDebugDocument(Cci.DebugSourceDocument document)
-        {
-            _debugDocuments.Add(document.Location, document);
-        }
-
-        internal Cci.DebugSourceDocument TryGetDebugDocument(string path, string basePath)
-        {
-            return TryGetDebugDocumentForNormalizedPath(NormalizeDebugDocumentPath(path, basePath));
-        }
-
-        internal Cci.DebugSourceDocument TryGetDebugDocumentForNormalizedPath(string normalizedPath)
-        {
-            Cci.DebugSourceDocument document;
-            _debugDocuments.TryGetValue(normalizedPath, out document);
-            return document;
-        }
-
-        internal Cci.DebugSourceDocument GetOrAddDebugDocument(string path, string basePath, Func<string, Cci.DebugSourceDocument> factory)
-        {
-            return _debugDocuments.GetOrAdd(NormalizeDebugDocumentPath(path, basePath), factory);
-        }
-
-        internal string NormalizeDebugDocumentPath(string path, string basePath)
-        {
-            var resolver = _compilation.Options.SourceReferenceResolver;
-            if (resolver == null)
-            {
-                return path;
-            }
-
-            var key = ValueTuple.Create(path, basePath);
-            string normalizedPath;
-            if (!_normalizedPathsCache.TryGetValue(key, out normalizedPath))
-            {
-                normalizedPath = resolver.NormalizePath(path, basePath) ?? path;
-                _normalizedPathsCache.TryAdd(key, normalizedPath);
-            }
-
-            return normalizedPath;
-        }
         #endregion
     }
 }

@@ -1527,6 +1527,58 @@ namespace Microsoft.CodeAnalysis
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
 
+        internal bool StartSourceChecksumCalculation(DebugDocumentsBuilder documentsBuilder, DiagnosticBag diagnostics)
+        {
+            // Check that all syntax trees are debuggable:
+            bool allTreesDebuggable = true;
+            foreach (var tree in SyntaxTrees)
+            {
+                if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_EncodinglessSyntaxTree, tree.GetRoot().GetLocation()));
+                    allTreesDebuggable = false;
+                }
+            }
+
+            if (!allTreesDebuggable)
+            {
+                return false;
+            }
+
+            // Add debug documents for all trees with distinct paths.
+            foreach (var tree in SyntaxTrees)
+            {
+                if (!string.IsNullOrEmpty(tree.FilePath))
+                {
+                    // compilation does not guarantee that all trees will have distinct paths.
+                    // Do not attempt adding a document for a particular path if we already added one.
+                    string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(tree.FilePath, basePath: null);
+                    var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
+                    if (existingDoc == null)
+                    {
+                        documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
+                            normalizedPath, 
+                            DebugSourceDocumentLanguageId, 
+                            () => tree.GetChecksumAndAlgorithm()));
+                    }
+                }
+            }
+
+            // Add debug documents for all pragmas. 
+            // If there are clashes with already processed directives, report warnings.
+            // If there are clashes with debug documents that came from actual trees, ignore the pragma.
+            foreach (var tree in SyntaxTrees)
+            {
+                AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);
+            }
+
+            return true;
+        }
+
+        internal abstract Guid DebugSourceDocumentLanguageId { get; }
+
+        internal abstract void AddDebugSourceDocumentsForChecksumDirectives(DebugDocumentsBuilder documentsBuilder, SyntaxTree tree, DiagnosticBag diagnostics);
+
         /// <summary>
         /// Update resources and generate XML documentation comments.
         /// </summary>
