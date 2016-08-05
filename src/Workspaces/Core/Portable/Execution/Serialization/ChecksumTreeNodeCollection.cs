@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -258,33 +259,36 @@ namespace Microsoft.CodeAnalysis.Execution
                 Func<TValue, string, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
                 where TKey : class where TChecksumObject : ChecksumObject
             {
-                Contract.ThrowIfNull(key);
-
-                // ask myself
-                ChecksumObject checksumObject;
-                var entry = TryGetChecksumObjectEntry(key, kind, cancellationToken);
-                if (entry != null && entry.TryGetValue(kind, out checksumObject))
+                using (Logger.LogBlock(FunctionId.ChecksumTreeNodeCache_GetOrCreateChecksumObjectAsync, CreateLogMessage, key, kind, cancellationToken))
                 {
+                    Contract.ThrowIfNull(key);
+
+                    // ask myself
+                    ChecksumObject checksumObject;
+                    var entry = TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                    if (entry != null && entry.TryGetValue(kind, out checksumObject))
+                    {
+                        return (TChecksumObject)SaveAndReturn(key, checksumObject, entry);
+                    }
+
+                    // ask owner
+                    entry = _owner.TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                    if (entry == null)
+                    {
+                        // owner doesn't have it, create one.
+                        checksumObject = await valueGetterAsync(value, kind, cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (!entry.TryGetValue(kind, out checksumObject))
+                    {
+                        // owner doesn't have this particular kind, create one.
+                        checksumObject = await valueGetterAsync(value, kind, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    // record local copy (reference) and return it.
+                    // REVIEW: we can go ref count route rather than this (local copy). but then we need to make sure there is no leak.
+                    //         for now, we go local copy route since overhead is small (just duplicated reference pointer), but reduce complexity a lot.
                     return (TChecksumObject)SaveAndReturn(key, checksumObject, entry);
                 }
-
-                // ask owner
-                entry = _owner.TryGetChecksumObjectEntry(key, kind, cancellationToken);
-                if (entry == null)
-                {
-                    // owner doesn't have it, create one.
-                    checksumObject = await valueGetterAsync(value, kind, cancellationToken).ConfigureAwait(false);
-                }
-                else if (!entry.TryGetValue(kind, out checksumObject))
-                {
-                    // owner doesn't have this particular kind, create one.
-                    checksumObject = await valueGetterAsync(value, kind, cancellationToken).ConfigureAwait(false);
-                }
-
-                // record local copy (reference) and return it.
-                // REVIEW: we can go ref count route rather than this (local copy). but then we need to make sure there is no leak.
-                //         for now, we go local copy route since overhead is small (just duplicated reference pointer), but reduce complexity a lot.
-                return (TChecksumObject)SaveAndReturn(key, checksumObject, entry);
             }
 
             private ChecksumObject SaveAndReturn(object key, ChecksumObject checksumObject, ChecksumObjectCache entry = null)
@@ -300,9 +304,32 @@ namespace Microsoft.CodeAnalysis.Execution
                 return entry.GetOrCreateSubTreeNodeCache(_owner, Solution);
             }
 
-            internal void TestOnly_ClearCache()
+            private static string CreateLogMessage<T>(T key, string kind)
             {
-                _cache.Clear();
+                return $"{kind} - {GetLogInfo(key) ?? "unknown"}";
+            }
+
+            private static string GetLogInfo<T>(T key)
+            {
+                var solution = key as Solution;
+                if (solution != null)
+                {
+                    return solution.FilePath;
+                }
+
+                var projectState = key as ProjectState;
+                if (projectState != null)
+                {
+                    return projectState.FilePath;
+                }
+
+                var documentState = key as DocumentState;
+                if (documentState != null)
+                {
+                    return documentState.FilePath;
+                }
+
+                return "no detail";
             }
         }
 
