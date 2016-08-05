@@ -19,6 +19,7 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
+    <SyntaxDefinition>$(MSBuildThisFileDirectory)Syntax\Syntax.xml</SyntaxDefinition>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
@@ -892,7 +893,9 @@
     </BoundTreeDefinition>
     <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.cs" />
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.cs" />
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Syntax.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Main.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Internal.Generated.cs" />
     <Compile Include="Errors\ErrorCode.cs" />
     <EmbeddedResource Include="CSharpResources.resx">
       <SubType>Designer</SubType>
@@ -900,9 +903,6 @@
       <LastGenOutput>CSharpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <ErrorCode Include="Errors\ErrorCode.cs" />
-    <SyntaxDefinition Include="Syntax\Syntax.xml">
-      <SubType>Designer</SubType>
-    </SyntaxDefinition>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
