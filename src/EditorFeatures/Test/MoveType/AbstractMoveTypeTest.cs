@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             bool compareTokens)
         {
             var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
-            var action = actions.Single(a => a.Title.StartsWith(operation));
+            var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
             var operations = await action.GetOperationsAsync(CancellationToken.None);
 
             return await TestOperationsAsync(workspace,

@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public MoveTypeEditor(
                 TService service,
                 State state,
-                CancellationToken cancellationToken) : base(service, state, cancellationToken)
+                string fileName,
+                CancellationToken cancellationToken) : base(service, state, fileName, cancellationToken)
             {
             }
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // Fork, update and add as new document.
                 var projectToBeUpdated = SemanticDocument.Document.Project;
-                var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, State.TargetFileNameCandidate);
+                var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, FileName);
 
                 var solutionWithNewDocument = await AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(newDocumentId).ConfigureAwait(false);
 
@@ -70,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private async Task<Solution> AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(
                 DocumentId newDocumentId)
             {
-                Debug.Assert(SemanticDocument.Document.Name != State.TargetFileNameCandidate,
-                             $"New document name is same as old document name:{State.TargetFileNameCandidate}");
+                Debug.Assert(SemanticDocument.Document.Name != FileName,
+                             $"New document name is same as old document name:{FileName}");
 
                 var root = SemanticDocument.Root;
                 var projectToBeUpdated = SemanticDocument.Document.Project;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var modifiedRoot = documentEditor.GetChangedRoot();
 
                 // add an empty document to solution, so that we'll have options from the right context.
-                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId, State.TargetFileNameCandidate, text: string.Empty);
+                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId, FileName, text: string.Empty);
 
                 // update the text for the new document
                 solutionWithNewDocument = solutionWithNewDocument.WithDocumentSyntaxRoot(newDocumentId, modifiedRoot, PreservationMode.PreserveIdentity);
