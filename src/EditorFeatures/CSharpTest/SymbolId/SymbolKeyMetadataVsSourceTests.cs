@@ -432,5 +432,42 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void RecursiveReferenceToConstructedGeneric()
+        {
+            var src1 = 
+@"using System.Collections.Generic;
+
+class C
+{
+    public void M<Z>(List<Z> list)
+    {
+        var v = list.Add(default(Z));
+    }
+}";
+
+            var comp1 = CreateCompilationWithMscorlib(src1);
+
+            var symbols1 = GetSourceSymbols(comp1, includeLocal: true).ToList();
+            foreach (var symbol in symbols1)
+            {
+                // First, make sure that all the symbols in this file resolve properly 
+                // to themselves.
+                ResolveAndVerifySymbol(symbol, symbol, comp1);
+
+                var nsOrType = symbol as INamespaceOrTypeSymbol;
+                if (nsOrType != null)
+                {
+                    foreach (var member in nsOrType.GetMembers())
+                    {
+                        // Now do this for the members of types we see.  We want this 
+                        // so we hit things like the members of the constructed type
+                        // List<Z>
+                        ResolveAndVerifySymbol(member, member, comp1);
+                    }
+                }
+            }
+        }
     }
 }

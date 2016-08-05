@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis
 
                 StartKey();
                 symbol.Accept(this);
-                WriteInteger(id);
 
                 if (!shouldWriteOrdinal)
                 {
@@ -184,11 +183,23 @@ namespace Microsoft.CodeAnalysis
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
                     // the innermost one out, we'll give it a reference ID.  When we
                     // then hit the outermost one, we want to just reuse that one.
-                    if (!_symbolToId.ContainsKey(symbol))
+                    int existingId;
+                    if (_symbolToId.TryGetValue(symbol, out existingId))
                     {
+                        // While we recursed, we already hit this symbol.  Use its ID as our
+                        // ID.
+                        id = existingId;
+                    }
+                    else
+                    {
+                        // Haven't hit this symbol before, write out its fresh ID.
                         _symbolToId.Add(symbol, id);
                     }
                 }
+
+                // Now write out the ID for this symbol so that any future hits of it can 
+                // write out a reference to it instead.
+                WriteInteger(id);
 
                 EndKey();
             }
