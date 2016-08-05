@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
             SubsystemVersion subsystemVersion = SubsystemVersion.None;
-            LanguageVersion languageVersion = CSharpParseOptions.Default.LanguageVersion;
+            LanguageVersion languageVersion = LanguageVersion.Default;
             string mainTypeName = null;
             string win32ManifestFile = null;
             string win32ResourceFile = null;
@@ -1695,11 +1695,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool TryParseLanguageVersion(string str, out LanguageVersion version)
         {
-            var defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
-
             if (str == null)
             {
-                version = defaultVersion;
+                version = LanguageVersion.Default;
                 return true;
             }
 
@@ -1718,7 +1716,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case "default":
-                    version = defaultVersion;
+                    version = LanguageVersion.Default;
+                    return true;
+
+                case "latest":
+                    version = LanguageVersion.Latest;
                     return true;
 
                 default:
@@ -1735,7 +1737,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         version = (LanguageVersion)versionNumber;
                         return true;
                     }
-                    version = defaultVersion;
+
+                    version = LanguageVersion.Default;
                     return false;
             }
         }

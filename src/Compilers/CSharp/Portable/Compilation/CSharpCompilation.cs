@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return result ?? CSharpParseOptions.Default.LanguageVersion;
+            return result ?? LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
         }
 
         /// <summary>
