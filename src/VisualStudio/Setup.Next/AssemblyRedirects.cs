@@ -12,3 +12,7 @@ using Roslyn.VisualStudio.Setup;
     OldVersionLowerBound = "14.0.0.0",
     OldVersionUpperBound = "14.9.9.9",
     NewVersion = "15.0.0.0")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\StreamJsonRpc.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.ServiceHub.Client.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Newtonsoft.Json.dll")]

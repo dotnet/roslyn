@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 candidateType = parameterType;
                             }
-                            else if (!candidateType.Equals(parameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+                            else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
                             {
                                 // type mismatch
                                 candidateType = null;

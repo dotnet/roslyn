@@ -63,9 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBodyFactory = methodBodyFactory;
 
             // The first point indicates entry into the method and has the span of the method definition.
-            Text.TextSpan? alternateStartSpan;
-            CSharpSyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax, out alternateStartSpan);
-            _methodEntryInstrumentation = AddAnalysisPoint(syntax, alternateStartSpan, methodBodyFactory);
+            CSharpSyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
+            _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
         }
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
@@ -241,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Instrument the statement using a factory with the same syntax as the statement, so that the instrumentation appears to be part of the statement.
             SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _methodBodyFactory.CompilationState, _diagnostics);
-            return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), null, statementFactory), rewritten);
+            return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten);
         }
 
         private Cci.DebugSourceDocument GetSourceDocument(CSharpSyntaxNode syntax)
@@ -261,14 +260,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _debugDocumentProvider.Invoke(path, basePath: "");
         }
 
-        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, Text.TextSpan? alternateStartSpan, SyntheticBoundNodeFactory statementFactory)
+        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, Text.TextSpan alternateSpan, SyntheticBoundNodeFactory statementFactory)
         {
-            FileLinePositionSpan endSpan = syntaxForSpan.GetLocation().GetMappedLineSpan();
-            FileLinePositionSpan startSpan = alternateStartSpan.HasValue ? syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateStartSpan.Value) : endSpan;
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateSpan), statementFactory);
+        }
 
+        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
+        {
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetLocation().GetMappedLineSpan(), statementFactory);
+        }
+
+        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, FileLinePositionSpan span, SyntheticBoundNodeFactory statementFactory)
+        {
             // Add an entry in the spans array.
             int spansIndex = _spansBuilder.Count;
-            _spansBuilder.Add(new SourceSpan(GetSourceDocument(syntaxForSpan, startSpan), startSpan.StartLinePosition.Line, startSpan.StartLinePosition.Character, endSpan.EndLinePosition.Line, endSpan.EndLinePosition.Character));
+            _spansBuilder.Add(new SourceSpan(GetSourceDocument(syntaxForSpan, span), span.StartLinePosition.Line, span.StartLinePosition.Character, span.EndLinePosition.Line, span.EndLinePosition.Character));
 
             // Generate "_payload[pointIndex] = true".
             BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
@@ -335,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics, syntax: syntax);
         }
 
-        private static CSharpSyntaxNode MethodDeclarationIfAvailable(CSharpSyntaxNode body, out Text.TextSpan? alternateStartSpan)
+        private static CSharpSyntaxNode MethodDeclarationIfAvailable(CSharpSyntaxNode body)
         {
             CSharpSyntaxNode parent = body.Parent;
 
@@ -350,55 +356,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
 
-                        body = parent;
-                        break;
+                        return parent;
                 }
             }
 
-            // If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.
-            // AlternateStartSpan gives the starting point of the span if attributes are present.
-
-            alternateStartSpan = SkipAttributes(body);
             return body;
         }
 
-        private static Text.TextSpan? SkipAttributes(CSharpSyntaxNode node)
+        // If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.
+        private static Text.TextSpan SkipAttributes(CSharpSyntaxNode syntax)
         {
-            switch (node.Kind())
+            switch (syntax.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)node;
-                    return SkipAttributes(methodSyntax.AttributeLists, methodSyntax.Modifiers, methodSyntax.RefKeyword, methodSyntax.ReturnType);
+                    MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, methodSyntax.AttributeLists, methodSyntax.Modifiers, methodSyntax.RefKeyword, methodSyntax.ReturnType);
 
                 case SyntaxKind.PropertyDeclaration:
-                    PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)node;
-                    return SkipAttributes(propertySyntax.AttributeLists, propertySyntax.Modifiers, propertySyntax.RefKeyword, propertySyntax.Type);
+                    PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, propertySyntax.RefKeyword, propertySyntax.Type);
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)node;
-                    return SkipAttributes(accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
+                    AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
 
                 case SyntaxKind.ConstructorDeclaration:
-                    ConstructorDeclarationSyntax constructorSyntax = (ConstructorDeclarationSyntax)node;
-                    return SkipAttributes(constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, null);
+                    ConstructorDeclarationSyntax constructorSyntax = (ConstructorDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, null);
 
                 case SyntaxKind.OperatorDeclaration:
-                    OperatorDeclarationSyntax operatorSyntax = (OperatorDeclarationSyntax)node;
-                    return SkipAttributes(operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
+                    OperatorDeclarationSyntax operatorSyntax = (OperatorDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
             }
 
-            return null;
+            return syntax.Span;
         }
-
-        private static Text.TextSpan? SkipAttributes(SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
+        
+        private static Text.TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
         {
+            Text.TextSpan originalSpan = syntax.Span;
             if (attributes.Count > 0)
             {
-                return modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type.Span);
+                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type.Span);
+                return new Text.TextSpan(startSpan.Start, originalSpan.Length - (startSpan.Start - originalSpan.Start));
             }
 
-            return null;
+            return originalSpan;
         }
     }
 }

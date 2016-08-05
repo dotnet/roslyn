@@ -19,13 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Guid Id { get; }
 
-        private ProjectId(string debugName)
-        {
-            this.Id = Guid.NewGuid();
-            _debugName = debugName;
-        }
-
-        internal ProjectId(Guid guid, string debugName)
+        private ProjectId(Guid guid, string debugName)
         {
             this.Id = guid;
             _debugName = debugName;
@@ -37,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static ProjectId CreateNewId(string debugName = null)
         {
-            return new ProjectId(debugName);
+            return new ProjectId(Guid.NewGuid(), debugName);
         }
 
         public static ProjectId CreateFromSerialized(Guid id, string debugName = null)
@@ -50,14 +44,11 @@ namespace Microsoft.CodeAnalysis
             return new ProjectId(id, debugName);
         }
 
+        internal string DebugName => _debugName;
+
         private string GetDebuggerDisplay()
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
-        }
-
-        internal string DebugName
-        {
-            get { return _debugName; }
         }
 
         public override string ToString()

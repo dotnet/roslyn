@@ -130,25 +130,32 @@ namespace Microsoft.Cci
                 new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) :
                 null;
 
+            BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitStandaloneDebugMetadata)
             {
-                Debug.Assert(getPortablePdbStreamOpt != null);
-
                 var portablePdbBlob = new BlobBuilder();
                 var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes, debugEntryPointHandle, deterministicIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
-                // write to Portable PDB stream:
-                Stream portablePdbStream = getPortablePdbStreamOpt();
-                if (portablePdbStream != null)
+                if (getPortablePdbStreamOpt == null)
                 {
-                    portablePdbBlob.WriteContentTo(portablePdbStream);
+                    // embed to debug directory:
+                    portablePdbToEmbed = portablePdbBlob;
+                }
+                else
+                {
+                    // write to Portable PDB stream:
+                    Stream portablePdbStream = getPortablePdbStreamOpt();
+                    if (portablePdbStream != null)
+                    {
+                        portablePdbBlob.WriteContentTo(portablePdbStream);
+                    }
                 }
             }
 
             DebugDirectoryBuilder debugDirectoryBuilder;
-            if (pdbPathOpt != null || isDeterministic)
+            if (pdbPathOpt != null || isDeterministic || portablePdbToEmbed != null)
             {
                 debugDirectoryBuilder = new DebugDirectoryBuilder();
                 if (pdbPathOpt != null)
@@ -160,6 +167,11 @@ namespace Microsoft.Cci
                 if (isDeterministic)
                 {
                     debugDirectoryBuilder.AddReproducibleEntry();
+                }
+
+                if (portablePdbToEmbed != null)
+                {
+                    debugDirectoryBuilder.AddEmbeddedPortablePdbEntry(portablePdbToEmbed, portablePdbVersion);
                 }
             }
             else

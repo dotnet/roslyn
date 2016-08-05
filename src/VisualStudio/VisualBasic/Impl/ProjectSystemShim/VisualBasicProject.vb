@@ -5,6 +5,7 @@ Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
@@ -40,10 +41,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
-                       reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors),
-                       visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl,
-                       hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource)
-            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+                       Optional reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors) = Nothing,
+                       Optional visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl = Nothing,
+                       Optional hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource = Nothing,
+                       Optional commandLineParserServiceOpt As ICommandLineParserService = Nothing)
+            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic,
+                       serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
 
             _compilerHost = compilerHost
 
@@ -429,10 +432,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 _runtimeLibraries = newRuntimeLibraries
             End If
         End Sub
-
-        Protected Overrides Function ParseCommandLineArguments(arguments As IEnumerable(Of String)) As CommandLineArguments
-            Return VisualBasicCommandLineParser.Default.Parse(arguments, ContainingDirectoryPathOpt, sdkDirectory:=Nothing)
-        End Function
 
         Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName
             Throw New NotImplementedException()

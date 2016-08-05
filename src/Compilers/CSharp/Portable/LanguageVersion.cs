@@ -57,14 +57,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </list> 
         /// </remarks> 
         CSharp6 = 6,
+
         /// <summary>
         /// C# language version 7.
         /// </summary>
         CSharp7 = 7,
+
+        /// <summary>
+        /// The latest version of the language supported.
+        /// </summary>
+        Latest = int.MaxValue,
     }
 
     internal static partial class LanguageVersionExtensions
     {
+        internal static LanguageVersion MapLatestToVersion(this LanguageVersion version)
+        {
+            return (version == LanguageVersion.Latest) ? LanguageVersion.CSharp7 : version;
+        }
+
         internal static bool IsValid(this LanguageVersion value)
         {
             return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp7;

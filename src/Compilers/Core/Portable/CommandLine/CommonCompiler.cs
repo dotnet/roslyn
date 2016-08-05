@@ -406,6 +406,7 @@ namespace Microsoft.CodeAnalysis
                 var finalXmlFilePath = Arguments.DocumentationPath;
 
                 var diagnosticBag = DiagnosticBag.GetInstance();
+                Stream sourceLinkStreamOpt = null;
 
                 try
                 {
@@ -427,11 +428,17 @@ namespace Microsoft.CodeAnalysis
                         emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
                     }
 
+                    if (Arguments.SourceLink != null)
+                    {
+                        sourceLinkStreamOpt = OpenFile(Arguments.SourceLink, consoleOutput, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read);
+                    }
+
                     var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
                         diagnosticBag,
                         Arguments.ManifestResources,
                         emitOptions,
                         debugEntryPoint: null,
+                        sourceLinkStream: sourceLinkStreamOpt,
                         testData: null,
                         cancellationToken: cancellationToken);
 
@@ -513,8 +520,10 @@ namespace Microsoft.CodeAnalysis
 
                         if (success)
                         {
+                            bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
+
                             using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath))
-                            using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
+                            using (var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
                             {
                                 success = compilation.SerializeToPeStream(
                                     moduleBeingBuilt,
@@ -546,6 +555,7 @@ namespace Microsoft.CodeAnalysis
                 finally
                 {
                     diagnosticBag.Free();
+                    sourceLinkStreamOpt?.Dispose();
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
