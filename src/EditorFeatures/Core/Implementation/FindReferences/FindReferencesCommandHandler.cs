@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
-        private readonly IEnumerable<IStreamingFindReferencesPresenter> _streamingPresenters;
+        private readonly IEnumerable<Lazy<IStreamingFindReferencesPresenter>> _streamingPresenters;
 
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
-            [ImportMany] IEnumerable<IStreamingFindReferencesPresenter> streamingPresenters,
+            [ImportMany] IEnumerable<Lazy<IStreamingFindReferencesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             Contract.ThrowIfNull(synchronousPresenters);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var streamingService = document.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
             var synchronousService = document.Project.LanguageServices.GetService<IFindReferencesService>();
 
-            var streamingPresenter = _streamingPresenters.FirstOrDefault();
+            var streamingPresenter = GetStreamingPresenter();
 
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
@@ -98,6 +98,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
 
             return false;
+        }
+
+        private IStreamingFindReferencesPresenter GetStreamingPresenter()
+        {
+            try
+            {
+                return _streamingPresenters.FirstOrDefault()?.Value;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private async void StreamingFindReferences(
