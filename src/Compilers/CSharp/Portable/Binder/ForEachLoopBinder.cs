@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (_syntax is ForEachStatementSyntax) ? (SourceLocalSymbol)this.Locals[0] : null;
+                return (_syntax.Kind() == SyntaxKind.ForEachStatement) ? (SourceLocalSymbol)this.Locals[0] : null;
             }
         }
 

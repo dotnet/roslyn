@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (current is VariableComponentSyntax &&
                              (current.Parent is VariableComponentAssignmentSyntax) &&
-                             (current.Parent.Parent as ForStatementSyntax)?.Deconstuction == current)
+                             (current.Parent.Parent as ForStatementSyntax)?.Deconstruction == current)
                 {
                     binder = rootBinder.GetBinder(current.Parent.Parent);
                 }

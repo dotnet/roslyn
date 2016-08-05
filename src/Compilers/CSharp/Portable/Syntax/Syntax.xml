@@ -2093,7 +2093,7 @@
       <Kind Name="RefKeyword"/>
     </Field>
     <!-- Deconstruction, Declaration, and Initializers are mutually exclusive. -->
-    <Field Name="Deconstuction" Type="VariableComponentAssignmentSyntax" Optional="true"/>
+    <Field Name="Deconstruction" Type="VariableComponentAssignmentSyntax" Optional="true"/>
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="FirstSemicolonToken" Type="SyntaxToken">

@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var forStatement = (ForStatementSyntax)statement;
                         var forBinder = this.binder.GetBinder(forStatement);
                         var newForBinder = new ImplicitlyTypedLocalBinder(forBinder, this);
-                        newForBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstuction.VariableComponent, forStatement.Deconstuction.Value, diagnostics);
+                        newForBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForEachComponentStatement:

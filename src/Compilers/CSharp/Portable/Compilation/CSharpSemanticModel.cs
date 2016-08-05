@@ -544,26 +544,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private SymbolInfo TypeFromLocal(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
-            TypeSymbol deconstructionType = (GetDeclaredSymbol(variableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+            TypeSymbol variableType = (GetDeclaredSymbol(variableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
 
-            if (deconstructionType?.IsErrorType() == false)
+            if (variableType?.IsErrorType() == false)
             {
-                return new SymbolInfo(deconstructionType);
+                return new SymbolInfo(variableType);
             }
 
             return SymbolInfo.None;
         }
 
         /// <summary>
-        /// Given a variable declaration, figure out its type by looking at the declared symbol of the corresponding local.
+        /// Given a variable designation (typically in the left-hand-side of a deconstruction declaration statement),
+        /// figure out its type by looking at the declared symbol of the corresponding local.
         /// </summary>
         private SymbolInfo TypeFromLocal(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
         {
-            TypeSymbol deconstructionType = (GetDeclaredSymbol(variableDesignation, cancellationToken) as LocalSymbol)?.Type;
+            TypeSymbol variableType = (GetDeclaredSymbol(variableDesignation, cancellationToken) as LocalSymbol)?.Type;
 
-            if (deconstructionType?.IsErrorType() == false)
+            if (variableType?.IsErrorType() == false)
             {
-                return new SymbolInfo(deconstructionType);
+                return new SymbolInfo(variableType);
             }
 
             return SymbolInfo.None;
