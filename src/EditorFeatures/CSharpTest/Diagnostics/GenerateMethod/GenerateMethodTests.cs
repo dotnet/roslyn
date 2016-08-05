@@ -2919,7 +2919,84 @@ public class Test
 }");
         }
 
-        [WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
+		[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+		[WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+		public async Task TestNoOverloadOnEventAssignment()
+		{
+			await TestAsync(
+@"class Program
+{
+    void Main(string[] args)
+    {
+        [|myEvent += OnChanged|];
+    }
+    delegate void MyDel(int arg);
+    static event MyDel myEvent;
+
+    private void OnChanged() { }
+}
+",
+@"using System;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        myEvent += OnChanged;
+    }
+
+    private void OnChanged(int arg)
+    {
+        throw new NotImplementedException();
+    }
+
+    delegate void MyDel(int arg);
+    static event MyDel myEvent;
+
+    private void OnChanged() { }
+}");
+		}
+
+		[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+		[WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+		public async Task TestNoOverloadOnEventAssignmentBracketed_Bracketed()
+		{
+			await TestAsync(
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    private void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        [|collection.CollectionChanged += (OnChanged)|];
+    }
+
+    private void OnChanged() { }
+}",
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    private void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += (OnChanged);
+    }
+
+    private void OnChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+   private void OnChanged() { }
+}");
+		}
+
+
+		[WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForOverloadedSignatureWithDelegateType()
         {
