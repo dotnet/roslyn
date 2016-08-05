@@ -194,13 +194,32 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 lock (_gate)
                 {
+                    // Find any definitions that we didn't have any references to. But only show 
+                    // them if they want to be displayed without any references.  This will 
+                    // ensure that we still see things like overrides and whatnot, but we
+                    // won't show property-accessors.
                     var seenDefinitions = this._entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
                     var q = from definition in _definitions
                             where !seenDefinitions.Contains(definition) &&
                                   definition.DisplayIfNoReferences
                             select definition;
 
-                    return ImmutableArray.CreateRange(q);
+                    // If we find at least one of these tyeps of definitions, then just return those.
+                    var result = ImmutableArray.CreateRange(q);
+                    if (result.Length > 0)
+                    {
+                        return result;
+                    }
+
+                    // We found no definitions that *want* to be displayed.  However, we still 
+                    // want to show something.  So, if necessary, show at lest the first definition
+                    // even if we found no references and even if it would prefer to not be seen.
+                    if (_entries.Count == 0 && _definitions.Count > 0)
+                    {
+                        return ImmutableArray.Create(_definitions.First());
+                    }
+
+                    return ImmutableArray<DefinitionItem>.Empty;
                 }
             }
 

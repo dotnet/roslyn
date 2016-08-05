@@ -34,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations();
+            return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations(
+                showMetadataSymbolsWithoutReferences: true);
         }
 
-        public static bool ShouldShowWithNoReferenceLocations(this ISymbol definition)
+        public static bool ShouldShowWithNoReferenceLocations(
+            this ISymbol definition, bool showMetadataSymbolsWithoutReferences)
         {
             // If the definition is implicit and we have no references, then we don't want to
             // clutter the UI with it.
@@ -54,8 +56,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Otherwise we still show the item even if there are no references to it.
-            // And it's at least a source/metadata definition.
-            return definition.Locations.Any(loc => loc.IsInSource || loc.IsInMetadata);
+            // And it's at least a source definition.
+            if (definition.Locations.Any(loc => loc.IsInSource))
+            {
+                return true;
+            }
+
+            if (showMetadataSymbolsWithoutReferences &&
+                definition.Locations.Any(loc => loc.IsInMetadata))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static IEnumerable<ReferencedSymbol> FilterToAliasMatches(

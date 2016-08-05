@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
-            var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations();
+            var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
+                showMetadataSymbolsWithoutReferences: false);
 
             var sourceLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
 
