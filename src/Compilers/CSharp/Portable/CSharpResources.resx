@@ -4430,6 +4430,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                (including module version GUID and timestamp)
  /instrument:options           Sets instrumentation options.
                                If empty instrumentation is disabled.
+ /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4934,5 +4935,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
     <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
 </root>

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Emit;
+using System.IO;
 
 namespace Microsoft.Cci
 {
@@ -212,6 +213,8 @@ namespace Microsoft.Cci
         /// Used to determine capacities of lists and indices when emitting debug info.
         /// </summary>
         int DebugDocumentCount { get; }
+
+        Stream SourceLinkStream { get; }
     }
 
     internal struct DefinitionWithLocation

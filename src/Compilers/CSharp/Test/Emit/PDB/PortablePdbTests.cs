@@ -8,6 +8,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -251,6 +252,115 @@ class C
                 Assert.Equal(0U, reproducible.Stamp);
                 Assert.Equal(0, reproducible.DataSize);
             }
+        }
+
+        [Fact]
+        public void SourceLink()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var sourceLinkBlob = Encoding.UTF8.GetBytes(@"
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*""
+  }
+}
+");
+
+            var c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+
+            var pdbStream = new MemoryStream();
+            c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream, sourceLinkStream: new MemoryStream(sourceLinkBlob));
+            pdbStream.Position = 0;
+
+            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
+            {
+                var pdbReader = provider.GetMetadataReader();
+
+                var actualBlob = 
+                    (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                     let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
+                     where pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink
+                     select pdbReader.GetBlobBytes(cdi.Value)).Single();
+
+                AssertEx.Equal(sourceLinkBlob, actualBlob);
+            }
+        }
+
+        [Fact]
+        public void SourceLink_Embedded()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var sourceLinkBlob = Encoding.UTF8.GetBytes(@"
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*""
+  }
+}
+");
+            var c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+
+            var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream: new MemoryStream(sourceLinkBlob));
+
+            using (var peReader = new PEReader(peBlob))
+            {
+                var embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+
+                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
+                {
+                    var pdbReader = embeddedMetadataProvider.GetMetadataReader();
+
+                    var actualBlob =
+                        (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                         let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
+                         where pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink
+                         select pdbReader.GetBlobBytes(cdi.Value)).Single();
+
+                    AssertEx.Equal(sourceLinkBlob, actualBlob);
+                }
+            }
+        }
+
+        [Fact]
+        public void SourceLink_Errors()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var sourceLinkStream = new TestStream(canRead: true, readFunc: (_, __, ___) => { throw new Exception("Error!"); });
+
+            var c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.cs"), options: TestOptions.DebugDll);
+            var result = c.Emit(new MemoryStream(), new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream: sourceLinkStream);
+            result.Diagnostics.Verify(
+                // error CS0041: Unexpected error writing debug information -- 'Error!'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Error!").WithLocation(1, 1));
         }
     }
 }
