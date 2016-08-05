@@ -4290,6 +4290,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node);
 
         /// <summary>
+        /// Gets for each statement info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node);
+
+        /// <summary>
         /// Gets await expression info.
         /// </summary>
         /// <param name="node">The node.</param>

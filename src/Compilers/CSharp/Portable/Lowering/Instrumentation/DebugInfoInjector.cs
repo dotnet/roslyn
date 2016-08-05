@@ -246,10 +246,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundStatement InstrumentForEachStatementIterationVarDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
-            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
-            TextSpan iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
-            return new BoundSequencePointWithSpan(forEachSyntax, 
-                                                  base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl), 
+            TextSpan iterationVarDeclSpan;
+            switch (original.Syntax.Kind())
+            {
+                case SyntaxKind.ForEachStatement:
+                    {
+                        var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+                        iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
+                        break;
+                    }
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
+                        iterationVarDeclSpan = forEachSyntax.VariableComponent.Span;
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(original.Syntax.Kind());
+            }
+            return new BoundSequencePointWithSpan(original.Syntax,
+                                                  base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl),
                                                   iterationVarDeclSpan);
         }
 

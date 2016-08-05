@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         switch (token.Kind())
                         {
                             case SyntaxKind.ForEachKeyword:
-                                return SpecializedCollections.SingletonEnumerable(((ForEachStatementSyntax)token.Parent).Expression.GetLocation());
+                                return SpecializedCollections.SingletonEnumerable(((CommonForEachStatementSyntax)token.Parent).Expression.GetLocation());
                         }
                     }
                 }

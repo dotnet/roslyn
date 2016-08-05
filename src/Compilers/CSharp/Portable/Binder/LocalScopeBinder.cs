@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (declaration.Kind())
             {
-                case SyntaxKind.TupleDeconstructionVariableComponent:
+                case SyntaxKind.ParenthesizedVariableComponent:
                     {
-                        var component = (TupleDeconstructionVariableComponentSyntax)declaration;
+                        var component = (ParenthesizedVariableComponentSyntax)declaration;
                         foreach (var decl in component.Variables)
                         {
                             CollectLocalsFromDeconstruction(decl, kind, locals);
@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locals.Add(localSymbol);
                         break;
                     }
-                case SyntaxKind.TupleDeconstructionVariableDesignation:
+                case SyntaxKind.ParenthesizedVariableDesignation:
                     {
-                        var tuple = (TupleDeconstructionVariableDesignationSyntax)designation;
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
                         foreach (var d in tuple.Variables)
                         {
                             CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals);

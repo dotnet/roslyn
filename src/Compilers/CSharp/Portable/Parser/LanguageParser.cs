@@ -8475,7 +8475,7 @@ tryAgain:
                 }
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 SeparatedSyntaxList<VariableComponentSyntax> components = listOfComponents;
-                result = _syntaxFactory.TupleDeconstructionVariableComponent(openParen, listOfComponents, closeParen);
+                result = _syntaxFactory.ParenthesizedVariableComponent(openParen, listOfComponents, closeParen);
                 _pool.Free(listOfComponents);
             }
             else
@@ -8493,9 +8493,9 @@ tryAgain:
         {
             switch (node.Kind)
             {
-                case SyntaxKind.TupleDeconstructionVariableComponent:
+                case SyntaxKind.ParenthesizedVariableComponent:
                     {
-                        var syntax = (TupleDeconstructionVariableComponentSyntax)node;
+                        var syntax = (ParenthesizedVariableComponentSyntax)node;
                         if (syntax.Variables.Count <= 1) return false;
                         for (int i = 0; i < syntax.Variables.Count; i += 2)
                         {
@@ -8510,7 +8510,7 @@ tryAgain:
                 case SyntaxKind.TypedVariableComponent:
                     {
                         var syntax = (TypedVariableComponentSyntax)node;
-                        if (syntax.Designation.Kind == SyntaxKind.TupleDeconstructionVariableDesignation)
+                        if (syntax.Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation)
                         {
                             // check that the type is "var"
                             if (syntax.Type.Kind != SyntaxKind.IdentifierName ||
@@ -8535,9 +8535,9 @@ tryAgain:
                     {
                         return !topLevel;
                     }
-                case SyntaxKind.TupleDeconstructionVariableDesignation:
+                case SyntaxKind.ParenthesizedVariableDesignation:
                     {
-                        var syntax = (TupleDeconstructionVariableDesignationSyntax)node;
+                        var syntax = (ParenthesizedVariableDesignationSyntax)node;
                         return syntax.Variables.Count > 1;
                     }
                 default:
@@ -8568,7 +8568,7 @@ tryAgain:
                     }
                 }
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                result = _syntaxFactory.TupleDeconstructionVariableDesignation(openParen, listOfDesignations, closeParen);
+                result = _syntaxFactory.ParenthesizedVariableDesignation(openParen, listOfDesignations, closeParen);
                 _pool.Free(listOfDesignations);
             }
             else

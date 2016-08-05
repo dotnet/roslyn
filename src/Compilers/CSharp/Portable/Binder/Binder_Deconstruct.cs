@@ -560,10 +560,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var component = (TypedVariableComponentSyntax)node;
                         return BindDeconstructionDeclarationLocals(component.Type, component.Designation, diagnostics);
                     }
-                case SyntaxKind.TupleDeconstructionVariableComponent:
+                case SyntaxKind.ParenthesizedVariableComponent:
                     {
-                        var component = (TupleDeconstructionVariableComponentSyntax)node;
-                        var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
+                        var component = (ParenthesizedVariableComponentSyntax)node;
+                        var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Variables.Count);
                         foreach (var n in component.Variables)
                         {
                             builder.Add(BindDeconstructionDeclarationLocals(n, diagnostics));
@@ -584,9 +584,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var single = (SingleVariableDesignationSyntax)node;
                         return new DeconstructionVariable(BindDeconstructionDeclarationLocal(type, single, diagnostics), node);
                     }
-                case SyntaxKind.TupleDeconstructionVariableDesignation:
+                case SyntaxKind.ParenthesizedVariableDesignation:
                     {
-                        var tuple = (TupleDeconstructionVariableDesignationSyntax)node;
+                        var tuple = (ParenthesizedVariableDesignationSyntax)node;
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isVar)
             {
-                if (designation.Parent.Kind() == SyntaxKind.TupleDeconstructionVariableDesignation)
+                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
                 {
                     // An explicit type can only be provided next to the variable
                     Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);

@@ -712,6 +712,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static ForEachStatementInfo GetForEachStatementInfo(this SemanticModel semanticModel, CommonForEachStatementSyntax forEachStatement)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetForEachStatementInfo(forEachStatement);
+            }
+            else
+            {
+                return default(ForEachStatementInfo);
+            }
+        }
+
         public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel semanticModel, AwaitExpressionSyntax awaitExpression)
         {
             var csmodel = semanticModel as CSharpSemanticModel;

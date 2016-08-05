@@ -2109,5 +2109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberSemanticModel memberModel = GetMemberModel(node);
             return memberModel == null ? default(ForEachStatementInfo) : memberModel.GetForEachStatementInfo(node);
         }
+
+        public override ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel == null ? default(ForEachStatementInfo) : memberModel.GetForEachStatementInfo(node);
+        }
     }
 }

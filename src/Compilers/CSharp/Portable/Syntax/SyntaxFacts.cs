@@ -402,10 +402,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.DeconstructionDeclarationStatement:
                     case SyntaxKind.ForStatement:
                         return true;
-                    case SyntaxKind.TupleDeconstructionVariableComponent:
+                    case SyntaxKind.ParenthesizedVariableComponent:
                     case SyntaxKind.TypedVariableComponent:
                     case SyntaxKind.SingleVariableDesignation:
-                    case SyntaxKind.TupleDeconstructionVariableDesignation:
+                    case SyntaxKind.ParenthesizedVariableDesignation:
                     case SyntaxKind.VariableComponentAssignment:
                         continue;
                     default:

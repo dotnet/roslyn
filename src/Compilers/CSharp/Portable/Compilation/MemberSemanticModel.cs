@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (current is ExpressionSyntax && 
                             ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
                              (current.Parent as SwitchStatementSyntax)?.Expression == current ||
-                             (current.Parent as ForEachStatementSyntax)?.Expression == current ||
+                             (current.Parent as CommonForEachStatementSyntax)?.Expression == current ||
                              (current.Parent as IfStatementSyntax)?.Condition == current))
                 {
                     binder = rootBinder.GetBinder(current);
@@ -324,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ForEachStatement:
-                    var foreachStmt = (ForEachStatementSyntax)stmt;
+                case SyntaxKind.ForEachComponentStatement:
+                    var foreachStmt = (CommonForEachStatementSyntax)stmt;
                     if (LookupPosition.IsBetweenTokens(position, foreachStmt.OpenParenToken, foreachStmt.Statement.GetFirstToken()))
                     {
                         binder = binder.GetBinder(foreachStmt.Expression);
@@ -777,6 +778,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
+        {
+            return GetForEachStatementInfo((CommonForEachStatementSyntax)node);
+        }
+
+        public override ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node)
         {
             BoundForEachStatement boundForEach = (BoundForEachStatement)GetUpperBoundNode(node);
 

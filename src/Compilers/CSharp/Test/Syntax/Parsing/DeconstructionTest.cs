@@ -715,7 +715,7 @@ class C
                             {
                                 N(SyntaxKind.VariableComponentAssignment);
                                 {
-                                    N(SyntaxKind.TupleDeconstructionVariableComponent);
+                                    N(SyntaxKind.ParenthesizedVariableComponent);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.TypedVariableComponent);
@@ -799,10 +799,10 @@ class C
                             {
                                 N(SyntaxKind.VariableComponentAssignment);
                                 {
-                                    N(SyntaxKind.TupleDeconstructionVariableComponent);
+                                    N(SyntaxKind.ParenthesizedVariableComponent);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.TupleDeconstructionVariableComponent);
+                                        N(SyntaxKind.ParenthesizedVariableComponent);
                                         {
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.TypedVariableComponent);
@@ -906,7 +906,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "var");
                                         }
-                                        N(SyntaxKind.TupleDeconstructionVariableDesignation);
+                                        N(SyntaxKind.ParenthesizedVariableDesignation);
                                         {
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.SingleVariableDesignation);
@@ -983,10 +983,10 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "var");
                                         }
-                                        N(SyntaxKind.TupleDeconstructionVariableDesignation);
+                                        N(SyntaxKind.ParenthesizedVariableDesignation);
                                         {
                                             N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.TupleDeconstructionVariableDesignation);
+                                            N(SyntaxKind.ParenthesizedVariableDesignation);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
                                                 N(SyntaxKind.SingleVariableDesignation);
@@ -1138,7 +1138,7 @@ class C
                             {
                                 N(SyntaxKind.VariableComponentAssignment);
                                 {
-                                    N(SyntaxKind.TupleDeconstructionVariableComponent);
+                                    N(SyntaxKind.ParenthesizedVariableComponent);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.TypedVariableComponent);
@@ -1159,7 +1159,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken, "var");
                                             }
-                                            N(SyntaxKind.TupleDeconstructionVariableDesignation);
+                                            N(SyntaxKind.ParenthesizedVariableDesignation);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
                                                 N(SyntaxKind.SingleVariableDesignation);
@@ -1233,7 +1233,7 @@ class C
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.VariableComponentAssignment);
                                 {
-                                    N(SyntaxKind.TupleDeconstructionVariableComponent);
+                                    N(SyntaxKind.ParenthesizedVariableComponent);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.TypedVariableComponent);
@@ -1331,7 +1331,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "var");
                                         }
-                                        N(SyntaxKind.TupleDeconstructionVariableDesignation);
+                                        N(SyntaxKind.ParenthesizedVariableDesignation);
                                         {
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.SingleVariableDesignation);
@@ -1408,7 +1408,7 @@ class C
                             {
                                 N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.TupleDeconstructionVariableComponent);
+                                N(SyntaxKind.ParenthesizedVariableComponent);
                                 {
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.TypedVariableComponent);
@@ -1501,7 +1501,7 @@ class C
                                     {
                                         N(SyntaxKind.IdentifierToken, "var");
                                     }
-                                    N(SyntaxKind.TupleDeconstructionVariableDesignation);
+                                    N(SyntaxKind.ParenthesizedVariableDesignation);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.SingleVariableDesignation);

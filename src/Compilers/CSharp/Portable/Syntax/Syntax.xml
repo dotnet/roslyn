@@ -1845,8 +1845,8 @@
     <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Designation" Type="VariableDesignationSyntax"/>
   </Node>
-  <Node Name="TupleDeconstructionVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="TupleDeconstructionVariableComponent"/>
+  <Node Name="ParenthesizedVariableComponentSyntax" Base="VariableComponentSyntax">
+    <Kind Name="ParenthesizedVariableComponent"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
@@ -1872,8 +1872,8 @@
       <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
-  <Node Name="TupleDeconstructionVariableDesignationSyntax" Base="VariableDesignationSyntax">
-    <Kind Name="TupleDeconstructionVariableDesignation"/>
+  <Node Name="ParenthesizedVariableDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="ParenthesizedVariableDesignation"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>

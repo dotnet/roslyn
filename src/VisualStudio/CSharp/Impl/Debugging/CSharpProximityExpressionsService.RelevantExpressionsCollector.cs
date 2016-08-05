@@ -132,9 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
                 switch (component.Kind())
                 {
-                    case SyntaxKind.TupleDeconstructionVariableComponent:
+                    case SyntaxKind.ParenthesizedVariableComponent:
                         {
-                            var t = (TupleDeconstructionVariableComponentSyntax)component;
+                            var t = (ParenthesizedVariableComponentSyntax)component;
                             foreach (var v in t.Variables) AddVariableExpressions(component, expressions);
                             break;
                         }
@@ -155,9 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
                 switch (component.Kind())
                 {
-                    case SyntaxKind.TupleDeconstructionVariableDesignation:
+                    case SyntaxKind.ParenthesizedVariableDesignation:
                         {
-                            var t = (TupleDeconstructionVariableDesignationSyntax)component;
+                            var t = (ParenthesizedVariableDesignationSyntax)component;
                             foreach (var v in t.Variables) AddVariableExpressions(component, expressions);
                             break;
                         }

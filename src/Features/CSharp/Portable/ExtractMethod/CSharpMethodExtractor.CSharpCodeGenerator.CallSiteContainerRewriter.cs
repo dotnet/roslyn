@@ -224,6 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                .WithStatement(ReplaceStatementIfNeeded(node.Statement));
                 }
 
+                public override SyntaxNode VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+                {
+                    if (node != this.ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitForEachComponentStatement(node);
+                    }
+
+                    return node.WithExpression(VisitNode(node.Expression))
+                               .WithStatement(ReplaceStatementIfNeeded(node.Statement));
+                }
+
                 public override SyntaxNode VisitForStatement(ForStatementSyntax node)
                 {
                     if (node != this.ContainerOfStatementsOrFieldToReplace)

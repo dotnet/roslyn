@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // AllInOneCSharpCode has no deconstruction or declaration expression
             syntaxKindsMissing.Add(SyntaxKind.TypedVariableComponent);
-            syntaxKindsMissing.Add(SyntaxKind.TupleDeconstructionVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableComponent);
             syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
-            syntaxKindsMissing.Add(SyntaxKind.TupleDeconstructionVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
             syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
             syntaxKindsMissing.Add(SyntaxKind.VariableComponentAssignment);
             syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
