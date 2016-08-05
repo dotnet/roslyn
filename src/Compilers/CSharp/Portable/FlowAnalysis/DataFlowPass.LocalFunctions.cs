@@ -106,10 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (currentMethodOrLambda == topLevelMethod)
-            {
-                _recordingReads = true;
-            }
+
+            var recordingState = _recordingReads;
+            _recordingReads = true;
 
             do
             {
@@ -138,10 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             } while (HasDirtyLocalFunctions(_readVars.Values));
 
-            if (currentMethodOrLambda == topLevelMethod)
-            {
-                _recordingReads = false;
-            }
+            _recordingReads = recordingState;
         }
 
         private void EnterAllParameters()
