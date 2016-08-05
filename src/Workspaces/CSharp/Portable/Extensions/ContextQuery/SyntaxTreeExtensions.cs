@@ -2010,7 +2010,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
             {
-                if (token.Parent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.FromClause, SyntaxKind.JoinClause))
+                if (token.Parent.IsKind(SyntaxKind.ForEachStatement,
+                                        SyntaxKind.ForEachComponentStatement,
+                                        SyntaxKind.FromClause,
+                                        SyntaxKind.JoinClause))
                 {
                     return true;
                 }

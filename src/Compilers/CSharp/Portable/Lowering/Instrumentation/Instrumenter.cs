@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual BoundStatement InstrumentForEachStatement(BoundForEachStatement original, BoundStatement rewritten)
         {
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
             return InstrumentStatement(original, rewritten);
         }
 
@@ -150,15 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
-            Debug.Assert(!((ForEachStatementSyntax)original.Syntax).IsDeconstructionDeclaration);
             return iterationVarDecl;
         }
 
         public virtual BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
-            Debug.Assert(((ForEachStatementSyntax)original.Syntax).IsDeconstructionDeclaration);
+            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachComponentStatement);
             return iterationVarDecl;
         }
 
@@ -172,14 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentForEachStatementGotoEnd(BoundForEachStatement original, BoundStatement gotoEnd)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
             return gotoEnd;
         }
 
         public virtual BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
             return branchBack;
         }
 
@@ -267,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentForEachStatementGotoContinue(BoundForEachStatement original, BoundStatement gotoContinue)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
             return gotoContinue;
         }
 

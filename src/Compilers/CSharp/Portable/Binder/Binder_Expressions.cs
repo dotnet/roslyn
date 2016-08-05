@@ -2105,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
-            var declaration = declarationExpression.Declaration;
+            var declaration = (TypedVariableComponentSyntax)declarationExpression.VariableComponent;
             var typeSyntax = declaration.Type;
 
             bool isConst = false;
@@ -2299,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
                         && parameterType.IsRestrictedType())
                     {
-                        var declaration = ((DeclarationExpressionSyntax)argument.Syntax).Declaration;
+                        var declaration = (TypedVariableComponentSyntax)((DeclarationExpressionSyntax)argument.Syntax).VariableComponent;
                         Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, declaration.Type, parameterType);
                         hasErrors = true;
                     }

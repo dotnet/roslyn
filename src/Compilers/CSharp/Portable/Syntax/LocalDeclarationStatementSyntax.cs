@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(modifiers, this.RefKeyword, declaration, semicolonToken);
         }
-
-        public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
-        {
-            return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
-        }
     }
 }
 
