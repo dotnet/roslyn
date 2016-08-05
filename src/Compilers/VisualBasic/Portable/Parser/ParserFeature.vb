@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
 
-                Case Feature.Tuples
+                Case Feature.Tuples,
                     Feature.BinaryLiterals,
                     Feature.DigitSeparators
                     Return LanguageVersion.VisualBasic15
