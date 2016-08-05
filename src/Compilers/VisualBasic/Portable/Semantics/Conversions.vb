@@ -1225,7 +1225,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For i As Integer = 0 To arguments.Length - 1
                 Dim argument = arguments(i)
-                Dim elementConversion = ClassifyConversion(argument, targetElementTypes(i), binder, useSiteDiagnostics).Key
+                Dim targetElementType = targetElementTypes(i)
+
+                If argument.HasErrors OrElse targetElementType.IsErrorType Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementConversion = ClassifyConversion(argument, targetElementType, binder, useSiteDiagnostics).Key
 
                 If NoConversion(elementConversion) Then
                     Return Nothing 'ConversionKind.NoConversion
@@ -3503,7 +3509,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For i As Integer = 0 To sourceElementTypes.Length - 1
                 Dim argumentType = sourceElementTypes(i)
-                Dim elementConversion = ClassifyConversion(argumentType, targetElementTypes(i), useSiteDiagnostics).Key
+                Dim targetType = targetElementTypes(i)
+
+                If argumentType.IsErrorType OrElse targetType.IsErrorType Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementConversion = ClassifyConversion(argumentType, targetType, useSiteDiagnostics).Key
 
                 If NoConversion(elementConversion) Then
                     Return Nothing 'ConversionKind.NoConversion
