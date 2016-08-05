@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignRoslyn", "SignRoslyn.csproj", "{3DA711E1-055F-4352-A5E1-F9169C86A20F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignTool", "SignTool.csproj", "{3DA711E1-055F-4352-A5E1-F9169C86A20F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Metadata", "..\..\Dependencies\Metadata\Metadata.csproj", "{E6796B97-D5C6-45B2-AE46-351D15DCFC71}"
 EndProject

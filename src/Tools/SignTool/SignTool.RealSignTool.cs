@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SignRoslyn
+namespace SignTool
 {
     internal static partial class SignToolFactory
     {
@@ -27,8 +29,8 @@ namespace SignRoslyn
                  + sizeof(Int16)  // minor version
                  + sizeof(Int64); // metadata directory
 
-            internal RealSignTool(string appPath, string binariesPath, string sourcePath)
-                : base(appPath, binariesPath, sourcePath)
+            internal RealSignTool(string appPath, string binariesPath, string settingsFile, string msbuildPath)
+                : base(appPath, binariesPath, settingsFile, msbuildPath)
             {
 
             }

@@ -1,11 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using static SignRoslyn.PathUtil;
+using static SignTool.PathUtil;
 
-namespace SignRoslyn
+namespace SignTool
 {
     internal static partial class SignToolFactory
     {
@@ -13,20 +15,19 @@ namespace SignRoslyn
         {
             internal string MSBuildPath { get; }
             internal string BinariesPath { get; }
-            internal string SourcePath { get; }
+            internal string SettingsFile { get; }
             internal string AppPath { get; }
 
-            internal SignToolBase(string appPath, string binariesPath, string sourcePath)
+            internal SignToolBase(string appPath, string binariesPath, string settingsFile, string msbuildPath)
             {
                 BinariesPath = binariesPath;
-                SourcePath = sourcePath;
+                SettingsFile = settingsFile;
                 AppPath = appPath;
+                MSBuildPath = msbuildPath;
 
-                var path = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                MSBuildPath = Path.Combine(path, @"MSBuild\14.0\Bin\MSBuild.exe");
                 if (!File.Exists(MSBuildPath))
                 {
-                    throw new Exception(@"Unable to locate MSBuild at the path {_msbuildPath}");
+                    throw new Exception($"Unable to locate MSBuild at the path '{msbuildPath}'.");
                 }
             }
 
@@ -75,7 +76,7 @@ namespace SignRoslyn
                 AppendLine(builder, depth: 0, text: @"<?xml version=""1.0"" encoding=""utf-8""?>");
                 AppendLine(builder, depth: 0, text: @"<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">");
 
-                AppendLine(builder, depth: 1, text: $@"<Import Project=""{Path.Combine(SourcePath, @"build\Targets\VSL.Settings.targets")}"" />");
+                AppendLine(builder, depth: 1, text: $@"<Import Project=""{SettingsFile}"" />");
 
                 AppendLine(builder, depth: 1, text: $@"<Import Project=""$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.props"" />");
                 AppendLine(builder, depth: 1, text: $@"<Import Project=""$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.targets"" />");

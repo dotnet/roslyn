@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>SignTool</AssemblyName>
+    <ProjectGuid>{3DA711E1-055F-4352-A5E1-F9169C86A20F}</ProjectGuid>
+    <RootNamespace>SignTool</RootNamespace>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="BatchSignData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FileName.cs" />
+    <Compile Include="FileSignInfo.cs" />
+    <Compile Include="ContentUtil.cs" />
+    <Compile Include="JsonTypes.cs" />
+    <Compile Include="SignInfo.cs" />
+    <Compile Include="PathUtil.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="SignTool.RealSignTool.cs" />
+    <Compile Include="BatchSignUtil.cs" />
+    <Compile Include="BatchSignInput.cs" />
+    <Compile Include="SignTool.cs" />
+    <Compile Include="SignTool.SignToolBase.cs" />
+    <Compile Include="SignTool.TestSignTool.cs" />
+    <Compile Include="VsixData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

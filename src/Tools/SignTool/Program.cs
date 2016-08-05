@@ -1,27 +1,31 @@
-﻿using Newtonsoft.Json;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
-namespace SignRoslyn
+namespace SignTool
 {
     internal static class Program
     {
         internal static void Main(string[] args)
         {
             string binariesPath;
-            string sourcePath;
+            string settingsFile;
+            string msbuildPath;
             bool test;
-            if (!ParseCommandLineArguments(args, out binariesPath, out sourcePath, out test))
+
+            if (!ParseCommandLineArguments(args, out binariesPath, out settingsFile, out msbuildPath, out test))
             {
-                Console.WriteLine("signroslyn.exe [-test] [-binariesPath <path>]");
+                Console.WriteLine("SignTool.exe [-test] [-binariesPath <path>] [-settingsFile <path>] [-msbuildPath <path>]");
                 Environment.Exit(1);
             }
 
-            var signTool = SignToolFactory.Create(AppContext.BaseDirectory, binariesPath, sourcePath, test);
+            var signTool = SignToolFactory.Create(AppContext.BaseDirectory, binariesPath, settingsFile, msbuildPath, test);
             var batchData = ReadBatchSignInput(binariesPath);
             var util = new BatchSignUtil(signTool, batchData);
             util.Go();
@@ -65,11 +69,13 @@ namespace SignRoslyn
         internal static bool ParseCommandLineArguments(
             string[] args,
             out string binariesPath,
-            out string sourcePath,
+            out string settingsFile,
+            out string msbuildPath,
             out bool test)
         {
             binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory));
-            sourcePath = null;
+            settingsFile = Path.Combine(Environment.CurrentDirectory, @"build\Targets\Settings.targets");
+            msbuildPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\bin\MSBuild.exe");
             test = false;
 
             var i = 0;
@@ -92,13 +98,31 @@ namespace SignRoslyn
                         binariesPath = args[i + 1];
                         i += 2;
                         break;
+                    case "-settingsfile":
+                        if (i + 1 >= args.Length)
+                        {
+                            Console.WriteLine("-settingsFile needs an argument");
+                            return false;
+                        }
+
+                        settingsFile = args[i + 1];
+                        i += 2;
+                        break;
+                    case "-msbuildpath":
+                        if (i + 1 >= args.Length)
+                        {
+                            Console.WriteLine("-msbuildPath needs an argument");
+                            return false;
+                        }
+
+                        msbuildPath = args[i + 1];
+                        i += 2;
+                        break;
                     default:
                         Console.WriteLine($"Unrecognized option {current}");
                         return false;
                 }
             }
-
-            sourcePath = Path.GetDirectoryName(Path.GetDirectoryName(binariesPath));
             return true;
         }
     }
