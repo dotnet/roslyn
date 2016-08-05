@@ -1548,6 +1548,93 @@ True
         }
 
         [Fact]
+        public void TestFieldInitializerSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                      // Method 2
+    {
+        C local = new C();
+    }
+
+    static int Init() => 33;                                    // Method 3
+
+    C()                                                         // Method 4
+    {
+        _z = 12;
+    }
+
+    static C()                                                  // Method 5
+    {
+        s_z = 123;
+    }
+
+    int _x = Init();
+    int _y = Init() + 12;
+    int _z;
+    static int s_x = Init();
+    static int s_y = Init() + 153;
+    static int s_z;
+}
+";
+            string expectedOutput = @"
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+Method 7
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void MissingMethodNeededForAnalysis()
         {
             string source = @"

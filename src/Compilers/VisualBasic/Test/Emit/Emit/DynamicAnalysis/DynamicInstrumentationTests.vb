@@ -1223,6 +1223,94 @@ True
 
             CompileAndVerify(source, expectedOutput)
         End Sub
+        <Fact>
+        Public Sub TestFieldInitializerSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                       ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                          ' Method 2
+        Dim local As New C()
+    End Sub
+End Module
+
+Class C
+    Shared Function Init() As Integer       ' Method 3
+        Return 33
+    End Function
+
+    Sub New()                               ' Method 4
+        _z = 12
+    End Sub
+
+    Shared Sub New()                        ' Method 5
+        s_z = 123
+    End Sub
+
+    Private _x As Integer = Init()
+    Private _y As Integer = Init() + 12
+    Private _z As Integer
+    Private Shared s_x As Integer = Init()
+    Private Shared s_y As Integer = Init() + 153
+    Private Shared s_z As Integer
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+Method 8
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
 
         <Fact>
         Public Sub MissingMethodNeededForAnaysis()
