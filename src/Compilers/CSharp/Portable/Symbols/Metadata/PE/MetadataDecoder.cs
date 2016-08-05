@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (scope != targetTypeSymbol &&
                     !(targetTypeSymbol.IsInterfaceType()
                         ? scope.AllInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)targetTypeSymbol)
-                        : scope.IsDerivedFrom(targetTypeSymbol, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }

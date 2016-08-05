@@ -318,6 +318,9 @@
   <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
     <value>Stream must support read and seek operations.</value>
   </data>
+  <data name="StreamMustSupportRead" xml:space="preserve">
+    <value>Stream must be readable.</value>
+  </data>
   <data name="StreamMustSupportWrite" xml:space="preserve">
     <value>Stream must be writable.</value>
   </data>
@@ -530,5 +533,11 @@
   </data>
   <data name="IOperationFeatureDisabled" xml:space="preserve">
     <value>Feature 'IOperation' is disabled.</value>
+  </data>
+  <data name="SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>Source Link embedding is only supported when emitting Portable PDB.</value>
+  </data>
+  <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
+    <value>Unrecognized resource file format.</value>
   </data>
 </root>

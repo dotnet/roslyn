@@ -1288,6 +1288,90 @@ True
         }
 
         [Fact]
+        public void PatternsCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                 // Method 2
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);
+    }
+     
+    static string Operate(Person p)                         // Method 3
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Teacher t:
+                return $""Teacher {t.Name} of {t.Subject}"";
+            default:
+                return $""Person {p.Name}"";
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+False
+True
+False
+False
+True
+Method 9
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void LambdaCoverage()
         {
             string source = @"

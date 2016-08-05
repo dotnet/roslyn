@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var wkType = GetWellKnownType(wellKnownType);
-            return type.Equals(wkType, ignoreDynamic: false) || type.IsDerivedFrom(wkType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
         internal override bool IsSystemTypeReference(ITypeSymbol type)
@@ -511,16 +511,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
         }
 
-        private static class TupleNamesEncoder
+        internal static class TupleNamesEncoder
         {
+            public static ImmutableArray<string> Encode(TypeSymbol type)
+            {
+                var namesBuilder = ArrayBuilder<string>.GetInstance();
+
+                if (!TryGetNames(type, namesBuilder))
+                {
+                    namesBuilder.Free();
+                    return default(ImmutableArray<string>);
+                }
+
+                return namesBuilder.ToImmutableAndFree();
+            }
+
             public static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol stringType)
             {
                 var namesBuilder = ArrayBuilder<string>.GetInstance();
-                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
-                Debug.Assert(namesBuilder.Any());
 
-                // If none of the tuples have names, return a default array
-                if (namesBuilder.All(name => name == null))
+                if (!TryGetNames(type, namesBuilder))
                 {
                     namesBuilder.Free();
                     return default(ImmutableArray<TypedConstant>);
@@ -530,6 +540,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);
                 namesBuilder.Free();
                 return names;
+            }
+
+            private static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            {
+                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
+                Debug.Assert(namesBuilder.Any());
+                return namesBuilder.Any(name => name != null);
             }
 
             private static bool AddNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)

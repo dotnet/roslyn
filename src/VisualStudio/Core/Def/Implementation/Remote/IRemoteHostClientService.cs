@@ -4,17 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Remote
+namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     /// <summary>
     /// Returns a <see cref="RemoteHostClient"/> that a user can use to communicate with a remote host (i.e. ServiceHub) 
     /// </summary>
     internal interface IRemoteHostClientService : IWorkspaceService
     {
-        // TODO: split service to registration service and one that return RemoteHostClient
-        void Enable();
-        void Disable();
-
         Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);
     }
 }

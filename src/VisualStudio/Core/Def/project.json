@@ -1,7 +1,8 @@
 ﻿{
   "dependencies": {
-    "ManagedEsent": "1.9.2.0",
+    "ManagedEsent": "1.9.2",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
     "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
     "RoslynDependencies.Microsoft.Internal.Performance.CodeMarkers.DesignTime": "14.3.25407",
     "RoslynDependencies.Microsoft.VisualStudio.Progression": "14.3.25407",

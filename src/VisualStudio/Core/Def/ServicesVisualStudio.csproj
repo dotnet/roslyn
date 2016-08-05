@@ -58,6 +58,8 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
+    <Compile Include="Implementation\Diagnostics\IRemoteHostDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
@@ -111,8 +113,12 @@
     <Compile Include="Implementation\Options\ExportLanguageSpecificOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
+    <Compile Include="Implementation\Remote\IRemoteHostClientFactory.cs" />
     <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
@@ -217,10 +223,6 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
       <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>

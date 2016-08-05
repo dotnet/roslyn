@@ -163,6 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatement(original, rewritten);
         }
 
+        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        {
+            return Previous.InstrumentBoundPatternSwitchStatement(original, rewritten);
+        }
+
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             return Previous.InstrumentUsingTargetCapture(original, usingTargetCapture);

@@ -1,12 +1,15 @@
 {
   "dependencies": {
     "StreamJsonRpc": "0.14.3-alpha",
-    "Newtonsoft.Json": "6.0.6"
+    "Microsoft.VisualStudio.Threading": "14.1.131",
+    "Microsoft.VisualStudio.Validation": "14.1.111",
+    "RoslynDependencies.Microsoft.Build.Desktop": "14.3.25407",
+    "Newtonsoft.Json": "8.0.3"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   },
   "runtimes": {
-    "win7": { }
+    "win7": {}
   }
 }

@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (_lazyType.Equals(overriddenPropertyType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                    if (_lazyType.Equals(overriddenPropertyType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
                         _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, RefKind.None, this.ContainingAssembly);
                     }

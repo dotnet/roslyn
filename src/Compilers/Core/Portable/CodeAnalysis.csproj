@@ -101,6 +101,7 @@
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
+    <Compile Include="Symbols\TypeCompareKind.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
@@ -777,16 +778,6 @@
     </None>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\Metadata\Metadata.csproj">
-      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
-      <Name>Metadata</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />

@@ -359,6 +359,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
+        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        {
+            SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
+            TextSpan switchSequencePointSpan = TextSpan.FromBounds(
+                switchSyntax.SwitchKeyword.SpanStart,
+                switchSyntax.CloseParenToken.Span.End);
+
+            return new BoundSequencePointWithSpan(
+                syntax: switchSyntax,
+                statementOpt: base.InstrumentBoundPatternSwitchStatement(original, rewritten),
+                span: switchSequencePointSpan,
+                hasErrors: false);
+        }
+
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             return AddSequencePoint((UsingStatementSyntax)original.Syntax, 

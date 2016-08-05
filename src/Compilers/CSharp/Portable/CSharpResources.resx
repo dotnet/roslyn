@@ -1224,6 +1224,9 @@
   <data name="ERR_ImplBadConstraints" xml:space="preserve">
     <value>The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</value>
   </data>
+  <data name="ERR_ImplBadTupleNames" xml:space="preserve">
+    <value>The tuple element names in the signature of method '{0}' must match the tuple element names of interface method '{1}' (including on the return type).</value>
+  </data>
   <data name="ERR_DottedTypeNameNotFoundInAgg" xml:space="preserve">
     <value>The type name '{0}' does not exist in the type '{1}'</value>
   </data>
@@ -1409,6 +1412,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CantChangeAccessOnOverride" xml:space="preserve">
     <value>'{0}': cannot change access modifiers when overriding '{1}' inherited member '{2}'</value>
   </data>
+  <data name="ERR_CantChangeTupleNamesOnOverride" xml:space="preserve">
+    <value>'{0}': cannot change tuple element names when overriding inherited member '{1}'</value>
+  </data>
   <data name="ERR_CantChangeReturnTypeOnOverride" xml:space="preserve">
     <value>'{0}': return type must be '{2}' to match overridden member '{1}'</value>
   </data>
@@ -1456,6 +1462,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_DuplicateInterfaceInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in interface list</value>
+  </data>
+  <data name="ERR_DuplicateInterfaceWithTupleNamesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</value>
   </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
@@ -2044,6 +2053,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_PartialMethodMustHaveLatent" xml:space="preserve">
     <value>No defining declaration found for implementing declaration of partial method '{0}'</value>
+  </data>
+  <data name="ERR_PartialMethodInconsistentTupleNames" xml:space="preserve">
+    <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
   </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">
     <value>Partial method declarations of '{0}' have inconsistent type parameter constraints</value>
@@ -3059,7 +3071,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Warning level must be in the range 0-4</value>
   </data>
   <data name="ERR_BadDebugType" xml:space="preserve">
-    <value>Invalid option '{0}' for /debug; must be full or pdbonly</value>
+    <value>Invalid option '{0}' for /debug; must be 'portable', 'embedded', 'full' or 'pdbonly'</value>
   </data>
   <data name="ERR_BadResourceVis" xml:space="preserve">
     <value>Invalid option '{0}'; Resource visibility must be either 'public' or 'private'</value>
@@ -4418,6 +4430,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                (including module version GUID and timestamp)
  /instrument:options           Sets instrumentation options.
                                If empty instrumentation is disabled.
+ /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4919,5 +4932,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
     <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
 </root>

@@ -1,5 +1,7 @@
-﻿{
+{
   "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.2.0-beta1-build3239"
   },
   "frameworks": {
     "net46": {}

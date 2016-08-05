@@ -125,7 +125,7 @@ class C
                 // (8,18): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 18),
-                // (8,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
                 );
@@ -183,7 +183,7 @@ class C
                 // (8,18): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 18),
-                // (8,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
                 );
@@ -210,7 +210,7 @@ class C
                 // (7,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 18),
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
                 );
@@ -242,7 +242,7 @@ class C
                 // (8,22): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         (x.f, y.g) = new C();
                 Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 22),
-                // (8,22): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (8,22): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x.f, y.g) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 22)
                 );
@@ -268,7 +268,7 @@ class C
                 // (8,9): error CS1615: Argument 2 may not be passed with the 'out' keyword
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "(x, y) = new C()").WithArguments("2", "out").WithLocation(8, 9),
-                // (8,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
                 );
@@ -294,7 +294,7 @@ class C
                 // (8,9): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_BadArgRef, "(x, y) = new C()").WithArguments("1", "ref").WithLocation(8, 9),
-                // (8,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
                 );
@@ -554,7 +554,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
                 );
@@ -589,7 +589,7 @@ class C : D
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (13,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (13,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(13, 18)
                 );
@@ -620,7 +620,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
                 );
@@ -686,7 +686,7 @@ class C
                 // (9,18): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 18),
-                // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
                 );
@@ -747,7 +747,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (11,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (11,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C() { Deconstruct = DeconstructMethod };
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C() { Deconstruct = DeconstructMethod }").WithArguments("C", "2").WithLocation(11, 18)
                 );
@@ -818,7 +818,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (14,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (14,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = c;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "c").WithArguments("C", "2").WithLocation(14, 18),
                 // (6,21): warning CS0067: The event 'C.Deconstruct' is never used
@@ -1278,7 +1278,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics(
-                // (7,18): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (7,18): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (x, x) = null;
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 18)
                 );
@@ -1326,7 +1326,7 @@ class C
                 // (7,18): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         (x, x) = M();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 18),
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'void', with 2 out parameters.
+                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'void', with 2 out parameters.
                 //         (x, x) = M();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void", "2").WithLocation(7, 18)
                 );
@@ -1706,7 +1706,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (22,9): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (22,9): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(x, y) = (1, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(22, 9)
                 );
@@ -1809,7 +1809,7 @@ class C : Base
                 // (12,18): error CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 18),
-                // (12,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (12,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(12, 18)
                 );
@@ -1877,7 +1877,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
                 );
@@ -1904,7 +1904,7 @@ class C
                 // (7,18): error CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new C()").WithArguments("C.Deconstruct").WithLocation(7, 18),
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
                 );
@@ -1990,7 +1990,7 @@ class C
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
                 Diagnostic(ErrorCode.ERR_BadArgCount, "CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)))").WithArguments("Deconstruct", "22").WithLocation(8, 113),
-                // (8,113): error CS8206: No Deconstruct instance or extension method was found for type 'Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int>>>>', with 22 out parameters.
+                // (8,113): error CS8129: No Deconstruct instance or extension method was found for type 'Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int, int, int, int, int, int, int, Tuple<int>>>>', with 22 out parameters.
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)))").WithArguments("System.Tuple<int, int, int, int, int, int, int, System.Tuple<int, int, int, int, int, int, int, System.Tuple<int, int, int, int, int, int, int, System.Tuple<int>>>>", "22").WithLocation(8, 113)
                 );
@@ -2076,7 +2076,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,18): error CS8212: Cannot deconstruct dynamic objects.
+                // (10,18): error CS8133: Cannot deconstruct dynamic objects.
                 //         (x, y) = c;
                 Diagnostic(ErrorCode.ERR_CannotDeconstructDynamic, "c").WithLocation(10, 18)
                 );
@@ -2106,7 +2106,7 @@ class C1
                 // (9,18): error CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
                 //         (x, y) = new C1();
                 Diagnostic(ErrorCode.ERR_BadAccess, "new C1()").WithArguments("C1.Deconstruct(out int, out string)").WithLocation(9, 18),
-                // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
                 //         (x, y) = new C1();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
                 );
@@ -2145,7 +2145,7 @@ class C1
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()").WithArguments("Missing", "libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
                 );
@@ -2172,7 +2172,7 @@ class C
                 // (9,18): error CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 18),
-                // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
                 );
@@ -2563,7 +2563,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                // (8,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (x, y, z) = MakePair();
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = MakePair()").WithArguments("2", "3").WithLocation(8, 9)
                 );
@@ -2586,7 +2586,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                // (8,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (x, (y, z, w)) = Pair.Create(42, (43, 44));
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, (y, z, w)) = Pair.Create(42, (43, 44))").WithArguments("2", "3").WithLocation(8, 9)
                 );
@@ -2607,7 +2607,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,14): error CS8213: Deconstruction must contain at least two variables.
+                // (6,14): error CS8134: Deconstruction must contain at least two variables.
                 //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
                 Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var (x, y)) = Pair.Create(1, 2)").WithLocation(6, 14)
                 );
@@ -2889,7 +2889,7 @@ class C
                 // (6,28): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         (int x1, int x2) = M(x1);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M(x1)").WithArguments("void", "Deconstruct").WithLocation(6, 28),
-                // (6,28): error CS8206: No Deconstruct instance or extension method was found for type 'void', with 2 out parameters.
+                // (6,28): error CS8129: No Deconstruct instance or extension method was found for type 'void', with 2 out parameters.
                 //         (int x1, int x2) = M(x1);
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M(x1)").WithArguments("void", "2").WithLocation(6, 28),
                 // (6,30): error CS0165: Use of unassigned local variable 'x1'
@@ -2934,7 +2934,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,28): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (6,28): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (int x1, int x2) = null;
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 28)
                 );
@@ -2954,7 +2954,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,24): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (6,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         var (x1, x2) = null;
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 24)
                 );
@@ -2974,7 +2974,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8209: The type information on the left-hand-side 'x2' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (6,9): error CS8130: The type information on the left-hand-side 'x2' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         var (x1, x2) = (1, null);
                 Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x1, x2) = (1, null);").WithArguments("x2", "null").WithLocation(6, 9)
                 );
@@ -3098,10 +3098,10 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8209: The type information on the left-hand-side 'var x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (6,9): error CS8130: The type information on the left-hand-side 'var x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
                 Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x3", "null").WithLocation(6, 9),
-                // (6,9): error CS8209: The type information on the left-hand-side 'var x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (6,9): error CS8130: The type information on the left-hand-side 'var x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
                 Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x4", "null").WithLocation(6, 9)
                 );
@@ -3121,7 +3121,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,51): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (6,51): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         ((string x1, byte x2, var x3), int x4) = (null, 4);
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51)
                 );
@@ -3141,7 +3141,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8209: The type information on the left-hand-side 'var x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
+                // (6,9): error CS8130: The type information on the left-hand-side 'var x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
                 //         (string x1, var x2) = (null, (null, 2));
                 Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("var x2", "(null, 2)").WithLocation(6, 9)
                 );
@@ -3161,7 +3161,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                // (6,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (string x1, var x2, int x3) = (null, "hello");
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"");").WithArguments("2", "3").WithLocation(6, 9)
                 );
@@ -3182,10 +3182,10 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (string x1, var y1) = (null, "hello", 3);
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9),
-                // (7,47): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                // (7,47): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (string x2, var y2) = (null, "hello", null);
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47)
                 );
@@ -3366,10 +3366,10 @@ class var { }
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (6,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 14),
-                // (6,18): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (6,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
                 // (6,14): error CS0029: Cannot implicitly convert type 'int' to 'var'
@@ -3508,10 +3508,10 @@ class D
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (7,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (7,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(7, 14),
-                // (7,18): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (7,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
                 // (7,14): error CS0029: Cannot implicitly convert type 'int' to 'D'
@@ -3538,7 +3538,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8211: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3);").WithArguments("3", "2").WithLocation(6, 9)
                 );
@@ -3614,7 +3614,7 @@ class C
                 // (9,21): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         var(x, y) = 42;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 21),
-                // (9,21): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
+                // (9,21): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
                 //         var(x, y) = 42;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 21),
                 // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
@@ -3655,7 +3655,7 @@ class C
             //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (11,9): error CS8213: Deconstruction must contain at least two variables.
+                // (11,9): error CS8134: Deconstruction must contain at least two variables.
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var(x, y)) = 43").WithLocation(11, 9),
                 // (13,20): error CS1026: ) expected
@@ -3673,7 +3673,7 @@ class C
                 // (9,9): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(9, 9),
-                // (9,14): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (9,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(9, 14),
                 // (9,17): error CS0128: A local variable named 'y' is already defined in this scope
@@ -3682,13 +3682,13 @@ class C
                 // (9,9): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(9, 9),
-                // (9,17): error CS8215: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (9,17): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(9, 17),
                 // (9,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 22),
-                // (9,22): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
+                // (9,22): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 22),
                 // (11,14): error CS0128: A local variable named 'x' is already defined in this scope
@@ -3700,7 +3700,7 @@ class C
                 // (11,23): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "43").WithArguments("int", "Deconstruct").WithLocation(11, 23),
-                // (11,23): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
+                // (11,23): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "43").WithArguments("int", "1").WithLocation(11, 23),
                 // (13,14): error CS0128: A local variable named 'x' is already defined in this scope
@@ -3712,7 +3712,7 @@ class C
                 // (13,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (var(x, y) = 44); // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "44").WithArguments("int", "Deconstruct").WithLocation(13, 22),
-                // (13,22): error CS8206: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
+                // (13,22): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
                 //         (var(x, y) = 44); // parsed as invocation
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "44").WithArguments("int", "1").WithLocation(13, 22),
                 // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used

@@ -4,11 +4,10 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientService)), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientService), layer: ServiceLayer.Host), Shared]
     internal partial class RemoteHostClientServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;

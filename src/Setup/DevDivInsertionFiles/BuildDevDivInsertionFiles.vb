@@ -50,6 +50,14 @@ Public Module BuildDevDivInsertionFiles
             "codeAnalysisService.servicehub.service.json",
             "remoteHostService.servicehub.service.json",
             "serviceHubSnapshotService.servicehub.service.json",
+            "Microsoft.Build.Conversion.Core.dll",
+            "Microsoft.Build.dll",
+            "Microsoft.Build.Engine.dll",
+            "Microsoft.Build.Framework.dll",
+            "Microsoft.Build.Tasks.Core.dll",
+            "Microsoft.Build.Utilities.Core.dll",
+            "Microsoft.VisualStudio.Threading.dll",
+            "Microsoft.VisualStudio.Validation.dll",
             "System.Composition.AttributedModel.dll",
             "System.Composition.Runtime.dll",
             "System.Composition.Convention.resources.dll",
@@ -474,7 +482,7 @@ Public Module BuildDevDivInsertionFiles
         Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
             Dim result = New Dictionary(Of String, DependencyInfo)
 
-            For Each nupkgPath In Directory.EnumerateFiles(Path.Combine(inputDirectory, "DevDivPackages", "Dependencies"), "*.nupkg", SearchOption.TopDirectoryOnly)
+            For Each nupkgPath In Directory.EnumerateFiles(Path.Combine(inputDirectory, "DevDivPackages", "ManagedDependencies"), "*.nupkg", SearchOption.TopDirectoryOnly)
                 Using zip = ZipFile.OpenRead(nupkgPath)
                     Dim packageName As String = Nothing
                     Dim packageVersion As String = Nothing

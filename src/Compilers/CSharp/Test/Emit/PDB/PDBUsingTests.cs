@@ -2461,7 +2461,7 @@ ImportScope (index: 0x35, size: 36):
 =============================================================================================
    Parent                    Imports                                                          
 =============================================================================================
-1: nil                       'A' (#1) = 0x23000002 (AssemblyRef)                              
+1: nil (ImportScope)         'A' (#1) = 0x23000002 (AssemblyRef)                              
 2: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7)                             
 3: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'C' (#1d) = 'System' (#7)  
 4: 0x35000003 (ImportScope)  nil                                                              

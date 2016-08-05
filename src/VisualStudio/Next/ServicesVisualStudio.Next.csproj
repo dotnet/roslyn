@@ -21,10 +21,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
       <Name>Features</Name>
@@ -82,10 +78,8 @@
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
-    <Compile Include="Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
-    <Compile Include="Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
-    <Compile Include="Remote\RemoteHostOptions.cs" />
+    <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
   </ItemGroup>

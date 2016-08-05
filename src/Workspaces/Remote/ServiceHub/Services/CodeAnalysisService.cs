@@ -6,7 +6,7 @@ using System.IO;
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : ServiceHubJsonRpcServiceBase
+    internal partial class CodeAnalysisService : ServiceHubServiceBase
     {
         public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider) :
             base(stream, serviceProvider)

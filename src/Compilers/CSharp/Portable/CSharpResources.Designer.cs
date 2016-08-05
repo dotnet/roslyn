@@ -1277,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /debug; must be full or pdbonly.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /debug; must be &apos;portable&apos;, &apos;embedded&apos;, &apos;full&apos; or &apos;pdbonly&apos;.
         /// </summary>
         internal static string ERR_BadDebugType {
             get {
@@ -2362,6 +2362,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_CantChangeReturnTypeOnOverride {
             get {
                 return ResourceManager.GetString("ERR_CantChangeReturnTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot change tuple element names when overriding inherited member &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_CantChangeTupleNamesOnOverride {
+            get {
+                return ResourceManager.GetString("ERR_CantChangeTupleNamesOnOverride", resourceCulture);
             }
         }
         
@@ -3478,6 +3487,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DuplicateInterfaceInBaseList {
             get {
                 return ResourceManager.GetString("ERR_DuplicateInterfaceInBaseList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_DuplicateInterfaceWithTupleNamesInBaseList {
+            get {
+                return ResourceManager.GetString("ERR_DuplicateInterfaceWithTupleNamesInBaseList", resourceCulture);
             }
         }
         
@@ -4828,6 +4846,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplBadConstraints {
             get {
                 return ResourceManager.GetString("ERR_ImplBadConstraints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element names in the signature of method &apos;{0}&apos; must match the tuple element names of interface method &apos;{1}&apos; (including on the return type)..
+        /// </summary>
+        internal static string ERR_ImplBadTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_ImplBadTupleNames", resourceCulture);
             }
         }
         
@@ -7127,6 +7154,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Both partial method declarations, &apos;{0}&apos; and &apos;{1}&apos;, must use the same tuple element names..
+        /// </summary>
+        internal static string ERR_PartialMethodInconsistentTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_PartialMethodInconsistentTupleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees.
         /// </summary>
         internal static string ERR_PartialMethodInExpressionTree {
@@ -8347,6 +8383,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SourceFileReferencesNotSupported {
             get {
                 return ResourceManager.GetString("ERR_SourceFileReferencesNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        /// </summary>
+        internal static string ERR_SourceLinkRequiresPortablePdb {
+            get {
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
             }
         }
         

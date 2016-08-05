@@ -279,6 +279,32 @@ namespace A.B {
             Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
             Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
 
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+                peStream: new MemoryStream(), 
+                pdbStream: new MemoryStream(), 
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: new MemoryStream(),
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: null,
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+                peStream: new MemoryStream(),
+                win32Resources: new TestStream(canRead: true, canWrite: false, canSeek: false)));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+                peStream: new MemoryStream(),
+                win32Resources: new TestStream(canRead: false, canWrite: false, canSeek: true)));
+
             // we don't report an error when we can't write to the XML doc stream:
             Assert.True(comp.Emit(
                 peStream: new MemoryStream(), 

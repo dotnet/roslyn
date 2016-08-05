@@ -28,10 +28,6 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Moq.net\Moq.net.csproj">
-      <Project>{a32eab7f-691c-4d00-98c4-f50c37bb4754}</Project>
-      <Name>Moq.net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
       <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
       <Name>InteractiveEditorFeatures</Name>
@@ -137,6 +133,7 @@
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
     <Compile Include="CodeActions\MoveType\BasicMoveTypeTestsBase.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.ActionCountTests.vb" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.vb" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.vb" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />

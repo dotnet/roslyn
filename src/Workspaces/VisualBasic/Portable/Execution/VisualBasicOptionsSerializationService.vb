@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
 
             Dim vbOptions = DirectCast(options, VisualBasicCompilationOptions)
 
-            writer.WriteArray(vbOptions.GlobalImports.Select(Function(g) g.Name).ToArray())
+            writer.WriteValue(vbOptions.GlobalImports.Select(Function(g) g.Name).ToArray())
             writer.WriteString(vbOptions.RootNamespace)
             writer.WriteInt32(vbOptions.OptionStrict)
             writer.WriteBoolean(vbOptions.OptionInfer)
