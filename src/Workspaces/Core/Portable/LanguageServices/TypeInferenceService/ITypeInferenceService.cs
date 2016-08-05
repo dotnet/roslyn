@@ -24,5 +24,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
         IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+
+        IEnumerable<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+
+        IEnumerable<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
+    }
+
+    internal struct TypeInferenceInfo
+    {
+        private bool isParams;
+
+        public TypeInferenceInfo(ITypeSymbol type) : this()
+        {
+            InferredType = type;
+        }
+
+        public TypeInferenceInfo(ITypeSymbol type, bool isParams) : this()
+        {
+            InferredType = type;
+            IsParams = isParams;
+        }
+
+        public ITypeSymbol InferredType { get; }
+        public bool IsParams { get; }
     }
 }

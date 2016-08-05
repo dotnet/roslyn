@@ -157,19 +157,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
-            var inferredTypes = typeInferrer.InferTypes(semanticModel, position, cancellationToken: cancellationToken);
+            var inferredTypes = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
 
             return inferredTypes.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
         }
 
-        private ITypeSymbol GetDelegateType(ITypeSymbol type, Compilation compilation)
+        private ITypeSymbol GetDelegateType(TypeInferenceInfo type, Compilation compilation)
         {
-            if (type.IsArrayType())
+            ITypeSymbol typeSymbol = type.InferredType;
+            if (type.IsParams && type.InferredType.IsArrayType())
             {
-                type = ((IArrayTypeSymbol)type).ElementType;
+                typeSymbol = ((IArrayTypeSymbol)type.InferredType).ElementType;
             }
 
-            return type.GetDelegateType(compilation);
+            return typeSymbol.GetDelegateType(compilation);
         }
     }
 }

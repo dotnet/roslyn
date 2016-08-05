@@ -644,6 +644,20 @@ class C {
             await VerifyBuilderAsync(markup);
         }
 
+        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotUnwrapRegularArray()
+        {
+            var markup = @"
+using System;
+class C {
+    C(Action<int>[] a) {
+        new C($$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
