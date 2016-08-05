@@ -19,7 +19,8 @@
                 "Microsoft.CodeAnalysis.Analyzers",
                 "Microsoft.VisualBasic",
                 "Microsoft.Composition",
-                "ManagedEsent"
+                "ManagedEsent",
+                "xunit"
             ]
         }
     },
