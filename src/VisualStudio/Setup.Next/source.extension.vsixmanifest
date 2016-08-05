@@ -21,5 +21,6 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService.servicehub.service.json" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="ServicesVisualStudio.Next" Path="|ServicesVisualStudio.Next;PkgdefProjectOutputGroup|" />
   </Assets>
 </PackageManifest>
