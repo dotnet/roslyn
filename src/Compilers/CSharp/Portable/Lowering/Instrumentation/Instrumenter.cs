@@ -244,6 +244,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
+        public virtual BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        {
+            Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
+            return InstrumentStatement(original, rewritten);
+        }
+
         public virtual BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             Debug.Assert(!original.WasCompilerGenerated);
