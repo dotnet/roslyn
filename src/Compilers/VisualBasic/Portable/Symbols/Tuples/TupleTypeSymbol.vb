@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._locations = locations
         End Sub
 
-        Friend Shared Function Create(locationOpt As Location, elementTypes As ImmutableArray(Of TypeSymbol), elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String), compilation As VisualBasicCompilation, Optional syntax As VisualBasicSyntaxNode = Nothing, Optional diagnostics As DiagnosticBag = Nothing) As NamedTypeSymbol
+        Friend Shared Function Create(locationOpt As Location, elementTypes As ImmutableArray(Of TypeSymbol), elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String), compilation As VisualBasicCompilation, Optional syntax As VisualBasicSyntaxNode = Nothing, Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
 
@@ -866,9 +866,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me._underlyingType.GetAttributes()
         End Function
 
-        ' PROTOTYPE: where is this used?
-        '            should we ignore names
-        '            do we need to be case-insensitive when we compare names
         Public Overrides Function Equals(obj As Object) As Boolean
             Dim otherTuple = TryCast(obj, TupleTypeSymbol)
             If otherTuple Is Nothing Then
@@ -883,11 +880,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim myNames = Me.TupleElementNames
             Dim otherNames = otherTuple.TupleElementNames
 
-            If myNames.IsDefaultOrEmpty Then
-                Return otherNames.IsDefaultOrEmpty
+            If myNames.IsDefault Then
+                Return otherNames.IsDefault
             End If
 
-            If otherNames.IsDefaultOrEmpty Then
+            If otherNames.IsDefault Then
                 Return False
             End If
 

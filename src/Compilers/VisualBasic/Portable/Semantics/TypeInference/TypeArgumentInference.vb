@@ -1131,20 +1131,18 @@ HandleAsAGeneralExpression:
                 Debug.Assert(argNode.Expression.Kind = BoundKind.TupleLiteral)
 
                 Dim tupleLiteral = DirectCast(argNode.Expression, BoundTupleLiteral)
-
-                ' If literal has type, just infer from that type
-                If tupleLiteral.Type IsNot Nothing Then
-                    AddTypeToGraph(argNode, isOutgoingEdge:=True)
-                    Return
-                End If
-
                 Dim tupleArguments = tupleLiteral.Arguments
+
                 If parameterType.IsTupleOrCompatibleWithTupleOfCardinality(tupleArguments.Length) Then
                     Dim parameterElementTypes = parameterType.GetElementTypesOfTupleOrCompatible
                     For i As Integer = 0 To tupleArguments.Length - 1
                         RegisterArgument(tupleArguments(i), parameterElementTypes(i), argNode.Parameter)
                     Next
+
+                    Return
                 End If
+
+                AddTypeToGraph(argNode, isOutgoingEdge:=True)
             End Sub
 
             Private Sub AddAddressOfToGraph(argNode As ArgumentNode, binder As Binder)

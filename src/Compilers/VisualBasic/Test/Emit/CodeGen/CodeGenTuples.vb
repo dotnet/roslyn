@@ -1864,6 +1864,42 @@ System.String
 Imports System
 Module C
     Sub Main()
+        System.Console.WriteLine(Test((new Object(),"q")))
+        System.Console.WriteLine(Test1((new Object(),"q")))
+    End Sub
+
+    Function Test(of T)(x as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+        
+        return x
+    End Function
+
+    Function Test1(of T)(x as T) as T
+        Console.WriteLine(Gettype(T))
+        
+        return x
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Object
+(System.Object, q)
+System.ValueTuple`2[System.Object,System.String]
+(System.Object, q)
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MethodTypeInference004Err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+    Sub Main()
         Dim q = "q"
         Dim a as object = "a"
 
@@ -1881,14 +1917,15 @@ Module C
         return x
     End Function
 End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
 
-    </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
-System.Object
-(a, a)
-q
-a
-            ]]>)
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36651: Data type(s) of the type parameter(s) in method 'Public Function Test(Of T)(ByRef x As (T, T)) As (T, T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        System.Console.WriteLine(Test((q, a)))
+                                 ~~~~
+</errors>)
 
         End Sub
 

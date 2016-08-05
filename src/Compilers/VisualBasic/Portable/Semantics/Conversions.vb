@@ -1224,12 +1224,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As ConversionKind = ConversionKind.WideningTuple
 
             For i As Integer = 0 To arguments.Length - 1
+                Dim argument = arguments(i)
                 Dim targetElementType = targetElementTypes(i)
-                If targetElementType.IsErrorType Then
+
+                If argument.HasErrors OrElse targetElementType.IsErrorType Then
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
-                Dim argument = arguments(i)
                 Dim elementConversion = ClassifyConversion(argument, targetElementType, binder, useSiteDiagnostics).Key
 
                 If NoConversion(elementConversion) Then
@@ -3507,13 +3508,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As ConversionKind = ConversionKind.WideningTuple
 
             For i As Integer = 0 To sourceElementTypes.Length - 1
+                Dim argumentType = sourceElementTypes(i)
                 Dim targetType = targetElementTypes(i)
 
-                If targetType.IsErrorType Then
+                If argumentType.IsErrorType OrElse targetType.IsErrorType Then
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
-                Dim argumentType = sourceElementTypes(i)
                 Dim elementConversion = ClassifyConversion(argumentType, targetType, useSiteDiagnostics).Key
 
                 If NoConversion(elementConversion) Then
