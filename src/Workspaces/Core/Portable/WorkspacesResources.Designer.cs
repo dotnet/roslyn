@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
+        /// </summary>
+        internal static string _0_encountered_an_error_and_has_been_disabled {
+            get {
+                return ResourceManager.GetString("_0_encountered_an_error_and_has_been_disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already part of the workspace..
         /// </summary>
         internal static string _0_is_already_part_of_the_workspace {
@@ -527,6 +536,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Duplicate_source_file_0_in_project_1 {
             get {
                 return ResourceManager.GetString("Duplicate_source_file_0_in_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        internal static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable and ignore future errors.
+        /// </summary>
+        internal static string Enable_and_ignore_future_errors {
+            get {
+                return ResourceManager.GetString("Enable_and_ignore_future_errors", resourceCulture);
             }
         }
         

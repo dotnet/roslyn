@@ -31,20 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listener;
         }
 
-        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnable, Action OnEnableAndIgnore, Action OnClose)
-        {
-            // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-            _foregroundNotificationService.RegisterNotification(() =>
-            {
-                IVsWindowFrame frame;
-                IVsInfoBarUIFactory factory;
-                if (_workspace.TryGetInfoBarData(out frame, out factory))
-                {
-                    CreateInfoBarForCodeFix(factory, frame, string.Format(ServicesVSResources._0_encountered_an_error_and_has_been_disabled, codefixName), OnClose, OnEnable, OnEnableAndIgnore);
-                }
-            }, _listener.BeginAsyncOperation("Show InfoBar"));
-        }
-
         public void ShowErrorInfo(string message, params ErrorReportingUI[] items)
         {
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
@@ -159,62 +145,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 _onClose();
             }
-        }
-
-        private void CreateInfoBarForCodeFix(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string message, Action onClose, Action onEnable = null, Action onEnableAndIgnore = null)
-        {
-            object unknown;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown)))
-            {
-                return;
-            }
-
-            var textSpans = new List<IVsInfoBarTextSpan>()
-            {
-                new InfoBarTextSpan(message)
-            };
-
-            // create action item list
-            var actionItems = new List<IVsInfoBarActionItem>();
-            if (onEnable != null)
-            {
-                actionItems.Add(s_enableItem);
-            }
-
-            if (onEnableAndIgnore != null)
-            {
-                actionItems.Add(s_enableAndIgnoreItem);
-            }
-
-            var infoBarModel = new InfoBarModel(
-                textSpans,
-                actionItems.ToArray(),
-                KnownMonikers.StatusInformation,
-                isCloseButtonVisible: true);
-
-            IVsInfoBarUIElement infoBarUI;
-            if (!TryCreateInfoBarUI(factory, infoBarModel, out infoBarUI))
-            {
-                return;
-            }
-
-            uint? infoBarCookie = null;
-            var eventSink = new CodeFixInfoBarEvents(() =>
-            {
-                onClose();
-
-                if (infoBarCookie.HasValue)
-                {
-                    infoBarUI.Unadvise(infoBarCookie.Value);
-                }
-            }, onEnable, onEnableAndIgnore);
-
-            uint cookie;
-            infoBarUI.Advise(eventSink, out cookie);
-            infoBarCookie = cookie;
-
-            IVsInfoBarHost host = (IVsInfoBarHost)unknown;
-            host.AddInfoBar(infoBarUI);
         }
 
         private class CodeFixInfoBarEvents : IVsInfoBarUIEvents
