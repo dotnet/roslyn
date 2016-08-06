@@ -6,6 +6,7 @@ using Roslyn.Utilities;
 using System.Reflection;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis
             get { return FileName == null; }
         }
 
-        internal Cci.ManagedResource ToManagedResource(Cci.IModule moduleBeingBuilt)
+        internal Cci.ManagedResource ToManagedResource(CommonPEModuleBuilder moduleBeingBuilt)
         {
             return new Cci.ManagedResource(ResourceName, IsPublic, IsEmbedded ? DataProvider : null, IsEmbedded ? null : this, offset: 0);
         }

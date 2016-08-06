@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Emit
             ITypeSymbol typeSymbol = translatedType as ITypeSymbol;
             if (typeSymbol != null)
             {
-                translatedType = Context.ModuleBuilder.EncTranslateType(typeSymbol, Context.Diagnostics);
+                translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);
             }
 
             return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);

@@ -354,7 +354,7 @@ namespace Microsoft.Cci
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var compilationOptions = Context.ModuleBuilder.CommonCompilation.Options;
+            var compilationOptions = Context.Module.CommonCompilation.Options;
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.

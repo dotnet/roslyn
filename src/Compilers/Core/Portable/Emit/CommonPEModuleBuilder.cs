@@ -87,16 +87,16 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
         public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
 
-        protected abstract bool GenerateVisualBasicStylePdb { get; }
+        public abstract bool GenerateVisualBasicStylePdb { get; }
         protected abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
         protected abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
         protected abstract string DefaultNamespace { get; }
         protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
         protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
         protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
-        protected abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
-        protected abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
-        protected abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
+        public abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
+        public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
 
         /// <summary>
         /// Builds symbol definition to location map used for emitting token -> location info
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Emit
         Cci.IMethodReference Cci.IModule.DebugEntryPoint => DebugEntryPoint;
         Stream Cci.IModule.SourceLinkStreamOpt => SourceLinkStreamOpt;
         Cci.ModulePropertiesForSerialization Cci.IModule.SerializationProperties => SerializationProperties;
-        int Cci.IModule.DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
+        public int DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
         string Cci.INamedEntity.Name => Name;
         string Cci.IModule.ModuleName => ModuleName;
         OutputKind Cci.IModule.OutputKind => OutputKind;
@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return this;
         }
 
-        Cci.IAssembly Cci.IModule.AsAssembly => this as Cci.IAssembly;
+        public Cci.IAssembly AsAssembly => this as Cci.IAssembly;
 
-        int Cci.IModule.HintNumberOfMethodDefinitions => _methodBodyMap.Count;
+        public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
         {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate(CommonCorLibrary, context.Diagnostics);
         }
 
-        Cci.IAssembly Cci.IModule.GetContainingAssembly(EmitContext context)
+        public Cci.IAssembly GetContainingAssembly(EmitContext context)
         {
             return OutputKind.IsNetModule() ? null : (Cci.IAssembly)this;
         }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _referencesInILMap.GetAllItemsAndCount(out count);
         }
 
-        ImmutableArray<Cci.AssemblyReferenceAlias> Cci.IModule.GetAssemblyReferenceAliases(EmitContext context)
+        public ImmutableArray<Cci.AssemblyReferenceAlias> GetAssemblyReferenceAliases(EmitContext context)
         {
             if (_lazyAssemblyReferenceAliases.IsDefault)
             {
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context);
 
-        protected override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
             Cci.NoPiaReferenceIndexer noPiaIndexer = null;
             HashSet<string> names;
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #endregion
 
-        protected override Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context)
+        public override Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {
             Debug.Assert((object)this == context.Module);
 

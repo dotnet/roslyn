@@ -2216,7 +2216,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     if (Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
+                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
                         getPortablePdbStream,
@@ -2315,7 +2315,7 @@ namespace Microsoft.CodeAnalysis
                 testSymWriterFactory,
                 deterministic: false))
             {
-                var context = new EmitContext((Cci.IModule)moduleBeingBuilt, null, diagnostics);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
                 var encId = Guid.NewGuid();
 
                 try

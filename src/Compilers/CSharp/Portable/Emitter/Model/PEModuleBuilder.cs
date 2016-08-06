@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return SourceModule.ContainingSourceAssembly.CorLibrary; }
         }
 
-        protected sealed override bool GenerateVisualBasicStylePdb => false;
+        public sealed override bool GenerateVisualBasicStylePdb => false;
 
         // C# doesn't emit linked assembly names into PDBs.
         protected sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
         }
 
-        protected sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
+        public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
         {
             var namedType = typeRef as NamedTypeSymbol;
             if ((object)namedType != null)

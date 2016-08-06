@@ -4,7 +4,6 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -79,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property GenerateVisualBasicStylePdb As Boolean
+        Public Overrides ReadOnly Property GenerateVisualBasicStylePdb As Boolean
             Get
                 Return True
             End Get
@@ -605,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle), MethodSymbol)
         End Function
 
-        Protected Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
+        Public Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
             Dim namedType = TryCast(typeRef, NamedTypeSymbol)
 
             If namedType IsNot Nothing Then
@@ -646,7 +645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
-        Protected Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As IMethodDefinition
+        Protected Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
             Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics))
         End Function
     End Class

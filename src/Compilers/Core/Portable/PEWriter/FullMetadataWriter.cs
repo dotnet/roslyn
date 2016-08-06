@@ -44,7 +44,7 @@ namespace Microsoft.Cci
         {
             var builder = new MetadataBuilder();
             MetadataBuilder debugBuilderOpt;
-            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            switch (context.Module.EmitOptions.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
                     debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
@@ -59,7 +59,7 @@ namespace Microsoft.Cci
                     break;
             }
 
-            var dynamicAnalysisDataWriterOpt = context.ModuleBuilder.EmitOptions.EmitDynamicAnalysisData ? 
+            var dynamicAnalysisDataWriterOpt = context.Module.EmitOptions.EmitDynamicAnalysisData ? 
                 new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
                 null;
 
