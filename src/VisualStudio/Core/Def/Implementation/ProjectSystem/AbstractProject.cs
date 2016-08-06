@@ -892,15 +892,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void AddFile(string filename, SourceCodeKind sourceCodeKind, Func<IVisualStudioHostDocument, bool> getIsCurrentContext, IReadOnlyList<string> folderNames)
+        protected void AddFile(
+            string filename,
+            SourceCodeKind sourceCodeKind,
+            Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
+            Func<uint, IReadOnlyList<string>> getFolderNames)
         {
             // We can currently be on a background thread.
             // So, hookup the handlers when creating the standard text document, as we might receive these handler notifications on the UI thread.
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                folderNames,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
+                getFolderNames: getFolderNames,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,

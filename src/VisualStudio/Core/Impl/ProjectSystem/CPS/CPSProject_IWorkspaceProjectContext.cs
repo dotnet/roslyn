@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #region Files
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
-            AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => isInCurrentContext, folderNames: folderNames.ToImmutableArrayOrEmpty());
+            AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty());
         }
 
         public void RemoveSourceFile(string filePath)
