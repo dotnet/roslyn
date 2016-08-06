@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Roslyn.Utilities;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,20 +21,23 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected abstract SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText);
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),
-                context.Diagnostics);
+            var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            return SpecializedTasks.EmptyTask;
+            if (GetParamNode(root, context.Span) != null)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        c => RemoveDuplicateParamTag(context.Document, context.Span, c)),
+                    context.Diagnostics);
+            }
+
+            return;
         }
 
-        private async Task<Document> RemoveDuplicateParamTagAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private SyntaxNode GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement
             // This is to correctly handle XML nodes that are nested in other XML nodes, so we only
@@ -46,10 +48,13 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 paramNode = paramNode.Parent;
             }
 
-            if (paramNode == null)
-            {
-                return document;
-            }
+            return paramNode is TXMLElement ? paramNode : null;
+        }
+
+        private async Task<Document> RemoveDuplicateParamTag(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var paramNode = GetParamNode(root, span, cancellationToken);
 
             var removedNodes = new List<SyntaxNode> { paramNode };
             var paramNodeSiblings = paramNode.Parent.ChildNodes().ToList();
