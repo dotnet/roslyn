@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     return GetNewBlock(statement, forSyntax.Statement);
 
                 case SyntaxKind.ForEachStatement:
-                    var forEachSyntax = (ForEachStatementSyntax)statement;
+                case SyntaxKind.ForEachComponentStatement:
+                    var forEachSyntax = (CommonForEachStatementSyntax)statement;
                     return GetNewBlock(statement, forEachSyntax.Statement);
 
                 case SyntaxKind.WhileStatement:

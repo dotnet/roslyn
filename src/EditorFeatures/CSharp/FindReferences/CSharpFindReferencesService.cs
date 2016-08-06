@@ -20,4 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FindReferences
         {
         }
     }
+
+    [ExportLanguageService(typeof(IStreamingFindReferencesService), LanguageNames.CSharp), Shared]
+    internal class CSharpStreamingFindReferencesService : AbstractFindReferencesService
+    {
+        [ImportingConstructor]
+        public CSharpStreamingFindReferencesService(
+            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> referencedSymbolsPresenters,
+            [ImportMany] IEnumerable<INavigableItemsPresenter> navigableItemsPresenters,
+            [ImportMany] IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
+            : base(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
+        {
+        }
+    }
 }

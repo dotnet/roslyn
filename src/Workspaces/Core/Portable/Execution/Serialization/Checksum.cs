@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Execution
             return _lazyHash;
         }
 
+        public override string ToString()
+        {
+            return Convert.ToBase64String(ToArray());
+        }
+
         private int CalculateHashCode()
         {
             // lazily calculate hash for checksum

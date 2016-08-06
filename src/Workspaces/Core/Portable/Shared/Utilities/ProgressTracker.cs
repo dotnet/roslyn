@@ -25,21 +25,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _updateActionOpt = updateActionOpt;
         }
 
-        public int CompletedItems
-        {
-            get
-            {
-                return _completedItems;
-            }
-        }
+        public int CompletedItems => _completedItems;
 
-        public int TotalItems
-        {
-            get
-            {
-                return _totalItems;
-            }
-        }
+        public int TotalItems => _totalItems;
 
         public void AddItems(int count)
         {

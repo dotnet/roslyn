@@ -1,7 +1,7 @@
-﻿{
+{
   "supports": {},
   "dependencies": {
-    "Newtonsoft.Json": "9.0.1",
+    "Newtonsoft.Json": "8.0.3",
     "System.Collections.Immutable": "1.2.0"
   },
   "frameworks": {

@@ -1,6 +1,10 @@
 ﻿{
   "dependencies": {
-    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.3.25407"
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.3.25407",
+    "Microsoft.VisualStudio.Editor": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    }
   },
   "frameworks": {
     "net46": { }

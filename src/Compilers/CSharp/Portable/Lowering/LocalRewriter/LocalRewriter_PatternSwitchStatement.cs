@@ -49,7 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             result.Add(_factory.Label(node.BreakLabel));
-            var translatedSwitch = _factory.Block(pslr.DeclaredTemps.ToImmutableArray().Concat(node.InnerLocals), node.InnerLocalFunctions, result.ToImmutableAndFree());
+            BoundStatement translatedSwitch = _factory.Block(pslr.DeclaredTemps.ToImmutableArray().Concat(node.InnerLocals), node.InnerLocalFunctions, result.ToImmutableAndFree());
+
+            // Create the sequence point if generating debug info and
+            // node is not compiler generated
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                translatedSwitch = _instrumenter.InstrumentBoundPatternSwitchStatement(node, translatedSwitch);
+            }
+
             return translatedSwitch;
         }
 

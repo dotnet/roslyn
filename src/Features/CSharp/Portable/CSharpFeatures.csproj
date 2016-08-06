@@ -271,6 +271,7 @@
     <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\CSharpRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\BreakpointSpans.cs" />

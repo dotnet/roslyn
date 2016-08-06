@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -25,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
         {
-            Trace.WriteLine("Entered completion command handler for typechar.");
-
             AssertIsForeground();
 
             // When a character is typed it is *always* sent through to the editor.  This way the
@@ -93,8 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // to proceed. 
             if (this.TextView.TypeCharWasHandledStrangely(this.SubjectBuffer, args.TypedChar))
             {
-                Trace.WriteLine("typechar was handled by someone else, cannot have a completion session.");
-
                 if (sessionOpt != null)
                 {
                     // If we're on a seam (razor) with a computation, and the user types a character 
@@ -103,8 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // since the caret is no longer in our buffer.
                     if (isOnSeam && this.IsCommitCharacter(args.TypedChar))
                     {
-                        Trace.WriteLine("typechar was on seam and a commit char, cannot have a completion session.");
-
                         this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                         return;
                     }
@@ -112,8 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                              this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
                              this.IsCommitCharacter(args.TypedChar))
                     {
-                        Trace.WriteLine("typechar was brace completion char and a commit char, cannot have a completion session.");
-
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                         // we don't do multiple buffer change check
                         this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
@@ -121,8 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                     else
                     {
-                        Trace.WriteLine("we stop model computation, cannot have a completion session.");
-
                         // If we were computing anything, we stop.  We only want to process a typechar
                         // if it was a normal character.
                         this.StopModelComputation();
@@ -135,8 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var completionService = this.GetCompletionService();
             if (completionService == null)
             {
-                Trace.WriteLine("handling typechar, completion service is null, cannot have a completion session.");
-
                 return;
             }
 
@@ -154,8 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // computation and start computing the model in the background.
                 if (isTextuallyTriggered)
                 {
-                    Trace.WriteLine("no completion session yet and this is a trigger char, starting model computation.");
-
                     // First create the session that represents that we now have a potential
                     // completion list.  Then tell it to start computing.
                     StartNewModelComputation(completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
@@ -163,16 +150,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
                 else
                 {
-                    Trace.WriteLine("no completion session yet and this is NOT a trigger char, we won't have completion.");
-
                     // No need to do anything.  Just stay in the state where we have no session.
                     return;
                 }
             }
             else
             {
-                Trace.WriteLine("we have a completion session.");
-
                 sessionOpt.UpdateModelTrackingSpan(initialCaretPosition);
 
                 // If the session is up, it may be in one of many states.  It may know nothing
@@ -185,8 +168,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     if (isTextuallyTriggered)
                     {
-                        Trace.WriteLine("computing completion again and filtering...");
-
                         // The character typed was something like "a".  It can both filter a list if
                         // we have computed one, or it can trigger a new list.  Ask the computation
                         // to compute again. If nothing has been computed, then it will try to
@@ -221,8 +202,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // we have computed the list of completions.
                     if (this.IsFilterCharacter(args.TypedChar))
                     {
-                        Trace.WriteLine("filtering the session...");
-
                         // Known to be a filter character for the currently selected item.  So just 
                         // filter the session.
                         sessionOpt.FilterModel(CompletionFilterReason.TypeChar,
@@ -239,16 +218,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // Now, commit if it was a commit character.
                     if (this.IsCommitCharacter(args.TypedChar))
                     {
-                        Trace.WriteLine("committing the session...");
-
                         // Known to be a commit character for the currently selected item.  So just
                         // commit the session.
                         this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                     }
                     else
                     {
-                        Trace.WriteLine("dismissing the session...");
-
                         // Now dismiss the session.
                         this.StopModelComputation();
                     }
@@ -258,8 +233,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     if (isTextuallyTriggered)
                     {
-                        Trace.WriteLine("the char commit/dismiss -ed a session and is trigerring completion again. starting model computation.");
-
                         // First create the session that represents that we now have a potential
                         // completion list.
                         StartNewModelComputation(

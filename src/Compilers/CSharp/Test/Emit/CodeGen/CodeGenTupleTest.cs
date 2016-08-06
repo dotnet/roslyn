@@ -15927,6 +15927,34 @@ public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
         }
 
         [Fact]
+        public void ConversionToBase()
+        {
+            var source = @"
+public class Base<T> { }
+public class Derived : Base<(int a, int b)>
+{
+    public static explicit operator Base<(int, int)>(Derived x)
+    {
+        return null;
+    }
+    public static explicit operator Derived(Base<(int, int)> x)
+    {
+        return null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base class are not allowed
+                //     public static explicit operator Derived(Base<(int, int)> x)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "Derived").WithArguments("Derived.explicit operator Derived(Base<(int, int)>)").WithLocation(9, 37),
+                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base class are not allowed
+                //     public static explicit operator Base<(int, int)>(Derived x)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
+                );
+        }
+
+        [Fact]
         public void AmbiguousExtensionMethodWithDifferentTupleNames()
         {
             var source = @"

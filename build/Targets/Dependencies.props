@@ -61,5 +61,9 @@
     <SystemXmlXmlDocumentVersion>4.0.1</SystemXmlXmlDocumentVersion>
     <SystemXmlXmlSerializerVersion>4.0.11</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.0.1</SystemXmlXPathXDocumentVersion>
+    <xunitVersion>2.1.0</xunitVersion>
+    <xunitassertVersion>2.1.0</xunitassertVersion>
+    <xunitconsolenetcoreVersion>1.0.2-prerelease-00104</xunitconsolenetcoreVersion>
+    <xunitrunnerconsoleVersion>2.2.0-beta1-build3239</xunitrunnerconsoleVersion>
   </PropertyGroup>
 </Project>

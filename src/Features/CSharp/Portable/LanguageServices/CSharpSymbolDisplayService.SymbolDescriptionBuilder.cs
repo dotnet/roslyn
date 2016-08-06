@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     {
                         return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                             semanticModel, equalsValue.Value.Span,
-                            this.Workspace, this.CancellationToken).ConfigureAwait(false);
+                            this.Workspace, cancellationToken: this.CancellationToken).ConfigureAwait(false);
                     }
                 }
 

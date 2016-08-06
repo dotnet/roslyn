@@ -309,9 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 foreach (var statement in statements)
                 {
                     var declarationStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declarationStatement == null || declarationStatement.Declaration.IsDeconstructionDeclaration)
+                    if (declarationStatement == null)
                     {
-                        // if given statement is not decl statement, or if it is a deconstruction-declaration, do nothing.
+                        // if given statement is not decl statement.
                         yield return statement;
                         continue;
                     }
@@ -379,7 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         yield return
                                 SyntaxFactory.LocalDeclarationStatement(
                                     declarationStatement.Modifiers,
-                                    declarationStatement.RefKeyword,
                                         SyntaxFactory.VariableDeclaration(
                                             declarationStatement.Declaration.Type,
                                             SyntaxFactory.SeparatedList(list)),

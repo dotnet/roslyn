@@ -4427,6 +4427,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                (including module version GUID and timestamp)
  /instrument:options           Sets instrumentation options.
                                If empty instrumentation is disabled.
+ /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4734,9 +4735,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not return by {3}</value>
   </data>
-  <data name="ERR_VoidReturningMethodCannotReturnByRef" xml:space="preserve">
-    <value>Void-returning methods cannot return by reference</value>
-  </data>
   <data name="ERR_BadIteratorReturnRef" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</value>
   </data>
@@ -4943,5 +4941,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
     <value>An expression tree may not contain a tuple conversion.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
 </root>

@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return forStatement.CloseParenToken.Equals(token);
             }
 
-            var foreachStatement = statement as ForEachStatementSyntax;
+            var foreachStatement = statement as CommonForEachStatementSyntax;
             if (foreachStatement != null)
             {
                 return foreachStatement.CloseParenToken.Equals(token);
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return node is IfStatementSyntax ||
                    node is WhileStatementSyntax ||
                    node is ForStatementSyntax ||
-                   node is ForEachStatementSyntax ||
+                   node is CommonForEachStatementSyntax ||
                    node is UsingStatementSyntax ||
                    node is FixedStatementSyntax ||
                    node is LockStatementSyntax;
@@ -578,17 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// </summary>
         public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
         {
-            SyntaxNode parent;
-            if (currentToken.Kind() == SyntaxKind.OpenParenToken
-                && (parent = currentToken.Parent)?.Kind() == SyntaxKind.VariableDeconstructionDeclarator
-                && (parent = parent.Parent)?.Kind() == SyntaxKind.VariableDeclaration)
-            {
-                var declaration = ((VariableDeclarationSyntax)parent);
-
-                return (declaration.IsDeconstructionDeclaration) && (declaration.Type != null);
-            }
-
-            return false;
+            return currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
+                currentToken.Parent.Parent is TypedVariableComponentSyntax;
         }
     }
 }

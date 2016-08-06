@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
     {
         DefinitionsAndReferences CreateDefinitionsAndReferences(
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);
+
+        DefinitionItem GetThirdPartyDefinitionItem(Solution solution, ISymbol definition);
     }
 
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
@@ -56,25 +58,25 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             switch (referencedSymbol.Definition.Kind)
             {
-                case SymbolKind.Event:
-                case SymbolKind.Field:
-                case SymbolKind.Label:
-                case SymbolKind.Local:
-                case SymbolKind.Method:
-                case SymbolKind.Parameter:
-                case SymbolKind.Property:
-                case SymbolKind.RangeVariable:
-                    return 0;
+            case SymbolKind.Event:
+            case SymbolKind.Field:
+            case SymbolKind.Label:
+            case SymbolKind.Local:
+            case SymbolKind.Method:
+            case SymbolKind.Parameter:
+            case SymbolKind.Property:
+            case SymbolKind.RangeVariable:
+                return 0;
 
-                case SymbolKind.ArrayType:
-                case SymbolKind.DynamicType:
-                case SymbolKind.ErrorType:
-                case SymbolKind.NamedType:
-                case SymbolKind.PointerType:
-                    return 1;
+            case SymbolKind.ArrayType:
+            case SymbolKind.DynamicType:
+            case SymbolKind.ErrorType:
+            case SymbolKind.NamedType:
+            case SymbolKind.PointerType:
+                return 1;
 
-                default:
-                    return 2;
+            default:
+                return 2;
             }
         }
 
@@ -92,14 +94,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 return;
             }
 
-            // Try to create an item for this definition.  If we can't,
-            // ignore it entirely (including all its reference locations).
-            var definitionItem = CreateDefinitionItem(solution, referencedSymbol, uniqueLocations);
-            if (definitionItem == null)
-            {
-                return;
-            }
-
+            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution, uniqueLocations);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
@@ -119,38 +114,48 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        protected virtual DefinitionItem GetThirdPartyDefinitionItem(
+        public virtual DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, ISymbol definition)
         {
             return null;
         }
 
-        private static DefinitionItem CreateDefinitionItem(
-            Solution solution, 
-            ReferencedSymbol referencedSymbol, 
+        private static void CreateReferences(
+            ReferencedSymbol referencedSymbol,
+            ImmutableArray<SourceReferenceItem>.Builder references,
+            DefinitionItem definitionItem,
             HashSet<DocumentLocation> uniqueLocations)
         {
-            var definition = referencedSymbol.Definition;
-            var displayParts = definition.ToDisplayParts(s_definitionDisplayFormat).ToTaggedText();
+            foreach (var referenceLocation in referencedSymbol.Locations)
+            {
+                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(definitionItem);
+                if (sourceReferenceItem == null)
+                {
+                    continue;
+                }
 
-            return CreateDefinitionItem(
-                GlyphTags.GetTags(definition.GetGlyph()),
-                displayParts,
-                definition.ShouldShowWithNoReferenceLocations(),
-                solution,
-                definition,
-                uniqueLocations);
+                if (uniqueLocations.Add(sourceReferenceItem.Location))
+                {
+                    references.Add(sourceReferenceItem);
+                }
+            }
         }
+    }
 
-        private static DefinitionItem CreateDefinitionItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            bool displayIfNoReferences,
-            Solution solution, ISymbol definition,
-            HashSet<DocumentLocation> uniqueLocations)
+    internal static class DefinitionItemExtensions
+    {
+        public static DefinitionItem ToDefinitionItem(
+            this ISymbol definition,
+            Solution solution,
+            HashSet<DocumentLocation> uniqueLocations = null)
         {
-            var additionalLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
-            DocumentLocation? mainLocation = null;
+            var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+
+            var tags = GlyphTags.GetTags(definition.GetGlyph());
+            var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
+                showMetadataSymbolsWithoutReferences: false);
+
+            var sourceLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
 
             // If it's a namespace, don't create any normal lcoation.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -170,15 +175,16 @@ namespace Microsoft.CodeAnalysis.FindReferences
                         if (document != null)
                         {
                             var documentLocation = new DocumentLocation(document, location.SourceSpan);
-                            if (mainLocation == null)
+                            if (sourceLocations.Count == 0)
                             {
-                                mainLocation = documentLocation;
+                                sourceLocations.Add(documentLocation);
                             }
                             else
                             {
-                                if (uniqueLocations.Add(documentLocation))
+                                if (uniqueLocations == null ||
+                                    uniqueLocations.Add(documentLocation))
                                 {
-                                    additionalLocations.Add(documentLocation);
+                                    sourceLocations.Add(documentLocation);
                                 }
                             }
                         }
@@ -186,49 +192,44 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 }
             }
 
-            if (mainLocation == null)
+            if (sourceLocations.Count == 0)
             {
                 // If we got no definition locations, then create a sentinel one
                 // that we can display but which will not allow navigation.
                 return DefinitionItem.CreateNonNavigableItem(
-                    tags, displayParts, 
+                    tags, displayParts,
                     DefinitionItem.GetOriginationParts(definition),
                     displayIfNoReferences);
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, mainLocation.Value, 
-                additionalLocations.ToImmutable(), displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutable(), displayIfNoReferences);
         }
 
-        private static void CreateReferences(
-            ReferencedSymbol referencedSymbol,
-            ImmutableArray<SourceReferenceItem>.Builder references,
-            DefinitionItem definitionItem,
-            HashSet<DocumentLocation> uniqueLocations)
+        public static SourceReferenceItem TryCreateSourceReferenceItem(
+            this ReferenceLocation referenceLocation,
+            DefinitionItem definitionItem)
         {
-            foreach (var referenceLocation in referencedSymbol.Locations)
+            var location = referenceLocation.Location;
+
+            Debug.Assert(location.IsInSource);
+            if (!location.IsVisibleSourceLocation())
             {
-                var location = referenceLocation.Location;
-                Debug.Assert(location.IsInSource);
-
-                var document = referenceLocation.Document;
-                var sourceSpan = location.SourceSpan;
-
-                var documentLocation = new DocumentLocation(document, sourceSpan);
-                if (!documentLocation.CanNavigateTo())
-                {
-                    continue;
-                }
-
-                if (uniqueLocations.Add(documentLocation))
-                {
-                    references.Add(new SourceReferenceItem(definitionItem, documentLocation));
-                }
+                return null;
             }
+
+            return new SourceReferenceItem(definitionItem, 
+                new DocumentLocation(referenceLocation.Document, location.SourceSpan));
         }
 
-        public static readonly SymbolDisplayFormat s_definitionDisplayFormat =
+        private static SymbolDisplayFormat GetFormat(ISymbol definition)
+        {
+            return definition.Kind == SymbolKind.Parameter
+                ? s_parameterDefinitionFormat
+                : s_definitionFormat;
+        }
+
+        private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -246,5 +247,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private static SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
+            .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

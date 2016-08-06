@@ -146,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Completion
                     return Snippet;
                 case Glyph.CompletionWarning:
                     return Warning;
+                case Glyph.StatusInformation:
+                    return StatusInformation;
                 default:
                     return ImmutableArray<string>.Empty;
             }
@@ -216,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static readonly ImmutableArray<string> Error = ImmutableArray.Create(CompletionTags.Error);
         private static readonly ImmutableArray<string> Warning = ImmutableArray.Create(CompletionTags.Warning);
+        private static readonly ImmutableArray<string> StatusInformation = ImmutableArray.Create(CompletionTags.StatusInformation);
 
         private static readonly ImmutableArray<string> CSharpFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.CSharp);
         private static readonly ImmutableArray<string> VisualBasicFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.VisualBasic);
