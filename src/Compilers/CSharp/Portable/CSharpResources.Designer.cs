@@ -9287,15 +9287,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Void-returning methods cannot return by reference.
-        /// </summary>
-        internal static string ERR_VoidReturningMethodCannotReturnByRef {
-            get {
-                return ResourceManager.GetString("ERR_VoidReturningMethodCannotReturnByRef", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: a field cannot be both volatile and readonly.
         /// </summary>
         internal static string ERR_VolatileAndReadonly {

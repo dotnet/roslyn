@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var local = SourceLocalSymbol.MakeLocal(
                         _containingMethod, 
                         this, 
-                        declaration.RefKeyword.Kind() == SyntaxKind.RefKeyword? RefKind.Ref: RefKind.None,
+                        true,
                         declaration.Declaration.Type, 
                         variable.Identifier, 
                         kind, 

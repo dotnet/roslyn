@@ -109,5 +109,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefTypeSyntax)syntax).Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefExpressionSyntax)syntax).Expression;
+            }
+
+            return syntax;
+        }
     }
 }

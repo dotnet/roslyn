@@ -167,10 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                var localSymbol = MakeLocal(
-                                    (decl.RefKeyword.Kind() == SyntaxKind.RefKeyword) ? RefKind.Ref : RefKind.None,
-                                    decl.Declaration, vdecl,
-                                    kind);
+                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);
                                 locals.Add(localSymbol);
                             }
                         }
@@ -273,12 +270,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
-        protected SourceLocalSymbol MakeLocal(RefKind refKind, VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
                 this,
-                refKind,
+                true,
                 declaration.Type,
                 declarator.Identifier,
                 kind,

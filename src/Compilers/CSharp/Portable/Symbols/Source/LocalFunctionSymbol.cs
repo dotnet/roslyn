@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _syntax = syntax;
             _containingSymbol = containingSymbol;
-            _refKind = syntax.RefKeyword.Kind().GetRefKind();
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
@@ -95,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _binder = binder;
+            _refKind = (syntax.ReturnType.Kind() == SyntaxKind.RefType) ? RefKind.Ref : RefKind.None;
             _diagnostics = diagnostics.ToReadOnlyAndFree();
         }
 
@@ -182,7 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbol returnType = _binder.BindType(_syntax.ReturnType, diagnostics);
+            RefKind refKind;
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out refKind);
+            TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
             if (IsAsync &&
                 returnType.SpecialType != SpecialType.System_Void &&
                 !returnType.IsNonGenericTaskType(_binder.Compilation) &&
@@ -191,10 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
-            if (_refKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
+
+            if (refKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
             {
-                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, this.Locations[0]);
+                Debug.Assert(returnTypeSyntax.HasErrors);
             }
+
             var value = new ReturnTypeAndDiagnostics(returnType, diagnostics.ToReadOnlyAndFree());
             Interlocked.CompareExchange(ref _lazyReturnTypeAndDiagnostics, value, null);
         }

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            var refKind = _syntax.RefKeyword.Kind().GetRefKind();
 
             // Deconstruction, Declaration, and Initializers are mutually exclusive.
             if (_syntax.Deconstruction != null)
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(refKind, _syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
+                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
                     locals.Add(localSymbol);
                     PatternVariableFinder.FindPatternVariables(this, locals, vdecl.Initializer?.Value);
                 }

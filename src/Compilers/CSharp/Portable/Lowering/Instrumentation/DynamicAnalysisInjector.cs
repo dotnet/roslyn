@@ -370,11 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.MethodDeclaration:
                     MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, methodSyntax.AttributeLists, methodSyntax.Modifiers, methodSyntax.RefKeyword, methodSyntax.ReturnType);
+                    return SkipAttributes(syntax, methodSyntax.AttributeLists, methodSyntax.Modifiers, default(SyntaxToken), methodSyntax.ReturnType);
 
                 case SyntaxKind.PropertyDeclaration:
                     PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, propertySyntax.RefKeyword, propertySyntax.Type);
+                    return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, default(SyntaxToken), propertySyntax.Type);
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:

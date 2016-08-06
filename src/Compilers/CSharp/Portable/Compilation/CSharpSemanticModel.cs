@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.RefExpression:
                     // There are just placeholders and are not separately meaningful.
                     return false;
 

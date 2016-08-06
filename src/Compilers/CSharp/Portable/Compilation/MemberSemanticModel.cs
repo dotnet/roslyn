@@ -1703,13 +1703,22 @@ done:
                 throw new ArgumentException();
             }
 
-            // skip up past parens, as we have no bound nodes for them.
-            while (parent.Kind() == SyntaxKind.ParenthesizedExpression)
+            // skip up past parens and ref expressions, as we have no bound nodes for them.
+            while (true)
             {
-                var pp = parent.Parent;
-                if (pp == null) break;
-                parent = pp;
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ParenthesizedExpression:
+                    case SyntaxKind.RefExpression:
+                        var pp = parent.Parent;
+                        if (pp == null) break;
+                        parent = pp;
+                        break;
+                    default:
+                        goto foundParent;
+                }
             }
+            foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);
