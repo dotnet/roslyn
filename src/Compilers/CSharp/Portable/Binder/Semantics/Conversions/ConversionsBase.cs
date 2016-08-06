@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
                         if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
-                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }
@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 
-        internal Conversion ClassifyImplicitUserDefinedConversionForSwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
@@ -1257,16 +1257,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE:    We should be called only if (1) is false for source type.
             Debug.Assert((object)sourceType != null);
-            Debug.Assert(!sourceType.IsValidSwitchGoverningType());
+            Debug.Assert(!sourceType.IsValidV6SwitchGoverningType());
 
-            UserDefinedConversionResult result = AnalyzeImplicitUserDefinedConversionForSwitchGoverningType(sourceType, ref useSiteDiagnostics);
+            UserDefinedConversionResult result = AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType(sourceType, ref useSiteDiagnostics);
 
             if (result.Kind == UserDefinedConversionResultKind.Valid)
             {
                 UserDefinedConversionAnalysis analysis = result.Results[result.Best];
 
                 switchGoverningType = analysis.ToType;
-                Debug.Assert(switchGoverningType.IsValidSwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
+                Debug.Assert(switchGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
             }
             else
             {
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            return type1.Equals(type2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
+            return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions);
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)

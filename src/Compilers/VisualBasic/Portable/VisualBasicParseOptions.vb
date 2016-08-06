@@ -29,18 +29,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="kind">The kind of source code.<see cref="SourceCodeKind"/></param>
         ''' <param name="preprocessorSymbols">An enumerable sequence of KeyValuePair representing preprocessor symbols.</param>
         Public Sub New(
-            Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15,
+            Optional languageVersion As LanguageVersion = LanguageVersion.Latest,
             Optional documentationMode As DocumentationMode = DocumentationMode.Parse,
             Optional kind As SourceCodeKind = SourceCodeKind.Regular,
             Optional preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing)
 
-            MyClass.New(languageVersion,
+            MyClass.New(languageVersion.MapLatestToVersion(),
                         documentationMode,
                         kind,
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
                         ImmutableDictionary(Of String, String).Empty)
 
-            If Not languageVersion.IsValid Then
+            ' We test the mapped value, _languageVersion, rather than the parameter, languageVersion,
+            ' which has Not had "Latest" mapped to the latest version yet.
+            If Not _languageVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
 
@@ -172,6 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="version">The parser language version.</param>
         ''' <returns>A new instance of VisualBasicParseOptions if different language version is different; otherwise current instance.</returns>
         Public Shadows Function WithLanguageVersion(version As LanguageVersion) As VisualBasicParseOptions
+            version = version.MapLatestToVersion()
             If version = _languageVersion Then
                 Return Me
             End If

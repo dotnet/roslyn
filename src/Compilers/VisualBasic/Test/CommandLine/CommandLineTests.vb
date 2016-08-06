@@ -5,6 +5,7 @@ Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
+Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Text.RegularExpressions
@@ -413,6 +414,38 @@ a.vb
                 args = InteractiveParse({"/" + flag + ":arg"}, _baseDirectory)
                 args.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("i").WithLocation(1, 1))
             Next
+        End Sub
+
+        <Fact>
+        Public Sub ParseInstrumentTestNames()
+            Dim args As VisualBasicCommandLineArguments
+
+            args = DefaultParse({}, _baseDirectory)
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:""""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:Test.Flag.Name", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal("Test.Flag.Name", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:""Test Flag.Name""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal("Test Flag.Name", args.EmitOptions.Instrument)
         End Sub
 
         <Fact>
@@ -971,6 +1004,14 @@ a.vb
 
             parsedArgs = DefaultParse({"/langVERSION:15.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "latest").WithLocation(1, 1))
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
@@ -2285,72 +2326,96 @@ a.vb
 
         <Fact>
         Public Sub Debug()
+            Dim platformPdbKind = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
+
             Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            Assert.False(parsedArgs.EmitPdb)
             parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:FULL", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:portable", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb)
 
             parsedArgs = DefaultParse({"/debug:embedded", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded)
 
             parsedArgs = DefaultParse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", ""))
@@ -2367,6 +2432,98 @@ a.vb
             parsedArgs = DefaultParse({"/pdb:something", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pdb:something"))
         End Sub
+
+        <Fact>
+        Public Sub SourceLink()
+            Dim parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:portable", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:""s l.json""", "/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink_EndToEnd_EmbeddedPortable()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("
+Class C 
+  Public Shared Sub Main()
+  End Sub
+End Class")
+
+            Dim sl = dir.CreateFile("sl.json")
+            sl.WriteAllText("{ ""documents"" : {} }")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:embedded", "/sourcelink:sl.json", "a.vb"})
+            Dim exitCode As Integer = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim peStream = File.OpenRead(Path.Combine(dir.Path, "a.exe"))
+
+            Using peReader = New PEReader(peStream)
+                Dim entry = peReader.ReadDebugDirectory().Single(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
+
+                Using mdProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry)
+                    Dim blob = mdProvider.GetMetadataReader().GetSourceLinkBlob()
+                    AssertEx.Equal(File.ReadAllBytes(sl.Path), blob)
+                End Using
+            End Using
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink_EndToEnd_Portable()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("
+Class C 
+  Public Shared Sub Main()
+  End Sub
+End Class")
+
+            Dim sl = dir.CreateFile("sl.json")
+            sl.WriteAllText("{ ""documents"" : {} }")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:portable", "/sourcelink:sl.json", "a.vb"})
+            Dim exitCode As Integer = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim pdbStream = File.OpenRead(Path.Combine(dir.Path, "a.pdb"))
+            Using mdProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
+                Dim blob = mdProvider.GetMetadataReader().GetSourceLinkBlob()
+                AssertEx.Equal(File.ReadAllBytes(sl.Path), blob)
+            End Using
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
 
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>

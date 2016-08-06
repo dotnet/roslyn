@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 return;
             }
 
-            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.LoadingPeekInformation, allowCancel: true, action: context =>
+            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancel: true, action: context =>
             {
                 var cancellationToken = context.CancellationToken;
 

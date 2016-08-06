@@ -26,6 +26,16 @@ Public Class VisualBasicParseOptionsTests
     End Sub
 
     <Fact>
+    Public Sub WithLatestLanguageVersion()
+        Dim oldOpt1 = VisualBasicParseOptions.Default
+        Dim newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Latest)
+        Dim newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Latest)
+        Assert.Equal(LanguageVersion.Latest.MapLatestToVersion, oldOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapLatestToVersion, newOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapLatestToVersion, newOpt2.LanguageVersion)
+    End Sub
+
+    <Fact>
     Public Sub WithPreprocessorSymbols()
         Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("A", 1),
                                          New KeyValuePair(Of String, Object)("B", 2),
@@ -109,6 +119,7 @@ Public Class VisualBasicParseOptionsTests
             GetValues(GetType(LanguageVersion)).
             Cast(Of LanguageVersion).
             Select(Function(x) CInt(x)).
+            Where(Function(x) x <> LanguageVersion.Latest).
             Max()
 
         Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))

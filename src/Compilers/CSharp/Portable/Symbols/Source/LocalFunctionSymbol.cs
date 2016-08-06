@@ -13,22 +13,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LocalFunctionSymbol : MethodSymbol
     {
+        private sealed class ParametersAndDiagnostics
+        {
+            internal readonly ImmutableArray<ParameterSymbol> Parameters;
+            internal readonly bool IsVararg;
+            internal readonly ImmutableArray<Diagnostic> Diagnostics;
+
+            internal ParametersAndDiagnostics(ImmutableArray<ParameterSymbol> parameters, bool isVararg, ImmutableArray<Diagnostic> diagnostics)
+            {
+                Parameters = parameters;
+                IsVararg = isVararg;
+                Diagnostics = diagnostics;
+            }
+        }
+
+        private sealed class TypeParameterConstraintsAndDiagnostics
+        {
+            internal readonly ImmutableArray<TypeParameterConstraintClause> ConstraintClauses;
+            internal readonly ImmutableArray<Diagnostic> Diagnostics;
+
+            internal TypeParameterConstraintsAndDiagnostics(ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<Diagnostic> diagnostics)
+            {
+                ConstraintClauses = constraintClauses;
+                Diagnostics = diagnostics;
+            }
+        }
+
+        private sealed class ReturnTypeAndDiagnostics
+        {
+            internal readonly TypeSymbol ReturnType;
+            internal readonly ImmutableArray<Diagnostic> Diagnostics;
+
+            internal ReturnTypeAndDiagnostics(TypeSymbol returnType, ImmutableArray<Diagnostic> diagnostics)
+            {
+                ReturnType = returnType;
+                Diagnostics = diagnostics;
+            }
+        }
+
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private ImmutableArray<ParameterSymbol> _parameters;
-        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private readonly RefKind _refKind;
-        private TypeSymbol _returnType;
-        private bool _isVararg;
+        private ParametersAndDiagnostics _lazyParametersAndDiagnostics;
+        private TypeParameterConstraintsAndDiagnostics _lazyTypeParameterConstraintsAndDiagnostics;
+        private ReturnTypeAndDiagnostics _lazyReturnTypeAndDiagnostics;
         private TypeSymbol _iteratorElementType;
-
-        // TODO: Find a better way to report diagnostics.
-        // We can't put binding in the constructor, as it creates infinite recursion.
-        // We can't report to Compilation.DeclarationDiagnostics as it's already too late and they will be dropped.
-        // The current system is to dump diagnostics into this field, and then grab them out again in Binder_Statements.BindLocalFunctionStatement
         private ImmutableArray<Diagnostic> _diagnostics;
 
         public LocalFunctionSymbol(
@@ -76,22 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!diags.IsDefault)
             {
                 addTo.AddRange(diags);
-            }
-        }
-
-        private void AddDiagnostics(ImmutableArray<Diagnostic> diagnostics)
-        {
-            // Atomic update operation. Applies a function (Concat) to a variable repeatedly, until it "gets through" (isn't in a race condition with another concat)
-            var oldDiags = _diagnostics;
-            while (true)
-            {
-                var newDiags = oldDiags.IsDefault ? diagnostics : oldDiags.Concat(diagnostics);
-                var overwriteDiags = ImmutableInterlocked.InterlockedCompareExchange(ref _diagnostics, newDiags, oldDiags);
-                if (overwriteDiags == oldDiags)
+                addTo.AddRange(_lazyParametersAndDiagnostics.Diagnostics);
+                // Note _lazyParametersAndDiagnostics and _lazyReturnTypeAndDiagnostics
+                // are computed always, but _lazyTypeParameterConstraintsAndDiagnostics
+                // is only computed if there are constraints.
+                if (_lazyTypeParameterConstraintsAndDiagnostics != null)
                 {
-                    break;
+                    addTo.AddRange(_lazyTypeParameterConstraintsAndDiagnostics.Diagnostics);
                 }
-                oldDiags = overwriteDiags;
+                addTo.AddRange(_lazyReturnTypeAndDiagnostics.Diagnostics);
             }
         }
 
@@ -100,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeParameters();
-                return _isVararg;
+                return _lazyParametersAndDiagnostics.IsVararg;
             }
         }
 
@@ -109,32 +134,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeParameters();
-                return _parameters;
+                return _lazyParametersAndDiagnostics.Parameters;
             }
         }
 
         private void ComputeParameters()
         {
-            if (!_parameters.IsDefault)
+            if (_lazyParametersAndDiagnostics != null)
             {
                 return;
             }
+
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
-            _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
-            _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            if (diagnostics.IsEmptyWithoutResolution)
+            var parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
+            var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            if (IsAsync && diagnostics.IsEmptyWithoutResolution)
             {
-                SourceMemberMethodSymbol.ReportAsyncParameterErrors(this, diagnostics, this.Locations[0]);
+                SourceMemberMethodSymbol.ReportAsyncParameterErrors(parameters, diagnostics, this.Locations[0]);
             }
-            AddDiagnostics(diagnostics.ToReadOnlyAndFree());
+            var value = new ParametersAndDiagnostics(parameters, isVararg, diagnostics.ToReadOnlyAndFree());
+            Interlocked.CompareExchange(ref _lazyParametersAndDiagnostics, value, null);
         }
 
         public override TypeSymbol ReturnType
         {
             get
             {
-                return ComputeReturnType();
+                ComputeReturnType();
+                return _lazyReturnTypeAndDiagnostics.ReturnType;
             }
         }
 
@@ -146,39 +174,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeSymbol ComputeReturnType()
+        internal void ComputeReturnType()
         {
-            if (_returnType != null)
+            if (_lazyReturnTypeAndDiagnostics != null)
             {
-                return _returnType;
+                return;
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSymbol returnType = _binder.BindType(_syntax.ReturnType, diagnostics);
-            var raceReturnType = Interlocked.CompareExchange(ref _returnType, returnType, null);
-            if (raceReturnType != null)
-            {
-                diagnostics.Free();
-                return raceReturnType;
-            }
-            if (this.IsAsync && !this.IsGenericTaskReturningAsync(_binder.Compilation) && !this.IsTaskReturningAsync(_binder.Compilation) && !this.IsVoidReturningAsync())
+            if (IsAsync &&
+                returnType.SpecialType != SpecialType.System_Void &&
+                !returnType.IsNonGenericTaskType(_binder.Compilation) &&
+                !returnType.IsGenericTaskType(_binder.Compilation))
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
-
-            if (this.RefKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
+            if (_refKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
             {
                 diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, this.Locations[0]);
             }
-
-            // TODO: note there is a race condition here that will ultimately need to be fixed.
-            // Specifically, the Interlocked.CompareExchange above succeeds, and will be seen by
-            // other threads, before the diagnostics have been recorded in this symbol, below.
-            // We can resolve this with a lock around this method and any other methods that
-            // manipulate _diagnostics, directly or indirectly.
-            AddDiagnostics(diagnostics.ToReadOnlyAndFree());
-            return returnType;
+            var value = new ReturnTypeAndDiagnostics(returnType, diagnostics.ToReadOnlyAndFree());
+            Interlocked.CompareExchange(ref _lazyReturnTypeAndDiagnostics, value, null);
         }
 
         public override bool ReturnsVoid => ReturnType?.SpecialType == SpecialType.System_Void;
@@ -226,14 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HidesBaseMethodsByName => false;
 
-
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
-
 
         public override ImmutableArray<Location> Locations => ImmutableArray.Create(_syntax.Identifier.GetLocation());
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
-
 
         internal override bool GenerateDebugInfo => true;
 
@@ -243,12 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
-
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
 
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 
         internal override bool HasDeclarativeSecurity => false;
+
         internal override bool RequiresSecurityObject => false;
 
         public override Symbol AssociatedSymbol => null;
@@ -356,17 +371,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
         {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            if (_lazyTypeParameterConstraintsAndDiagnostics == null)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
-                {
-                    AddDiagnostics(diagnostics.ToReadOnly());
-                }
-                diagnostics.Free();
+                var constraints = MakeTypeParameterConstraints(diagnostics);
+                var value = new TypeParameterConstraintsAndDiagnostics(constraints, diagnostics.ToReadOnlyAndFree());
+                Interlocked.CompareExchange(ref _lazyTypeParameterConstraintsAndDiagnostics, value, null);
             }
 
-            var clauses = _lazyTypeParameterConstraints;
+            var clauses = _lazyTypeParameterConstraintsAndDiagnostics.ConstraintClauses;
             return (clauses.Length > 0) ? clauses[ordinal] : null;
         }
 

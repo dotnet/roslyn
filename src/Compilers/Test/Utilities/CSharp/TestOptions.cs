@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp7).WithFeatures(s_experimentalFeatures);
 
+        // Enable pattern-switch translation even for switches that use no new syntax. This is used
+        // to help ensure compatibility of the semantics of the new switch binder with the old switch
+        // binder, so that we may eliminate the old one in the future.
+        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
+
+        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
+        
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
 
@@ -46,14 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
 
-        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value)
-        {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
-        }
-
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature("strict", "true");
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
         }
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
@@ -96,10 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 list.Add(new KeyValuePair<string, string>(name, "true"));
             }
 
-
             return options.WithFeatures(options.Features.Concat(list));
         }
-
+        
+        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
+        }
     }
 }
 

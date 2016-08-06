@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
             var document = _documentProvider.TryGetDocumentForFile(
                 hostProject,
-                (uint)VSConstants.VSITEMID.Nil,
+                ImmutableArray<string>.Empty,
                 moniker,
                 parseOptions.Kind,
                 canUseTextBuffer: _ => true);

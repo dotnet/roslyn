@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText: escapedName + ColonString,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: parameter,
-                    descriptionPosition: token.SpanStart,
+                    contextPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: CompletionItemRules.Default));
+                    rules: CompletionItemRules.Default,
+                    matchPriority: SymbolMatchPriority.PreferNamedArgument));
             }
         }
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return obj.Name.GetHashCode();
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,

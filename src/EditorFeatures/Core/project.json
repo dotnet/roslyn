@@ -1,7 +1,8 @@
 ﻿{
   "dependencies": {
-    "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": "14.0.23107",
-    "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "14.0.23107"
+    "System.Collections.Immutable": "1.2.0",
+    "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": "14.3.25407",
+    "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "14.3.25407"
   },
   "frameworks": {
     "net46": {}

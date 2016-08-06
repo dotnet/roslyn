@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -181,9 +181,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             get
             {
                 // TODO: Should probably use original syntax & formatting exactly instead of regenerating here
-                List<SymbolDisplayPart> displayParts = GetSignatureDisplayParts();
+                var displayParts = GetSignatureDisplayParts();
 
-                var textBlock = displayParts.ToTextBlock(_classificationTypeMap);
+                var textBlock = displayParts.ToTaggedText().ToTextBlock(_classificationTypeMap);
 
                 foreach (var inline in textBlock.Inlines)
                 {
@@ -391,7 +391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.MoveUpAutomationText, AllParameters[SelectedIndex.Value].ParameterAutomationText, AllParameters[SelectedIndex.Value - 1].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex.Value].ParameterAutomationText, AllParameters[SelectedIndex.Value - 1].ParameterAutomationText);
             }
         }
 
@@ -404,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.MoveDownAutomationText, AllParameters[SelectedIndex.Value].ParameterAutomationText, AllParameters[SelectedIndex.Value + 1].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex.Value].ParameterAutomationText, AllParameters[SelectedIndex.Value + 1].ParameterAutomationText);
             }
         }
 
@@ -417,7 +417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.RemoveAutomationText, AllParameters[SelectedIndex.Value].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Remove_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
             }
         }
 
@@ -430,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.RestoreAutomationText, AllParameters[SelectedIndex.Value].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Restore_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
             }
         }
 

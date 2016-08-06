@@ -733,11 +733,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The bound method body is typically a high-level tree - it may contain 
         ''' lambdas, foreach etc... which will be processed in CompileMethod(...)
         ''' </summary>
+        ''' <param name="compilationState">Enables synthesized methods to create <see cref="SyntheticBoundNodeFactory"/> instances.</param>
         ''' <param name="methodBodyBinder">Optionally returns a binder, OUT parameter!</param>
         ''' <remarks>
         ''' The method MAY return a binder used for binding so it can be reused later in method compiler
         ''' </remarks>
-        Friend Overridable Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overridable Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Throw ExceptionUtilities.Unreachable
         End Function
 

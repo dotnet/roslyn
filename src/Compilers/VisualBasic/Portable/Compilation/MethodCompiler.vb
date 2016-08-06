@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _emittingPdb = emittingPdb
             _filterOpt = filter
 
-            If emittingPdb Then
+            If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData Then
                 _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 
@@ -285,7 +285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  variableSlotAllocatorOpt:=Nothing,
                                                  debugDocumentProvider:=Nothing,
                                                  diagnostics:=diagnostics,
-                                                 emittingPdb:=False)
+                                                 emittingPdb:=False,
+                                                 dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody)
             End If
 
@@ -828,33 +829,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CompileSynthesizedMethods(privateImplClass As PrivateImplementationDetails)
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
+            Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
             For Each method As MethodSymbol In privateImplClass.GetMethods(Nothing)
                 Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
 
-                Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
+                Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
-                Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
-                                                     method,
-                                                     methodOrdinal:=DebugId.UndefinedOrdinal,
-                                                     block:=boundBody,
-                                                     lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                                     closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                                     stateMachineTypeOpt:=Nothing,
-                                                     variableSlotAllocatorOpt:=Nothing,
-                                                     debugDocumentProvider:=Nothing,
-                                                     diagnostics:=diagnosticsThisMethod,
-                                                     emittingPdb:=False)
+                If diagnosticsThisMethod.HasAnyErrors Then
+                    _diagnostics.AddRange(diagnosticsThisMethod)
+                    diagnosticsThisMethod.Free()
+                Else
+                    Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
+                                                         method,
+                                                         methodOrdinal:=DebugId.UndefinedOrdinal,
+                                                         block:=boundBody,
+                                                         lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                         closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                                         stateMachineTypeOpt:=Nothing,
+                                                         variableSlotAllocatorOpt:=Nothing,
+                                                         debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData, _debugDocumentProvider, Nothing),
+                                                         diagnostics:=diagnosticsThisMethod,
+                                                         emittingPdb:=False,
+                                                         dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
-                _diagnostics.AddRange(diagnosticsThisMethod)
-                diagnosticsThisMethod.Free()
+                    _diagnostics.AddRange(diagnosticsThisMethod)
+                    diagnosticsThisMethod.Free()
 
-                ' error while generating IL
-                If emittedBody Is Nothing Then
-                    Exit For
+                    ' error while generating IL
+                    If emittedBody Is Nothing Then
+                        Exit For
+                    End If
+
+                    _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
                 End If
-
-                _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
             Next
+
+            Debug.Assert(Not compilationState.HasSynthesizedMethods)
+            compilationState.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(additionalTypes As ImmutableArray(Of NamedTypeSymbol))
@@ -867,7 +878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each method In additionalType.GetMethodsToEmit()
                     Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
 
-                    Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
+                    Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
                     Dim emittedBody As MethodBody = Nothing
 
@@ -878,6 +889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                         Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
                         Dim delegateRelaxationIdDispenser = 0
+                        Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
                         Dim rewrittenBody = Rewriter.LowerBodyOrInitializer(
                             method,
@@ -885,6 +897,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             boundBody,
                             previousSubmissionFields:=Nothing,
                             compilationState:=compilationState,
+                            instrumentForDynamicAnalysis:=False,
+                            dynamicAnalysisSpans:=dynamicAnalysisSpans,
+                            debugDocumentProvider:=_debugDocumentProvider,
                             diagnostics:=diagnosticsThisMethod,
                             lazyVariableSlotAllocator:=lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
@@ -907,7 +922,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              lazyVariableSlotAllocator,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
-                                                             emittingPdb:=False)
+                                                             emittingPdb:=False,
+                                                             dynamicAnalysisSpans:=dynamicAnalysisSpans)
                         End If
 
                         lambdaDebugInfoBuilder.Free()
@@ -956,7 +972,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=_debugDocumentProvider,
                                                          diagnostics:=diagnosticsThisMethod,
-                                                         emittingPdb:=_emittingPdb)
+                                                         emittingPdb:=_emittingPdb,
+                                                         dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
                     diagnosticsThisMethod.Free()
@@ -1269,7 +1286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim containingType = prop.ContainingType
                 Debug.Assert(containingType Is getter.ContainingType AndAlso containingType Is setter.ContainingType)
 
-                Dim getterBody = getter.GetBoundMethodBody(diagnostics, containingTypeBinder)
+                Dim getterBody = getter.GetBoundMethodBody(compilationState, diagnostics, containingTypeBinder)
 
                 ' no need to rewrite getter, they are pretty simple and 
                 ' are already in a lowered form.
@@ -1277,7 +1294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, getter)
 
                 ' setter needs to rewritten as it may require lambda conversions
-                Dim setterBody = setter.GetBoundMethodBody(diagnostics, containingTypeBinder)
+                Dim setterBody = setter.GetBoundMethodBody(compilationState, diagnostics, containingTypeBinder)
 
                 Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                 Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
@@ -1287,7 +1304,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              setterBody,
                                                              previousSubmissionFields,
                                                              compilationState,
-                                                             diagnostics,
+                                                             instrumentForDynamicAnalysis:=False,
+                                                             dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty,
+                                                             debugDocumentProvider:=_debugDocumentProvider,
+                                                             diagnostics:=diagnostics,
                                                              lazyVariableSlotAllocator:=Nothing,
                                                              lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
                                                              closureDebugInfoBuilder:=closureDebugInfoBuilder,
@@ -1384,12 +1404,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
             Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
             Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
+            Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
+            Dim emitDynamicAnalysisData As Boolean? = _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData
 
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    methodOrdinal,
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
+                                                   emitDynamicAnalysisData.HasValue AndAlso emitDynamicAnalysisData.Value,
+                                                   dynamicAnalysisSpans,
+                                                   _debugDocumentProvider,
                                                    diagnostics,
                                                    lazyVariableSlotAllocator,
                                                    lambdaDebugInfoBuilder,
@@ -1436,7 +1461,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               lazyVariableSlotAllocator,
                                                               _debugDocumentProvider,
                                                               diagnostics,
-                                                              emittingPdb:=_emittingPdb)
+                                                              emittingPdb:=_emittingPdb,
+                                                              dynamicAnalysisSpans:=dynamicAnalysisSpans)
 
             If diagnostics IsNot diagsForCurrentMethod Then
                 DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics, diagsForCurrentMethod)
@@ -1459,7 +1485,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagnostics As DiagnosticBag,
-                                                  emittingPdb As Boolean) As MethodBody
+                                                  emittingPdb As Boolean,
+                                                  dynamicAnalysisSpans As ImmutableArray(Of SourceSpan)) As MethodBody
 
             Dim compilation = moduleBuilder.Compilation
             Dim localSlotManager = New LocalSlotManager(variableSlotAllocatorOpt)
@@ -1538,6 +1565,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim localScopes = builder.GetAllScopes()
 
+                Dim dynamicAnalysisDataOpt As DynamicAnalysisMethodBodyData = Nothing
+                If moduleBuilder.EmitOptions.EmitDynamicAnalysisData Then
+                    Debug.Assert(debugDocumentProvider IsNot Nothing)
+                    dynamicAnalysisDataOpt = New DynamicAnalysisMethodBodyData(dynamicAnalysisSpans)
+                End If
+
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,
                                       If(method.PartialDefinitionPart, method),
@@ -1555,7 +1588,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       stateMachineHoistedLocalScopes:=Nothing,
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,
                                       stateMachineAwaiterSlots:=stateMachineAwaiterSlots,
-                                      asyncMethodDebugInfo:=asyncDebugInfo)
+                                      asyncMethodDebugInfo:=asyncDebugInfo,
+                                      dynamicAnalysisDataOpt:=dynamicAnalysisDataOpt)
             Finally
                 ' Free resources used by the basic blocks in the builder.
                 builder.FreeBasicBlocks()
@@ -1624,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             injectDefaultConstructorCall = False
             methodBodyBinder = Nothing
 
-            Dim body = method.GetBoundMethodBody(diagnostics, methodBodyBinder)
+            Dim body = method.GetBoundMethodBody(compilationState, diagnostics, methodBodyBinder)
             Debug.Assert(body IsNot Nothing)
 
             Analyzer.AnalyzeMethodBody(method, body, diagnostics)

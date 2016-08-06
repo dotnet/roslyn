@@ -1,13 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -44,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        string.Format(FeaturesResources.FixNamingViolation, fixedName),
+                        string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
                         async c => await Renamer.RenameSymbolAsync(
                             solution,
                             symbol,

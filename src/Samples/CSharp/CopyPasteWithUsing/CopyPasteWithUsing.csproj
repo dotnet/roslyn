@@ -38,11 +38,6 @@
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>Microsoft.CodeAnalysis.EditorFeatures.Text</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\Composition\Composition.csproj">
-      <Project>{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}</Project>
-      <Name>Composition</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
       <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
       <Name>VisualStudio</Name>

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingNamedType.GetPropertiesToEmit();
         }
 
-        protected override IEnumerable<Cci.ITypeReference> GetInterfaces(EmitContext context)
+        protected override IEnumerable<Cci.TypeReferenceWithAttributes> GetInterfaces(EmitContext context)
         {
             Debug.Assert((object)TypeManager.ModuleBeingBuilt == context.Module);
 
@@ -99,7 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             foreach (NamedTypeSymbol @interface in UnderlyingNamedType.GetInterfacesToEmit())
             {
-                yield return moduleBeingBuilt.Translate(@interface, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                var typeRef = moduleBeingBuilt.Translate(
+                    @interface,
+                    (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    context.Diagnostics);
+
+                yield return @interface.GetTypeRefWithAttributes(
+                    UnderlyingNamedType.DeclaringCompilation,
+                    typeRef);
             }
         }
 

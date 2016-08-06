@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
-            Dim languageVersion As LanguageVersion = LanguageVersion.VisualBasic15
+            Dim languageVersion As LanguageVersion = LanguageVersion.Latest.MapLatestToVersion()
             Dim mainTypeName As String = Nothing
             Dim win32ManifestFile As String = Nothing
             Dim win32ResourceFile As String = Nothing
@@ -146,12 +146,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim delaySignSetting As Boolean? = Nothing
             Dim moduleAssemblyName As String = Nothing
             Dim moduleName As String = Nothing
-            Dim sqmsessionguid As Guid = Nothing
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
+            Dim instrument As String = ""
+            Dim sourceLink As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -350,10 +351,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "sqmsessionguid"
+                        ' The use of SQM is deprecated in the compiler but we still support the command line parsing for 
+                        ' back compat reasons.
                         value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrWhiteSpace(value) = True Then
                             AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
                         Else
+                            Dim sqmsessionguid As Guid
                             If Not Guid.TryParse(value, sqmsessionguid) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
                             End If
@@ -537,6 +541,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
+                        Case "instrument"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<string>")
+                                Continue For
+                            End If
+
+                            instrument = value
+                            Continue For
+
                         Case "recurse"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
@@ -603,13 +617,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                             Continue For
 
+                        Case "sourcelink"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sourcelink", ":<file>")
+                            Else
+                                sourceLink = ParseGenericPathToFile(value, diagnostics, baseDirectory)
+                            End If
+                            Continue For
+
                         Case "debug"
                             ' parse only for backwards compat
                             value = RemoveQuotesAndSlashes(value)
                             If value IsNot Nothing Then
                                 Select Case value.ToLower()
                                     Case "full", "pdbonly"
-                                        debugInformationFormat = DebugInformationFormat.Pdb
+                                        debugInformationFormat = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
                                     Case "portable"
                                         debugInformationFormat = DebugInformationFormat.PortablePdb
                                     Case "embedded"
@@ -780,6 +803,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         languageVersion = LanguageVersion.VisualBasic14
                                     Case "15", "15.0"
                                         languageVersion = LanguageVersion.VisualBasic15
+                                    Case "default"
+                                        languageVersion = LanguageVersion.Latest.MapLatestToVersion()
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select
@@ -1200,6 +1225,12 @@ lVbRuntimePlus:
 
             ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
 
+            If sourceLink IsNot Nothing Then
+                If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPortablePdb)
+                End If
+            End If
+
             ' Validate root namespace if specified
             Debug.Assert(rootNamespace IsNot Nothing)
             ' NOTE: empty namespace is a valid option
@@ -1280,7 +1311,8 @@ lVbRuntimePlus:
                 baseAddress:=baseAddress,
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
-                runtimeMetadataVersion:=Nothing)
+                runtimeMetadataVersion:=Nothing,
+                instrument:=instrument)
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
@@ -1330,9 +1362,9 @@ lVbRuntimePlus:
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
                 .EmitPdb = emitPdb,
+                .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
-                .SqmSessionGuid = sqmsessionguid,
                 .ReportAnalyzer = reportAnalyzer
             }
         End Function

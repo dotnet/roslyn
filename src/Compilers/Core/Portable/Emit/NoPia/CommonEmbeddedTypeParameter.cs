@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingTypeParameter = underlyingTypeParameter;
             }
 
-            protected abstract IEnumerable<Cci.ITypeReference> GetConstraints(EmitContext context);
+            protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
             protected abstract bool MustBeReferenceType { get; }
             protected abstract bool MustBeValueType { get; }
             protected abstract bool MustHaveDefaultConstructor { get; }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.ITypeReference> Cci.IGenericParameter.GetConstraints(EmitContext context)
+            IEnumerable<Cci.TypeReferenceWithAttributes> Cci.IGenericParameter.GetConstraints(EmitContext context)
             {
                 return GetConstraints(context);
             }

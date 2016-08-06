@@ -58,6 +58,8 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
+    <Compile Include="Implementation\Diagnostics\IRemoteHostDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
@@ -65,6 +67,7 @@
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\FindReferences\VisualStudioDefinitionsAndReferencesFactory.cs" />
     <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
@@ -73,9 +76,7 @@
     <Compile Include="Implementation\LanguageService\AbstractPackage.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\ClassView\AbstractSyncClassViewCommandHandler.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\DefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\ILibraryService.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectBrowserTaskExtensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
@@ -89,12 +90,20 @@
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IIntellisenseBuildTarget.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractRoslynProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProject_IWorkspaceProjectContext.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\CPSProjectFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContext.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractProject_Options.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkspaceHost2.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IAnalyzerHost.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
@@ -104,6 +113,12 @@
     <Compile Include="Implementation\Options\ExportLanguageSpecificOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
+    <Compile Include="Implementation\Remote\IRemoteHostClientFactory.cs" />
+    <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
@@ -183,6 +198,13 @@
     <Compile Include="Shared\LogicalStringComparer.cs" />
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="Telemetry\CodeMarkerLogger.cs" />
+    <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
+    <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
+    <Compile Include="Telemetry\RoslynTelemetrySetup.cs" />
+    <Compile Include="Telemetry\VSTelemetryActivityLogger.cs" />
+    <Compile Include="Telemetry\VSTelemetryCache.cs" />
+    <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
@@ -196,21 +218,11 @@
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
-      <Link>Shared\CustomDebugInfoConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
-      <Link>Shared\CustomDebugInfoReader.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
       <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
@@ -247,22 +259,23 @@
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
@@ -286,14 +299,8 @@
     <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
     <Reference Include="PresentationCore" />
@@ -392,7 +399,7 @@
     <Compile Include="Implementation\ExtractInterface\VisualStudioExtractInterfaceOptionsService.cs" />
     <Compile Include="Implementation\F1Help\AbstractHelpContextService.cs" />
     <Compile Include="Implementation\F1Help\IHelpContextService.cs" />
-    <Compile Include="Implementation\FindReferences\ReferencedSymbolsPresenter.cs" />
+    <Compile Include="Implementation\FindReferences\DefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Implementation\GCManager.cs" />
     <Compile Include="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
       <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
@@ -401,12 +408,11 @@
     <Compile Include="Implementation\GenerateType\VisualStudioGenerateTypeOptionsServiceFactory.cs" />
     <Compile Include="Implementation\GoToDefinition\NavigableItemsPresenter.cs" />
     <Compile Include="Implementation\Interop\Feedback.cs" />
-    <Compile Include="Implementation\Interop\IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\LanguageService\HACK_AbstractCreateServicesOnUiThread.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractListItemFactory.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_ListItems.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\SymbolListItem`1.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsHierarchyEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IVsHierarchyEvents.cs" />
     <Compile Include="Implementation\ProjectSystem\LinkedFileUtilities.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\IRuleSetFile.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManager.cs" />
@@ -454,7 +460,6 @@
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsSimpleLibrary2.cs" />
     <Compile Include="Implementation\Library\AbstractObjectList.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\ExternalLanguageDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_FindReferences.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_GoToDefinition.cs" />
@@ -523,8 +528,8 @@
     <Compile Include="Implementation\Progression\SymbolContainment.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractEntryPointFinder.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IAnalyzerHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractRoslynProject_IVsENCRebuildableProjectCfg.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractProject_Analyzers.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsENCRebuildableProjectCfg.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsReportExternalErrors.cs" />
     <Compile Include="Implementation\ProjectSystem\ComEventSink.cs" />
     <Compile Include="Implementation\ProjectSystem\DocumentKey.cs" />
@@ -558,7 +563,6 @@
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\MiscellaneousFilesWorkspace.HostProject.cs" />
     <Compile Include="Implementation\ProjectSystem\ReiteratedVersionSnapshotTracker.cs" />
-    <Compile Include="Implementation\ProjectSystem\Sqm.cs" />
     <Compile Include="Implementation\ProjectSystem\ViewEventArgs.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
@@ -741,6 +745,7 @@
   <ItemGroup>
     <Folder Include="Implementation\Options\Style\" />
   </ItemGroup>
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

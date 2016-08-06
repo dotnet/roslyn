@@ -36,13 +36,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>Vsixes</VSIXSubPath>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\Telemetry\VisualStudioTelemetry.csproj">
-      <Project>{63fb8976-170e-4fb0-abb8-6a7070c55dc7}</Project>
-      <Name>VisualStudioTelemetry</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <VSIXSubPath>Vsixes</VSIXSubPath>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Extension\CompilerExtension.csproj">
       <Project>{43026D51-3083-4850-928D-07E1883D5B1A}</Project>
       <Name>CompilerExtension</Name>

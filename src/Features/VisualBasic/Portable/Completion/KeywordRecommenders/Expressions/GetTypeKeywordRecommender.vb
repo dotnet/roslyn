@@ -2,7 +2,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext Then
                 Return SpecializedCollections.SingletonEnumerable(
                    CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.GetTypeKeyword,
-                                                                VBFeaturesResources.GettypeFunction,
+                                                                VBFeaturesResources.GetType_function,
                                                                 Glyph.Keyword,
                                                                 New GetTypeExpressionDocumentation(),
                                                                 context.SemanticModel,

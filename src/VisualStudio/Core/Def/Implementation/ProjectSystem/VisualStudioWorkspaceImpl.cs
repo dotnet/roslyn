@@ -15,21 +15,16 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Packaging;
-using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
@@ -71,15 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
-
-            var session = serviceProvider.GetService(typeof(SVsLog)) as IVsSqmMulti;
-            var profileService = serviceProvider.GetService(typeof(SVsFeedbackProfile)) as IVsFeedbackProfile;
-
-            // We have Watson hits where this came back null, so guard against it
-            if (profileService != null)
-            {
-                Sqm.LogSession(session, profileService.IsMicrosoftInternal);
-            }
         }
 
         internal static HostServices CreateHostServices(SVsServiceProvider serviceProvider)
@@ -220,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (!TryGetProjectData(projectId, out hostProject, out hierarchy, out project))
             {
-                throw new ArgumentException(string.Format(ServicesVSResources.CouldNotFindProject, projectId));
+                throw new ArgumentException(string.Format(ServicesVSResources.Could_not_find_project_0, projectId));
             }
         }
 
@@ -550,7 +536,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!project.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -573,7 +559,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!folder.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -697,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (!_foregroundObject.IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
+                throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
 
             var document = this.GetHostDocument(documentId);

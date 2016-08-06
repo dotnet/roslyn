@@ -267,8 +267,49 @@ namespace A.B {
                     }
                 }
             }
+        }
+
+        [Fact]
+        public void Emit_BadArgs()
+        {
+            var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
 
             Assert.Throws<ArgumentNullException>(() => comp.Emit(peStream: null));
+            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+                peStream: new MemoryStream(), 
+                pdbStream: new MemoryStream(), 
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: new MemoryStream(),
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: null,
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+                peStream: new MemoryStream(),
+                win32Resources: new TestStream(canRead: true, canWrite: false, canSeek: false)));
+
+            Assert.Throws<ArgumentException>(() => comp.Emit(
+                peStream: new MemoryStream(),
+                win32Resources: new TestStream(canRead: false, canWrite: false, canSeek: true)));
+
+            // we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream: new MemoryStream(), 
+                pdbStream: new MemoryStream(), 
+                xmlDocumentationStream: new TestStream(canRead: true, canWrite: false, canSeek: true)).Success);
         }
 
         [Fact]
@@ -2148,6 +2189,82 @@ public class C { public static FrameworkName Foo() { return null; }}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "int"));
 
             Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_IncorrectLengths()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)null),
+                    ImmutableArray.Create("m1", "m2")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument1()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        default(ImmutableArray<ITypeSymbol>),
+                        ImmutableArray.Create("m1")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument2()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)null),
+                        default(ImmutableArray<string>)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument3()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)null),
+                        ImmutableArray.Create("m1")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument4()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create((string)null)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType1()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            var type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"));
+
+            Assert.True(type.IsAnonymousType);
+            Assert.Equal(1, type.GetMembers().OfType<IPropertySymbol>().Count());
+            Assert.Equal("<anonymous type: int m1>", type.ToDisplayString());
+        }
+
+        [Fact()]
+        public void CreateAnonymousType2()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            var type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        ImmutableArray.Create("m1", "m2"));
+
+            Assert.True(type.IsAnonymousType);
+            Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
+            Assert.Equal("<anonymous type: int m1, bool m2>", type.ToDisplayString());
         }
 
         #region Script return values

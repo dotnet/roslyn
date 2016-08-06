@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -3988,7 +3987,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4015,7 +4014,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4041,7 +4040,36 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Deconstruction()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var [||]temp = new C();
+        var (x1, x2) = temp;
+        var x3 = temp;
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var (x1, x2) = new C();
+        var x3 = new C();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0);
         }
     }
 }

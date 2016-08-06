@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -55,11 +53,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return await builder.BuildDescriptionAsync(symbols, groups).ConfigureAwait(false);
         }
 
-        public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>>> ToDescriptionGroupsAsync(Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+        public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> ToDescriptionGroupsAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             if (symbols.Length == 0)
             {
-                return SpecializedCollections.EmptyDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>>();
+                return SpecializedCollections.EmptyDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>();
             }
 
             var builder = CreateDescriptionBuilder(workspace, semanticModel, position, cancellationToken);

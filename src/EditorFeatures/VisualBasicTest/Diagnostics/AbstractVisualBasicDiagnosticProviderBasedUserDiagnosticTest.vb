@@ -3,7 +3,6 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics

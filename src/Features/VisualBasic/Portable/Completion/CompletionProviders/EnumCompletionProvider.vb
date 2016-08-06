@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -14,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetPreselectedSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
             End If
@@ -34,13 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
                         m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).ToList()
-            result.Add(enumType)
+                End Function)
 
             Return Task.FromResult(Of IEnumerable(Of ISymbol))(result)
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
@@ -82,10 +80,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
         Private _cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol
-        Private _cachedDisplayAndInsertionTextContext As AbstractSyntaxContext
+        Private _cachedDisplayAndInsertionTextContext As SyntaxContext
         Private _cachedDisplayAndInsertionTextContainingTypeText As String
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
             If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
                 If _cachedDisplayAndInsertionTextContainingType IsNot symbol.ContainingType OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
                     Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
@@ -99,28 +97,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return ValueTuple.Create(text, text)
             End If
 
-            Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol,
-                                                                  context.IsAttributeNameContext,
-                                                                  context.IsRightOfNameSeparator,
-                                                                  DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod,
-                                                                  context.GetLanguageService(Of ISyntaxFactsService)())
-            Return result
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
+        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, span As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.Create(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 filterText:=GetFilterText(symbols(0), displayText, context),
-                span:=span,
                 symbols:=symbols,
                 contextPosition:=context.Position,
-                descriptionPosition:=position,
                 sortText:=insertionText,
                 matchPriority:=If(preselect, MatchPriority.Preselect, MatchPriority.Default),
                 supportedPlatforms:=supportedPlatformData,
@@ -130,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
             Return s_rules
         End Function
 
@@ -139,9 +130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
-
     End Class
 End Namespace

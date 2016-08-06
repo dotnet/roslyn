@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
@@ -73,6 +71,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                 return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
                             .Distinct()
                             .ToImmutableReadOnlyListOrEmpty();
+            }
+
+            protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
+            {
+                var result = new List<ITypeSymbol>();
+                result.Add(parameterSymbol.Type);
+
+                if (parameterSymbol.IsParams)
+                {
+                    var arrayTypeSymbol = parameterSymbol.Type as IArrayTypeSymbol;
+                    if (arrayTypeSymbol != null)
+                    {
+                        result.Add(arrayTypeSymbol.ElementType);
+                    }
+                }
+
+                return result;
             }
         }
 

@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isMemberInitializer)
             {
                 initializer = initializerBinder.WrapWithVariablesIfAny(initializerOpt, initializer);
-        }
+            }
 
             return initializer;
         }
@@ -661,7 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
             ArrayBuilder<string> elementNames = null;
-            int countOfExplicitNames = 0;
 
             // prepare and check element names and types
             for (int i = 0; i < numElements; i++)
@@ -675,7 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = nameSyntax.Identifier.ValueText;
                     elementLocations.Add(nameSyntax.Location);
 
-                    countOfExplicitNames++;
                     if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
                     {
                         hasErrors = true;
@@ -701,12 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             uniqueFieldNames.Free();
-
-            if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
-            {
-                hasErrors = true;
-                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
-            }
 
             var elementNamesArray = elementNames == null ?
                                 default(ImmutableArray<string>) :
@@ -1189,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaringType = members[0].ContainingType;
 
             HashSet<DiagnosticInfo> unused = null;
-            if (currentType.IsEqualToOrDerivedFrom(declaringType, ignoreDynamic: false, useSiteDiagnostics: ref unused))
+            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref unused))
             {
                 return ThisReference(syntax, currentType, wasCompilerGenerated: true);
             }
@@ -1364,14 +1356,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             SourceLocalSymbol sourceLocal;
+                            DeclarationExpressionSyntax declExpression;
                             ArgumentSyntax argument;
                             type = null;
 
                             if (node.SyntaxTree == localSymbolLocation.SourceTree && 
                                 (object)(sourceLocal = localSymbol as SourceLocalSymbol) != null &&
-                                ArgumentSyntax.IsIdentifierOfOutVariableDeclaration(sourceLocal.IdentifierToken, out argument))
+                                (declExpression = sourceLocal.IdentifierToken.Parent?.Parent?.Parent as DeclarationExpressionSyntax) != null &&
+                                (argument = declExpression.Parent as ArgumentSyntax) != null)
                             {
-                                if (argument.Type.IsVar)
+                                if (declExpression.Type().IsVar)
                                 {
                                     // We are referring to an out variable which might need type inference.
                                     // If it is in fact needs inference, it is illegal to reference it in the same argument list that immediately 
@@ -1409,8 +1403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = (ParameterSymbol)symbol;
                         if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
                         {
-                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                                }
+                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                        }
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -1487,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentType = this.ContainingType;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+            if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 bool hasErrors = false;
                 if (EnclosingNameofArgument != node)
@@ -1553,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol hostObjectType = Compilation.GetHostObjectTypeSymbol();
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if ((object)hostObjectType != null && hostObjectType.IsEqualToOrDerivedFrom(memberDeclaringType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+                    if ((object)hostObjectType != null && hostObjectType.IsEqualToOrDerivedFrom(memberDeclaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
                     {
                         return new BoundHostObjectMemberReference(syntax, hostObjectType) { WasCompilerGenerated = true };
                     }
@@ -2043,11 +2037,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (argumentSyntax.Expression == null)
-            {
-                return true;
-            }
-
             switch (argumentSyntax.Expression.Kind())
             {
                 // The next 3 cases should never be allowed as they cannot be ref/out. Assuming a bug in legacy compiler.
@@ -2057,6 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ObjectCreationExpression:
                 case SyntaxKind.ParenthesizedExpression: // this is never allowed in legacy compiler
+                case SyntaxKind.DeclarationExpression:
                     // A property/indexer is also invalid as it cannot be ref/out, but cannot be checked here. Assuming a bug in legacy compiler.
                     return true;
                 default:
@@ -2109,19 +2099,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindArgumentValue(DiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
         {
-            if (argumentSyntax.Expression != null)
+            if (argumentSyntax.Expression.Kind() != SyntaxKind.DeclarationExpression)
             {
                 return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
             }
 
-            var typeSyntax = argumentSyntax.Type;
+            var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
+            var declaration = declarationExpression.Declaration;
+            var typeSyntax = declaration.Type;
 
             bool isConst = false;
             bool isVar;
             AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(argumentSyntax, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+            TypeSymbol declType = BindVariableType(declarationExpression, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
 
-            SourceLocalSymbol localSymbol = this.LookupLocal(argumentSyntax.Identifier);
+            SourceLocalSymbol localSymbol = this.LookupLocal(declarationExpression.Identifier());
 
             if ((object)localSymbol == null)
             {
@@ -2135,17 +2127,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isVar)
             {
-                return new OutVarLocalPendingInference(argumentSyntax, localSymbol);
+                return new OutVarLocalPendingInference(declarationExpression, localSymbol);
             }
 
             if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
                 && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
                 && declType.IsRestrictedType())
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, argumentSyntax.Type, declType);
+                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
             }
 
-            return new BoundLocal(argumentSyntax, localSymbol, constantValueOpt: null, type: declType);
+            return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
         }
 
         // Bind a named/positional argument.
@@ -2307,11 +2299,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
                         && parameterType.IsRestrictedType())
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, ((ArgumentSyntax)argument.Syntax).Type, parameterType);
+                        var declaration = ((DeclarationExpressionSyntax)argument.Syntax).Declaration;
+                        Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, declaration.Type, parameterType);
                         hasErrors = true;
                     }
 
                     arguments[arg] = ((OutVarLocalPendingInference)argument).SetInferredType(parameterType, success: !hasErrors);
+                }
+                else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
             }
         }

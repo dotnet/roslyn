@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         private const int seed = 128129347;
         private const int rounds = 200;
         private const int maxBits = 132;
+
         [Fact]
         public void UpperBitsUnset()
         {
@@ -146,6 +147,65 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 var capacity = r1.Next(maxBits);
                 Assert.Equal(capacity, r2.Next(maxBits));
                 CheckTrueBitsCore(capacity, r1, r2);
+            }
+        }
+
+        [Fact]
+        public void CheckWords()
+        {
+            for (int capacity = 0; capacity < maxBits; capacity++)
+            {
+                BitVector b = BitVector.Create(capacity);
+                for (int i = 0; i < capacity; i++)
+                {
+                    b[i] = false;
+                }
+
+                var required = BitVector.WordsRequired(capacity);
+                var count = BitVector.AllSet(capacity).Words().Count();
+            }
+        }
+
+        [Fact]
+        public void CheckIsTrue()
+        {
+            var r1 = new Random(seed);
+
+            for (int capacity = 0; capacity < maxBits; capacity++)
+            {
+                BitVector b = BitVector.Create(capacity);
+                for (int i = 0; i < capacity; i++)
+                {
+                    b[i] = r1.NextBool();
+                }
+
+                var index = 0;
+                foreach (var word in b.Words())
+                {
+                    for (var i = 0; i < BitVector.BitsPerWord; i++)
+                    {
+                        if (index >= capacity)
+                        {
+                            break;
+                        }
+
+                        Assert.Equal(b[index], BitVector.IsTrue(word, index));
+
+                        index++;
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void CheckWordsRequired()
+        {
+            for (int capacity = 0; capacity < maxBits; capacity++)
+            {
+                var required = BitVector.WordsRequired(capacity);
+                var count = BitVector.AllSet(capacity).Words().Count();
+
+                Assert.Equal(count, required);
             }
         }
 

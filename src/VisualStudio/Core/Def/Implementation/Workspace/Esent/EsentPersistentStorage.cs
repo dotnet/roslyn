@@ -274,12 +274,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
             try
             {
-                id = _nameTableCache.GetOrAdd(value, v =>
-                {
-                    // okay, get one from esent
-                    var uniqueIdValue = fileCheck ? FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v) : v;
-                    return _esentStorage.GetUniqueId(uniqueIdValue);
-                });
+                var uniqueIdValue = fileCheck ? FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), value) : value;
+                id = _nameTableCache.GetOrAdd(value, _esentStorage.GetUniqueId(uniqueIdValue));
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -289,8 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
                 return false;
             }
-
-            return true;
         }
 
         private static void WriteToStream(Stream inputStream, Stream esentStream, CancellationToken cancellationToken)

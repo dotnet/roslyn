@@ -51,41 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract TypeSymbol Type
-        {
-            get;
-        }
-
-        public override abstract MethodSymbol AddMethod
-        {
-            get;
-        }
-
-        public override abstract MethodSymbol RemoveMethod
-        {
-            get;
-        }
-
-        internal override abstract FieldSymbol AssociatedField
-        {
-            get;
-        }
-
-        internal override abstract bool IsExplicitInterfaceImplementation
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
-        {
-            get;
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
-        }
-
         public override string Name
         {
             get
@@ -177,13 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingEvent.ObsoleteAttributeData;
             }
-        }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
-
-        internal override abstract bool MustCallMethodsDirectly
-        {
-            get;
         }
 
         public override bool IsWindowsRuntimeEvent

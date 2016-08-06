@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
-                : base(fixer, title: FeaturesResources.SuppressWithPragma)
+                : base(fixer, title: FeaturesResources.in_Source)
             {
                 _suppressionTargetInfo = suppressionTargetInfo;
                 _document = document;

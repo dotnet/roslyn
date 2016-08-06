@@ -8,7 +8,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -26,9 +25,6 @@
     </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
-      <Link>Shared\CustomDebugInfoReader.cs</Link>
     </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
@@ -66,14 +62,7 @@
     <Compile Include="MethodContextReuseConstraints.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
       <Name>Concord</Name>

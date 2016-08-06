@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // set of names already used
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-            int countOfExplicitNames = 0;
+            bool hasExplicitNames = false;
 
             for (int i = 0; i < numElements; i++)
             {
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = nameSyntax.Identifier.ValueText;
 
                     // validate name if we have one
-                    countOfExplicitNames++;
+                    hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
                     locations.Add(nameSyntax.Location);
                 }
@@ -440,9 +440,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             uniqueFieldNames.Free();
 
-            if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
+            if (hasExplicitNames)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
+                // If the tuple type with names is bound in a declaration
+                // context then we must have the TupleElementNamesAttribute to emit
+                if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
+                {
+                    // Report diagnostics if System.String doesn't exist
+                    this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+
+                    if (!Compilation.HasTupleNamesAttributes)
+                    {
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                            AttributeDescription.TupleElementNamesAttribute.FullName);
+                        Error(diagnostics, info, syntax);
+                    }
+                }
             }
 
             ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
@@ -450,6 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typesArray.Length < 2)
             {
+                elementNames?.Free();
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
@@ -471,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but in case we need to handle this in error cases
             if (elementNames != null)
             {
-                elementNames.Add(name ?? TupleTypeSymbol.TupleMemberName(position));
+                elementNames.Add(name);
             }
             else
             {
@@ -480,14 +494,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
                     for (int j = 1; j < position; j++)
                     {
-                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j));
+                        elementNames.Add(null);
                     }
                     elementNames.Add(name);
                 }
             }
         }
 
-        private static bool CheckTupleMemberName(string name, int position, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        private static bool CheckTupleMemberName(string name, int index, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
         {
             int reserved = TupleTypeSymbol.IsElementNameReserved(name);
             if (reserved == 0)
@@ -495,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
                 return false;
             }
-            else if (reserved > 0 && reserved != position + 1)
+            else if (reserved > 0 && reserved != index + 1)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
                 return false;

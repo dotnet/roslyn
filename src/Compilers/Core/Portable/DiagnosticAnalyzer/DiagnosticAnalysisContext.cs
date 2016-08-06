@@ -139,12 +139,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
+        internal virtual void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
         public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal virtual void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
         {
             throw new NotImplementedException();
         }
@@ -161,6 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
+        internal void RegisterOperationActionParamsArrayInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationActionImmutableArrayInternal(action, operationKinds.AsImmutableOrEmpty());
+        }
+
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
         /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
@@ -169,6 +184,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal virtual void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -363,12 +383,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
+        internal virtual void RegisterOperationBlockStartActionInternal(Action<OperationBlockStartAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
         public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal virtual void RegisterOperationBlockActionInternal(Action<OperationBlockAnalysisContext> action)
         {
             throw new NotImplementedException();
         }
@@ -415,6 +445,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
+        internal void RegisterOperationActionParamsArrayInternal(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationActionImmutableArrayInternal(action, operationKinds.AsImmutableOrEmpty());
+        }
+
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
         /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
@@ -423,6 +458,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal virtual void RegisterOperationActionImmutableArrayInternal(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -955,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
-        
+
         public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;

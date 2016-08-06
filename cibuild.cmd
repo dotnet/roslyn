@@ -42,8 +42,8 @@ if not "%BuildTimeLimit%" == "" (
 ) else (
     set RunProcessWatchdog=false
 )
-    
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
+
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
@@ -88,16 +88,8 @@ powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\sc
 
 call :TerminateBuildProcesses
 
-REM Verify that our project.lock.json files didn't change as a result of 
-REM restore.  If they do then the commit changed the dependencies without 
-REM updating the lock files.
-REM git diff --exit-code --quiet
-REM if ERRORLEVEL 1 (
-REM    echo Commit changed dependencies without updating project.lock.json
-REM    git diff --exit-code
-REM    exit /b 1
-REM )
-
+REM Verify the state of our project.jsons
+.\Binaries\%BuildConfiguration%\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

@@ -79,6 +79,7 @@
           GenerateDocumentation="$(GenerateDocumentation)"
           HighEntropyVA="$(HighEntropyVA)"
           Imports="@(Import)"
+          Instrument="$(Instrument)"
           KeyContainer="$(KeyContainerName)"
           KeyFile="$(KeyOriginatorFile)"
           LangVersion="$(LangVersion)"
@@ -133,6 +134,7 @@
           Win32Resource="$(Win32Resource)"
           VBRuntime="$(VBRuntime)"
           PathMap="$(PathMap)"
+          SourceLink="$(SourceLink)"
           >
       <Output TaskParameter="CommandLineArgs" ItemName="VbcCommandLineArgs" />
     </Vbc>

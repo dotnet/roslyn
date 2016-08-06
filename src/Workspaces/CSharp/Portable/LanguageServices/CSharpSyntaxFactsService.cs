@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,9 +18,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxFactsService : AbstractSyntaxFactsService, ISyntaxFactsService
     {
+        internal static readonly CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
+
+        private CSharpSyntaxFactsService()
+        {
+        }
+
         public bool IsAwaitKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.AwaitKeyword);

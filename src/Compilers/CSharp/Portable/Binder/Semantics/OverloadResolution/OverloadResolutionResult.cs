@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".
-            if (!argument.HasExpressionType() && argument.Kind != BoundKind.OutVarLocalPendingInference)
+            if (!argument.HasExpressionType() && argument.Kind != BoundKind.OutDeconstructVarPendingInference && argument.Kind != BoundKind.OutVarLocalPendingInference)
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -968,6 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
                 Debug.Assert(argument.Kind != BoundKind.OutVarLocalPendingInference);
 
                 TypeSymbol argType = argument.Display as TypeSymbol;
@@ -1071,31 +1072,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
-                var first = worseResult1.LeastOverriddenMember.OriginalDefinition;
-                var second = worseResult2.LeastOverriddenMember.OriginalDefinition;
-
-                if (first.ContainingNamespace != second.ContainingNamespace)
-                {
-                    diagnostics.Add(new DiagnosticInfoWithSymbols(
-                        ErrorCode.ERR_AmbigCall,
-                        new object[]
-                            {
-                                new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                                new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                            },
-                        symbols), location);
-                }
-                else
-                {
-                    diagnostics.Add(new DiagnosticInfoWithSymbols(
-                        ErrorCode.ERR_AmbigCall,
-                        new object[]
-                            {
-                                first,
-                                second
-                            },
-                        symbols), location);
-                }
+                diagnostics.Add(
+                    CreateAmbiguousCallDiagnosticInfo(
+                        worseResult1.LeastOverriddenMember.OriginalDefinition,
+                        worseResult2.LeastOverriddenMember.OriginalDefinition,
+                        symbols),
+                    location);
             }
 
             return true;
@@ -1143,31 +1125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // error CS0121: The call is ambiguous between the following methods or properties:
             // 'P.Ambiguous(object, string)' and 'P.Ambiguous(string, object)'
-            var first = validResult1.LeastOverriddenMember.OriginalDefinition;
-            var second = validResult2.LeastOverriddenMember.OriginalDefinition;
-
-            if (first.ContainingNamespace != second.ContainingNamespace)
-            {
-                diagnostics.Add(new DiagnosticInfoWithSymbols(
-                ErrorCode.ERR_AmbigCall,
-                new object[]
-                    {
-                        new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                    },
-                symbols), location);
-            }
-            else
-            {
-                diagnostics.Add(new DiagnosticInfoWithSymbols(
-                ErrorCode.ERR_AmbigCall,
-                new object[]
-                    {
-                        first,
-                        second
-                    },
-                symbols), location);
-            }
+            diagnostics.Add(
+                CreateAmbiguousCallDiagnosticInfo(
+                    validResult1.LeastOverriddenMember.OriginalDefinition,
+                    validResult2.LeastOverriddenMember.OriginalDefinition,
+                    symbols),
+                location);
 
             return true;
         }
@@ -1199,6 +1162,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return count;
+        }
+
+        private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
+        {
+            var arguments = (first.ContainingNamespace != second.ContainingNamespace) ?
+                new object[]
+                    {
+                            new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                            new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
+                    } :
+                new object[]
+                    {
+                            first,
+                            second
+                    };
+            return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, arguments, symbols);
         }
 
         [Conditional("DEBUG")]

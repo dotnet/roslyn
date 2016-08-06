@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal abstract class NamingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.NamingStylesDiagnosticTitle), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.NamingStylesDiagnosticTitle), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorNamingStyle = new DiagnosticDescriptor(
             IDEDiagnosticIds.NamingRuleId,
             s_localizableTitleNamingStyle,
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         // Applicable SymbolKind list is limited due to https://github.com/dotnet/roslyn/issues/8753. 
         // We would prefer to respond to the names of all symbols.
-        private static readonly ImmutableArray<SymbolKind> _symbolKinds = new[] 
+        private static readonly ImmutableArray<SymbolKind> _symbolKinds = new[]
             {
                 SymbolKind.Event,
                 SymbolKind.Field,
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }.ToImmutableArray();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorNamingStyle);
+        public bool RunInProcess => true;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -68,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             if (preferences.TryGetApplicableRule(context.Symbol, categorizationService, out applicableRule))
             {
                 string failureReason;
-                if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden && 
+                if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
                     !applicableRule.IsNameCompliant(context.Symbol.Name, out failureReason))
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources.NamingViolationDescription, applicableRule.Title, failureReason),
+                         string.Format(FeaturesResources._0_naming_violation_1, applicableRule.Title, failureReason),
                          DiagnosticCategory.Style,
                          applicableRule.EnforcementLevel,
                          isEnabledByDefault: true);

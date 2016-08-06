@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic12 = 12
         VisualBasic14 = 14
         VisualBasic15 = 15
+        Latest = Integer.MaxValue
     End Enum
 
     Friend Module LanguageVersionEnumBounds
@@ -53,6 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
 
+        End Function
+
+        <Extension>
+        Friend Function MapLatestToVersion(version As LanguageVersion) As LanguageVersion
+            Return If(version = LanguageVersion.Latest, LanguageVersion.VisualBasic15, version)
         End Function
 
     End Module

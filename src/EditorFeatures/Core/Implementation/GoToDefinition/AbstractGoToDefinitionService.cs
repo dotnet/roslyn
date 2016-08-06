@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var symbol = await FindSymbolAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
-            var items = symbol != null ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol) : null;
+            var items = symbol != null
+                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null)
+                : null;
             if (items == null || items.IsEmpty())
             {
                 // Fallback to asking the navigation definition providers for navigable definition locations.
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
         {
-            var syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var containingTypeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(syntaxRoot, caretPosition);
 

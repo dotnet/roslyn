@@ -1086,12 +1086,9 @@
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ExpressionOrDeclaration" Type="CSharpSyntaxNode" Internal="true">
+    <Field Name="Expression" Type="ExpressionSyntax">
       <PropertyComment>
-        <summary>
-          ExpressionSyntax node representing the argument value, 
-          or VariableDeclarationSyntax representing out local declaration.
-        </summary>
+        <summary>ExpressionSyntax node representing the argument.</summary>
       </PropertyComment>
     </Field>
     <TypeComment>
@@ -1120,6 +1117,20 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates an NameColonSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="DeclarationExpression"/>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax">
+      <PropertyComment>
+        <summary>Declaration representing the variable declared in an out parameter.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for the variable declaration in an out var declaration.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a DeclarationExpression node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="CastExpressionSyntax" Base="ExpressionSyntax">
@@ -1679,10 +1690,10 @@
   </Node>
   <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="WhenClause" />
-    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="WhenKeyword" Type="SyntaxToken">
       <Kind Name="WhenKeyword"/>
     </Field>
-    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
+    <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
@@ -1797,11 +1808,29 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="VariableDeclaration"/>
-    <Field Name="Type" Type="TypeSyntax"/>
-    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
+
+  <Node Name="VariableDeconstructionDeclaratorSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalFactory="true">
+    <Kind Name="VariableDeconstructionDeclarator"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclarationSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="EqualsToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Value" Type="ExpressionSyntax" Optional="true"/>
   </Node>
+
+  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalFactory="true">
+    <Kind Name="VariableDeclaration"/>
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
+    <Field Name="Deconstruction" Type="VariableDeconstructionDeclaratorSyntax" Optional="true"/>
+  </Node>
+
   <Node Name="VariableDeclaratorSyntax" Base="CSharpSyntaxNode">
     <Kind Name="VariableDeclarator"/>
     <Field Name="Identifier" Type="SyntaxToken">
@@ -2021,7 +2050,8 @@
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
-  <Node Name="ForEachStatementSyntax" Base="StatementSyntax">
+
+  <Node Name="ForEachStatementSyntax" Base="StatementSyntax" InternalFactory="true">
     <Kind Name="ForEachStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
@@ -2029,13 +2059,14 @@
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="Type" Type="TypeSyntax"/>
-    <Field Name="Identifier" Type="SyntaxToken">
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
     </Field>
+    <Field Name="DeconstructionVariables" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="InKeyword" Type="SyntaxToken">
       <Kind Name="InKeyword"/>
     </Field>
@@ -2045,6 +2076,7 @@
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
+
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
     <Kind Name="UsingStatement"/>
     <Field Name="UsingKeyword" Type="SyntaxToken">
@@ -3921,7 +3953,7 @@
       <Kind Name="XmlCommentEndToken"/>
     </Field>
   </Node>
-  <!-- 
+  <!--
   <Node Name="XmlProcessingInstructionSyntax" Base="XmlNodeSyntax">
     <Kind Name="XmlProcessingInstruction"/>
     <Field Name="LessThanQuestionToken" Type="SyntaxToken"/>

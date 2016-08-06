@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,6 +32,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract void Accept(OperationVisitor visitor);
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+    }
+
+    internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.PlaceholderExpression;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPlaceholderExpression(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPlaceholderExpression(this, argument);
+        }
     }
 
     internal partial class BoundCall : IInvocationExpression
@@ -168,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // An argument that is an array of the appropriate type is not a params argument.
                             (boundArguments.Length > argumentIndex + 1 ||
                              argument.Type.TypeKind != TypeKind.Array ||
-                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true)))
+                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))
                         {
                             return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
                         }
@@ -1004,6 +1020,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal sealed partial class BoundLocalDeconstructionDeclaration : BoundStatement
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal sealed partial class BoundVoid : BoundExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
     internal partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression
     {
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
@@ -1818,6 +1879,96 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     internal partial class BoundArrayLength
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundMethodDefIndex
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundModuleVersionId
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundModuleVersionIdString
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundInstrumentationPayloadRoot
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundMaximumMethodDefIndex
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+    
+    internal partial class BoundSourceDocumentIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -2781,6 +2932,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    /// <summary>
+    /// This node represents an 'out var' parameter to a Deconstruct method.
+    /// It is only used temporarily during initial binding.
+    /// </summary>
+    internal partial class OutDeconstructVarPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
     partial class BoundIsPatternExpression
     {
         public override void Accept(OperationVisitor visitor)
@@ -2800,20 +2973,46 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// Providing iplementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// This node represents an out var local.
+    /// It is only used temporarily during initial binding.
     /// </summary>
     internal partial class OutVarLocalPendingInference
     {
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNoneOperation(this);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNoneOperation(this, argument);
+            throw ExceptionUtilities.Unreachable;
         }
 
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        protected override OperationKind ExpressionKind
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    /// <summary>
+    /// This node represents a deconstruction local.
+    /// It is only used temporarily during initial binding.
+    /// </summary>
+    internal partial class DeconstructionLocalPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
     }
 }
