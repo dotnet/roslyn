@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS0117 = nameof(CS0117); // error CS0117: 'Class' does not contain a definition for 'Foo'
         private const string CS0118 = nameof(CS0118); // error CS0118: 'X' is a namespace but is used like a variable
         private const string CS0122 = nameof(CS0122); // error CS0122: 'Class' is inaccessible due to its protection level.
-		private const string CS0123 = nameof(CS0123); // error CS0123: No overload for 'method' matches 'delegate'
+        private const string CS0123 = nameof(CS0123); // error CS0123: No overload for 'method' matches 'delegate'
         private const string CS0305 = nameof(CS0305); // error CS0305: Using the generic method 'CA.M<V>()' requires 1 type arguments
         private const string CS0308 = nameof(CS0308); // error CS0308: The non-generic method 'Program.Foo()' cannot be used with type arguments
         private const string CS0539 = nameof(CS0539); // error CS0539: 'A.Foo<T>()' in explicit interface declaration is not a member of interface
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                 CS0117,
                 CS0118,
                 CS0122,
-				CS0123,
+                CS0123,
                 CS0305,
                 CS0308,
                 CS0539,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
     internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             GenerateMethodDiagnosticIds.FixableDiagnosticIds;
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                    node is LiteralExpressionSyntax ||
                    node is SimpleNameSyntax ||
                    node is ExpressionSyntax ||
-				   node is AssignmentExpressionSyntax;
-		}
+                   node is AssignmentExpressionSyntax;
+        }
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                 return memberBindingExpression.Name;
             }
 
-			var assignmentExpression = node as AssignmentExpressionSyntax;
-			if (assignmentExpression != null)
-			{
-			    return assignmentExpression.Right.WalkDownParentheses();
-			}
+            var assignmentExpression = node as AssignmentExpressionSyntax;
+            if (assignmentExpression != null)
+            {
+                return assignmentExpression.Right.WalkDownParentheses();
+            }
 
-			return node;
+            return node;
         }
 
         protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)

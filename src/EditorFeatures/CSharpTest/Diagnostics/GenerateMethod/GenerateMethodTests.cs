@@ -2919,11 +2919,11 @@ public class Test
 }");
         }
 
-		[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-		[WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
-		public async Task TestNoOverloadOnEventAssignment()
-		{
-			await TestAsync(
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+        public async Task TestNoOverloadOnEventAssignment()
+        {
+            await TestAsync(
 @"class Program
 {
     void Main(string[] args)
@@ -2955,13 +2955,13 @@ class Program
 
     private void OnChanged() { }
 }");
-		}
+        }
 
-		[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-		[WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
-		public async Task TestNoOverloadOnEventAssignmentBracketed_Bracketed()
-		{
-			await TestAsync(
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+        public async Task TestNoOverloadOnEventAssignmentBracketed_Bracketed()
+        {
+            await TestAsync(
 @"using System;
 using System.Collections.Specialized;
 
@@ -2993,10 +2993,10 @@ class Program
 
    private void OnChanged() { }
 }");
-		}
+        }
 
 
-		[WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
+        [WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForOverloadedSignatureWithDelegateType()
         {
