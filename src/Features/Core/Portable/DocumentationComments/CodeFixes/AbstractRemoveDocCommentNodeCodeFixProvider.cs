@@ -12,7 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
-    internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider<TXMLElement> : CodeFixProvider
+    internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider<TXmlElementSyntax> : CodeFixProvider
+        where TXmlElementSyntax : SyntaxNode
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -29,31 +30,32 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        c => RemoveDuplicateParamTag(context.Document, context.Span, c)),
+                        c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),
                     context.Diagnostics);
             }
 
             return;
         }
 
-        private SyntaxNode GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement
             // This is to correctly handle XML nodes that are nested in other XML nodes, so we only
             // remove the node the diagnostic fired on and its children, but no parent nodes
             var paramNode = root.FindNode(span, findInsideTrivia: true);
-            while (paramNode != null && !(paramNode is TXMLElement))
+            while (paramNode != null && !(paramNode is TXmlElementSyntax))
             {
                 paramNode = paramNode.Parent;
             }
 
-            return paramNode is TXMLElement ? paramNode : null;
+            return paramNode as TXmlElementSyntax;
         }
 
-        private async Task<Document> RemoveDuplicateParamTag(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> RemoveDuplicateParamTagAsync(
+            Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var paramNode = GetParamNode(root, span, cancellationToken);
 
             var removedNodes = new List<SyntaxNode> { paramNode };
