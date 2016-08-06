@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
 
-        public override void Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit((Cci.IAssembly)this);
-        }
-
-
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
             return _additionalTypes;

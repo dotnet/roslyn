@@ -46,10 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
-        Public Overrides Sub Dispatch(visitor As Cci.MetadataVisitor)
-            visitor.Visit(DirectCast(Me, Cci.IAssembly))
-        End Sub
-
         Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
             Return Me._additionalTypes
         End Function
