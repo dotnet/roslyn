@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                          .WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
-        private static TypeSyntax GenerateRefTypeSyntax(
-            INamespaceOrTypeSymbol symbol)
+        public static TypeSyntax GenerateRefTypeSyntax(
+            this INamespaceOrTypeSymbol symbol)
         {
             var underlyingType = GenerateTypeSyntax(symbol)
                 .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
