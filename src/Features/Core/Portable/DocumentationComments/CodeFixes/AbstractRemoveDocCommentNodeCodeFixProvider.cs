@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public abstract override ImmutableArray<string> FixableDiagnosticIds { get; }
+
         protected abstract string DocCommentSignifierToken { get; }
 
         protected abstract SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText);
@@ -33,8 +34,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                         c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),
                     context.Diagnostics);
             }
-
-            return;
         }
 
         private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
@@ -77,8 +76,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Remove_tag, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Remove_tag, createChangedDocument)
             {
             }
         }
