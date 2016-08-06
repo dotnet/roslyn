@@ -76,10 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+            var returnType = method.ReturnsByRef
+                ? method.ReturnType.GenerateRefTypeSyntax()
+                : method.ReturnType.GenerateTypeSyntax();
+
             return AddCleanupAnnotationsTo(SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: method.ReturnType.GenerateTypeSyntax(),
+                returnType: returnType,
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
@@ -168,11 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
-                    }
-
-                    if (method.ReturnsByRef)
-                    {
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
                     }
                 }
 
