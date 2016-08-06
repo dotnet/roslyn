@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalDeclarationStatement:
                     result = BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    result = BindDeconstructionDeclarationStatement((DeconstructionDeclarationStatementSyntax)node, diagnostics);
+                    break;
                 case SyntaxKind.LocalFunctionStatement:
                     result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
                     break;
@@ -65,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindFor((ForStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.ForEachStatement:
-                    result = BindForEach((ForEachStatementSyntax)node, diagnostics);
+                case SyntaxKind.ForEachComponentStatement:
+                    result = BindForEach((CommonForEachStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.BreakStatement:
                     result = BindBreak((BreakStatementSyntax)node, diagnostics);
@@ -549,15 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             BoundStatement bound;
-            if (node.Declaration.IsDeconstructionDeclaration)
-            {
-                bound = binder.BindDeconstructionDeclaration(node, node.Declaration, diagnostics);
-            }
-            else
-            {
-                bound = binder.BindDeclarationStatementParts(node, diagnostics);
-            }
-
+            bound = binder.BindDeclarationStatementParts(node, diagnostics);
             return binder.WrapWithVariablesIfAny(node, bound);
         }
 
@@ -568,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
+            TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
 
             // UNDONE: "possible expression" feature for IDE
 
@@ -601,7 +597,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
-            Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement || declarationNode.Kind() == SyntaxKind.DeclarationExpression || declarationNode.Kind() == SyntaxKind.VariableDeclaration);
+            Debug.Assert(
+                declarationNode.Kind() == SyntaxKind.SingleVariableDesignation ||
+                declarationNode.Kind() == SyntaxKind.VariableDeclaration ||
+                declarationNode.Kind() == SyntaxKind.DeclarationExpression);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -639,7 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // more sense to treat that as "var x = 10; var y = 123.4;" and do each inference
                 // separately.
 
-                if (declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)declarationNode).Declaration.Variables.Count > 1 && !declarationNode.HasErrors)
+                if (declarationNode.Parent.Kind() == SyntaxKind.LocalDeclarationStatement &&
+                    ((VariableDeclarationSyntax)declarationNode).Variables.Count > 1 && !declarationNode.HasErrors)
                 {
                     Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, declarationNode);
                 }
@@ -975,7 +975,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
         {
-            SourceLocalSymbol localSymbol = this.LookupLocal(declarator.Identifier);
+            return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer);
+        }
+
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(SingleVariableDesignationSyntax designation, TypeSyntax typeSyntax)
+        {
+            return LocateDeclaredVariableSymbol(designation.Identifier, typeSyntax, null);
+        }
+
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(SyntaxToken identifier, TypeSyntax typeSyntax, EqualsValueClauseSyntax equalsValue)
+        {
+            SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
@@ -986,9 +996,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this,
                     false, // do not allow ref
                     typeSyntax,
-                    declarator.Identifier,
+                    identifier,
                     LocalDeclarationKind.RegularVariable,
-                    declarator.Initializer);
+                    equalsValue);
             }
 
             return localSymbol;
@@ -3077,7 +3087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement BindForEach(ForEachStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindForEach(CommonForEachStatementSyntax node, DiagnosticBag diagnostics)
         {
             Binder loopBinder = this.GetBinder(node);
             return this.GetBinder(node.Expression).WrapWithVariablesIfAny(node.Expression, loopBinder.BindForEachParts(diagnostics, loopBinder));
@@ -3091,9 +3101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Like BindForEachParts, but only bind the deconstruction part of the foreach, for purpose of inferring the types of the declared locals.
         /// </summary>
-        internal virtual void BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        internal virtual BoundStatement BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
+            return this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
         private BoundStatement BindBreak(BreakStatementSyntax node, DiagnosticBag diagnostics)

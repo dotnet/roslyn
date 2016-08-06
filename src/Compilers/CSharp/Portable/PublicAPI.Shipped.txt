@@ -870,13 +870,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax.WithFixedKeyword(Micro
 Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax.WithStatement(Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.ForEachKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.InKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Statement.get -> Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken forEachKeyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.SyntaxToken inKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax

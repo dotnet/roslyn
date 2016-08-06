@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Specific child checks.
-            if (expression.CheckParent<ForEachStatementSyntax>(f => f.Expression == expression) ||
+            if (expression.CheckParent<CommonForEachStatementSyntax>(f => f.Expression == expression) ||
                 expression.CheckParent<MemberAccessExpressionSyntax>(m => m.Expression == expression) ||
                 expression.CheckParent<CastExpressionSyntax>(c => c.Expression == expression))
             {
@@ -2127,6 +2127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (simpleName.IsParentKind(SyntaxKind.ForEachStatement) &&
                 ((ForEachStatementSyntax)simpleName.Parent).Type == simpleName)
+            {
+                replacementNode = candidateReplacementNode;
+                issueSpan = candidateIssueSpan;
+                return true;
+            }
+
+            if (simpleName.IsParentKind(SyntaxKind.TypedVariableComponent))
             {
                 replacementNode = candidateReplacementNode;
                 issueSpan = candidateIssueSpan;

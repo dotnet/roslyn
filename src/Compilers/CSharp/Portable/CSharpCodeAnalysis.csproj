@@ -767,15 +767,10 @@
     <Compile Include="Syntax\DeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
-    <Compile Include="Syntax\EventFieldDeclarationSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
-    <Compile Include="Syntax\FieldDeclarationSyntax.cs" />
-    <Compile Include="Syntax\FixedStatementSyntax.cs" />
-    <Compile Include="Syntax\ForEachStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
-    <Compile Include="Syntax\LocalDeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
@@ -859,7 +854,6 @@
     <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
     <Compile Include="Syntax\TypeDeclarationSyntax.cs" />
     <Compile Include="Syntax\TypeSyntax.cs" />
-    <Compile Include="Syntax\VariableDeclarationSyntax.cs" />
     <Compile Include="Syntax\XmlNameAttributeElementKind.cs" />
     <Compile Include="Utilities\EnumExtensions.cs" />
     <Compile Include="Utilities\FirstAmongEqualsSet.cs" />

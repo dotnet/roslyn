@@ -23,28 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            var refKind = _syntax.RefKeyword.Kind().GetRefKind();
 
-            var declaration = _syntax.Declaration;
-            if (declaration != null)
+            // Deconstruction, Declaration, and Initializers are mutually exclusive.
+            if (_syntax.Deconstruction != null)
             {
-                if (!declaration.IsDeconstructionDeclaration)
+                CollectLocalsFromDeconstruction(_syntax.Deconstruction.VariableComponent, LocalDeclarationKind.ForInitializerVariable, locals);
+                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Deconstruction.Value);
+            }
+            else if (_syntax.Declaration != null)
+            {
+                foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    foreach (var variable in declaration.Variables)
-                    {
-                        var localSymbol = MakeLocal(declaration,
-                                                    variable,
-                                                    LocalDeclarationKind.ForInitializerVariable);
-                        locals.Add(localSymbol);
-
-                        if (variable.Initializer != null)
-                        {
-                            PatternVariableFinder.FindPatternVariables(this, locals, variable.Initializer.Value);
-                        }
-                    }
-                }
-                else
-                {
-                    CollectLocalsFromDeconstruction(declaration, declaration.Type, LocalDeclarationKind.ForInitializerVariable, locals);
+                    var localSymbol = MakeLocal(refKind, _syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
+                    locals.Add(localSymbol);
+                    PatternVariableFinder.FindPatternVariables(this, locals, vdecl.Initializer?.Value);
                 }
             }
             else
@@ -52,13 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Initializers);
             }
 
-            if (_syntax.Condition != null)
-            {
-                PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
-            }
-
+            PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
             PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Incrementors);
-
             return locals.ToImmutableAndFree();
         }
 
@@ -71,18 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             BoundStatement initializer;
-            if (node.Declaration != null)
+            // Deconstruction, Declaration, and Initializers are mutually exclusive.
+            if (_syntax.Deconstruction != null)
             {
-                Debug.Assert(node.Initializers.Count == 0);
-                if (node.Declaration.IsDeconstructionDeclaration)
-                {
-                    initializer = originalBinder.BindDeconstructionDeclaration(node.Declaration, node.Declaration, diagnostics);
-                }
-                else
-                {
-                    ImmutableArray<BoundLocalDeclaration> unused;
-                    initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
-                }
+                var assignment = originalBinder.BindDeconstructionDeclaration(node.Deconstruction, node.Deconstruction.VariableComponent, node.Deconstruction.Value, diagnostics);
+                initializer = new BoundLocalDeconstructionDeclaration(node, assignment);
+            }
+            else if (_syntax.Declaration != null)
+            {
+                ImmutableArray<BoundLocalDeclaration> unused;
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
             }
             else
             {

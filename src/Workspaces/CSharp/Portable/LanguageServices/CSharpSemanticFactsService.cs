@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
         {
-            var csforEachStatement = forEachStatement as ForEachStatementSyntax;
+            var csforEachStatement = forEachStatement as CommonForEachStatementSyntax;
             if (csforEachStatement != null)
             {
                 var info = semanticModel.GetForEachStatementInfo(csforEachStatement);

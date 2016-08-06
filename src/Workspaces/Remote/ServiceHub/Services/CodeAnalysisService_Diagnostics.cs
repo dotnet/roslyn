@@ -6,9 +6,11 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
+using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -22,28 +24,31 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, byte[] solutionChecksum, string streamName)
         {
-            try
+            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectIdDebugName, CancellationToken))
             {
-                // entry point for diagnostic service
-                var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
-                var projectId = arguments.GetProjectId();
-                var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
+                try
+                {
+                    // entry point for diagnostic service
+                    var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                    var projectId = arguments.GetProjectId();
+                    var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
 
-                var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                    analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
+                    var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
+                        analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
 
-                await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
-            }
-            catch (IOException)
-            {
-                // stream to send over result has closed before we
-                // had chance to check cancellation
-            }
-            catch (OperationCanceledException)
-            {
-                // rpc connection has closed.
-                // this can happen if client side cancelled the
-                // operation
+                    await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
+                }
+                catch (IOException)
+                {
+                    // stream to send over result has closed before we
+                    // had chance to check cancellation
+                }
+                catch (OperationCanceledException)
+                {
+                    // rpc connection has closed.
+                    // this can happen if client side cancelled the
+                    // operation
+                }
             }
         }
 
@@ -60,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
         {
+            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, CancellationToken))
             using (var stream = await DirectStream.GetAsync(streamName, CancellationToken).ConfigureAwait(false))
             {
                 using (var writer = new ObjectWriter(stream))
@@ -69,6 +75,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await stream.FlushAsync(CancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private static string GetResultLogInfo(DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
+        {
+            // for now, simple logging
+            return $"Analyzer: {result.AnalysisResult.Count}, Telemetry: {result.TelemetryInfo.Count}, Exceptions: {result.Exceptions.Count}";
         }
     }
 }

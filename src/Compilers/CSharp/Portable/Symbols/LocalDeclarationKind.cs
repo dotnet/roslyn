@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ForInitializerVariable,
 
         /// <summary>
-        /// User defined local variable declared by <see cref="ForEachStatementSyntax"/>.
+        /// User defined local variable declared by <see cref="ForEachStatementSyntax"/> or <see cref="ForEachComponentStatementSyntax"/>.
         /// </summary>
         ForEachIterationVariable,
 

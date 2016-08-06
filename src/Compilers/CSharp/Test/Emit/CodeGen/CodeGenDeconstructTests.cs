@@ -2607,9 +2607,15 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,14): error CS8134: Deconstruction must contain at least two variables.
+                // (6,20): error CS0103: The name 'x' does not exist in the current context
                 //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "(var (x, y)) = Pair.Create(1, 2)").WithLocation(6, 14)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 20),
+                // (6,23): error CS0103: The name 'y' does not exist in the current context
+                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 23),
+                // (6,15): error CS0103: The name 'var' does not exist in the current context
+                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15)
                 );
         }
 
@@ -2631,18 +2637,17 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x1, x2) = Pair.Create(1, 2)").WithArguments("tuples", "7").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x1, x2)").WithArguments("tuples", "7").WithLocation(6, 9),
                 // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (int x3, int x4) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4) = Pair.Create(1, 2)").WithArguments("tuples", "7").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4)").WithArguments("tuples", "7").WithLocation(7, 9),
                 // (8,18): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x5, var (x6, x7))").WithArguments("tuples", "7").WithLocation(8, 18),
                 // (9,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3))").WithArguments("tuples", "7").WithLocation(9, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7").WithLocation(9, 14)
                 );
         }
 
@@ -3098,12 +3103,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8130: The type information on the left-hand-side 'var x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (6,9): error CS8130: The type information on the left-hand-side 'x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x3", "null").WithLocation(6, 9),
-                // (6,9): error CS8130: The type information on the left-hand-side 'var x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("x3", "null").WithLocation(6, 9),
+                // (6,9): error CS8130: The type information on the left-hand-side 'x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
                 //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("var x4", "null").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("x4", "null").WithLocation(6, 9)
                 );
         }
 
@@ -3141,9 +3146,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8130: The type information on the left-hand-side 'var x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
+                // (6,9): error CS8130: The type information on the left-hand-side 'x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
                 //         (string x1, var x2) = (null, (null, 2));
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("var x2", "(null, 2)").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("x2", "(null, 2)").WithLocation(6, 9)
                 );
         }
 
@@ -3234,57 +3239,61 @@ Deconstructing (1, hello)
             comp.VerifyDiagnostics();
         }
 
-        private static void VerifyModelForDeconstructionLocal(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForDeconstructionLocal(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
         }
 
-        private static void VerifyModelForDeconstructionFor(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForDeconstructionFor(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForInitializerVariable, references);
         }
 
-        private static void VerifyModelForDeconstructionForeach(SemanticModel model, VariableDeclarationSyntax decl, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForDeconstructionForeach(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForEachIterationVariable, references);
         }
 
-        private static void VerifyModelForDeconstruction(SemanticModel model, VariableDeclarationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForDeconstruction(SemanticModel model, SingleVariableDesignationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
         {
-            var variableDeclaratorSyntax = decl.Variables.Single();
-            var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
-            Assert.Equal(variableDeclaratorSyntax.Identifier.ValueText, symbol.Name);
+            var symbol = model.GetDeclaredSymbol(decl);
+            Assert.Equal(decl.Identifier.ValueText, symbol.Name);
             Assert.Equal(kind, ((LocalSymbol)symbol).DeclarationKind);
-            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
-            Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
-            Assert.True(model.LookupNames(decl.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
+            Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
 
             var local = (SourceLocalSymbol)symbol;
-
+            var typeSyntax = GetTypeSyntax(decl);
             if (local.IsVar && local.Type.IsErrorType())
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
+                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
             else
             {
-                if (decl.Type != null)
+                if (typeSyntax != null)
                 {
-                    Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
+                    Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
                 }
             }
 
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
-                Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: variableDeclaratorSyntax.Identifier.ValueText).Single());
-                Assert.True(model.LookupNames(reference.SpanStart).Contains(variableDeclaratorSyntax.Identifier.ValueText));
+                Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
                 Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
         }
 
-        private static VariableDeclarationSyntax GetDeconstructionLocal(SyntaxTree tree, string name)
+        private static TypeSyntax GetTypeSyntax(SingleVariableDesignationSyntax decl)
         {
-            return tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().Where(p => p.Variables.Count() == 1 && p.Variables.Single().Identifier.ValueText == name).Single();
+            return (decl.Parent as TypedVariableComponentSyntax)?.Type;
+        }
+
+        private static SingleVariableDesignationSyntax GetDeconstructionLocal(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
         }
 
         private static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
@@ -3338,12 +3347,14 @@ class var
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("var", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("var", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
 
                 // extra checks on x2
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+                var x2Type = GetTypeSyntax(x2);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -3420,15 +3431,12 @@ class C
                 VerifyModelForDeconstructionLocal(model, x4, x4Ref);
 
                 // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
-                Assert.Null(model.GetAliasInfo(x1.Type));
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x1Type));
 
-                // extra checks on x3 and x4
-                Assert.Null(x3.Type);
-                Assert.Null(x4.Type);
-
-                var x34Var = (VariableDeclarationSyntax)x3.Parent.Parent;
+                var x34Var = (TypedVariableComponentSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
             };
@@ -3472,16 +3480,18 @@ class D
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("D", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
-                var x1Alias = model.GetAliasInfo(x1.Type);
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("D", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+                var x1Alias = model.GetAliasInfo(x1Type);
                 Assert.Equal(SymbolKind.NamedType, x1Alias.Target.Kind);
                 Assert.Equal("D", x1Alias.Target.ToDisplayString());
 
                 // extra checks on x2
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
-                Assert.Null(model.GetAliasInfo(x2.Type));
+                var x2Type = GetTypeSyntax(x2);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x2Type));
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -3847,7 +3857,7 @@ class C
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -3892,12 +3902,14 @@ class var
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
                 // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
 
                 // extra checks on x2
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
-                Assert.Equal("var", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+                var x2Type = GetTypeSyntax(x2);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2Type).Symbol.Kind);
+                Assert.Equal("var", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -3936,12 +3948,14 @@ class C
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
                 // extra checks on x1
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x1.Type).Symbol.ToDisplayString());
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
 
                 // extra checks on x2
-                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2.Type).Symbol.Kind);
-                Assert.Equal("int", model.GetSymbolInfo(x2.Type).Symbol.ToDisplayString());
+                var x2Type = GetTypeSyntax(x2);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x2Type).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -4078,7 +4092,7 @@ class C
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -4155,8 +4169,7 @@ class C
 
                 var x1 = GetDeconstructionLocal(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
-                var variableDeclaratorSyntax = x1.Variables.Single();
-                var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+                var symbol = model.GetDeclaredSymbol(x1);
 
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
@@ -4165,7 +4178,7 @@ class C
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -4262,7 +4275,7 @@ class C
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -4373,7 +4386,7 @@ static class Extension
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (VariableDeclarationSyntax)x1.Parent.Parent;
+                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -4465,7 +4478,7 @@ class C
                 VerifyModelForDeconstructionForeach(model, x5, x5Ref);
 
                 // extra check on var
-                var x23Var = (VariableDeclarationSyntax)x2.Parent.Parent;
+                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
@@ -4584,7 +4597,7 @@ class C
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
                 // extra check on var
-                var x23Var = (VariableDeclarationSyntax)x2.Parent.Parent;
+                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };

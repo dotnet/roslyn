@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
         {
-            return self.Declaration.Type;
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            return component.Type;
         }
 
         /// <summary>
@@ -78,7 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            return self.Declaration.Variables[0].Identifier;
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            var designation = (SingleVariableDesignationSyntax)component.Designation;
+            return designation.Identifier;
         }
 
         /// <summary>
@@ -317,8 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(identifier.Kind() == SyntaxKind.IdentifierToken || identifier.Kind() == SyntaxKind.None);
 
             SyntaxNode parent;
-            if ((parent = identifier.Parent)?.Kind() == SyntaxKind.VariableDeclarator &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+            if ((parent = identifier.Parent)?.Kind() == SyntaxKind.SingleVariableDesignation &&
+                (parent = parent.Parent)?.Kind() == SyntaxKind.TypedVariableComponent &&
                 (parent = parent.Parent)?.Kind() == SyntaxKind.DeclarationExpression)
             {
                 declarationExpression = (DeclarationExpressionSyntax)parent;
