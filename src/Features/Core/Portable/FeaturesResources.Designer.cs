@@ -2086,6 +2086,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove tag.
+        /// </summary>
+        internal static string Remove_tag {
+            get {
+                return ResourceManager.GetString("Remove_tag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Cast.
         /// </summary>
         internal static string Remove_Unnecessary_Cast {
