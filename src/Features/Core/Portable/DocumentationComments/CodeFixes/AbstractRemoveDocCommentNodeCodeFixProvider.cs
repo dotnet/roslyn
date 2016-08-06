@@ -44,12 +44,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             // This is to correctly handle XML nodes that are nested in other XML nodes, so we only
             // remove the node the diagnostic fired on and its children, but no parent nodes
             var paramNode = root.FindNode(span, findInsideTrivia: true);
-            while (paramNode != null && !(paramNode is TXmlElementSyntax))
-            {
-                paramNode = paramNode.Parent;
-            }
-
-            return paramNode as TXmlElementSyntax;
+            return paramNode.FirstAncestorOrSelf<TXmlElementSyntax>();
         }
 
         private async Task<Document> RemoveDuplicateParamTagAsync(
