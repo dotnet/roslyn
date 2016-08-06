@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void ReportNamesMismatches(ImmutableArray<string> destinationNames, BoundTupleLiteral literal, DiagnosticBag diagnostics)
+        internal static void ReportNamesMismatchesIfAny(ImmutableArray<string> destinationNames, BoundTupleLiteral literal, DiagnosticBag diagnostics)
         {
             var sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             int sourceLength = sourceNames.Length;
             bool allMissing = destinationNames.IsDefault;
-            Debug.Assert(destinationNames.IsDefault || destinationNames.Length == sourceLength);
+            Debug.Assert(allMissing || destinationNames.Length == sourceLength);
 
             for (int i = 0; i < sourceLength; i++)
             {

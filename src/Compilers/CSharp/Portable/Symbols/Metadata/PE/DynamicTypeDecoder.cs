@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var newTypeArguments = customModifiers.IsDefault ?
                                        transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
-                                       transformedTypeArguments.Zip(customModifiers, (t, m) => new TypeWithModifiers(t, m)).AsImmutable();
+                                       transformedTypeArguments.ZipAsArray(customModifiers, (t, m) => new TypeWithModifiers(t, m));
 
                 if (containerIsChanged)
                 {

@@ -3417,7 +3417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics, Compilation);
+                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if ((object)bestType == null)

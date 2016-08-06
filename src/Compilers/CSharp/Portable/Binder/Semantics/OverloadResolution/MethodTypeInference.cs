@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeSymbol>[] _lowerBounds;
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
-        private readonly Compilation _compilation;
 
         /// <summary>
         /// For error recovery, we allow a mismatch between the number of arguments and parameters
@@ -237,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedContainingTypeOfMethod,
                 formalParameterTypes,
                 formalParameterRefKinds,
-                arguments,
-                compilation);
+                arguments);
             return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
 
@@ -257,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol constructedContainingTypeOfMethod,
             ImmutableArray<TypeSymbol> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
-            ImmutableArray<BoundExpression> arguments,
-            Compilation compilation)
+            ImmutableArray<BoundExpression> arguments)
         {
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
@@ -272,7 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lowerBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
             _dependencies = null;
             _dependenciesDirty = false;
-            _compilation = compilation;
         }
 
 #if DEBUG
@@ -2498,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
                         Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _compilation), _compilation);
+                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _conversions.CorLibrary), _conversions.CorLibrary);
                     }
 
                     OuterBreak:
@@ -2524,26 +2520,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Takes the dynamic flags from both types and applies them onto the target.
         /// </summary>
-        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, TypeSymbol target, Compilation compilation)
+        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
         {
             // SPEC: 4.7 The Dynamic Type
             //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreTupleNames))
             {
                 return target;
             }
             ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
             ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
-            Debug.Assert(flags1.Length == flags2.Length);
-            ImmutableArray<bool> mergedFlags = flags1.SelectAsArray((f, index, other) => f | other[index], flags2);
+            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
 
-            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(target, (AssemblySymbol)compilation.Assembly, RefKind.None, mergedFlags);
+            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(target, corLibrary, RefKind.None, mergedFlags);
         }
 
         /// <summary>
         /// Takes the names from the two types, finds the common names, and applies them onto the target.
         /// </summary>
-        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, Compilation compilation)
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
         {
             if (!target.ContainsTuple() ||
                 first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
@@ -2556,14 +2551,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
 
             ImmutableArray<string> mergedNames;
-            if (names2.IsDefault)
+            if (names1.IsDefault || names2.IsDefault)
             {
                 mergedNames = default(ImmutableArray<string>);
             }
             else
             {
                 Debug.Assert(names1.Length == names2.Length);
-                mergedNames = names1.SelectAsArray((s, index, other) => string.CompareOrdinal(s, other[index]) == 0 ? s : null, names2);
+                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
 
                 if (mergedNames.All(n => n == null))
                 {
@@ -2571,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, (AssemblySymbol)compilation.Assembly, mergedNames);
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, corLibrary, mergedNames);
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2761,8 +2756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFromMethod.ContainingType,
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
-                arguments,
-                compilation);
+                arguments);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {

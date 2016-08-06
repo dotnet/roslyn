@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.Kind == BoundKind.TupleLiteral)
                 {
                     var sourceTuple = (BoundTupleLiteral)source;
-                    TupleTypeSymbol.ReportNamesMismatches(destination.TupleElementNames, sourceTuple, diagnostics);
+                    TupleTypeSymbol.ReportNamesMismatchesIfAny(destination.TupleElementNames, sourceTuple, diagnostics);
                     source = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
                         sourceTuple.Type,
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destTupleType = (TupleTypeSymbol)targetType;
                 // do not lose the original element names in the literal if different from names in the target
 
-                TupleTypeSymbol.ReportNamesMismatches(targetType.TupleElementNames, sourceTuple, diagnostics);
+                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType.TupleElementNames, sourceTuple, diagnostics);
 
                 // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);

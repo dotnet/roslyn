@@ -15292,6 +15292,47 @@ public class C
         }
 
         [Fact]
+        public void TernaryTypeInferenceWithNoNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: 2) : (1, 2);
+        var x2 = flag ? (1, 2) : (a: 1, b: 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,29): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("a").WithLocation(7, 29),
+                // (7,35): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(7, 35),
+                // (8,38): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the assignment target.
+                //         var x2 = flag ? (1, 2) : (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("a").WithLocation(8, 38),
+                // (8,44): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         var x2 = flag ? (1, 2) : (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(8, 44)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32, System.Int32) x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(2).First());
+            Assert.Equal("(System.Int32, System.Int32) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
         public void TernaryTypeInferenceDropsCandidates()
         {
             var source = @"

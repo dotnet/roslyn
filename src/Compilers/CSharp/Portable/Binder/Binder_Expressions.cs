@@ -2446,7 +2446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hadMultipleCandidates;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics, Compilation);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.

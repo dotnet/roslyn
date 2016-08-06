@@ -8,18 +8,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BestTypeInferrer
     {
-        private readonly ConversionsBase _conversions;
-        private readonly Compilation _compilation;
+        private readonly Conversions _conversions;
 
-        private BestTypeInferrer(ConversionsBase conversions, Compilation compilation)
+        private BestTypeInferrer(Conversions conversions)
         {
             _conversions = conversions;
-            _compilation = compilation;
         }
 
-        public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, ConversionsBase conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics, Compilation compilation)
+        public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var inferrer = new BestTypeInferrer(conversions, compilation);
+            var inferrer = new BestTypeInferrer(conversions);
             return inferrer.GetBestType(types, ref useSiteDiagnostics);
         }
 
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method finds the best common type of a set of expressions as per section 7.5.2.14 of the specification.
         /// NOTE: If some or all of the expressions have error types, we return error type as the inference result.
         /// </remarks>
-        public static TypeSymbol InferBestType(ImmutableArray<BoundExpression> exprs, ConversionsBase conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics, Compilation compilation)
+        public static TypeSymbol InferBestType(ImmutableArray<BoundExpression> exprs, Conversions conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    7.5.2.14 Finding the best common type of a set of expressions
             // SPEC:    In some cases, a common type needs to be inferred for a set of expressions. In particular, the element types of implicitly typed arrays and
@@ -60,14 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             hadMultipleCandidates = candidateTypes.Count > 1;
 
             // Perform best type inference on candidate types.
-            return InferBestType(candidateTypes.AsImmutableOrEmpty(), conversions, ref useSiteDiagnostics, compilation);
+            return InferBestType(candidateTypes.AsImmutableOrEmpty(), conversions, ref useSiteDiagnostics);
         }
 
         /// <remarks>
         /// This method implements best type inference for the conditional operator ?:.
         /// NOTE: If either expression is an error type, we return error type as the inference result.
         /// </remarks>
-        public static TypeSymbol InferBestTypeForConditionalOperator(BoundExpression expr1, BoundExpression expr2, ConversionsBase conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics, Compilation compilation)
+        public static TypeSymbol InferBestTypeForConditionalOperator(BoundExpression expr1, BoundExpression expr2, Conversions conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    The second and third operands, x and y, of the ?: operator control the type of the conditional expression. 
             // SPEC:    •	If x has type X and y has type Y then
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hadMultipleCandidates = candidateTypes.Count > 1;
 
-            return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, ref useSiteDiagnostics, compilation);
+            return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, ref useSiteDiagnostics);
         }
 
         private TypeSymbol GetBestType(ImmutableArray<TypeSymbol> types, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -175,8 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol type = types[i];
                 TypeSymbol better = Better(best, type, ref useSiteDiagnostics);
 
-                if ((object)better != (object)best &&
-                    better != best)
+                if (better != best)
                 {
                     return null;
                 }
@@ -218,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
-                    return MethodTypeInferrer.MergeTupleNames(type1, type2, MethodTypeInferrer.MergeDynamic(type1, type2, type1, _compilation), _compilation);
+                    return MethodTypeInferrer.MergeTupleNames(type1, type2, MethodTypeInferrer.MergeDynamic(type1, type2, type1, _conversions.CorLibrary), _conversions.CorLibrary);
                 }
 
                 return null;
