@@ -41,7 +41,7 @@ namespace Microsoft.Cci
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
-            var properties = context.Module.Properties;
+            var properties = context.Module.SerializationProperties;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -75,7 +75,7 @@ namespace Microsoft.Cci
             if (nativePdbWriterOpt != null)
             {
                 var assembly = mdWriter.Module.AsAssembly;
-                if (assembly != null && assembly.Kind == OutputKind.WindowsRuntimeMetadata)
+                if (assembly != null && assembly.OutputKind == OutputKind.WindowsRuntimeMetadata)
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.

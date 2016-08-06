@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
         
-        protected Cci.IMethodReference _peEntryPoint;
-        protected Cci.IMethodReference _debugEntryPoint;
+        internal Cci.IMethodReference PEEntryPoint;
+        internal Cci.IMethodReference DebugEntryPoint;
        
         private readonly ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
@@ -106,32 +106,28 @@ namespace Microsoft.CodeAnalysis.Emit
 
         IEnumerable<Cci.IWin32Resource> Cci.IModule.Win32Resources => Win32Resources;
         Cci.ResourceSection Cci.IModule.Win32ResourceSection => Win32ResourceSection;
-        Cci.IMethodReference Cci.IModule.PEEntryPoint => _peEntryPoint;
-        Cci.IMethodReference Cci.IModule.DebugEntryPoint => _debugEntryPoint;
-        Stream Cci.IModule.SourceLinkStream => SourceLinkStreamOpt;
-        Cci.ModulePropertiesForSerialization Cci.IModule.Properties => SerializationProperties;
+        Cci.IMethodReference Cci.IModule.PEEntryPoint => PEEntryPoint;
+        Cci.IMethodReference Cci.IModule.DebugEntryPoint => DebugEntryPoint;
+        Stream Cci.IModule.SourceLinkStreamOpt => SourceLinkStreamOpt;
+        Cci.ModulePropertiesForSerialization Cci.IModule.SerializationProperties => SerializationProperties;
         int Cci.IModule.DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
         string Cci.INamedEntity.Name => Name;
         string Cci.IModule.ModuleName => ModuleName;
-        OutputKind Cci.IModule.Kind => OutputKind;
+        OutputKind Cci.IModule.OutputKind => OutputKind;
 
         bool Cci.IModule.GenerateVisualBasicStylePdb => GenerateVisualBasicStylePdb;
         IEnumerable<string> Cci.IModule.LinkedAssembliesDebugInfo => LinkedAssembliesDebugInfo;
         ImmutableArray<Cci.UsedNamespaceOrType> Cci.IModule.GetImports() => GetImports();
         string Cci.IModule.DefaultNamespace => DefaultNamespace;
-        IEnumerable<Cci.ICustomAttribute> Cci.IModule.AssemblyAttributes => GetSourceAssemblyAttributes();
-        IEnumerable<Cci.SecurityAttribute> Cci.IModule.AssemblySecurityAttributes => GetSourceAssemblySecurityAttributes();
-        IEnumerable<Cci.ICustomAttribute> Cci.IModule.ModuleAttributes => GetSourceModuleAttributes();
+        IEnumerable<Cci.ICustomAttribute> Cci.IModule.GetSourceAssemblyAttributes() => GetSourceAssemblyAttributes();
+        IEnumerable<Cci.SecurityAttribute> Cci.IModule.GetSourceAssemblySecurityAttributes() => GetSourceAssemblySecurityAttributes();
+        IEnumerable<Cci.ICustomAttribute> Cci.IModule.GetSourceModuleAttributes() => GetSourceModuleAttributes();
         MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> Cci.IModule.GetSymbolToLocationMap() => GetSymbolToLocationMap();
         Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context) => GetPlatformType(platformType, context);
         bool Cci.IModule.IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType) => IsPlatformType(typeRef, platformType);
         IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(EmitContext context) => GetTopLevelTypes(context);
 
         public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
-
-        // Let's not add any module references explicitly,
-        // PeWriter will implicitly add those needed.
-        IEnumerable<Cci.IModuleReference> Cci.IModule.ModuleReferences => SpecializedCollections.EmptyEnumerable<Cci.IModuleReference>();
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
@@ -176,14 +172,14 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(method == null || IsSourceDefinition(method));
             Debug.Assert(OutputKind.IsApplication());
 
-            _peEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+            PEEntryPoint = Translate(method, diagnostics, needDeclaration: true);
         }
 
         internal void SetDebugEntryPoint(IMethodSymbol method, DiagnosticBag diagnostics)
         {
             Debug.Assert(method == null || IsSourceDefinition(method));
 
-            _debugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+            DebugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
         }
 
         private bool IsSourceDefinition(IMethodSymbol method)

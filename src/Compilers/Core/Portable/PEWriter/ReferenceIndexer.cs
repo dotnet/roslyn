@@ -32,12 +32,11 @@ namespace Microsoft.Cci
 
             // Visit these assembly-level attributes even when producing a module.
             // They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
-            Visit(module.AssemblyAttributes);
-            Visit(module.AssemblySecurityAttributes);
+            Visit(module.GetSourceAssemblyAttributes());
+            Visit(module.GetSourceAssemblySecurityAttributes());
 
             Visit(module.GetAssemblyReferences(Context));
-            Visit(module.ModuleReferences);
-            Visit(module.ModuleAttributes);
+            Visit(module.GetSourceModuleAttributes());
             Visit(module.GetTopLevelTypes(Context));
 
             foreach (var exportedType in module.GetExportedTypes(Context.Diagnostics))

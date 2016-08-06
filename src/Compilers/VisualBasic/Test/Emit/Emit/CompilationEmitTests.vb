@@ -1748,7 +1748,7 @@ end namespace
                     Dim cciModule = DirectCast(
                         New PEAssemblyBuilder(sourceAssembly, emitOptions, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription), Nothing),
                         Cci.IModule)
-                    Dim assemblySecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = cciModule.AssemblySecurityAttributes
+                    Dim assemblySecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = cciModule.GetSourceAssemblySecurityAttributes
 
                     ' Verify Assembly security attributes
                     Assert.Equal(2, assemblySecurityAttributes.Count)

@@ -479,7 +479,7 @@ namespace Microsoft.Cci
 
             // Find all references and assign tokens.
             _referenceVisitor = this.CreateReferenceVisitor();
-            this.module.Dispatch(_referenceVisitor);
+            _referenceVisitor.Visit(module);
 
             this.CreateMethodBodyReferenceIndex();
 
@@ -1729,7 +1729,7 @@ namespace Microsoft.Cci
             // version ID that is imposed by the caller (the same as the previous module version ID).
             // Therefore we do not have to fill in a new module version ID in the generated metadata
             // stream.
-            Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
+            Debug.Assert(this.module.SerializationProperties.PersistentIdentifier != default(Guid));
             Blob mvidFixup, mvidStringFixup;
 
             BuildMetadataAndIL(pdbWriterOpt, ilBuilder, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup, out mvidStringFixup);
@@ -1742,7 +1742,7 @@ namespace Microsoft.Cci
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
-            var rootBuilder = new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion, suppressValidation: true);
+            var rootBuilder = new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion, suppressValidation: true);
 
             rootBuilder.Serialize(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
             metadataSizes = rootBuilder.Sizes;
@@ -1766,9 +1766,9 @@ namespace Microsoft.Cci
             {
                 DefineModuleImportScope();
 
-                if (module.SourceLinkStream != null)
+                if (module.SourceLinkStreamOpt != null)
                 {
-                    EmbedSourceLink(module.SourceLinkStream);
+                    EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
             }
 
@@ -1793,10 +1793,14 @@ namespace Microsoft.Cci
 
         public MetadataRootBuilder GetRootBuilder()
         {
+<<<<<<< HEAD
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
             return new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion, suppressValidation: true);
+=======
+            return new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion);
+>>>>>>> Renames
         }
 
         public PortablePdbBuilder GetPortablePdbBuilder(MetadataSizes typeSystemMetadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
@@ -1960,10 +1964,6 @@ namespace Microsoft.Cci
             this.AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
 
             // TODO: standalone signature entries 11
-            if (this.IsFullMetadata)
-            {
-                this.AddCustomAttributesToTable(module.ModuleReferences, TableIndex.ModuleRef);
-            }
 
             // TODO: type spec entries 13
             // this.AddCustomAttributesToTable(this.module.AssemblyReferences, 15);
@@ -1989,13 +1989,13 @@ namespace Microsoft.Cci
                 // assembly attributes in netmodules so they may be migrated to containing/referencing multi-module assemblies,
                 // at multi-module assembly build time.
                 AddAssemblyAttributesToTable(
-                    this.module.AssemblySecurityAttributes.Select(sa => sa.Attribute),
+                    this.module.GetSourceAssemblySecurityAttributes().Select(sa => sa.Attribute),
                     needsDummyParent: true,
                     isSecurity: true);
             }
 
             AddAssemblyAttributesToTable(
-                this.module.AssemblyAttributes,
+                this.module.GetSourceAssemblyAttributes(),
                 needsDummyParent: writingNetModule,
                 isSecurity: false);
         }
@@ -2041,7 +2041,7 @@ namespace Microsoft.Cci
         private void AddModuleAttributesToTable(IModule module)
         {
             Debug.Assert(this.IsFullMetadata);
-            foreach (ICustomAttribute customAttribute in module.ModuleAttributes)
+            foreach (ICustomAttribute customAttribute in module.GetSourceModuleAttributes())
             {
                 AddCustomAttributeToTable(EntityHandle.ModuleDefinition, customAttribute);
             }
@@ -2099,7 +2099,7 @@ namespace Microsoft.Cci
             IAssembly assembly = this.module.AsAssembly;
             if (assembly != null)
             {
-                this.PopulateDeclSecurityTableRowsFor(EntityHandle.AssemblyDefinition, assembly.AssemblySecurityAttributes);
+                this.PopulateDeclSecurityTableRowsFor(EntityHandle.AssemblyDefinition, assembly.GetSourceAssemblySecurityAttributes());
             }
 
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
@@ -2609,7 +2609,7 @@ namespace Microsoft.Cci
             CheckPathLength(this.module.ModuleName);
 
             GuidHandle mvidHandle;
-            Guid mvid = this.module.Properties.PersistentIdentifier;
+            Guid mvid = this.module.SerializationProperties.PersistentIdentifier;
             if (mvid != default(Guid))
             {
                 // MVID is specified upfront when emitting EnC delta:

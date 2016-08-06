@@ -31,9 +31,9 @@ namespace Microsoft.Cci
             //EDMAURER visit these assembly-level attributes even when producing a module.
             //They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
 
-            this.Visit(module.AssemblyAttributes);
-            this.Visit(module.AssemblySecurityAttributes);
-            this.Visit(module.ModuleAttributes);
+            this.Visit(module.GetSourceAssemblyAttributes());
+            this.Visit(module.GetSourceAssemblySecurityAttributes());
+            this.Visit(module.GetSourceModuleAttributes());
         }
 
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)

@@ -61,7 +61,7 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IModule : IUnit, IModuleReference
     {
-        ModulePropertiesForSerialization Properties { get; }
+        ModulePropertiesForSerialization SerializationProperties { get; }
 
         /// <summary>
         /// Used to distinguish which style to pick while writing native PDB information.
@@ -87,13 +87,13 @@ namespace Microsoft.Cci
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
         /// with this assembly.
         /// </summary>
-        IEnumerable<ICustomAttribute> AssemblyAttributes { get; }
+        IEnumerable<ICustomAttribute> GetSourceAssemblyAttributes();
 
         /// <summary>
         /// A list of objects representing persisted instances of pairs of security actions and sets of security permissions.
         /// These apply by default to every method reachable from the module.
         /// </summary>
-        IEnumerable<SecurityAttribute> AssemblySecurityAttributes { get; }
+        IEnumerable<SecurityAttribute> GetSourceAssemblySecurityAttributes();
 
         /// <summary>
         /// A list of the assemblies that are referenced by this module.
@@ -138,23 +138,18 @@ namespace Microsoft.Cci
         /// <summary>
         /// The kind of metadata stored in this module. For example whether this module is an executable or a manifest resource file.
         /// </summary>
-        OutputKind Kind { get; }
+        OutputKind OutputKind { get; }
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
         /// with this module.
         /// </summary>
-        IEnumerable<ICustomAttribute> ModuleAttributes { get; }
+        IEnumerable<ICustomAttribute> GetSourceModuleAttributes();
 
         /// <summary>
         /// The name of the module.
         /// </summary>
         string ModuleName { get; }
-
-        /// <summary>
-        /// A list of the modules that are referenced by this module.
-        /// </summary>
-        IEnumerable<IModuleReference> ModuleReferences { get; }
 
         /// <summary>
         /// A list of named byte sequences persisted with the module and used during execution, typically via the Win32 API.
@@ -220,6 +215,9 @@ namespace Microsoft.Cci
         /// Documents that will have their text embedded in the PDB.
         /// </summary>
         IEnumerable<Cci.DebugSourceDocument> EmbeddedDocuments { get; }
+
+        Stream SourceLinkStreamOpt { get; }
+
     }
 
     internal struct DefinitionWithLocation
