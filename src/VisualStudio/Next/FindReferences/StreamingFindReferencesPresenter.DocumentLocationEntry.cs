@@ -209,8 +209,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return textBuffer;
             }
 
-
-
             private Span GetRegionSpanForReference()
             {
                 const int AdditionalLineCountPerSide = 3;
