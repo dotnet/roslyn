@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
             private readonly SymbolKey _symbolKey;
             private readonly AssemblyIdentity _symbolAssemblyIdentity;
 
+            internal override bool IsExternal => false;
+
             public MetadataDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,

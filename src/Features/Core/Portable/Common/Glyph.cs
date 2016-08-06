@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis
         EnumMember,
 
         Error,
+        StatusInformation,
 
         EventPublic,
         EventProtected,

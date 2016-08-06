@@ -1,12 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -25,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
-                    SpecializedCollections.SingletonEnumerable(findReferencesPresenter));
+                    SpecializedCollections.SingletonEnumerable(findReferencesPresenter),
+                    SpecializedCollections.EmptyEnumerable<Lazy<IStreamingFindReferencesPresenter>>(),
+                    workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var textView = workspace.Documents[0].GetTextView();
                 textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
