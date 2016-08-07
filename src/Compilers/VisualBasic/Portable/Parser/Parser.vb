@@ -6083,7 +6083,6 @@ checkNullable:
             If opts.Features Is Nothing OrElse opts.Features.Count = 0 Then Return False
             Dim flag = feature.GetFeatureFlag
             If flag Is Nothing Then Return False
-            '           Dim value As String = Nothing
             Return opts.Features.ContainsKey(feature.GetFeatureFlag)
         End Function
 

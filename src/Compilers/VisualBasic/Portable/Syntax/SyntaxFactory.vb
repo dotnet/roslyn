@@ -1068,8 +1068,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(VBResources.SyntaxTreeIsNotASubmission)
             End If
 
-            'Dim languageVersion As LanguageVersion = options.LanguageVersion
-
             If Not tree.HasCompilationUnitRoot Then
                 Return False
             End If
