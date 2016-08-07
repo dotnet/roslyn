@@ -26,22 +26,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
     internal partial class StreamingFindReferencesPresenter
     {
-        private class DocumentLocationEntry : Entry
+        private class DocumentSpanEntry : Entry
         {
             private readonly TableDataSourceFindReferencesContext _context;
             private readonly VisualStudioWorkspaceImpl _workspace;
 
-            private readonly DocumentLocation _documentLocation;
+            private readonly DocumentSpan _documentSpan;
             private readonly bool _isDefinitionLocation;
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
             private readonly TaggedTextAndHighlightSpan _taggedLineParts;
 
-            public DocumentLocationEntry(
+            public DocumentSpanEntry(
                 TableDataSourceFindReferencesContext context,
                 VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentLocation documentLocation,
+                DocumentSpan documentSpan,
                 bool isDefinitionLocation,
                 Guid projectGuid,
                 SourceText sourceText,
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _context = context;
 
                 _workspace = workspace;
-                _documentLocation = documentLocation;
+                _documentSpan = documentSpan;
                 _isDefinitionLocation = isDefinitionLocation;
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             private StreamingFindReferencesPresenter Presenter => _context.Presenter;
 
-            private Document Document => _documentLocation.Document;
-            private TextSpan SourceSpan => _documentLocation.SourceSpan;
+            private Document Document => _documentSpan.Document;
+            private TextSpan SourceSpan => _documentSpan.SourceSpan;
 
             protected override object GetValueWorker(string keyName)
             {

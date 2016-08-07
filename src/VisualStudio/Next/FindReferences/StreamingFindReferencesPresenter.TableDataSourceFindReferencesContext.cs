@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     _definitions.Add(definition);
                 }
 
-                foreach (var location in definition.SourceLocations)
+                foreach (var location in definition.SourceSpans)
                 {
                     OnEntryFound(definition,
                         (db, c) => CreateDocumentLocationEntryAsync(
@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 OnEntryFound(reference.Definition,
                     (db, c) => CreateDocumentLocationEntryAsync(
-                        db, reference.Location, isDefinitionLocation: false, cancellationToken: c));
+                        db, reference.SourceSpan, isDefinitionLocation: false, cancellationToken: c));
             }
 
             private async void OnEntryFound(
@@ -302,11 +302,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             private async Task<Entry> CreateDocumentLocationEntryAsync(
                 RoslynDefinitionBucket definitionBucket, 
-                DocumentLocation documentLocation,
+                DocumentSpan documentSpan,
                 bool isDefinitionLocation,
                 CancellationToken cancellationToken)
             {
-                var document = documentLocation.Document;
+                var document = documentSpan.Document;
 
                 // The FAR system needs to know the guid for the project that a def/reference is 
                 // from.  So we only support this for documents from a VSWorkspace.
@@ -324,13 +324,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var referenceSpan = documentLocation.SourceSpan;
+                var referenceSpan = documentSpan.SourceSpan;
                 var lineSpan = GetLineSpanForReference(sourceText, referenceSpan);
 
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
 
-                return new DocumentLocationEntry(
-                    this, workspace, definitionBucket, documentLocation, 
+                return new DocumentSpanEntry(
+                    this, workspace, definitionBucket, documentSpan, 
                     isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
             }
 

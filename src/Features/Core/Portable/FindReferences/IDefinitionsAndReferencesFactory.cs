@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
             var references = ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
-            var uniqueLocations = new HashSet<DocumentLocation>();
+            var uniqueLocations = new HashSet<DocumentSpan>();
 
             // Order the symbols by precedence, then create the appropriate
             // definition item per symbol and all refernece items for its
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ReferencedSymbol referencedSymbol,
             ImmutableArray<DefinitionItem>.Builder definitions,
             ImmutableArray<SourceReferenceItem>.Builder references,
-            HashSet<DocumentLocation> uniqueLocations)
+            HashSet<DocumentSpan> uniqueSpans)
         {
             // See if this is a symbol we even want to present to the user.  If not,
             // ignore it entirely (including all its reference locations).
@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 return;
             }
 
-            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution, uniqueLocations);
+            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution, uniqueSpans);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
             // for this definition.
-            CreateReferences(referencedSymbol, references, definitionItem, uniqueLocations);
+            CreateReferences(referencedSymbol, references, definitionItem, uniqueSpans);
 
             // Finally, see if there are any third parties that want to add their
             // own result to our collection.
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ReferencedSymbol referencedSymbol,
             ImmutableArray<SourceReferenceItem>.Builder references,
             DefinitionItem definitionItem,
-            HashSet<DocumentLocation> uniqueLocations)
+            HashSet<DocumentSpan> uniqueSpans)
         {
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                     continue;
                 }
 
-                if (uniqueLocations.Add(sourceReferenceItem.Location))
+                if (uniqueSpans.Add(sourceReferenceItem.SourceSpan))
                 {
                     references.Add(sourceReferenceItem);
                 }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public static DefinitionItem ToDefinitionItem(
             this ISymbol definition,
             Solution solution,
-            HashSet<DocumentLocation> uniqueLocations = null)
+            HashSet<DocumentSpan> uniqueSpans = null)
         {
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ImmutableArray.CreateBuilder<DocumentLocation>();
+            var sourceLocations = ImmutableArray.CreateBuilder<DocumentSpan>();
 
             // If it's a namespace, don't create any normal lcoation.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -174,15 +174,15 @@ namespace Microsoft.CodeAnalysis.FindReferences
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            var documentLocation = new DocumentLocation(document, location.SourceSpan);
+                            var documentLocation = new DocumentSpan(document, location.SourceSpan);
                             if (sourceLocations.Count == 0)
                             {
                                 sourceLocations.Add(documentLocation);
                             }
                             else
                             {
-                                if (uniqueLocations == null ||
-                                    uniqueLocations.Add(documentLocation))
+                                if (uniqueSpans == null ||
+                                    uniqueSpans.Add(documentLocation))
                                 {
                                     sourceLocations.Add(documentLocation);
                                 }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             }
 
             return new SourceReferenceItem(definitionItem, 
-                new DocumentLocation(referenceLocation.Document, location.SourceSpan));
+                new DocumentSpan(referenceLocation.Document, location.SourceSpan));
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

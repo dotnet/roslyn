@@ -26,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             DefinitionsAndReferences definitionsAndReferences)
         {
             var definitionDocuments =
-                definitionsAndReferences.Definitions.SelectMany(d => d.SourceLocations)
+                definitionsAndReferences.Definitions.SelectMany(d => d.SourceSpans)
                                         .Select(loc => loc.Document);
 
             var referenceDocuments = 
                 definitionsAndReferences.References
-                                        .Select(r => r.Location.Document);
+                                        .Select(r => r.SourceSpan.Document);
 
             var allDocuments = definitionDocuments.Concat(referenceDocuments).WhereNotNull().ToSet();
             var commonPathElements = CountCommonPathElements(allDocuments);
@@ -55,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
             // Skip the first definition.  We'll present it in the definition item.
             var definitionLocationsAndGlyphs =
-                from loc in definitionItem.SourceLocations.Skip(1)
+                from loc in definitionItem.SourceSpans.Skip(1)
                 select ValueTuple.Create(loc, definitionGlyph);
 
             var referenceLocationsAndGlyphs =
                 from r in definitionsAndReferences.References
                 where r.Definition == definitionItem
-                select ValueTuple.Create(r.Location, Glyph.Reference);
+                select ValueTuple.Create(r.SourceSpan, Glyph.Reference);
 
             var allLocationsAndGlyphs = definitionLocationsAndGlyphs.Concat(referenceLocationsAndGlyphs);
 

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                     Dim actualDefinitions = GetFileNamesAndSpans(
                         context.Definitions.Where(AddressOf context.ShouldShow).
-                                            SelectMany(Function(d) d.SourceLocations))
+                                            SelectMany(Function(d) d.SourceSpans))
 
                     Assert.Equal(expectedDefinitions, actualDefinitions)
 
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.SelectedSpans.ToList())).ToList()
 
                     Dim actualReferences = GetFileNamesAndSpans(
-                        context.References.Select(Function(r) r.Location))
+                        context.References.Select(Function(r) r.SourceSpan))
 
                     Assert.Equal(expectedReferences, actualReferences)
                 Next
