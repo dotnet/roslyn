@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public const string RemoteHostService = "remoteHostService";
         public const string RemoteHostService_Connect = "Connect";
 
-        public const string ServiceHubSnapshotService = "serviceHubSnapshotService";
-        public const string ServiceHubSnapshotService_Done = "Done";
+        public const string SnapshotService = "snapshotService";
+        public const string SnapshotService_Done = "Done";
 
         public const string CodeAnalysisService = "codeAnalysisService";
         public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";

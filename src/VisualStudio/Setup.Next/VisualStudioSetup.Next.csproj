@@ -104,6 +104,9 @@
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" />
     <NuGetPackageToIncludeInVsix Include="Newtonsoft.Json" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Threading" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Validation" />
+    <NuGetPackageToIncludeInVsix Include="RoslynDependencies.Microsoft.Build.Desktop" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
@@ -121,7 +124,7 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="serviceHubSnapshotService.servicehub.service.json">
+    <Content Include="snapshotService.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

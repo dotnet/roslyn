@@ -17,16 +17,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 {
-    [ExportWorkspaceService(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor), layer: ServiceLayer.Host), Shared]
-    internal class OutOfProcDiagnosticAnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
+    [ExportWorkspaceService(typeof(IRemoteHostDiagnosticAnalyzerExecutor), layer: ServiceLayer.Host), Shared]
+    internal class OutOfProcDiagnosticAnalyzerExecutor : IRemoteHostDiagnosticAnalyzerExecutor
     {
-        private static readonly ICodeAnalysisDiagnosticAnalyzerExecutor _inProcAnalyzer = new InProcCodeAnalysisDiagnosticAnalyzerExecutor();
-
         private readonly IDiagnosticAnalyzerService _analyzerService;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
@@ -70,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
-            return await _inProcAnalyzer.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+            return await InProcCodeAnalysisDiagnosticAnalyzerExecutor.Instance.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(

@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool optionsEnded = false;
             bool interactiveMode = false;
             bool publicSign = false;
+            string sourceLink = null;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -554,6 +555,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             continue;
 
+                        case "sourcelink":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
+                            }
+                            else
+                            {
+                                sourceLink = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
+                            continue;
+
                         case "debug":
                             emitPdb = true;
 
@@ -777,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
                             }
-                            else if (!TryParseLanguageVersion(value, CSharpParseOptions.Default.LanguageVersion, out languageVersion))
+                            else if (!TryParseLanguageVersion(value, out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
                             }
@@ -1146,6 +1159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
 
+            if (sourceLink != null)
+            {
+                if (!emitPdb || debugInformationFormat != DebugInformationFormat.PortablePdb && debugInformationFormat != DebugInformationFormat.Embedded)
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPortablePdb);
+                }
+            }
+
             var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
 
             string compilationName;
@@ -1223,6 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputFileName = outputFileName,
                 PdbPath = pdbPath,
                 EmitPdb = emitPdb,
+                SourceLink = sourceLink,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
                 ErrorLogPath = errorLogPath,
@@ -1671,8 +1693,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
         }
 
-        private static bool TryParseLanguageVersion(string str, LanguageVersion defaultVersion, out LanguageVersion version)
+        private static bool TryParseLanguageVersion(string str, out LanguageVersion version)
         {
+            var defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
+
             if (str == null)
             {
                 version = defaultVersion;
@@ -1689,13 +1713,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     version = LanguageVersion.CSharp2;
                     return true;
 
+                case "7":
+                    version = LanguageVersion.CSharp7;
+                    return true;
+
                 case "default":
                     version = defaultVersion;
                     return true;
 
                 default:
+                    // We are likely to introduce minor version numbers after C# 7, thus breaking the
+                    // one-to-one correspondence between the integers and the corresponding
+                    // LanguageVersion enum values. But for compatibility we continue to accept any
+                    // integral value parsed by int.TryParse for its corresponding LanguageVersion enum
+                    // value for language version C# 6 and earlier (e.g. leading zeros are allowed)
                     int versionNumber;
-                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) && ((LanguageVersion)versionNumber).IsValid())
+                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) &&
+                        versionNumber <= 6 &&
+                        ((LanguageVersion)versionNumber).IsValid())
                     {
                         version = (LanguageVersion)versionNumber;
                         return true;

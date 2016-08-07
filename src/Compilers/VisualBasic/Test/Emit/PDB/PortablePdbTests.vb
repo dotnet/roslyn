@@ -6,6 +6,8 @@ Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports System.Reflection.PortableExecutable
+Imports System.Text
+Imports Microsoft.CodeAnalysis.Debugging
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PortablePdbTests
@@ -151,6 +153,102 @@ End Class
                 Assert.Equal(CUInt(0), reproducible.Stamp)
                 Assert.Equal(0, reproducible.DataSize)
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink()
+            Dim source = "
+Imports System
+
+Class C
+    Public Shared Sub Main()
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim sourceLinkBlob = Encoding.UTF8.GetBytes("
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*"";
+  }
+}
+")
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.vb"), options:=TestOptions.DebugDll)
+
+            Dim pdbStream = New MemoryStream()
+            c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream:=pdbStream, sourceLinkStream:=New MemoryStream(sourceLinkBlob))
+            pdbStream.Position = 0
+
+            Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
+                Dim pdbReader = provider.GetMetadataReader()
+                Dim actualBlob =
+                    (From cdiHandle In pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                     Let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
+                     Where pdbReader.GetGuid(cdi.Kind) = PortableCustomDebugInfoKinds.SourceLink
+                     Select pdbReader.GetBlobBytes(cdi.Value)).Single()
+
+                AssertEx.Equal(sourceLinkBlob, actualBlob)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink_Embedded()
+            Dim source = "
+Imports System
+
+Class C
+    Public Shared Sub Main()
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim sourceLinkBlob = Encoding.UTF8.GetBytes("
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*"";
+  }
+}
+")
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.vb"), options:=TestOptions.DebugDll)
+            Dim peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream:=New MemoryStream(sourceLinkBlob))
+
+            Using peReader = New PEReader(peBlob)
+                Dim embeddedEntry = peReader.ReadDebugDirectory().Single(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
+
+                Using embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry)
+                    Dim pdbReader = embeddedMetadataProvider.GetMetadataReader()
+
+                    Dim actualBlob =
+                        (From cdiHandle In pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                         Let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
+                         Where pdbReader.GetGuid(cdi.Kind) = PortableCustomDebugInfoKinds.SourceLink
+                         Select pdbReader.GetBlobBytes(cdi.Value)).Single()
+
+                    AssertEx.Equal(sourceLinkBlob, actualBlob)
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink_Errors()
+            Dim source = "
+Imports System
+
+Class C
+    Public Shared Sub Main()
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim sourceLinkStream = New TestStream(canRead:=True, readFunc:=Function(a1, a2, a3)
+                                                                               Throw New Exception("Error!")
+                                                                           End Function)
+
+            Dim c = CreateCompilationWithMscorlib(Parse(source, "f:/build/foo.vb"), options:=TestOptions.DebugDll)
+            Dim result = c.Emit(New MemoryStream(), New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream:=sourceLinkStream)
+
+            result.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("Error!").WithLocation(1, 1))
         End Sub
 
     End Class

@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            if (ScopeDesignator == scopeDesignator)
+            if (ScopeDesignator == scopeDesignator ||
+                ScopeDesignator.Kind() == SyntaxKind.RefExpression && ScopeDesignator == scopeDesignator.Parent)
             {
                 return this.Locals;
             }

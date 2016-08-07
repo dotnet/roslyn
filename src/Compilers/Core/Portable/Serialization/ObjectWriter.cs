@@ -472,43 +472,129 @@ namespace Roslyn.Utilities
                     break;
             }
 
+            // get type of array
             var elementType = instance.GetType().GetElementType();
-            this.WriteType(elementType);
 
-            // optimizations for supported array type by binary writer
-            if (elementType == typeof(byte))
+            // optimization for primitive type array
+            DataKind elementKind;
+            if (s_typeMap.TryGetValue(elementType, out elementKind))
+            {
+                this.WritePrimitiveType(elementType, elementKind);
+                this.WritePrimitiveTypeArrayElements(elementType, elementKind, instance);
+
+                return;
+            }
+
+            // custom type case
+            this.WriteType(elementType);
+            foreach (var value in instance)
+            {
+                this.WriteValue(value);
+            }
+        }
+
+        private void WritePrimitiveTypeArrayElements(Type type, DataKind kind, Array instance)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+
+            // optimization for type underlying binary writer knows about
+            if (type == typeof(byte))
             {
                 _writer.Write((byte[])instance);
                 return;
             }
 
-            if (elementType == typeof(char))
+            if (type == typeof(char))
             {
                 _writer.Write((char[])instance);
                 return;
             }
 
-            for (int i = 0; i < length; i++)
+            // optimization for string which object writer has
+            // its own optimization to reduce repeated string
+            if (type == typeof(string))
             {
-                this.WriteValue(instance.GetValue(i));
+                WritePrimitiveTypeArrayElements((string[])instance, WriteString);
+                return;
             }
+
+            // optimization for bool array
+            if (type == typeof(bool))
+            {
+                WriteBooleanArray((bool[])instance);
+                return;
+            }
+
+            // otherwise, write elements directly to underlying binary writer
+            switch (kind)
+            {
+                case DataKind.Int8:
+                    WritePrimitiveTypeArrayElements((sbyte[])instance, _writer.Write);
+                    return;
+                case DataKind.Int16:
+                    WritePrimitiveTypeArrayElements((short[])instance, _writer.Write);
+                    return;
+                case DataKind.Int32:
+                    WritePrimitiveTypeArrayElements((int[])instance, _writer.Write);
+                    return;
+                case DataKind.Int64:
+                    WritePrimitiveTypeArrayElements((long[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt16:
+                    WritePrimitiveTypeArrayElements((ushort[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt32:
+                    WritePrimitiveTypeArrayElements((uint[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt64:
+                    WritePrimitiveTypeArrayElements((ulong[])instance, _writer.Write);
+                    return;
+                case DataKind.Float4:
+                    WritePrimitiveTypeArrayElements((float[])instance, _writer.Write);
+                    return;
+                case DataKind.Float8:
+                    WritePrimitiveTypeArrayElements((double[])instance, _writer.Write);
+                    return;
+                case DataKind.Decimal:
+                    WritePrimitiveTypeArrayElements((decimal[])instance, _writer.Write);
+                    return;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private void WriteBooleanArray(bool[] array)
+        {
+            // convert bool array to bit array
+            var bits = BitVector.Create(array.Length);
+            for (var i = 0; i < array.Length; i++)
+            {
+                bits[i] = array[i];
+            }
+
+            // send over bit array
+            foreach (var word in bits.Words())
+            {
+                _writer.Write(word);
+            }
+        }
+
+        private void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                write(array[i]);
+            }
+        }
+
+        private void WritePrimitiveType(Type type, DataKind kind)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+            _writer.Write((byte)kind);
         }
 
         private void WriteType(Type type)
         {
-            // optimization. primitive types
-            if (type == typeof(byte))
-            {
-                _writer.Write((byte)DataKind.UInt8);
-                return;
-            }
-
-            if (type == typeof(char))
-            {
-                _writer.Write((byte)DataKind.Char);
-                return;
-            }
-
             int id;
             if (_dataMap.TryGetId(type, out id))
             {

@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Remote;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -75,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.Workspace.StartSolutionCrawler();
 
                 // start remote host
-                this.Workspace.Services.GetService<IRemoteHostClientService>()?.Enable();
+                EnableRemoteHostClientService();
             }
 
             // Ensure services that must be created on the UI thread have been.
@@ -138,7 +137,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (this.Workspace != null)
             {
                 this.Workspace.StopSolutionCrawler();
-                this.Workspace.Services.GetService<IRemoteHostClientService>()?.Disable();
+
+                DisableRemoteHostClientService();
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.
@@ -152,5 +152,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        private void EnableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+        }
+
+        private void DisableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
+        }
     }
 }

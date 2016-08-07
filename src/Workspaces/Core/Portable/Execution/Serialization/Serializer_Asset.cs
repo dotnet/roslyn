@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Execution
             SerializeDocumentId(info.Id, writer, cancellationToken);
 
             writer.WriteString(info.Name);
-            writer.WriteArray(info.Folders.ToArray());
+            writer.WriteValue(info.Folders.ToArray());
             writer.WriteInt32((int)info.SourceCodeKind);
             writer.WriteString(info.FilePath);
             writer.WriteBoolean(info.IsGenerated);
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             SerializeProjectId(reference.ProjectId, writer, cancellationToken);
-            writer.WriteArray(reference.Aliases.ToArray());
+            writer.WriteValue(reference.Aliases.ToArray());
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void SerializeSolutionId(SolutionId solutionId, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            writer.WriteArray(solutionId.Id.ToByteArray());
+            writer.WriteValue(solutionId.Id.ToByteArray());
             writer.WriteString(solutionId.DebugName);
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public static void SerializeProjectId(ProjectId projectId, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            writer.WriteArray(projectId.Id.ToByteArray());
+            writer.WriteValue(projectId.Id.ToByteArray());
             writer.WriteString(projectId.DebugName);
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             SerializeProjectId(documentId.ProjectId, writer, cancellationToken);
 
-            writer.WriteArray(documentId.Id.ToByteArray());
+            writer.WriteValue(documentId.Id.ToByteArray());
             writer.WriteString(documentId.DebugName);
         }
 

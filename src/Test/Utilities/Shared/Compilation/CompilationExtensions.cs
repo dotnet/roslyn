@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationTestData testData = null,
             DiagnosticDescription[] expectedWarnings = null,
             Stream pdbStream = null,
-            IMethodSymbol debugEntryPoint = null)
+            IMethodSymbol debugEntryPoint = null,
+            Stream sourceLinkStream = null)
         {
             var peStream = new MemoryStream();
 
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 manifestResources: null,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
+                sourceLinkStream: sourceLinkStream,
                 testData: testData,
                 cancellationToken: default(CancellationToken));
 

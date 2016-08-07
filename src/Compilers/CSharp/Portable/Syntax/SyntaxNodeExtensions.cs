@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // All these nodes are valid scope designators due to the pattern matching feature.
                     ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
                      (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
-                     (syntax.Parent as ForEachStatementSyntax)?.Expression == syntax ||
+                     (syntax.Parent as CommonForEachStatementSyntax)?.Expression == syntax ||
                      (syntax.Parent as IfStatementSyntax)?.Condition == syntax));
         }
 
@@ -108,6 +108,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return default(SyntaxToken);
                 }
             }
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefTypeSyntax)syntax).Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefExpressionSyntax)syntax).Expression;
+            }
+
+            return syntax;
         }
     }
 }

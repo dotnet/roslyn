@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTreeFactoryServiceFactory), // BasicServicesCore
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationServiceFactory),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory),
-                typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxFactsService),
+                typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
                 typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),

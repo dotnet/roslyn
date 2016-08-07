@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public TTypeDeclarationSyntax TypeNode { get; set; }
             public string TypeName { get; set; }
             public string DocumentName { get; set; }
-            public string TargetFileNameCandidate { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
             private State(TService service, SemanticDocument document)
@@ -74,16 +72,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 DocumentName = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
                 IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentName);
 
-                // TODO: Make this check better, it won't detect Outer.Inner.cs cases.
-                if (string.Equals(DocumentName, TypeName, StringComparison.CurrentCulture))
-                {
-                    // if type name matches document name in a case sensitive manner, we have nothing more to do.
-                    return false;
-                }
-
-                TargetFileNameCandidate = Path.Combine(typeSymbol.Name + Path.GetExtension(this.SemanticDocument.Document.Name));
-
-                return true;
+                // if type name matches document name, per style conventions, we have nothing to do.
+                return !_service.TypeMatchesDocumentName(
+                    TypeNode,
+                    TypeName,
+                    DocumentName,
+                    SemanticDocument.SemanticModel,
+                    cancellationToken);
             }
         }
     }

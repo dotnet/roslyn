@@ -581,10 +581,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.ForEachStatement:
-                    var leftForEach = (ForEachStatementSyntax)leftNode;
-                    var rightForEach = (ForEachStatementSyntax)rightNode;
-                    distance = ComputeWeightedDistance(leftForEach, rightForEach);
-                    return true;
+                    {
+                        var leftForEach = (ForEachStatementSyntax)leftNode;
+                        var rightForEach = (ForEachStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftForEach, rightForEach);
+                        return true;
+                    }
 
                 case SyntaxKind.UsingStatement:
                     var leftUsing = (UsingStatementSyntax)leftNode;

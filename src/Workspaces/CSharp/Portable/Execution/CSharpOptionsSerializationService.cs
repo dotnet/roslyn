@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             WriteCompilationOptionsTo(options, writer, cancellationToken);
 
             var csharpOptions = (CSharpCompilationOptions)options;
-            writer.WriteArray(csharpOptions.Usings.ToArray());
+            writer.WriteValue(csharpOptions.Usings.ToArray());
             writer.WriteBoolean(csharpOptions.AllowUnsafe);
         }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             var csharpOptions = (CSharpParseOptions)options;
             writer.WriteInt32((int)csharpOptions.LanguageVersion);
-            writer.WriteArray(options.PreprocessorSymbolNames.ToArray());
+            writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -11,9 +12,13 @@ namespace Microsoft.CodeAnalysis.Remote
     //       right now, tightly coupled to service hub
     internal abstract class ServiceHubServiceBase : IDisposable
     {
-        private static int s_instanceId = 0;
+        private static int s_instanceId;
 
-        protected readonly int InstanceId = 0;
+        private readonly CancellationTokenSource _source;
+
+        protected readonly JsonRpc Rpc;
+        protected readonly CancellationToken CancellationToken;
+        protected readonly int InstanceId;
         protected readonly TraceSource Logger;
         protected readonly Stream Stream;
 
@@ -25,9 +30,15 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
             Stream = stream;
+
+            _source = new CancellationTokenSource();
+            CancellationToken = _source.Token;
+
+            Rpc = JsonRpc.Attach(stream, this);
+            Rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected string DebugInstanceString => $"{GetType().ToString()} ({InstanceId})";
+        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
         protected virtual void Dispose(bool disposing)
         {
@@ -41,11 +52,31 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
+            Rpc.Dispose();
             Stream.Dispose();
 
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
         }
+
+        protected virtual void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+        {
+            // do nothing
+        }
+
+        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        {
+            // raise cancellation
+            _source.Cancel();
+
+            OnDisconnected(e);
+
+            if (e.Reason != DisconnectedReason.Disposed)
+            {
+                LogError($"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+            }
+        }
+
     }
 }

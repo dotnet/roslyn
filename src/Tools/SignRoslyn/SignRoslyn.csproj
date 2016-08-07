@@ -45,16 +45,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{dcda908d-ef5e-494b-addc-c26f5fd610ca}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Metadata\Metadata.csproj">
-      <Project>{e6796b97-d5c6-45b2-ae46-351d15dcfc71}</Project>
-      <Name>Metadata</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="BatchSignData.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

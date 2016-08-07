@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
-            Dim languageVersion As LanguageVersion = LanguageVersion.VisualBasic15
+            Dim languageVersion As LanguageVersion = LanguageVersion.Latest.MapLatestToVersion()
             Dim mainTypeName As String = Nothing
             Dim win32ManifestFile As String = Nothing
             Dim win32ResourceFile As String = Nothing
@@ -152,6 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
             Dim instrument As String = ""
+            Dim sourceLink As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -616,6 +617,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                             Continue For
 
+                        Case "sourcelink"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sourcelink", ":<file>")
+                            Else
+                                sourceLink = ParseGenericPathToFile(value, diagnostics, baseDirectory)
+                            End If
+                            Continue For
+
                         Case "debug"
                             ' parse only for backwards compat
                             value = RemoveQuotesAndSlashes(value)
@@ -793,6 +803,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         languageVersion = LanguageVersion.VisualBasic14
                                     Case "15", "15.0"
                                         languageVersion = LanguageVersion.VisualBasic15
+                                    Case "default"
+                                        languageVersion = LanguageVersion.Latest.MapLatestToVersion()
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select
@@ -1213,6 +1225,12 @@ lVbRuntimePlus:
 
             ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
 
+            If sourceLink IsNot Nothing Then
+                If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPortablePdb)
+                End If
+            End If
+
             ' Validate root namespace if specified
             Debug.Assert(rootNamespace IsNot Nothing)
             ' NOTE: empty namespace is a valid option
@@ -1344,6 +1362,7 @@ lVbRuntimePlus:
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
                 .EmitPdb = emitPdb,
+                .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer

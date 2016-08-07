@@ -148,12 +148,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            protected override Task SaveAsync(SourceText text, CancellationToken cancellationToken)
+            protected override async Task SaveAsync(SourceText text, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
 
-                _storage = _parent._storageService.CreateTemporaryTextStorage(CancellationToken.None);
-                return _storage.WriteTextAsync(text);
+                var storage = _parent._storageService.CreateTemporaryTextStorage(cancellationToken);
+                await storage.WriteTextAsync(text).ConfigureAwait(false);
+
+                // make sure write is done before setting _storage field
+                Interlocked.CompareExchange(ref _storage, storage, null);
             }
         }
     }

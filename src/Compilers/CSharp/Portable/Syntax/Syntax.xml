@@ -293,6 +293,16 @@
       <summary>Creates an OmittedTypeArgumentSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="RefTypeSyntax" Base="TypeSyntax">
+    <TypeComment>
+      <summary>The ref modifier of a method's return value or a local.</summary>
+    </TypeComment>
+    <Kind Name="RefType"/>
+    <Field Name="RefKeyword" Type="SyntaxToken">
+      <Kind Name="RefKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+  </Node>
   <!-- Expressions -->
   <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
@@ -1121,7 +1131,7 @@
   </Node>
   <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="DeclarationExpression"/>
-    <Field Name="Declaration" Type="VariableDeclarationSyntax">
+    <Field Name="VariableComponent" Type="VariableComponentSyntax">
       <PropertyComment>
         <summary>Declaration representing the variable declared in an out parameter.</summary>
       </PropertyComment>
@@ -1245,12 +1255,6 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the "ref" keyword if present.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <PropertyComment>
         <summary>SyntaxNode representing the body of the lambda expression.</summary>
@@ -1262,6 +1266,13 @@
     <FactoryComment>
       <summary>Creates an SimpleLambdaExpressionSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="RefExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="RefExpression"/>
+    <Field Name="RefKeyword" Type="SyntaxToken">
+      <Kind Name="RefKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
   </Node>
   <Node Name="ParenthesizedLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="ParenthesizedLambdaExpression"/>
@@ -1281,12 +1292,6 @@
       <Kind Name="EqualsGreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing equals greater than.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the "ref" keyword if present.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
@@ -1771,9 +1776,6 @@
   <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalFunctionStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="ReturnType" Type="TypeSyntax"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
@@ -1793,6 +1795,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
+
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalDeclarationStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
@@ -1800,35 +1803,16 @@
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
 
-  <Node Name="VariableDeconstructionDeclaratorSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalFactory="true">
-    <Kind Name="VariableDeconstructionDeclarator"/>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclarationSyntax&gt;"/>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <Kind Name="CloseParenToken"/>
-    </Field>
-    <Field Name="EqualsToken" Type="SyntaxToken" Optional="true">
-      <Kind Name="EqualsToken"/>
-    </Field>
-    <Field Name="Value" Type="ExpressionSyntax" Optional="true"/>
-  </Node>
-
-  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode" AvoidAutoCreation="true" InternalFactory="true">
+  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
     <Kind Name="VariableDeclaration"/>
-    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
-    <Field Name="Deconstruction" Type="VariableDeconstructionDeclaratorSyntax" Optional="true"/>
   </Node>
 
   <Node Name="VariableDeclaratorSyntax" Base="CSharpSyntaxNode">
@@ -1847,11 +1831,79 @@
     <Field Name="EqualsToken" Type="SyntaxToken">
       <Kind Name="EqualsToken"/>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
+    <Field Name="Value" Type="ExpressionSyntax"/>
+  </Node>
+
+  <AbstractNode Name="VariableComponentSyntax" Base="CSharpSyntaxNode">
+  </AbstractNode>
+  <Node Name="TypedVariableComponentSyntax" Base="VariableComponentSyntax">
+    <Kind Name="TypedVariableComponent"/>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Designation" Type="VariableDesignationSyntax"/>
+  </Node>
+  <Node Name="ParenthesizedVariableComponentSyntax" Base="VariableComponentSyntax">
+    <Kind Name="ParenthesizedVariableComponent"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableComponentSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <!--
+  <Node Name="WildcardVariableComponentSyntax" Base="VariableComponentSyntax">
+    <Kind Name="WildcardVariableComponent"/>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+    </Field>
+  </Node>
+  -->
+
+  <AbstractNode Name="VariableDesignationSyntax" Base="CSharpSyntaxNode">
+  </AbstractNode>
+  <Node Name="SingleVariableDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="SingleVariableDesignation"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="ParenthesizedVariableDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="ParenthesizedVariableDesignation"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDesignationSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <!--
+  <Node Name="WildcardVariableDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="WildcardVariableDesignation"/>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+    </Field>
+  </Node>
+  -->
+
+  <Node Name="DeconstructionDeclarationStatementSyntax" Base="StatementSyntax">
+    <Kind Name="DeconstructionDeclarationStatement"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <Field Name="Assignment" Type="VariableComponentAssignmentSyntax"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="VariableComponentAssignmentSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="VariableComponentAssignment"/>
+    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
     </Field>
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
+
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
     <Field Name="Expression" Type="ExpressionSyntax"/>
@@ -1859,6 +1911,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
+
   <Node Name="EmptyStatementSyntax" Base="StatementSyntax">
     <Kind Name="EmptyStatement"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
@@ -1957,9 +2010,6 @@
     <Field Name="ReturnKeyword" Type="SyntaxToken">
       <Kind Name="ReturnKeyword"/>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -2032,9 +2082,8 @@
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
+    <!-- Deconstruction, Declaration, and Initializers are mutually exclusive. -->
+    <Field Name="Deconstruction" Type="VariableComponentAssignmentSyntax" Optional="true"/>
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="FirstSemicolonToken" Type="SyntaxToken">
@@ -2051,22 +2100,15 @@
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
 
-  <Node Name="ForEachStatementSyntax" Base="StatementSyntax" InternalFactory="true">
-    <Kind Name="ForEachStatement"/>
+  <!-- Because there are two forms of the foreach loop, we make an abstract base. -->
+  <AbstractNode Name="CommonForEachStatementSyntax" Base="StatementSyntax">
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
-    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
-      <PropertyComment>
-        <summary>Gets the identifier.</summary>
-      </PropertyComment>
-      <Kind Name="IdentifierToken"/>
-    </Field>
-    <Field Name="DeconstructionVariables" Type="VariableDeclarationSyntax" Optional="true"/>
+    <!-- At this point one of two declaration forms appears -->
     <Field Name="InKeyword" Type="SyntaxToken">
       <Kind Name="InKeyword"/>
     </Field>
@@ -2075,6 +2117,52 @@
       <Kind Name="CloseParenToken"/>
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
+  </AbstractNode>
+  <Node Name="ForEachStatementSyntax" Base="CommonForEachStatementSyntax">
+    <!-- This is the existing C# 6 node. -->
+    <Kind Name="ForEachStatement"/>
+    <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="ForEachKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="InKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax" Override="true"/>
+  </Node>
+  <!-- We name this "DeclarationForEachStatementSyntax" because it can express existing foreach
+       loops. We may elect to represent all foreach loops using this node and deprecate (stop parsing
+       into) the old one. -->
+  <Node Name="ForEachComponentStatementSyntax" Base="CommonForEachStatementSyntax">
+    <Kind Name="ForEachComponentStatement"/>
+    <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="ForEachKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
+    <Field Name="InKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax" Override="true"/>
   </Node>
 
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
@@ -2883,12 +2971,6 @@
       </PropertyComment>
       <Kind Name="DelegateKeyword"/>
     </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "ref" keyword if present.</summary>
-      </PropertyComment>
-    </Field>
     <Field Name="ReturnType" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the return type.</summary>
@@ -3139,9 +3221,6 @@
     <Kind Name="MethodDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="ReturnType" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the return type syntax.</summary>
@@ -3362,9 +3441,6 @@
     <Kind Name="PropertyDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Type" Type="TypeSyntax" Override="true"/>
     <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken">
@@ -3387,9 +3463,6 @@
     <Kind Name="ArrowExpressionClause" />
     <Field Name="ArrowToken" Type="SyntaxToken">
       <Kind Name="EqualsGreaterThanToken" />
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword" />
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
@@ -3414,9 +3487,6 @@
     <Kind Name="IndexerDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
-    </Field>
     <Field Name="Type" Type="TypeSyntax" Override="true"/>
     <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
     <Field Name="ThisKeyword" Type="SyntaxToken">
@@ -3565,9 +3635,6 @@
       <PropertyComment>
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </Node>

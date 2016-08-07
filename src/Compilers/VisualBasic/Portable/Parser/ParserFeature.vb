@@ -32,24 +32,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         DigitSeparators
         BinaryLiterals
         IOperation
-        ImplicitDefaultValueOnOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.DigitSeparators
-                    Return "digitSeparators"
-
-                Case Feature.BinaryLiterals
-                    Return "binaryLiterals"
-
                 Case Feature.IOperation
                     Return "IOperation"
-
-                Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return "implicitDefaultValueOnOptionalParameter"
 
                 Case Else
                     Return Nothing
@@ -90,8 +80,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
 
-                Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return LanguageVersion.VBvNext
+                Case Feature.BinaryLiterals,
+                     Feature.DigitSeparators
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -154,8 +145,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_BinaryLiterals
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
-                Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return ERRID.FEATURE_ImplicitDefaultValueOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

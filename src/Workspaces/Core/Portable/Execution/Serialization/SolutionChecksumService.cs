@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -49,18 +49,28 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public async Task<ChecksumScope> CreateChecksumAsync(Solution solution, CancellationToken cancellationToken)
             {
-                // TODO: add logging mechanism
-                var cache = _caches.CreateRootTreeNodeCache(solution);
+                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_CreateChecksumAsync, cancellationToken))
+                {
+                    var cache = _caches.CreateRootTreeNodeCache(solution);
 
-                var builder = new SnapshotBuilder(cache);
-                var snapshot = new ChecksumScope(_caches, cache, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
+                    var builder = new SnapshotBuilder(cache);
+                    var snapshot = new ChecksumScope(_caches, cache, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
 
-                return snapshot;
+                    return snapshot;
+                }
             }
 
             public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
             {
-                return _caches.GetChecksumObject(checksum, cancellationToken);
+                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObject, GetChecksumLogInfo, checksum, cancellationToken))
+                {
+                    return _caches.GetChecksumObject(checksum, cancellationToken);
+                }
+            }
+
+            private static string GetChecksumLogInfo(Checksum checksum)
+            {
+                return checksum.ToString();
             }
         }
     }
