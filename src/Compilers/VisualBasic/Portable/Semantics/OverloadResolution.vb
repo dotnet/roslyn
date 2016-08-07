@@ -47,9 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            '''<summary>
-            '''Whether the method is used in a lifted to nullable form.
-            '''</summary>
+            ''' <summary>
+            ''' Whether the method is used in a lifted to nullable form.
+            ''' </summary>
             Public Overridable ReadOnly Property IsLifted As Boolean
                 Get
                     Return False
